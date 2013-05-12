@@ -1,3 +1,6 @@
-source "http://rubygems.org"
+source 'https://rubygems.org/'
 
-gem "sinatra"
+gem 'sinatra'
+gem 'haml'
+gem 'sass'
+gem 'rack-coffee'

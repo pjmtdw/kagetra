@@ -44,5 +44,7 @@ for Ubuntu ->
   $ gem install bundler
 (2) Install Sinatra and other Ruby modules
   $ cd kagetra && bundle install --path ./.vendor/bundle
-(3) Run web app
-  $ bundle exec ruby main.rb
+(3) Install JavaScript runtime for ExecJS
+  $ apt-get install nodejs
+(4) Run web app
+  $ bundle exec ./.vendor/bundle/ruby/1.9.1/bin/rackup config.ru

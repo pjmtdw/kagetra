@@ -1,0 +1,48 @@
+[Information]
+AppName: kagetra
+Version: 0.0.1
+License: MIT Lincense
+Developer: Haruhiro Yoshimoto <hpnpwd@gmail.com>
+Description: Groupware specialized to Kyogi-Karuta
+ 
+[Middleware]
+Version Control System:
+  Git
+Programming Language:
+  Ruby 1.9.3
+Ruby Management:
+  rbenv + bundler
+Web Framework:
+  Sinatra + some Padrino modules
+Testing:
+  RSpec
+ORM:
+  DataMapper
+Database:
+  SQLite
+HTML Template Engine:
+  Haml
+CSS Template Engine:
+  Sass(SCSS)
+Meta JavaScript:
+  CoffeeScript
+JavaScript Library:
+  jQuery
+  underscore.js
+  Backbone.js
+Web UI Library:
+  Zurb Foundation 4
+
+[Howto Run]
+(0) Prepare Ruby environment
+for Ubuntu -> 
+  $ apt-get install rbenv
+  $ echo 'eval "$(rbenv init -)"' >> ~/.bashrc
+  $ rbenv alternatives
+  $ cd kagetra && rbenv local 1.9.3-debian
+(1) Install bundler
+  $ gem install bundler
+(2) Install Sinatra and other Ruby modules
+  $ cd kagetra && bundle install --path ./.vendor/bundle
+(3) Run web app
+  $ bundle exec ruby main.rb

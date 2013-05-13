@@ -36,6 +36,7 @@ Web UI Library:
 [Howto Run]
 (0) Prepare Ruby environment
 for Ubuntu -> 
+  $ apt-get install ruby1.9.1 ruby1.9.1-dev libsqlite3-dev
   $ apt-get install rbenv
   $ echo 'eval "$(rbenv init -)"' >> ~/.bashrc
   $ rbenv alternatives
@@ -47,4 +48,4 @@ for Ubuntu ->
 (3) Install JavaScript runtime for ExecJS
   $ apt-get install nodejs
 (4) Run web app
-  $ bundle exec ./.vendor/bundle/ruby/1.9.1/bin/rackup config.ru
+  $ cd kagetra && bundle exec ./.vendor/bundle/ruby/1.9.1/bin/rackup config.ru

@@ -1,4 +1,3 @@
-require 'sinatra'
 class MainApp < Sinatra::Base
   enable :sessions
   get '/' do
@@ -8,6 +7,6 @@ class MainApp < Sinatra::Base
       session[:count] += 1
     end
     count = session[:count]
-    haml :index, :locals => {:count => count}
+    haml :index, :locals => {:count => count, :page_title => "counter"}
   end
 end

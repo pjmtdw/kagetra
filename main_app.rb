@@ -1,4 +1,5 @@
 class MainApp < Sinatra::Base
+  helpers Kagetra::Helpers
   enable :sessions
   get '/user/initials' do
     content_type :json
@@ -14,13 +15,30 @@ class MainApp < Sinatra::Base
     }.to_json
 
   end
-  get '/' do
+  post '/user/auth' do
+    content_type :json
+    res = if params[:password] == "dummy" then
+      u = User.first(:id => params[:user_id])
+      u.update_token!
+      session[:user_id] = params[:user_id]
+      session[:user_token] = u.token
+      "OK"
+    else
+      "FAIL"
+    end
+    {:result => res}.to_json
+  end
+  get '/top' do
     if not session.has_key?(:count) then
       session[:count] = 0
     else
       session[:count] += 1
     end
     count = session[:count]
-    haml :index, :locals => {:count => count, :page_title => "counter"}
+    user = get_user
+    haml :top, :locals => {:count => count, :page_title => "counter", :user => user}
+  end
+  get '/' do
+    haml :index
   end
 end

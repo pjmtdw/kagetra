@@ -1,6 +1,7 @@
 require 'bundler'
 require 'sinatra'
 require 'sass/plugin/rack'
+require 'json'
 require 'data_mapper'
 require 'dm-sqlite-adapter'
 require 'securerandom'

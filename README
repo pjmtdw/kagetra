@@ -23,7 +23,7 @@ Database:
 HTML Template Engine:
   Haml
 CSS Template Engine:
-  Sass(SCSS)
+  Sass(SCSS) + Compass
 Meta JavaScript:
   CoffeeScript
 JavaScript Library:
@@ -44,8 +44,13 @@ for Ubuntu ->
 (1) Install bundler
   $ gem install bundler
 (2) Install Sinatra and other Ruby modules
-  $ cd kagetra && bundle install --path ./.vendor/bundle
+  $ cd kagetra && bundle install
+  NOTE: Since `path '.vendor/bundle'` is in Gemfile,
+        we do not have to specify --path
 (3) Install JavaScript runtime for ExecJS
   $ apt-get install nodejs
 (4) Run web app
-  $ cd kagetra && bundle exec ./.vendor/bundle/ruby/1.9.1/bin/rackup config.ru
+  $ cd kagetra && bundle exec rackup config.ru
+[For Production]
+(1) Compile Sass to CSS
+  $ bundle exec compass compile

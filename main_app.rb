@@ -1,32 +1,38 @@
 class MainApp < Sinatra::Base
-  helpers Kagetra::Helpers
   enable :sessions
-  get '/user/initials' do
-    content_type :json
-    User.all.map{|x|x.furigana[0]}.uniq.sort.map{|x|
-      [x.unpack("U*")[0],x]
-    }.to_json
+  helpers Kagetra::Helpers
+  configure :development do
+    register Sinatra::Reloader
   end
-  get '/user/list/:initial' do
-    content_type :json
-    word = [params[:initial].to_i].pack("U*")
-    User.all(:order => [:furigana.asc], :furigana.like => "#{word}%").map{|x|
-      [x.id,x.name]
-    }.to_json
-
-  end
-  post '/user/auth' do
-    content_type :json
-    res = if params[:password] == "dummy" then
-      u = User.first(:id => params[:user_id])
-      u.update_token!
-      session[:user_id] = params[:user_id]
-      session[:user_token] = u.token
-      "OK"
-    else
-      "FAIL"
+  register Sinatra::Namespace
+  namespace '/user' do
+    before do
+      content_type :json
     end
-    {:result => res}.to_json
+    get '/initials' do
+      User.all.map{|x|x.furigana[0]}.uniq.sort.map{|x|
+        [x.unpack("U*")[0],x]
+      }.to_json
+    end
+    get '/list/:initial' do
+      word = [params[:initial].to_i].pack("U*")
+      User.all(:order => [:furigana.asc], :furigana.like => "#{word}%").map{|x|
+        [x.id,x.name]
+      }.to_json
+
+    end
+    post '/auth' do
+      res = if params[:password] == "dummy" then
+        u = User.first(:id => params[:user_id])
+        u.update_token!
+        session[:user_id] = params[:user_id]
+        session[:user_token] = u.token
+        "OK"
+      else
+        "FAIL"
+      end
+      {:result => res}.to_json
+    end
   end
   get '/top' do
     if not session.has_key?(:count) then

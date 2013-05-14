@@ -1,5 +1,7 @@
 require 'bundler'
 require 'sinatra'
+require 'sinatra/reloader' if development?
+require 'sinatra/namespace'
 require 'sass/plugin/rack'
 require 'json'
 require 'data_mapper'

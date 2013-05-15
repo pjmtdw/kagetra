@@ -3,6 +3,7 @@ require 'bundler'
 require 'sinatra'
 require 'sinatra/reloader' if development?
 require 'sinatra/namespace'
+require 'sass/plugin/rack'
 
 require 'compass'
 
@@ -19,10 +20,18 @@ CONF_APP_NAME='景虎'
 
 Bundler.require(:default)
 
-# Compass load path
-Sass::Engine::DEFAULT_OPTIONS[:load_paths].tap do |load_paths|
-  load_paths << "#{Gem.loaded_specs['compass'].full_gem_path}/frameworks/compass/stylesheets"
-end
+# Auto-Compile Sass to CSS
+Sass::Plugin.options.merge!({
+  :style => :compressed,
+  :load_paths => [
+    "#{Gem.loaded_specs['compass'].full_gem_path}/frameworks/compass/stylesheets",
+    "#{Gem.loaded_specs['zurb-foundation'].full_gem_path}/scss"
+    ],
+  :template_location => {
+    './views/sass' => './public/stylesheets'
+  }
+})
+use Sass::Plugin::Rack
 
 # Auto-Compile CoffeeScript to JavaScript
 use Rack::Coffee, root: 'public', urls: '/javascripts'

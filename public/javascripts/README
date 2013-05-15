@@ -1,2 +1,11 @@
-json2.js was downloaded from:
-https://github.com/douglascrockford/JSON-js
+---
+FileName: json2.js
+URL: https://github.com/douglascrockford/JSON-js
+---
+DirName: CryptoJS
+Description: CryptoJS v3.1.2
+URL: https://code.google.com/p/crypto-js/
+---
+DirName: foundation
+Description: Zurb Foundation 4 JavaScript
+---

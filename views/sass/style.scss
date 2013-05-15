@@ -1,0 +1,9 @@
+@import "base";
+.round {
+  border: 5px solid purple;
+  @include border-radius(8px);
+}
+
+.auth-alert {
+  @include alert;
+}

@@ -24,7 +24,3 @@ $(document).ready ->
   $(document).foundation()
   $("#initials").change(on_initials_change)
   $("#main-form").submit(on_main_form_submit)
-  $.ajax '/user/initials',
-    success: (data)->
-      $("#initials").html data_to_option(data)
-      on_initials_change()

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 module Kagetra
   module Helpers
     def get_user

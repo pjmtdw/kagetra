@@ -12,6 +12,7 @@ require 'data_mapper'
 require 'dm-sqlite-adapter'
 require 'securerandom'
 
+require './utils'
 require './helpers'
 require './model'
 require './main_app'

@@ -1,1 +1,7 @@
-- Use Zepto
+- use Zepto
+- compress
+  use Rack::Static,
+    :urls => ["/images", "/js", "/css"],
+    :root => "public"
+  use Rack::Deflater
+- nginx + unicorn

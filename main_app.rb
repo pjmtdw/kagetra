@@ -10,14 +10,9 @@ class MainApp < Sinatra::Base
     before do
       content_type :json
     end
-    get '/initials' do
-      User.all.map{|x|x.furigana[0]}.uniq.sort.map{|x|
-        [x.unpack("U*")[0],x]
-      }.to_json
-    end
     get '/list/:initial' do
-      word = [params[:initial].to_i].pack("U*")
-      User.all(:order => [:furigana.asc], :furigana.like => "#{word}%").map{|x|
+      row = params[:initial].to_i
+      User.all(:order => [:furigana.asc], :furigana_row => row).map{|x|
         [x.id,x.name]
       }.to_json
 

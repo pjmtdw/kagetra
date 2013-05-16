@@ -1,5 +1,8 @@
 %div
   %select#initials
+    - Kagetra.gojuon_row_names.each_with_index do |name,index|
+      %option(value=index)= name
+    %option(value="-1") その他
   %select#names
 %form#main-form
   %input(type='password')

@@ -1,23 +1,4 @@
-require 'bundler'
-
-require 'sinatra'
-require 'sinatra/reloader' if development?
-require 'sinatra/namespace'
-require 'sass/plugin/rack'
-
-require 'compass'
-
-require 'json'
-require 'data_mapper'
-require 'dm-sqlite-adapter'
-require 'securerandom'
-
-require './utils'
-require './helpers'
-require './model'
-require './main_app'
-
-CONF_APP_NAME='景虎'
+require './init'
 
 Bundler.require(:default)
 

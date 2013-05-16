@@ -30,4 +30,13 @@ module Kagetra
       x[:name]
     }
   end
+  def self.hash_password(pass,salt=nil)
+    salt ||= SecureRandom.base64(24)
+    # Iteration must be at least 1,000 for secure pbkdf2.
+    # However, CryptoJS is too slow for executing 1,000 iterations on browser.
+    {
+     :hash => Base64.encode64(OpenSSL::PKCS5.pbkdf2_hmac_sha1(pass,salt,100,32)).gsub("\n",""),
+     :salt => salt
+    }
+  end
 end

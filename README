@@ -54,3 +54,5 @@ for Ubuntu ->
 [For Production]
 (1) Compile Sass to CSS
   $ bundle exec compass compile
+(2) Set shared password
+  $ bundle exec ruby ./scripts/shared_password.rb

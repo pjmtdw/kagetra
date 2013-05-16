@@ -10,12 +10,14 @@ class MainApp < Sinatra::Base
     before do
       content_type :json
     end
+    after do
+      response.body = response.body.to_json
+    end
     get '/list/:initial' do
       row = params[:initial].to_i
       User.all(:order => [:furigana.asc], :furigana_row => row).map{|x|
         [x.id,x.name]
-      }.to_json
-
+      }
     end
     post '/auth' do
       res = if params[:password] == "dummy" then
@@ -27,7 +29,19 @@ class MainApp < Sinatra::Base
       else
         "FAIL"
       end
-      {:result => res}.to_json
+      {:result => res}
+    end
+    post '/auth_shared' do
+      hash = MyConf.first(:name => "shared_password").value["hash"]
+      rand = params[:rand]
+      trial_hash = params[:hash]
+      correct_hash = Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::Digest.new('sha256'), hash, rand)).gsub("\n","")
+      res = if trial_hash == correct_hash then
+              "OK"
+            else
+              "FAIL"
+            end
+      {:result => res}
     end
   end
   get '/top' do
@@ -41,6 +55,8 @@ class MainApp < Sinatra::Base
     haml :top, :locals => {:count => count, :page_title => "counter", :user => user}
   end
   get '/' do
-    haml :index
+    shared_salt = MyConf.first(:name => "shared_password").value["salt"]
+    shared_rand = SecureRandom.base64(24)
+    haml :index, :locals => {:shared_salt => shared_salt, :shared_rand => shared_rand}
   end
 end

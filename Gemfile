@@ -10,6 +10,7 @@ gem 'rack-coffee'
 gem 'zurb-foundation'
 gem 'compass'
 
+gem 'sqlite3'
 gem 'data_mapper'
 gem 'dm-sqlite-adapter'
-gem 'sqlite3'
+gem 'dm-types'

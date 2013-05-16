@@ -1,3 +1,5 @@
+%form#shared-pass
+  %input(type='password')
 %div
   %select#initials
     - Kagetra.gojuon_row_names.each_with_index do |name,index|
@@ -9,4 +11,6 @@
 .alert-box(data-alert)
   This is Closable Alert
   %a.close(href="#") &times;
-
+%script
+  var g_shared_salt="#{shared_salt}"
+  var g_shared_rand="#{shared_rand}"

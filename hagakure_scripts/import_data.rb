@@ -1,9 +1,5 @@
 HAGAKURE_BASE="/home/maho/hagakure/subdomains/hagakure/httpdocs"
-Dir.chdir(File.join(File.dirname(File.expand_path(__FILE__)),".."))
-require 'data_mapper'
-require 'dm-sqlite-adapter'
-require './utils'
-require './model'
+require './init'
 File.readlines(File.join(HAGAKURE_BASE,"txts","namelist.cgi")).each_with_index{|code,index|
   next if index == 0
   code.chomp!

@@ -1,0 +1,21 @@
+require.js
+  RequireJS ver 2.1.6
+  http://requirejs.org/
+underscore.js
+  Underscore.JS ver 1.4.4
+  http://underscorejs.org/
+jquery.js
+  jQuery ver 1.9.1
+  http://jquery.com/
+backbone.js
+  Backbone.js ver 1.0.0
+  http://backbonejs.org/
+json2.js
+  JSON-js @ 2013.05.14
+  https://github.com/douglascrockford/JSON-js
+CryptoJS/
+  CryptoJS ver 3.1.2
+  https://code.google.com/p/crypto-js/
+foundation/
+  Zurb Foundation JavaScript ver 4.1.6
+  http://foundation.zurb.com/

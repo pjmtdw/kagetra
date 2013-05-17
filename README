@@ -30,6 +30,7 @@ JavaScript Library:
   jQuery
   underscore.js
   Backbone.js
+  RequireJS
 Web UI Library:
   Zurb Foundation 4
 

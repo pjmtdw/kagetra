@@ -1,11 +1,20 @@
 define ->
+  UserListModel = Backbone.Model.extend
+    urlRoot: "/user/list"
+
+  UserListView = Backbone.View.extend
+    el: $("#user-list")
+    initialize: -> this.render()
+    events:
+      "change #initials": "render"
+    render: ->
+      this.model.set id:$("#initials").val()
+      this.model.fetch
+        success: (data) ->
+          $("#names").html data_to_option(data.toJSON().list)
+
   data_to_option = (data) ->
     ("<option value='#{a}'>#{b}</option>" for [a,b] in data).join()
-  on_initials_change = ->
-    code = $("#initials").val()
-    $.ajax "/user/list/#{code}",
-      success: (data)->
-        $("#names").html data_to_option(data)
 
   on_shared_pass_submit = ->
     p = $("#shared-pass input[type=password]").val()
@@ -40,6 +49,6 @@ define ->
   ->
     $(document).ready ->
       $(document).foundation()
-      $("#initials").change(on_initials_change)
       $("#main-form").submit(on_main_form_submit)
       $("#shared-pass").submit(on_shared_pass_submit)
+      new UserListView({model: new UserListModel()})

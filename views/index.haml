@@ -1,6 +1,6 @@
 %form#shared-pass
   %input(type='password')
-%div
+%div#user-list
   %select#initials
     - Kagetra::Utils.gojuon_row_names.each_with_index do |name,index|
       %option(value=index)= name

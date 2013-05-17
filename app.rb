@@ -15,9 +15,9 @@ class MainApp < Sinatra::Base
     end
     get '/list/:initial' do
       row = params[:initial].to_i
-      User.all(:order => [:furigana.asc], :furigana_row => row).map{|x|
+      {:list => User.all(:order => [:furigana.asc], :furigana_row => row).map{|x|
         [x.id,x.name]
-      }
+      }}
     end
     post '/auth' do
       res = if params[:password] == "dummy" then

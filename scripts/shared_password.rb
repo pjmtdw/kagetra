@@ -11,6 +11,10 @@ $stdin.noecho{|stdin|
     puts "two passwords does not match"
     exit
   end
-  puts "saving shared password to db"
+
+  hash = Kagetra::Utils.hash_password(pass1)
+  User.create(:name => "admin", :furigana => "admin", :password_hash => hash[:hash], :password_salt => hash[:salt])
+  puts "created user 'admin' with user_password == shard_password "
   MyConf.create(:name => "shared_password", :value => Kagetra::Utils.hash_password(pass1))
+  puts "saved shared password to db"
 }

@@ -19,11 +19,16 @@ class MainApp < Sinatra::Base
         [x.id,x.name]
       }}
     end
-    post '/auth' do
-      res = if params[:password] == "dummy" then
-        u = User.first(:id => params[:user_id])
+    post '/auth_user' do
+      uid = params[:user_id]
+      hash = User.first(:id => uid).password_hash
+      msg = params[:msg]
+      trial_hash = params[:hash]
+      correct_hash = Kagetra::Utils.hmac_password(hash,msg)
+      res = if trial_hash == correct_hash then
+        u = User.first(:id => uid)
         u.update_token!
-        session[:user_id] = params[:user_id]
+        session[:user_id] = uid
         session[:user_token] = u.token
         "OK"
       else
@@ -31,16 +36,18 @@ class MainApp < Sinatra::Base
       end
       {:result => res}
     end
+    get '/auth_salt/:id' do
+      p params[:id]
+      {:salt => User.first(:id => params[:id]).password_salt}
+    end
     post '/auth_shared' do
       hash = MyConf.first(:name => "shared_password").value["hash"]
-      rand = params[:rand]
+      # TODO: msg must be something hard to be counterfeited
+      #   e.g. random string generated and stored to server, ip address
+      msg = params[:msg]
       trial_hash = params[:hash]
-      correct_hash = Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::Digest.new('sha256'), hash, rand)).gsub("\n","")
-      res = if trial_hash == correct_hash then
-              "OK"
-            else
-              "FAIL"
-            end
+      correct_hash = Kagetra::Utils.hmac_password(hash,msg)
+      res = if trial_hash == correct_hash then "OK" else "FAIL" end
       {:result => res}
     end
   end

@@ -1,15 +1,34 @@
-%form#shared-pass
-  %input(type='password')
-%div#user-list
-  %select#initials
-    - Kagetra::Utils.gojuon_row_names.each_with_index do |name,index|
-      %option(value=index)= name
-    %option(value="-1") その他
-  %select#names
-%form#main-form
-  %input(type='password')
-.alert-box(data-alert)
-  This is Closable Alert
-  %a.close(href="#") &times;
+.row
+  %form#shared-pass.large-6.columns
+    %fieldset
+      %legend ログイン
+      .row
+        .large-8.columns
+          %label 共通パスワード
+          .row
+            .large-11.small-11.columns
+              %input(type='password')
+            .large-1.small-1.columns
+              %input(type='submit' value='GO')
+.row
+  %form#login.large-6.columns.hide
+    %fieldset
+      %legend ログイン
+      .row
+        .large-3.columns
+          %select#initials
+            - Kagetra::Utils.gojuon_row_names.each_with_index do |name,index|
+              %option(value=index)= name
+            %option(value="-1") その他
+        .large-9.columns
+          %select#names
+      .row
+        .large-8.columns
+          %label 個人パスワード
+          .row
+            .large-11.small-11.columns
+              %input(type='password')
+            .large-1.small-1.columns
+              %input(type='submit' value='GO')
 %script
   var g_shared_salt="#{shared_salt}"

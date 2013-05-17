@@ -3,7 +3,7 @@ define ->
     urlRoot: "/user/list"
 
   UserListView = Backbone.View.extend
-    el: $("#user-list")
+    el: $("#login")
     initialize: -> this.render()
     events:
       "change #initials": "render"
@@ -16,39 +16,50 @@ define ->
   data_to_option = (data) ->
     ("<option value='#{a}'>#{b}</option>" for [a,b] in data).join()
 
-  on_shared_pass_submit = ->
-    p = $("#shared-pass input[type=password]").val()
-    k = CryptoJS.PBKDF2(p,g_shared_salt, {keySize: 256/32, iterations: 100})
-    secret = k.toString(CryptoJS.enc.Base64)
+  hash_password = (pass,salt) ->
+    pbk = CryptoJS.PBKDF2(pass,salt, {keySize: 256/32, iterations: 100})
+    secret = pbk.toString(CryptoJS.enc.Base64)
     hmac = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, secret)
-    rands = CryptoJS.lib.WordArray.random(128/8).toString(CryptoJS.enc.Base64)
-    hmac.update(rands)
+    msg = CryptoJS.lib.WordArray.random(128/8).toString(CryptoJS.enc.Base64)
+    hmac.update(msg)
     hash = hmac.finalize().toString(CryptoJS.enc.Base64)
+    [hash, msg]
 
-    $.ajax '/user/auth_shared',
-      type: 'POST'
-      data:
-        hash: hash
-        rand: rands
-      success: (data) ->
-        alert(data.result)
+  on_shared_pass_submit = ->
+    password = $("#shared-pass input[type=password]").val()
+    [hash,msg] = hash_password(password ,g_shared_salt)
+    $.post '/user/auth_shared',
+      hash: hash
+      msg: msg
+    .done (data) ->
+      if data.result == "OK"
+        $("#shared-pass").addClass("hide")
+        $("#login").removeClass("hide")
+        new UserListView({model: new UserListModel()})
+      else
+        alert("パスワードが違います")
     false
 
-  on_main_form_submit = ->
-    $.ajax '/user/auth',
-      type: 'POST'
-      data:
-        user_id: $("#names").val()
-        password: $("#main-form input[type=password]").val()
-      success: (data) ->
-        if data.result == "OK"
-          window.location.replace("/top")
-        else
-          alert("Authentication Failed")
+  on_login_submit = ->
+    user_id = $("#names").val()
+    password = $("#login input[type=password]").val()
+    first = ->
+      $.get "/user/auth_salt/#{user_id}"
+    second = (data) ->
+      [hash, msg] = hash_password(password,data.salt)
+      $.post '/user/auth_user',
+        user_id: user_id
+        hash: hash
+        msg: msg
+    $.when(first()).then(second).done (data) ->
+      if data.result == "OK"
+        window.location.replace("/top")
+      else
+        alert("パスワードが違います")
     false
   ->
     $(document).ready ->
       $(document).foundation()
-      $("#main-form").submit(on_main_form_submit)
+      $("#login").submit(on_login_submit)
       $("#shared-pass").submit(on_shared_pass_submit)
-      new UserListView({model: new UserListModel()})
+      $("#shared-pass input[type=password]").focus()

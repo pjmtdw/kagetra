@@ -40,5 +40,8 @@ module Kagetra
        :salt => salt
       }
     end
+    def self.hmac_password(hash,msg)
+      Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::Digest.new('sha256'), hash, msg)).gsub("\n","")
+    end
   end
 end

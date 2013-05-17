@@ -13,7 +13,7 @@ class User
   property :admin,         Boolean, :default => false
 
   before :save do
-    self.furigana_row = Kagetra.gojuon_row_num(self.furigana)
+    self.furigana_row = Kagetra::Utils.gojuon_row_num(self.furigana)
   end
 
   def update_token!

@@ -12,5 +12,5 @@ $stdin.noecho{|stdin|
     exit
   end
   puts "saving shared password to db"
-  MyConf.create(:name => "shared_password", :value => Kagetra.hash_password(pass1))
+  MyConf.create(:name => "shared_password", :value => Kagetra::Utils.hash_password(pass1))
 }

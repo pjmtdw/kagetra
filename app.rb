@@ -56,7 +56,6 @@ class MainApp < Sinatra::Base
   end
   get '/' do
     shared_salt = MyConf.first(:name => "shared_password").value["salt"]
-    shared_rand = SecureRandom.base64(24)
-    haml :index, :locals => {:shared_salt => shared_salt, :shared_rand => shared_rand}
+    haml :index, :locals => {:shared_salt => shared_salt}
   end
 end

@@ -1,4 +1,4 @@
-define ["crypto","jquery"], (CryptoJS,$) ->
+define ->
   data_to_option = (data) ->
     ("<option value='#{a}'>#{b}</option>" for [a,b] in data).join()
   on_initials_change = ->
@@ -12,14 +12,15 @@ define ["crypto","jquery"], (CryptoJS,$) ->
     k = CryptoJS.PBKDF2(p,g_shared_salt, {keySize: 256/32, iterations: 100})
     secret = k.toString(CryptoJS.enc.Base64)
     hmac = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, secret)
-    hmac.update(g_shared_rand)
+    rands = CryptoJS.lib.WordArray.random(128/8).toString(CryptoJS.enc.Base64)
+    hmac.update(rands)
     hash = hmac.finalize().toString(CryptoJS.enc.Base64)
 
     $.ajax '/user/auth_shared',
       type: 'POST'
       data:
         hash: hash
-        rand: g_shared_rand
+        rand: rands
       success: (data) ->
         alert(data.result)
     false

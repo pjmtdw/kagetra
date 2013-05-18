@@ -2,7 +2,8 @@
 %html
   %head
     %title #{CONF_APP_NAME} #{if defined? page_title then " - " + page_title else "" end}
-    %link(rel="stylesheet" href="/stylesheets/style.css")
+    %link(rel="shortcut icon" href="/img/favicon.ico")
+    %link(rel="stylesheet" href="/css/style.css")
   %body
     = yield
-    %script(data-main="javascripts/main" src="javascripts/libs/require.js")
+    %script(data-main="js/main" src="js/libs/require.js")

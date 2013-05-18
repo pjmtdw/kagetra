@@ -10,12 +10,12 @@ Sass::Plugin.options.merge!({
     "#{Gem.loaded_specs['zurb-foundation'].full_gem_path}/scss"
     ],
   :template_location => {
-    './views/sass' => './public/stylesheets'
+    './views/sass' => './public/css'
   }
 })
 use Sass::Plugin::Rack
 
 # Auto-Compile CoffeeScript to JavaScript
-use Rack::Coffee, root: 'public', urls: '/javascripts'
+use Rack::Coffee, root: 'public', urls: '/js'
 
 run MainApp

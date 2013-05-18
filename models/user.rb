@@ -1,5 +1,3 @@
-DataMapper.setup(:default, "sqlite3://#{Dir.pwd}/db/data.db")
-
 class User
   include DataMapper::Resource
   property :id,            Serial
@@ -24,12 +22,3 @@ class User
   end
 end
 
-class MyConf
-  include DataMapper::Resource
-  property :id,    Serial
-  property :name,  Text, :unique => true
-  property :value, Json
-end
-
-DataMapper.finalize
-DataMapper.auto_upgrade!

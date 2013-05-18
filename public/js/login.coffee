@@ -53,7 +53,7 @@ define ->
         msg: msg
     $.when(first()).then(second).done (data) ->
       if data.result == "OK"
-        window.location.replace("/top")
+        window.location.href = "/top"
       else
         alert("パスワードが違います")
     false

@@ -1157,7 +1157,7 @@ $em-base: 16px !default;
 
 // Background color for the top bar
 
-// $topbar-bg: #111;
+$topbar-bg: #036;
 
 // Height and margin
 
@@ -1178,7 +1178,7 @@ $em-base: 16px !default;
 // $topbar-link-color: #fff;
 // $topbar-link-weight: bold;
 // $topbar-link-font-size: emCalc(13px);
-// $topbar-link-hover-lightness: -30% !default; // Darken by 30%
+$topbar-link-hover-lightness: +15% !default; // Darken by 30%
 
 // Top bar dropdown elements
 

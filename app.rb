@@ -65,4 +65,9 @@ class MainApp < Sinatra::Base
     shared_salt = MyConf.first(:name => "shared_password").value["salt"]
     haml :index, :locals => {:shared_salt => shared_salt}
   end
+  get '/logout' do
+    get_user.update_token!
+    session.clear
+    redirect '/'
+  end
 end

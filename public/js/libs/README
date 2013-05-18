@@ -13,9 +13,15 @@ backbone.js
 json2.js
   JSON-js @ 2013.05.14
   https://github.com/douglascrockford/JSON-js
+modernizr.js
+  Modernizr 2.6.2 Custom Build
+  NOTE: copied from files in Zurb Foundation ver 4.1.6
+  http://modernizr.com/
 CryptoJS/
   CryptoJS ver 3.1.2
   https://code.google.com/p/crypto-js/
 foundation/
   Zurb Foundation JavaScript ver 4.1.6
+  NOTE: copied from files in gem
   http://foundation.zurb.com/
+

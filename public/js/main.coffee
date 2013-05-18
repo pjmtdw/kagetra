@@ -3,8 +3,9 @@ requirejs.config
     jquery: "libs/jquery"
     backbone: "libs/backbone"
     underscore: "libs/underscore"
+    modernizr: "libs/modernizr"
     foundation: "libs/foundation/foundation"
-    "foundation.alerts": "libs/foundation/foundation.alerts"
+    "foundation.topbar": "libs/foundation/foundation.topbar"
     "crypto-pbkdf2": "libs/CryptoJS/rollups/pbkdf2"
     "crypto-hmac": "libs/CryptoJS/rollups/hmac-sha256"
     "crypto-base64": "libs/CryptoJS/components/enc-base64-min"
@@ -20,11 +21,11 @@ requirejs.config
       deps: ["jquery","underscore","libs/json2"]
       exports: "Backbone"
     foundation:
-      deps: ["jquery"]
-    "foundation.alerts":
+      deps: ["jquery","modernizr"]
+    "foundation.topbar":
       deps: ["foundation"]
     login:
-      deps: ["backbone", "foundation.alerts",
+      deps: ["backbone", "foundation.topbar",
              "crypto-hmac", "crypto-base64", "crypto-pbkdf2"]
     "crypto-hmac":
       deps: ["crypto"]

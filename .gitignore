@@ -3,5 +3,5 @@
 .sass-cache/
 .rbenv-version
 db/
-public/stylesheets/style.css
+public/css/
 Gemfile.lock

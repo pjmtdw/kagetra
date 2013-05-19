@@ -6,4 +6,7 @@
     %link(rel="stylesheet" href="/css/style.css")
   %body
     = yield
-    %script(data-main="js/main" src="js/libs/require.js")
+    - if settings.development?
+      %script(data-main="js/main" src="js/libs/require.js")
+    -else
+      %script(data-main="js/kagetra.min" src="js/libs/require.js")

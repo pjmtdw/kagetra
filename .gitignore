@@ -4,4 +4,8 @@
 .rbenv-version
 db/
 public/css/
+public/js/*.js
 Gemfile.lock
+deploy/log/
+deploy/sock/
+deploy/pid/

@@ -5,6 +5,7 @@ require 'sinatra'
 require 'sinatra/reloader' if development?
 require 'sinatra/namespace'
 require 'sass/plugin/rack' if development?
+require 'haml'
 
 require 'json'
 require 'base64'

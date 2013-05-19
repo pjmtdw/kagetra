@@ -57,3 +57,14 @@ for Ubuntu ->
   $ bundle exec compass compile
 (2) Set shared password
   $ bundle exec ruby ./scripts/shared_password.rb
+(3) Optimize Javascripts (compress and minify)
+  $ npm install requirejs coffee-script
+  $ cd deploy && make
+(4) Setup nginx
+  $ apt-get install nginx
+  $ cp ./deploy/nginx.site.example /etc/nginx/sites-available/kagetra
+  edit /etc/nginx/sites-available/kagetra and set proper path
+  $ ln -s /etc/nginx/sites-available/kagetra /etc/nginx/sites-enabled/
+(5) Start unicorn and nginx
+  $ service start nginx
+  $ bundle exec unicorn -E deployment -c deploy/unicorn.rb -D

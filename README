@@ -57,9 +57,10 @@ for Ubuntu ->
   $ bundle exec compass compile
 (2) Set shared password
   $ bundle exec ruby ./scripts/shared_password.rb
-(3) Optimize Javascripts (compress and minify)
+(3) Compile & Optimize Sass and CoffeeScripts
   $ npm install requirejs coffee-script
   $ cd deploy && make
+  now public/css and public/js files are generated
 (4) Setup nginx
   $ apt-get install nginx
   $ cp ./deploy/nginx.site.example /etc/nginx/sites-available/kagetra

@@ -3,8 +3,10 @@
 .sass-cache/
 .rbenv-version
 db/
+node_modules/
 public/css/
 public/js/*.js
+public/js_dist/
 Gemfile.lock
 deploy/log/
 deploy/sock/

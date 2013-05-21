@@ -6,6 +6,7 @@ requirejs.config
     modernizr: "libs/modernizr"
     foundation: "libs/foundation/foundation"
     "foundation.topbar": "libs/foundation/foundation.topbar"
+    crypto: "libs/CryptoJS/crypto"
     "crypto-pbkdf2": "libs/CryptoJS/rollups/pbkdf2"
     "crypto-hmac": "libs/CryptoJS/rollups/hmac-sha256"
     "crypto-base64": "libs/CryptoJS/components/enc-base64-min"
@@ -24,9 +25,6 @@ requirejs.config
       deps: ["jquery","modernizr"]
     "foundation.topbar":
       deps: ["foundation"]
-    login:
-      deps: ["backbone", "foundation.topbar",
-             "crypto-hmac", "crypto-base64", "crypto-pbkdf2"]
     "crypto-hmac":
       deps: ["crypto"]
     "crypto-base64":
@@ -34,7 +32,8 @@ requirejs.config
     "crypto-pbkdf2": 
       deps: ["crypto"]
 
-define 'crypto',["crypto-core"], -> CryptoJS
-
-require ["login"],
-  (main) -> main()
+require ["jquery","foundation","backbone"], -> 
+  $ = require("jquery")
+  mod_name = $("script[data-start]").attr("data-start")
+  if mod_name
+    require [mod_name], (mod) -> mod()

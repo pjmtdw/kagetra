@@ -1,4 +1,4 @@
-define ->
+define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
   UserListModel = Backbone.Model.extend
     urlRoot: "/user/list"
 
@@ -58,8 +58,9 @@ define ->
         alert("パスワードが違います")
     false
   ->
-    $(document).ready ->
+    $(->
       $(document).foundation()
+      console.log("login")
       $("#login").submit(on_login_submit)
       $("#shared-pass").submit(on_shared_pass_submit)
-      $("#shared-pass input[type=password]").focus()
+      $("#shared-pass input[type=password]").focus())

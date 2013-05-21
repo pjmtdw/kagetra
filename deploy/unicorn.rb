@@ -1,6 +1,6 @@
 @cur = File.dirname(File.realpath(__FILE__))
 @dir = File.realpath(File.join(@cur,".."))
-worker_processes 2
+worker_processes 1
 working_directory @dir
 
 timeout 60

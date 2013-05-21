@@ -1,5 +1,7 @@
 class MainApp < Sinatra::Base
   enable :sessions
+  set :session_secret, (ENV["RACK_SESSION_SECRET"] || SecureRandom.hex(64))
+
   configure :development do
     register Sinatra::Reloader
   end

@@ -17,7 +17,7 @@ configure :development do
 
   # Auto-Compile CoffeeScript to JavaScript
   use Rack::Coffee,
-    :root => 'public',
+    :root => 'views',
     :urls => '/js',
     :cache_compile => true
 end

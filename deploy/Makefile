@@ -1,7 +1,7 @@
-BASE=../public/js
+BASE=../views/js
 R_JS=../node_modules/requirejs/bin/r.js
 COFFEE=../node_modules/coffee-script/bin/coffee
-COMPILED=../public/js_dist
+COMPILED=../public/js
 SRC=$(wildcard $(BASE)/*.coffee)
 JS=$(SRC:.coffee=.js)
 all:$(COMPILED)

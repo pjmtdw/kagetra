@@ -5,8 +5,8 @@
 db/
 node_modules/
 public/css/
-public/js/*.js
-public/js_dist/
+public/js/
+views/js/*.js
 Gemfile.lock
 deploy/log/
 deploy/sock/

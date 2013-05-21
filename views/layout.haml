@@ -6,7 +6,4 @@
     %link(rel="stylesheet" href="/css/style.css")
   %body
     = yield
-    - if settings.development?
-      %script(data-main="js/main" src="js/libs/require.js")
-    -else
-      %script(data-main="js_dist/main" src="js_dist/libs/require.js")
+    %script(data-main="js/main" src="js/libs/require.js")

@@ -4,7 +4,11 @@ Version: 0.0.1
 License: MIT Lincense
 Developer: Haruhiro Yoshimoto <hpnpwd@gmail.com>
 Description: Groupware specialized to Kyogi-Karuta
- 
+
+[Devolompent Notice]
+- Try to restrict single component size under 50KB (cache limit for iPhone 3GS)
+- Non smart phone must be supported for only major faculties, not all.
+
 [Middleware]
 Version Control System:
   Git

@@ -4,4 +4,3 @@
 - authenticate with shared password for posting /usr/auth /user/auth_salt
 - try / catch for each login javascript function
 - add error callback for $.ajax and Backbone.Model.fetch
-- use CDN for Zepto and Backbone.js

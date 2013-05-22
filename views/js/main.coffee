@@ -1,11 +1,13 @@
 requirejs.config
   paths:
-    jquery: "libs/jquery"
-    backbone: "libs/backbone"
-    underscore: "libs/underscore"
-    modernizr: "libs/modernizr"
-    foundation: "libs/foundation/foundation"
-    "foundation.topbar": "libs/foundation/foundation.topbar"
+    jquery: "http://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min"
+    zepto: "http://cdnjs.cloudflare.com/ajax/libs/zepto/1.0/zepto.min"
+    backbone: "http://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.0.0/backbone-min"
+    underscore: "http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min"
+    foundation: "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.2/js/foundation/foundation"
+    "foundation.topbar": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.2/js/foundation/foundation.topbar.min"
+    modernizr: "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.2/js/vendor/custom.modernizr.min"
+    json2: "http://cdnjs.cloudflare.com/ajax/libs/json2/20121008/json2"
     crypto: "libs/CryptoJS/crypto"
     "crypto-pbkdf2": "libs/CryptoJS/rollups/pbkdf2"
     "crypto-hmac": "libs/CryptoJS/rollups/hmac-sha256"
@@ -19,7 +21,7 @@ requirejs.config
     crypto:
       exports: "CryptoJS"
     backbone:
-      deps: ["jquery","underscore","libs/json2"]
+      deps: ["jquery","underscore","json2"]
       exports: "Backbone"
     foundation:
       deps: ["jquery","modernizr"]

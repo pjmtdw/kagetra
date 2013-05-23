@@ -4,6 +4,7 @@ require 'bundler'
 require 'sinatra'
 require 'sinatra/reloader' if development?
 require 'sinatra/namespace'
+require 'sinatra/content_for'
 require 'sass/plugin/rack' if development?
 require 'haml'
 

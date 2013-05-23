@@ -7,6 +7,6 @@ class MainApp < Sinatra::Base
     end
     count = session[:count]
     user = get_user
-    haml :top, :locals => {:count => count, :page_title => "counter", :user => user}
+    haml :top, :locals => {:count => count, :user => user}
   end
 end

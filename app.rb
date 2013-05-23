@@ -1,6 +1,7 @@
 class MainApp < Sinatra::Base
+  helpers Sinatra::ContentFor
   enable :sessions
-  set :session_secret, (ENV["RACK_SESSION_SECRET"] || SecureRandom.hex(64))
+  set :session_secret, (ENV["RACK_SESSION_SECRET"] || SecureRandom.hex(64)) # RACK_SESSION_SECRET is set by unicorn.rb
 
   configure :development do
     register Sinatra::Reloader

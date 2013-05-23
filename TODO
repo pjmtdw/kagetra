@@ -1,4 +1,3 @@
-- use Zepto
 - show hint for shared password and user password
 - authenticate with shared password for getting /user/list/:id
 - authenticate with shared password for posting /usr/auth /user/auth_salt

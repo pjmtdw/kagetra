@@ -1,4 +1,11 @@
 define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
+  wrap_f = (f) ->
+    ->
+      try
+        return f()
+      catch e
+        console.log e.message
+        return false
   UserListModel = Backbone.Model.extend
     urlRoot: "/user/list"
 
@@ -61,6 +68,6 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
     $(->
       $(document).foundation()
       console.log("login")
-      $("#login").submit(on_login_submit)
-      $("#shared-pass").submit(on_shared_pass_submit)
+      $("#login").submit(wrap_f(on_login_submit))
+      $("#shared-pass").submit(wrap_f(on_shared_pass_submit))
       $("#shared-pass input[type=password]").focus())

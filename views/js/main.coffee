@@ -1,5 +1,6 @@
 requirejs.config
   paths:
+    zep_or_jq: "libs/zepto_or_jquery" 
     jquery: "http://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min"
     zepto: "http://cdnjs.cloudflare.com/ajax/libs/zepto/1.0/zepto.min"
     backbone: "http://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.0.0/backbone-min"
@@ -8,6 +9,7 @@ requirejs.config
     "foundation.topbar": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.2/js/foundation/foundation.topbar.min"
     modernizr: "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.2/js/vendor/custom.modernizr.min"
     json2: "http://cdnjs.cloudflare.com/ajax/libs/json2/20121008/json2"
+    deferred: "libs/deferred.min"
     crypto: "libs/CryptoJS/crypto"
     "crypto-pbkdf2": "libs/CryptoJS/rollups/pbkdf2"
     "crypto-hmac": "libs/CryptoJS/rollups/hmac-sha256"
@@ -21,10 +23,10 @@ requirejs.config
     crypto:
       exports: "CryptoJS"
     backbone:
-      deps: ["jquery","underscore","json2"]
+      deps: ["zep_or_jq","underscore","json2"]
       exports: "Backbone"
     foundation:
-      deps: ["jquery","modernizr"]
+      deps: ["zep_or_jq","modernizr"]
     "foundation.topbar":
       deps: ["foundation"]
     "crypto-hmac":
@@ -34,8 +36,9 @@ requirejs.config
     "crypto-pbkdf2": 
       deps: ["crypto"]
 
-require ["jquery","foundation","backbone"], -> 
-  $ = require("jquery")
+require ["zep_or_jq","deferred","foundation","backbone"], ->
+  $ = require("zep_or_jq")
+  Deferred.installInto(Zepto) if Zepto?
   mod_name = $("script[data-start]").attr("data-start")
   if mod_name
     require [mod_name], (mod) -> mod()

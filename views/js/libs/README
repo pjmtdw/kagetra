@@ -1,3 +1,6 @@
+deferred.min.js
+  Simply Deferred - A deferred library for Node.js and the browser with a jQuery compatible API
+  https://github.com/sudhirj/simply-deferred
 require.js
   RequireJS ver 2.1.6
   http://requirejs.org/

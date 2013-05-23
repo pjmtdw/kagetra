@@ -5,6 +5,7 @@ class MainApp < Sinatra::Base
   configure :development do
     register Sinatra::Reloader
     get %r{/(.+)\.js$} do |m|
+      content_type "application/javascript"
       js = "views/#{m}.js"
       pass if not File.exist?(js) # pass to Rack::Coffee
       File.read(js)

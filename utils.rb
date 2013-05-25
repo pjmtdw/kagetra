@@ -3,16 +3,16 @@ module Kagetra
   module Utils
     # in UNICODE order
     GOJUON_ROWS = [
-      {:name=>"あ行", :range=>["ぁ", "お"]},
-      {:name=>"か行", :range=>["か", "ご"]},
-      {:name=>"さ行", :range=>["さ", "ぞ"]},
-      {:name=>"た行", :range=>["た", "ど"]},
-      {:name=>"な行", :range=>["な", "の"]},
-      {:name=>"は行", :range=>["は", "ぽ"]},
-      {:name=>"ま行", :range=>["ま", "も"]},
-      {:name=>"や行", :range=>["ゃ", "よ"]},
-      {:name=>"ら行", :range=>["ら", "ろ"]},
-      {:name=>"わ行", :range=>["ゎ", "ん"]}
+      {name: "あ行", range: ["ぁ", "お"]},
+      {name: "か行", range: ["か", "ご"]},
+      {name: "さ行", range: ["さ", "ぞ"]},
+      {name: "た行", range: ["た", "ど"]},
+      {name: "な行", range: ["な", "の"]},
+      {name: "は行", range: ["は", "ぽ"]},
+      {name: "ま行", range: ["ま", "も"]},
+      {name: "や行", range: ["ゃ", "よ"]},
+      {name: "ら行", range: ["ら", "ろ"]},
+      {name: "わ行", range: ["ゎ", "ん"]}
     ]
     def self.unicode_first(s)
       s[0].unpack("U*")[0]
@@ -36,8 +36,8 @@ module Kagetra
       # Iteration must be at least 1,000 for secure pbkdf2.
       # However, CryptoJS is too slow for executing 1,000 iterations on browser.
       {
-       :hash => Base64.encode64(OpenSSL::PKCS5.pbkdf2_hmac_sha1(pass,salt,100,32)).gsub("\n",""),
-       :salt => salt
+       hash: Base64.encode64(OpenSSL::PKCS5.pbkdf2_hmac_sha1(pass,salt,100,32)).gsub("\n",""),
+       salt: salt
       }
     end
     def self.hmac_password(hash,msg)

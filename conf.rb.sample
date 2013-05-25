@@ -1,0 +1,8 @@
+# -*- coding: utf-8 -*-
+
+CONF_APP_NAME = '景虎'
+
+#CONF_DB_PATH = "sqlite3://#{Dir.pwd}/db/data.db"
+CONF_DB_PATH = "mysql://root:hogefuga@localhost/test"
+
+CONF_DB_DEBUG = false

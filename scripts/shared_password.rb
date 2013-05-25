@@ -13,8 +13,8 @@ $stdin.noecho{|stdin|
   end
 
   hash = Kagetra::Utils.hash_password(pass1)
-  User.create(:name => "admin", :furigana => "admin", :password_hash => hash[:hash], :password_salt => hash[:salt])
+  User.create(name: "admin", furigana: "admin", password_hash: hash[:hash], password_salt: hash[:salt])
   puts "created user 'admin' with user_password == shard_password "
-  MyConf.create(:name => "shared_password", :value => Kagetra::Utils.hash_password(pass1))
+  MyConf.create(name: "shared_password", value: Kagetra::Utils.hash_password(pass1))
   puts "saved shared password to db"
 }

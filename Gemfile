@@ -14,5 +14,9 @@ gem 'compass'
 
 gem 'sqlite3'
 gem 'data_mapper'
-gem 'dm-sqlite-adapter'
+# gem 'dm-sqlite-adapter'
+gem 'dm-mysql-adapter'
 gem 'dm-types'
+
+# only used in hagakure scripts
+gem 'parallel'

@@ -7,7 +7,9 @@ node_modules/
 public/css/
 public/js/
 views/js/*.js
-Gemfile.lock
 deploy/log/
 deploy/sock/
 deploy/pid/
+
+Gemfile.lock
+conf.rb

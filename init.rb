@@ -1,17 +1,27 @@
 # -*- coding: utf-8 -*-
+require './conf'
 require 'bundler'
 
 require 'sinatra'
-require 'sinatra/reloader' if development?
 require 'sinatra/namespace'
 require 'sinatra/content_for'
-require 'sass/plugin/rack' if development?
+if development? then
+  require 'sass/plugin/rack'
+  require 'sinatra/reloader'
+end
 require 'haml'
 
 require 'json'
 require 'base64'
+
 require 'data_mapper'
-require 'dm-sqlite-adapter'
+
+case CONF_DB_PATH
+when %r(^sqlite3://)
+  require 'dm-sqlite-adapter'
+when %r(^mysql://)
+  require 'dm-mysql-adapter'
+end
 
 require 'openssl'
 require 'securerandom'
@@ -21,6 +31,3 @@ require './routes/init'
 require './helpers/init'
 require './models/init'
 require './utils'
-
-CONF_APP_NAME='景虎'
-

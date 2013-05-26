@@ -10,13 +10,33 @@ define ->
       window.bbs_page = parseInt(page)
       window.bbs_view.collection.fetch(data:{page: page}).done( ->      
         window.bbs_view.render())
+  BbsItemModel = Backbone.Model.extend {}
+  BbsItemView = Backbone.View.extend
+    template: _.template($("#templ-item").html())
+    initialize: ->
+      this.render()
+    render: ->
+      name = this.model.get('name')
+      date = this.model.get('date')
+      body = this.model.get('body')
+      this.$el.html(this.template(name: name, date: date, body: body))
+    
   BbsThreadModel = Backbone.Model.extend {}
   BbsThreadCollection = Backbone.Collection.extend
     model: BbsThreadModel
     url: "/api/bbs/threads"
   BbsThreadView = Backbone.View.extend
+    template: _.template($("#templ-thread").html())
+    initialize: ->
+      this.render()
     render: ->
-      this.$el.append(this.model.get("title"))
+      title = this.model.get("title")
+      items = for item in this.model.get("items")
+        m = new BbsThreadModel(item)
+        v = new BbsItemView(model: m)
+        v.$el.html()
+      h = this.template(title: title, items: items)
+      this.$el.html(h)
   BbsView = Backbone.View.extend
     el: "#bbs-body"
     initialize: ->
@@ -25,7 +45,8 @@ define ->
       e = this.$el
       e.empty()
       this.collection.each (m)->
-        e.append((new BbsThreadView(model: m)).render())
+        v = new BbsThreadView(model: m)
+        e.append(v.$el)
   goto_page = (page) ->
     page = 1 if page < 1
     window.bbs_router.navigate("page/" + page, trigger: true)

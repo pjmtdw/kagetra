@@ -3,11 +3,12 @@ class MainApp < Sinatra::Base
   namespace '/api/bbs' do
     get '/threads' do
       page = params["page"].to_i - 1
-      BbsThread.chunks(THREADS_PER_PAGE)[page].map{|t|
-        items = t.bbs_item.map{|i|
+      BbsThread.all(deleted: false, order: [:created_at.desc ]).chunks(THREADS_PER_PAGE)[page].map{|t|
+        items = t.bbs_item(deleted: false).map{|i|
           {
             body: i.body,
-            name: i.user_name
+            name: i.user_name,
+            date: i.created_at.strftime("%Y-%m-%d %H:%M:%S")
           }
         }
         {title: t.title, items: items}

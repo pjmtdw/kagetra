@@ -50,27 +50,41 @@ def import_bbs
       # thus, we cannot simply split by "\t\t"
       line.scan(/((\t|^)\d+(<>(\d|on)?)?\t\d\t.+?)((?=\t\d+(<>)?\t)|$)/).each_with_index{|kakiko,i|
         kakiko = kakiko[0].sub(/^\t/,"")
-        (num,deleted,name,host,date,*others) = kakiko.split("\t")
+        (num,not_deleted,name,host,date,*others) = kakiko.split("\t")
+        (host,ip) = host.split(/<>/)
+        date = DateTime.parse(date)
+        deleted = (not_deleted == "0")
         pat = /<!--ID:(\d+)-->$/
         user = nil
         if pat =~ name then
           user = User.first(id: $1)
           name.sub!(pat,"")
         end
+        item_props = {
+          deleted: deleted,
+          created_at: date,
+          user_name: name,
+          user_host: host,
+          user: user
+        }
         begin
           if i == 0 then
             title = others[0] || ""
             body = (others[1..-1] || []).join("\t").bbs_body_replace
             (num,is_public) = num.split("<>")
             is_public = ["1","on"].include?(is_public)
-            thread = BbsThread.create(title: title, public: is_public)
-            item = BbsItem.create(body: body, user_name: name, bbs_thread: thread, user: user)
+            thread = BbsThread.create(deleted: deleted, created_at: date, title: title, public: is_public)
+            item = BbsItem.create(item_props.merge(id: num, body: body, bbs_thread: thread))
             thread.first_item = item
             thread.save
+            # use update! to avoid automatic setting by dm-timestamps
+            item.update!(updated_at: date)
+            thread.update!(updated_at: date)
             puts title
           else
             body = others.join("\t").bbs_body_replace
-            item = BbsItem.create(body: body, user_name: name, bbs_thread: thread, user: user)
+            item = BbsItem.create(item_props.merge(id: num, body: body, bbs_thread: thread))
+            item.update!(updated_at: date)
           end
         rescue DataMapper::SaveFailureError => e
           puts "Error at #{fn} line #{lineno+1} index #{i+1}"

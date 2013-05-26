@@ -1,8 +1,11 @@
 - content_for :title do
   トップ
+- content_for :js_start do
+  top
+- content_for :css do
+  top
 = haml :top_bar
 %div
   USER: #{user.name}
 .round
   COUNT: #{count}
-%script(data-start="top")

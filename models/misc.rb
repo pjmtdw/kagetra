@@ -4,8 +4,8 @@ module ModelBase
       include DataMapper::Resource
       property :id,            DataMapper::Property::Serial
       # Automatically set/updated by dm-timestamps
-      property :created_at,    DataMapper::Property::DateTime
-      property :updated_at,    DataMapper::Property::DateTime
+      property :created_at, DataMapper::Property::DateTime, index: true
+      property :updated_at, DataMapper::Property::DateTime, index: true
     end
   end
 end

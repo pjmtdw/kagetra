@@ -56,6 +56,7 @@ for Ubuntu ->
   $ apt-get install nodejs
 (4) Run web app
   $ cd kagetra && bundle exec rackup config.ru
+
 [For Production]
 (1) Compile Sass to CSS
   $ bundle exec compass compile
@@ -73,3 +74,7 @@ for Ubuntu ->
 (5) Start unicorn and nginx
   $ service start nginx
   $ bundle exec unicorn -E deployment -c deploy/unicorn.rb -D
+
+[For Development]
+- Start interactive console for Sinatra
+  $ bundle exec tux -c config.ru

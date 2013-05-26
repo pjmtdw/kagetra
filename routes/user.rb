@@ -1,12 +1,6 @@
 
 class MainApp < Sinatra::Base
-  namespace '/user' do
-    before do
-      content_type :json
-    end
-    after do
-      response.body = response.body.to_json
-    end
+  namespace '/api/user' do
     get '/list/:initial' do
       row = params[:initial].to_i
       {list: User.all(order: [:furigana.asc], furigana_row: row).map{|x|

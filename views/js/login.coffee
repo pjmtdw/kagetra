@@ -7,10 +7,10 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
         console.log e.message
         return false
   UserListModel = Backbone.Model.extend
-    urlRoot: "/user/list"
+    urlRoot: "/api/user/list"
 
   UserListView = Backbone.View.extend
-    el: $("#login")
+    el: "#login"
     initialize: -> this.render()
     events:
       "change #initials": "render"
@@ -35,7 +35,7 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
   on_shared_pass_submit = ->
     password = $("#shared-pass input[type=password]").val()
     [hash,msg] = hash_password(password ,g_shared_salt)
-    $.post '/user/auth_shared',
+    $.post '/api/user/auth_shared',
       hash: hash
       msg: msg
     .done (data) ->
@@ -51,10 +51,10 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
     user_id = $("#names").val()
     password = $("#login input[type=password]").val()
     first = ->
-      $.get "/user/auth_salt/#{user_id}"
+      $.get "/api/user/auth_salt/#{user_id}"
     second = (data) ->
       [hash, msg] = hash_password(password,data.salt)
-      $.post '/user/auth_user',
+      $.post '/api/user/auth_user',
         user_id: user_id
         hash: hash
         msg: msg
@@ -64,10 +64,8 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
       else
         alert("パスワードが違います")
     false
-  ->
-    $(->
-      $(document).foundation()
-      console.log("login")
-      $("#login").submit(wrap_f(on_login_submit))
-      $("#shared-pass").submit(wrap_f(on_shared_pass_submit))
-      $("#shared-pass input[type=password]").focus())
+  init: ->
+    console.log("login")
+    $("#login").submit(wrap_f(on_login_submit))
+    $("#shared-pass").submit(wrap_f(on_shared_pass_submit))
+    $("#shared-pass input[type=password]").focus()

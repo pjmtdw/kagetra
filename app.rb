@@ -14,6 +14,14 @@ class MainApp < Sinatra::Base
   end
   register Sinatra::Namespace
 
+  namespace '/api' do
+    before do
+      content_type :json
+    end
+    after do
+      response.body = response.body.to_json
+    end
+  end
   get '/' do
     shared_salt = MyConf.first(name: "shared_password").value["salt"]
     haml :index, locals: {shared_salt: shared_salt}

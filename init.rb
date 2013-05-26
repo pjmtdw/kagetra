@@ -15,11 +15,12 @@ require 'json'
 require 'base64'
 
 require 'data_mapper'
+require 'dm-chunked_query'
 
 case CONF_DB_PATH
-when %r(^sqlite3://)
+when /^sqlite3:/
   require 'dm-sqlite-adapter'
-when %r(^mysql://)
+when /^mysql:/
   require 'dm-mysql-adapter'
 end
 

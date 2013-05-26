@@ -36,9 +36,10 @@ requirejs.config
     "crypto-pbkdf2": 
       deps: ["crypto"]
 
-require ["zep_or_jq","deferred","foundation","backbone"], ->
+require ["zep_or_jq","deferred","foundation.topbar","backbone"], ->
   $ = require("zep_or_jq")
   Deferred.installInto(Zepto) if Zepto?
+  $( -> $(document).foundation() )
   mod_name = $("script[data-start]").attr("data-start")
   if mod_name
-    require [mod_name], (mod) -> mod()
+    require [mod_name], (mod) -> $( -> mod.init() )

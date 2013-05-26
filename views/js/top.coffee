@@ -1,6 +1,3 @@
-define ["foundation.topbar"], ->
-  ->
-   $(->
-       $(document).foundation()
-       console.log("top")
-   )
+define ->
+  init: ->
+    console.log("top")

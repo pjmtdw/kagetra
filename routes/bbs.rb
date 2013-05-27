@@ -21,7 +21,7 @@ class MainApp < Sinatra::Base
           query &= qb
         }
       end
-      query.all(order: [:created_at.desc ]).chunks(THREADS_PER_PAGE)[page].map{|t|
+      query.all(order: [:updated_at.desc ]).chunks(THREADS_PER_PAGE)[page].map{|t|
         items = t.bbs_item(deleted: false).map{|i|
           {
             body: i.body,
@@ -29,8 +29,25 @@ class MainApp < Sinatra::Base
             date: i.created_at.strftime("%Y-%m-%d %H:%M:%S")
           }
         }
-        {title: t.title, items: items}
+        {thread_id: t.id, title: t.title, items: items}
       }
+    end
+    post '/new_thread' do
+      user = get_user
+      title = params["title"]
+      body = params["body"]
+      thread = BbsThread.create(title: title)
+      item = BbsItem.create(body: body, bbs_thread: thread, user: user, user_name: user.name)
+      thread.first_item = item
+      thread.save
+    end
+    post '/response' do
+      user = get_user
+      body = params["body"]
+      thread_id = params["thread_id"]
+      thread = BbsThread.first(id: thread_id)
+      thread.touch
+      item = BbsItem.create(body: body, bbs_thread: thread, user: user, user_name: user.name)
     end
   end
   get '/bbs' do

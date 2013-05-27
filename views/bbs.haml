@@ -7,7 +7,7 @@
 = haml :top_bar
 .row
   %div.large-6.columns
-    %button.small.round 新規スレッド作成
+    %button#new-thread-toggle.small.round スレッド作成
     %button#search-toggle.small.round 検索
 #search-row.row.hide
   %form#search-form.large-6.columns
@@ -16,6 +16,16 @@
         %input#query-string(type='text')
       .large-2.small-2.columns
         %input(type='submit' value='検索')
+#new-thread-row.row.hide
+  %form#new-thread-form.large-12.columns
+    %fieldset
+      %legend スレッド作成
+      %label タイトル
+      %input#new-thread-title(type='text')
+      %label 内容
+      %textarea#new-thread-body(rows=30)
+      %input.button.small.round(type='submit' value='送信')
+
 .row
   %div.large-6.columns
     %button#prev-thread.small.round 前へ
@@ -23,18 +33,27 @@
 .row
   #bbs-body
 
-  %script#templ-thread(type='text/template')
-    .thread
-      .title
-        <%= title %>
-      .items
-        <%= items %>
-  %script#templ-item(type='text/template')
-    .item
-      .name-date
-        %span.name
-          <%= name %>
-        %span.date
-          @ <%= date %>
-      .body
-        <%= body %>
+%script#templ-thread(type='text/template')
+  .thread
+    .title
+      <%= title %>
+    .items
+      <%= items %>
+    .response
+      %button.response-toggle.small.round レスする
+      .response-container
+%script#templ-item(type='text/template')
+  .item
+    .name-date
+      %span.name
+        <%= name %>
+      %span.date
+        @ <%= date %>
+    .body
+      <%= body %>
+%script#templ-response(type='text/template')
+  %form.response-form
+    %label レス
+    %textarea.response-body(rows=20)
+    %input.button.small.round(type='submit' value='送信')
+

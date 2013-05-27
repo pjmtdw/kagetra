@@ -31,6 +31,7 @@ define ->
     url: "/api/bbs/threads"
   BbsThreadView = Backbone.View.extend
     template: _.template($("#templ-thread").html())
+    template_response: _.template($("#templ-response").html())
     initialize: ->
       this.render()
     render: ->
@@ -41,6 +42,19 @@ define ->
         v.$el.html()
       h = this.template(title: title, items: items)
       this.$el.html(h)
+      that = this
+      this.$el.find(".response-toggle").click ->
+        container = that.$el.find(".response-container")
+        do_response = ->
+          data = 
+            thread_id: that.model.get("thread_id")
+            body: container.find(".response-body").val()
+          $.post("/api/bbs/response",data).done(refresh_all)
+        if container.is(":empty")
+          container.html that.template_response()
+          container.find(".response-form").submit(_.wrap_submit(do_response))
+        else
+          container.empty()
   BbsView = Backbone.View.extend
     el: "#bbs-body"
     initialize: ->
@@ -54,8 +68,18 @@ define ->
   goto_page = (page) ->
     page = 1 if page < 1
     window.bbs_router.navigate("page/" + page, trigger: true)
-  do_search = ->
+  refresh_all = ->
     window.bbs_router.navigate("", trigger: true)
+  do_search = refresh_all
+  create_new_thread = ->
+    data = 
+      title: $("#new-thread-title").val()
+      body: $("#new-thread-body").val()
+    $.post("/api/bbs/new_thread",data).done(
+        $("#new-thread-row").hide()
+        refresh_all
+        )
+
   init: ->
     window.bbs_router = new BbsRouter()
     window.bbs_view = new BbsView(collection: new BbsThreadCollection())
@@ -65,8 +89,10 @@ define ->
         row = $("#search-row")
         if row.is(":visible")
           $("#query-string").val("") 
-          window.bbs_router.navigate("", trigger: true)
+          refresh_all()
         row.toggle()
         )
+    $("#new-thread-toggle").click( -> $("#new-thread-row").toggle())
+    $("#new-thread-form").submit(_.wrap_submit(create_new_thread))
     $("#search-form").submit(_.wrap_submit(do_search))
     Backbone.history.start()

@@ -3,7 +3,25 @@ class MainApp < Sinatra::Base
   namespace '/api/bbs' do
     get '/threads' do
       page = params["page"].to_i - 1
-      BbsThread.all(deleted: false, order: [:created_at.desc ]).chunks(THREADS_PER_PAGE)[page].map{|t|
+      qs = params["qs"]
+      query = BbsThread.all(deleted: false)
+      if qs then
+        qs.strip.split(/\s+/).each{|q|
+          # dummy query that never matches
+          # TODO: more smarter way to create this ?
+          qb = BbsThread.all(id: -1)
+          [
+            :title,
+            BbsThread.bbs_item.user_name,
+            BbsThread.bbs_item.body
+          ].each{|sym|
+            # TODO: escape query
+            qb |= BbsThread.all(sym.like => "%#{q}%")
+          }
+          query &= qb
+        }
+      end
+      query.all(order: [:created_at.desc ]).chunks(THREADS_PER_PAGE)[page].map{|t|
         items = t.bbs_item(deleted: false).map{|i|
           {
             body: i.body,

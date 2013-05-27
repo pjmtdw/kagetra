@@ -1,11 +1,4 @@
 define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
-  wrap_f = (f) ->
-    ->
-      try
-        return f()
-      catch e
-        console.log e.message
-        return false
   UserListModel = Backbone.Model.extend
     urlRoot: "/api/user/list"
 
@@ -45,7 +38,6 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
         new UserListView({model: new UserListModel()})
       else
         alert("パスワードが違います")
-    false
 
   on_login_submit = ->
     user_id = $("#names").val()
@@ -63,9 +55,8 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
         window.location.href = "/top"
       else
         alert("パスワードが違います")
-    false
   init: ->
     console.log("login")
-    $("#login").submit(wrap_f(on_login_submit))
-    $("#shared-pass").submit(wrap_f(on_shared_pass_submit))
+    $("#login").submit(_.wrap_submit(on_login_submit))
+    $("#shared-pass").submit(_.wrap_submit(on_shared_pass_submit))
     $("#shared-pass input[type=password]").focus()

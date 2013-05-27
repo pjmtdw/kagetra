@@ -5,26 +5,36 @@
 - content_for :css do
   bbs
 = haml :top_bar
-%div
-  %button.small.round 新規スレッド作成
-  %button.small.round 検索
-%div
-  %button#prev-thread.small.round 前へ
-  %button#next-thread.small.round 次へ
-#bbs-body
+.row
+  %div.large-6.columns
+    %button.small.round 新規スレッド作成
+    %button#search-toggle.small.round 検索
+#search-row.row.hide
+  %form#search-form.large-6.columns
+    .row
+      .large-10.small-10.columns
+        %input#query-string(type='text')
+      .large-2.small-2.columns
+        %input(type='submit' value='検索')
+.row
+  %div.large-6.columns
+    %button#prev-thread.small.round 前へ
+    %button#next-thread.small.round 次へ
+.row
+  #bbs-body
 
-%script#templ-thread(type='text/template')
-  .thread
-    .title
-      <%= title %>
-    .items
-      <%= items %>
-%script#templ-item(type='text/template')
-  .item
-    .name-date
-      %span.name
-        <%= name %>
-      %span.date
-        @ <%= date %>
-    .body
-      <%= body %>
+  %script#templ-thread(type='text/template')
+    .thread
+      .title
+        <%= title %>
+      .items
+        <%= items %>
+  %script#templ-item(type='text/template')
+    .item
+      .name-date
+        %span.name
+          <%= name %>
+        %span.date
+          @ <%= date %>
+      .body
+        <%= body %>

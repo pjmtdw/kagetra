@@ -8,7 +8,11 @@ define ->
     page: (page) ->
       console.log(page)
       window.bbs_page = parseInt(page)
-      window.bbs_view.collection.fetch(data:{page: page}).done( ->      
+      qs = $("#query-string").val()
+      data = {page: page}
+      if qs
+        data.qs = qs
+      window.bbs_view.collection.fetch(data:data).done( ->      
         window.bbs_view.render())
   BbsItemModel = Backbone.Model.extend {}
   BbsItemView = Backbone.View.extend
@@ -50,9 +54,19 @@ define ->
   goto_page = (page) ->
     page = 1 if page < 1
     window.bbs_router.navigate("page/" + page, trigger: true)
+  do_search = ->
+    window.bbs_router.navigate("", trigger: true)
   init: ->
     window.bbs_router = new BbsRouter()
     window.bbs_view = new BbsView(collection: new BbsThreadCollection())
     $("#next-thread").click(-> goto_page(window.bbs_page+1) )
     $("#prev-thread").click(-> goto_page(window.bbs_page-1) )
+    $("#search-toggle").click( -> 
+        row = $("#search-row")
+        if row.is(":visible")
+          $("#query-string").val("") 
+          window.bbs_router.navigate("", trigger: true)
+        row.toggle()
+        )
+    $("#search-form").submit(_.wrap_submit(do_search))
     Backbone.history.start()

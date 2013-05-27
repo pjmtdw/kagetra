@@ -16,6 +16,8 @@ requirejs.config
     "crypto-base64": "libs/CryptoJS/components/enc-base64-min"
     "crypto-core": "libs/CryptoJS/components/core"
   shim:
+    myutil:
+      deps: ["underscore"] 
     jquery:
       exports: "$"
     underscore:
@@ -36,7 +38,7 @@ requirejs.config
     "crypto-pbkdf2": 
       deps: ["crypto"]
 
-require ["zep_or_jq","deferred","foundation.topbar","backbone"], ->
+require ["zep_or_jq","myutil","deferred","foundation.topbar","backbone"], ->
   $ = require("zep_or_jq")
   Deferred.installInto(Zepto) if Zepto?
   $( -> $(document).foundation() )

@@ -78,3 +78,5 @@ for Ubuntu ->
 [For Development]
 - Start interactive console for Sinatra
   $ bundle exec tux -c config.ru
+- If you get "Internal Server Error" when compiling CoffeeScript but cannot know the position of the error, try executing
+  $ coffee -c views/js/hoobar.coffee

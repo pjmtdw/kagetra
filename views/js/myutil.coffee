@@ -1,9 +1,10 @@
 define (require, exports, module) ->
-  require("underscore").mixin
+  _ = require("underscore")
+  _.mixin
     wrap_submit: (f) ->
       ->
         try
-          f()
+          _.bind(f,this)()
         catch e
-          console.log e.message
+          console.log e
         return false

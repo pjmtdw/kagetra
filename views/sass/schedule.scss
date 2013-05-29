@@ -1,0 +1,20 @@
+.info-item {
+  height: 100px;
+  .day {
+    font-weight: bold;
+  }
+}
+.not-current{
+  background-color: silver;
+}
+.current{
+}
+.holiday{
+  background-color: #FDD;
+}
+.saturday{
+  background-color: #DDF;
+}
+.weekday{
+  background-color: #FFD;
+}

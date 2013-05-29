@@ -6,6 +6,44 @@ module ModelBase
       # Automatically set/updated by dm-timestamps
       property :created_at, DataMapper::Property::DateTime, index: true
       property :updated_at, DataMapper::Property::DateTime, index: true
+      
+      def self.all_month(prop,year,month)
+        from = Date.new(year,month,1)
+        to = from >> 1
+        all(prop.gte => from, prop.lt => to)
+      end
+    end
+  end
+end
+module DataMapper
+  class Property
+    class HourMin < DataMapper::Property::String
+      def custom?
+        true
+      end
+      def load(value)
+        case value
+        when ::String
+          ::Kagetra::HourMin.parse(value)
+        when ::NilClass,::Kagetra::HourMin
+          value
+        else
+          raise Exception.new("invalid type: #{value.class.name}")
+        end
+      end
+      def dump(value)
+        case value
+        when ::NilClass,::String
+          value
+        when ::Kagetra::HourMin
+          value.to_s
+        else
+          raise Exception.new("invalid type: #{value.class.name}")
+        end
+      end
+      def typecast(value)
+        load(value)
+      end
     end
   end
 end

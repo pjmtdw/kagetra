@@ -1,5 +1,21 @@
 # -*- coding: utf-8 -*-
 module Kagetra
+  class HourMin
+    def initialize(hour,min)
+      @hour = hour.to_i
+      @min = min.to_i
+    end
+    def self.parse(str)
+      if /^(\d\d):(\d\d)$/ =~ str then
+        HourMin.new($1,$2)
+      else
+        raise Exception.new("invalid HourMin: '#{str}'")
+      end
+    end
+    def to_s
+      "%02d:%02d" % [ @hour, @min ]
+    end
+  end
   module Utils
     # in UNICODE order
     GOJUON_ROWS = [

@@ -8,6 +8,7 @@ DataMapper.setup(:default, CONF_DB_PATH)
 require_relative 'misc'
 require_relative 'user'
 require_relative 'bbs'
+require_relative 'schedule'
 
 DataMapper.finalize
 DataMapper.auto_upgrade!

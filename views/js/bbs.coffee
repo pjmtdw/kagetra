@@ -4,7 +4,7 @@ define ->
       "page/:id": "page"
       "": "start"
     start: ->
-      window.bbs_router.navigate("page/1", {trigger: true,replace: true})
+      window.bbs_router.navigate("page/1", {trigger: true, replace: true})
     page: (page) ->
       console.log(page)
       window.bbs_page = parseInt(page)
@@ -12,8 +12,8 @@ define ->
       data = {page: page}
       if qs
         data.qs = qs
-      window.bbs_view.collection.fetch(data:data).done( ->      
-        window.bbs_view.render())
+      window.bbs_view.refresh(data)
+
   BbsItemModel = Backbone.Model.extend {}
   BbsItemView = Backbone.View.extend
     template: _.template($("#templ-item").html())
@@ -32,7 +32,22 @@ define ->
   BbsThreadView = Backbone.View.extend
     template: _.template($("#templ-thread").html())
     template_response: _.template($("#templ-response").html())
+    events:
+      'submit .response-form': 'do_response'
+      'click .response-toggle': 'toggle_response'
+    toggle_response: ->
+      container = this.$el.find(".response-container")
+      if container.is(":empty")
+        container.html this.template_response()
+      else
+        container.empty()
+    do_response: _.wrap_submit ->
+      data = 
+        thread_id: this.model.get("thread_id")
+        body: this.$el.find(".response-body").val()
+      $.post("/api/bbs/response/new",data).done(refresh_all)
     initialize: ->
+      _.bindAll(this,"do_response","toggle_response")
       this.render()
     render: ->
       title = this.model.get("title")
@@ -42,23 +57,13 @@ define ->
         v.$el.html()
       h = this.template(title: title, items: items)
       this.$el.html(h)
-      that = this
-      this.$el.find(".response-toggle").click ->
-        container = that.$el.find(".response-container")
-        do_response = ->
-          data = 
-            thread_id: that.model.get("thread_id")
-            body: container.find(".response-body").val()
-          $.post("/api/bbs/response",data).done(refresh_all)
-        if container.is(":empty")
-          container.html that.template_response()
-          container.find(".response-form").submit(_.wrap_submit(do_response))
-        else
-          container.empty()
   BbsView = Backbone.View.extend
     el: "#bbs-body"
     initialize: ->
+      this.collection = new BbsThreadCollection()
       _.bindAll(this,"render")
+    refresh: (data) ->
+      this.collection.fetch(data:data).done(this.render)
     render: ->
       e = this.$el
       e.empty()
@@ -75,14 +80,14 @@ define ->
     data = 
       title: $("#new-thread-title").val()
       body: $("#new-thread-body").val()
-    $.post("/api/bbs/new_thread",data).done(
+    $.post("/api/bbs/thread/new",data).done(
         $("#new-thread-row").hide()
         refresh_all
         )
 
   init: ->
     window.bbs_router = new BbsRouter()
-    window.bbs_view = new BbsView(collection: new BbsThreadCollection())
+    window.bbs_view = new BbsView()
     $("#next-thread").click(-> goto_page(window.bbs_page+1) )
     $("#prev-thread").click(-> goto_page(window.bbs_page-1) )
     $("#search-toggle").click( -> 

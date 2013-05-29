@@ -1,0 +1,38 @@
+- content_for :title do
+  予定表
+- content_for :js_start do
+  schedule
+- content_for :css do
+  schedule
+= haml :top_bar
+.row
+  #schedule
+
+%script#templ-cal(type='text/template')
+  .year-month
+    %button#prev-month.small.round 前へ
+    %span.year
+      <%= year %> 年
+    %span.mon
+      <%= mon %> 月
+    %button#next-month.small.round 次へ
+  %ul.body.large-block-grid-7.small-block-grid-4
+    %li 日
+    %li 月
+    %li 火
+    %li 水
+    %li 木
+    %li 金
+    %li 土
+    <%= body %>
+%script#templ-item(type='text/template')
+  %li
+    .info-item
+      %span.day.round
+        <%= day %>
+      %span.info    
+        <%= info ? info.names : "" %>
+      .item
+        <% _.each(item,function(o){ %>
+        <%= o.title %>
+        <% }) %>

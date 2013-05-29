@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 require './init'
 require 'io/console'
 $stdin.noecho{|stdin|

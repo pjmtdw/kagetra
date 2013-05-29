@@ -4,7 +4,7 @@ class MainApp < Sinatra::Base
     get '/threads' do
       page = params["page"].to_i - 1
       qs = params["qs"]
-      query = BbsThread.all(deleted: false)
+      query = BbsThread.all
       if qs then
         qs.strip.split(/\s+/).each{|q|
           # dummy query that never matches
@@ -22,26 +22,30 @@ class MainApp < Sinatra::Base
         }
       end
       query.all(order: [:updated_at.desc ]).chunks(THREADS_PER_PAGE)[page].map{|t|
-        items = t.bbs_item(deleted: false).map{|i|
+        items = t.bbs_item.map{|i|
+          body = Rack::Utils.escape_html(i.body).gsub("\n","<br>")
           {
-            body: i.body,
+            body: body,
             name: i.user_name,
             date: i.created_at.strftime("%Y-%m-%d %H:%M:%S")
           }
         }
-        {thread_id: t.id, title: t.title, items: items}
+        title = Rack::Utils.escape_html(t.title)
+        {thread_id: t.id, title: title, items: items}
       }
     end
-    post '/new_thread' do
-      user = get_user
-      title = params["title"]
-      body = params["body"]
-      thread = BbsThread.create(title: title)
-      item = BbsItem.create(body: body, bbs_thread: thread, user: user, user_name: user.name)
-      thread.first_item = item
-      thread.save
+    post '/thread/new' do
+      BbsItem.transaction{
+        user = get_user
+        title = params["title"]
+        body = params["body"]
+        thread = BbsThread.create(title: title)
+        item = BbsItem.create(body: body, bbs_thread: thread, user: user, user_name: user.name)
+        thread.first_item = item
+        thread.save
+      }
     end
-    post '/response' do
+    post '/response/new' do
       user = get_user
       body = params["body"]
       thread_id = params["thread_id"]

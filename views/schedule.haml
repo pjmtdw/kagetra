@@ -8,7 +8,7 @@
 .row
   #schedule
 
-%script#templ-cal(type='text/template')
+%script#templ-cal-header(type='text/template')
   .year-month
     %button#prev-month.small.round 前へ
     %span.year
@@ -16,7 +16,19 @@
     %span.mon
       <%= mon %> 月
     %button#next-month.small.round 次へ
-  %ul.body.large-block-grid-7.small-block-grid-4
+    %button.toggle-edit-info.small.round 祝日編集
+
+%script#templ-cal-edit-header(type='text/template')
+  %span.year
+    <%= year %> 年
+  %span.mon
+    <%= mon %> 月
+  %button#edit-info-done.small.round 編集完了
+  %button.toggle-edit-info.small.round キャンセル
+
+
+%script#templ-cal(type='text/template')
+  %ul#cal-body.large-block-grid-7.small-block-grid-4
     %li 日
     %li 月
     %li 火
@@ -24,15 +36,21 @@
     %li 木
     %li 金
     %li 土
-    <%= body %>
 %script#templ-item(type='text/template')
-  %li
-    .info-item
-      %span.day.round
-        <%= day %>
-      %span.info    
-        <%= info ? info.names : "" %>
-      .item
-        <% _.each(item,function(o){ %>
-        <%= o.title %>
-        <% }) %>
+  .info-item
+    %span.day
+      <%= day %>
+    %span.info
+      <%= info ? info.names.join(" / ") : "" %>
+    .item
+      <% _.each(item,function(o){ %>
+      <%= o.title %>
+      <% }) %>
+%script#templ-item-edit-info(type='text/template')
+  .info-item-edit
+    %span.day
+      <%= day %>
+    %input.holiday(type='checkbox')
+    %span 休日
+    %textarea.info
+      <%= info ? info.names.join("\n") : "" %>

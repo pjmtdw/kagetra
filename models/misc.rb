@@ -6,7 +6,7 @@ module ModelBase
       # Automatically set/updated by dm-timestamps
       property :created_at, DataMapper::Property::DateTime, index: true
       property :updated_at, DataMapper::Property::DateTime, index: true
-      
+
       def self.all_month(prop,year,month)
         from = Date.new(year,month,1)
         to = from >> 1

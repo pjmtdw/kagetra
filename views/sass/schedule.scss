@@ -3,18 +3,30 @@
   .day {
     font-weight: bold;
   }
+  &.current{
+  }
+  &.holiday{
+    background-color: #FDD;
+  }
+  &.saturday{
+    background-color: #DDF;
+  }
+  &.weekday{
+    background-color: #FFD;
+  }
+}
+.info-item-edit{
+  @extend .info-item;
+  height: 120px;
+  textarea{
+    height: 80px;
+  }
 }
 .not-current{
   background-color: silver;
 }
-.current{
-}
-.holiday{
-  background-color: #FDD;
-}
-.saturday{
-  background-color: #DDF;
-}
-.weekday{
-  background-color: #FFD;
+.not-current-edit{
+  *{
+    display: none;
+  }
 }

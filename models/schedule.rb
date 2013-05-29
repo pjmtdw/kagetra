@@ -17,7 +17,7 @@ class ScheduleItem
   property :end_at, HourMin
   property :place, String, length: 48
   property :description, Text
-  
+
   belongs_to :user
 
   before :save do

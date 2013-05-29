@@ -1,6 +1,6 @@
 requirejs.config
   paths:
-    zep_or_jq: "libs/zepto_or_jquery" 
+    zep_or_jq: "libs/zepto_or_jquery"
     jquery: "http://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min"
     zepto: "http://cdnjs.cloudflare.com/ajax/libs/zepto/1.0/zepto.min"
     backbone: "http://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.0.0/backbone-min"
@@ -17,7 +17,7 @@ requirejs.config
     "crypto-core": "libs/CryptoJS/components/core"
   shim:
     myutil:
-      deps: ["underscore"] 
+      deps: ["underscore"]
     jquery:
       exports: "$"
     underscore:
@@ -35,7 +35,7 @@ requirejs.config
       deps: ["crypto"]
     "crypto-base64":
       deps: ["crypto"]
-    "crypto-pbkdf2": 
+    "crypto-pbkdf2":
       deps: ["crypto"]
 
 require ["zep_or_jq","myutil","deferred","foundation.topbar","backbone"], ->

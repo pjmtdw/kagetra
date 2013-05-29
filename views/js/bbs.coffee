@@ -6,7 +6,6 @@ define ->
     start: ->
       window.bbs_router.navigate("page/1", {trigger: true, replace: true})
     page: (page) ->
-      console.log(page)
       window.bbs_page = parseInt(page)
       qs = $("#query-string").val()
       data = {page: page}
@@ -24,7 +23,7 @@ define ->
       date = this.model.get('date')
       body = this.model.get('body')
       this.$el.html(this.template(name: name, date: date, body: body))
-    
+
   BbsThreadModel = Backbone.Model.extend {}
   BbsThreadCollection = Backbone.Collection.extend
     model: BbsThreadModel
@@ -42,7 +41,7 @@ define ->
       else
         container.empty()
     do_response: _.wrap_submit ->
-      data = 
+      data =
         thread_id: this.model.get("thread_id")
         body: this.$el.find(".response-body").val()
       $.post("/api/bbs/response/new",data).done(refresh_all)
@@ -77,7 +76,7 @@ define ->
     window.bbs_router.navigate("", trigger: true)
   do_search = refresh_all
   create_new_thread = ->
-    data = 
+    data =
       title: $("#new-thread-title").val()
       body: $("#new-thread-body").val()
     $.post("/api/bbs/thread/new",data).done(
@@ -90,10 +89,10 @@ define ->
     window.bbs_view = new BbsView()
     $("#next-thread").click(-> goto_page(window.bbs_page+1) )
     $("#prev-thread").click(-> goto_page(window.bbs_page-1) )
-    $("#search-toggle").click( -> 
+    $("#search-toggle").click( ->
         row = $("#search-row")
         if row.is(":visible")
-          $("#query-string").val("") 
+          $("#query-string").val("")
           refresh_all()
         row.toggle()
         )

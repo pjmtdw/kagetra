@@ -17,6 +17,9 @@ class MainApp < Sinatra::Base
   namespace '/api' do
     before do
       content_type :json
+      if request.content_type == "application/json" then
+        @json = JSON.parse(request.body.read)
+      end
     end
     after do
       response.body = response.body.to_json

@@ -1,5 +1,13 @@
 class MainApp < Sinatra::Base
   namespace '/api/schedule' do
+    post '/update_holiday' do
+      @json.each{|day,obj|
+        ScheduleDateInfo.first_or_create(date:Date.parse(day)).update(
+          names:obj["names"],
+          holiday: obj["holiday"]
+        )
+      }
+    end
     get '/cal' do
       year = params[:year].to_i
       mon = params[:mon].to_i
@@ -28,7 +36,6 @@ class MainApp < Sinatra::Base
           base[:start_at] = x.start_at if x.start_at
           base[:end_at] = x.end_at if x.end_at
           base[:emphasis] = x.emphasis if x.emphasis.empty?.!
-          p base.keys()
           h[x.date.day] <<= base
         }
       {

@@ -8,6 +8,8 @@
 .row
   #schedule
 
+#container-detail.reveal-modal
+
 %script#templ-cal-header(type='text/template')
   .year-month
     %button#prev-month.small.round 前へ
@@ -54,3 +56,12 @@
     %span 休日
     %textarea.info
       <%= info ? info.names.join("\n") : "" %>
+
+
+%script#templ-detail(type='text/template')
+  .year-month-day
+    <%= year %> 年 <%= mon %> 月 <%= day %> 日
+  .body
+
+%script#templ-detail-item(type='text/template')
+  <%= title %> @ <%= place %> => <%= start_at %> 〜 <%= end_at %>

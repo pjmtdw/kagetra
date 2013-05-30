@@ -9,14 +9,13 @@ define ->
       year = dt.getFullYear()
       window.schedule_router.navigate("cal/#{year}/#{mon}", {trigger: true, replace: true})
     cal: (year,mon) ->
-      window.schedule_view.refresh(year:year,mon:mon)
+      window.schedule_view.refresh(year,mon)
 
   ScheduleModel = Backbone.Model.extend {}
   ScheduleCollection = Backbone.Collection.extend
     model: ScheduleModel
-    url: "/api/schedule/cal"
-    refetch: ->
-      this.fetch(data:{year:this.year,mon:this.mon})
+    refresh: (year,mon) ->
+      this.url = "/api/schedule/cal/#{year}/#{mon}"
     parse: (data) ->
       this.year = data.year
       this.mon = data.mon
@@ -38,11 +37,24 @@ define ->
             else
                []
       bef.concat(cur.concat(aft))
+    
   ScheduleItemView = Backbone.View.extend
+    events:
+      "click":"do_when_click"
     template: _.template($("#templ-item").html())
     template_edit_info: _.template($("#templ-item-edit-info").html())
     el: "<li>"
+    initialize: ->
+      _.bindAll(this,"do_when_click")
+    do_when_click: ->
+      return if this.edit_info or not this.model.get('current')
+      window.schedule_detail_view.$el.foundation("reveal","open")
+      year = this.model.get('year')
+      mon = this.model.get('mon')
+      day = this.model.get('day')
+      window.schedule_detail_view.refresh(year,mon,day)
     render: ->
+      this.edit_info = false
       info = this.model.get('info')
       this.$el.html(this.template(
             item: this.model.get('item')
@@ -62,6 +74,7 @@ define ->
       else
         info_item.addClass("not-current")
     render_edit_info: ->
+      this.edit_info = true
       info = this.model.get('info')
       this.$el.html(this.template_edit_info(
         info: info
@@ -76,17 +89,28 @@ define ->
     el: "#schedule"
     events:
       "click #edit-info-done":"do_edit_info_done"
-      "click #prev-month": -> add_month(-1)
-      "click #next-month": -> add_month(1)
+      "click #prev-month": -> this.inc_month(-1)
+      "click #next-month": -> this.inc_month(1)
       "click .toggle-edit-info": "do_toggle_edit_info"
+    refresh: (year,mon) ->
+      this.collection.refresh(year,mon)
+      this.collection.fetch().done(this.render)
+
+    inc_month: (dx) ->
+      m = this.collection.mon
+      y = this.collection.year
+      x = y * 12 + ( m - 1 ) + dx
+      mm = (x % 12) + 1
+      yy = Math.floor(x / 12)
+      window.schedule_router.navigate("cal/#{yy}/#{mm}", trigger: true)
     do_toggle_edit_info: ->
       this.edit_info ^= true
       this.render()
     template: _.template($("#templ-cal-header").html()+$("#templ-cal").html())
     template_edit: _.template($("#templ-cal-edit-header").html()+$("#templ-cal").html())
-    initialize: ->
+    initialize: (opts) ->
+      _.bindAll(this,"render","do_edit_info_done","do_toggle_edit_info","inc_month")
       this.collection = new ScheduleCollection()
-      _.bindAll(this,"render","do_edit_info_done","do_toggle_edit_info")
     do_edit_info_done: ->
       have_to_update = {}
       for v in this.subviews
@@ -117,11 +141,9 @@ define ->
         data:JSON.stringify(have_to_update))
       that = this
       res.done( ->
-        that.collection.refetch().done(that.do_toggle_edit_info)
+        that.collection.fetch().done(that.do_toggle_edit_info)
       )
                 
-    refresh: (data) ->
-      this.collection.fetch(data:data).done(this.render)
     render: ->
       e = this.$el
       e.empty()
@@ -141,14 +163,46 @@ define ->
           v.render()
         $("#cal-body").append(v.$el)
         that.subviews.push(v)
-  add_month = (dx) ->
-    m = window.schedule_view.collection.mon
-    y = window.schedule_view.collection.year
-    x = y * 12 + ( m - 1 ) + dx
-    mm = (x % 12) + 1
-    yy = Math.floor(x / 12)
-    window.schedule_router.navigate("cal/#{yy}/#{mm}", trigger: true)
+  ScheduleDetailModel = Backbone.Model.extend {}
+  ScheduleDetailCollection = Backbone.Collection.extend
+    model: ScheduleDetailModel
+    refresh: (year,mon,day) ->
+      this.url = "/api/schedule/detail/#{year}/#{mon}/#{day}"
+    parse: (data) ->
+      this.year = data.year
+      this.mon = data.mon
+      this.day = data.day
+      data.list
+  ScheduleDetailItemView = Backbone.View.extend
+    template: _.template($("#templ-detail-item").html())
+    render: ->
+      this.$el.html(this.template(
+        title: this.model.get('title')
+        place: this.model.get('place')
+        start_at: this.model.get('start_at')
+        end_at: this.model.get('end_at')))
+  ScheduleDetailView = Backbone.View.extend
+    el: '#container-detail'
+    template: _.template($("#templ-detail").html())
+    initialize: ->
+      _.bindAll(this,"render")
+      this.collection = new ScheduleDetailCollection()
+    refresh: (year,mon,day) ->
+      this.collection.refresh(year,mon,day)
+      this.collection.fetch().done(this.render)
+    render: ->
+      console.log(this.collection.year)
+      this.$el.html(this.template(
+        year: this.collection.year
+        mon: this.collection.mon
+        day: this.collection.day))
+      that = this
+      this.collection.each (m)->
+        v = new ScheduleDetailItemView(model:m)
+        v.render()
+        that.$el.append(v.$el)
   init: ->
     window.schedule_router = new ScheduleRouter()
     window.schedule_view = new ScheduleView()
+    window.schedule_detail_view = new ScheduleDetailView()
     Backbone.history.start()

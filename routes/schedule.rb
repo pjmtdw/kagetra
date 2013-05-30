@@ -8,7 +8,26 @@ class MainApp < Sinatra::Base
         )
       }
     end
-    get '/cal' do
+    get '/detail/:year/:mon/:day' do
+      year = params[:year].to_i
+      mon = params[:mon].to_i
+      day = params[:day].to_i
+      
+      list = ScheduleItem.all(date:Date.new(year,mon,day)).map{|x|
+        {title: x.title,
+         start_at: x.start_at,
+         end_at:x.end_at,
+         place:x.place
+        }
+      }
+      {
+        year:year,
+        mon:mon,
+        day:day,
+        list: list
+      }
+    end
+    get '/cal/:year/:mon' do
       year = params[:year].to_i
       mon = params[:mon].to_i
       fday = Date.new(year,mon,1)

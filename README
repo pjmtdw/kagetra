@@ -24,6 +24,8 @@ ORM:
   DataMapper
 Database:
   SQLite
+Wiki Backend:
+  Git
 HTML Template Engine:
   Haml
 CSS Template Engine:

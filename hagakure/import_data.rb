@@ -8,11 +8,13 @@ require './init'
 require 'nkf'
 require 'parallel'
 
+SHURUI = {}
+
 class String
   def sjis!
     self.replace NKF.nkf("-Sw",self)
   end
-  def bbs_body_replace
+  def body_replace
     self.gsub("<br>","\n")
       .gsub("&gt;",">")
       .gsub("&lt;","<")
@@ -22,18 +24,28 @@ class String
   end
 end
 
+def import_zokusei
+
+end
+
 def import_user
   Parallel.each_with_index(File.readlines(File.join(HAGAKURE_BASE,"txts","namelist.cgi")),in_threads: NUM_THREADS){|code,index|
     next if index == 0
     code.chomp!
-    File.readlines(File.join(HAGAKURE_BASE,"passdir","#{code}.cgi")).each{|line|
-      line.chomp!
-      line.sjis!
-      (uid,name,password_hash,login_num,last_login,user_agent) = line.split("\t")
-      (uid,auth) = uid.split("<>")
-      (name,furigana,zokusei) = name.split("+")
-      puts name
-      User.create(id: uid, name: name, furigana: furigana)
+    File.readlines(File.join(HAGAKURE_BASE,"passdir","#{code}.cgi")).each_with_index{|line,lineno|
+      begin
+        line.chomp!
+        line.sjis!
+        (uid,name,password_hash,login_num,last_login,user_agent) = line.split("\t")
+        (uid,auth) = uid.split("<>")
+        (name,furigana,zokusei) = name.split("+")
+        puts name
+        User.create(id: uid, name: name, furigana: furigana)
+      rescue DataMapper::SaveFailureError => e
+        puts "Error at #{code} line #{lineno+1}"
+        p e.resource.errors
+        raise e
+      end
     }
   }
 end
@@ -71,7 +83,7 @@ def import_bbs
         begin
           if i == 0 then
             title = others[0] || ""
-            body = (others[1..-1] || []).join("\t").bbs_body_replace
+            body = (others[1..-1] || []).join("\t").body_replace
             (num,is_public) = num.split("<>")
             is_public = ["1","on"].include?(is_public)
             thread = BbsThread.create(deleted: deleted, created_at: date, title: title, public: is_public)
@@ -83,7 +95,7 @@ def import_bbs
             thread.update!(updated_at: date)
             puts title
           else
-            body = others.join("\t").bbs_body_replace
+            body = others.join("\t").body_replace
             item = BbsItem.create(item_props.merge(id: num, body: body, bbs_thread: thread))
             item.update!(updated_at: date)
           end
@@ -121,16 +133,16 @@ def import_schedule
           puts "#{kind} - #{title}"
           type = case kind
                  when "1"
-                   :train
+                   :practice
                  when "2"
-                   :compa
+                   :party
                  else
                    :etc
                  end
           emphasis = []
           emphasis << :place if emphasis_place == "1"
-          emphasis << :start if emphasis_start == "1"
-          emphasis << :end if emphasis_end == "1"
+          emphasis << :start_at if emphasis_start == "1"
+          emphasis << :end_at if emphasis_end == "1"
 
           date = Date.new(year,mon,day)
           created_at = DateTime.parse(wdate)
@@ -182,9 +194,91 @@ def import_schedule
       end
     }
   }
+end
 
+def import_shurui
+  lines = File.readlines(File.join(HAGAKURE_BASE,"txts","shurui.cgi"))
+  lines.each{|line|
+    line.chomp!
+    line.sjis!
+    (num,name,description) = line.split("\t")
+    EventGroup.create(id:num, name:name, description:description)
+    SHURUI[num.to_i] = name
+  }
+end
+
+def iskonpa2etype(iskonpa)
+  case iskonpa
+  when -1 then :contest
+  when 0 then  :etc
+  when 1 then  :practice
+  when 2 then  :party
+  else raise Exception.new("invalid type: #{iskonpa}")
+  end
+end
+
+def parse_common(tbuf)
+  choices = []
+  tbuf.each_with_index{|curl,lineno|
+    nextline = tbuf[lineno+1]
+    case curl
+    when "[NAME]"
+      (taikainame,seisikimeishou) = nextline.split('<>')
+    when "[ANSWER]"
+      (yes,no,notyet) = nextline.split('/')
+      yeses = yes.split('<>')
+      choices = yeses.map{|y| ['YES',y]} + [['NO',no]]
+    when /^\[BIKOU\]/
+      (kounin,teamnum) = curl[7..-1].split('-')
+      kounin = (kounin == '1')
+      teamnum = teamnum.to_i
+      bikou = nexline.body_replace
+    when "[PLACE]"
+      place = nextline
+    end
+  }
+  [taikainame,seisikimeishou,choices,kounin,teamnum,bikou,place]
+end
+
+def import_event
+  lines = File.readlines(File.join(HAGAKURE_BASE,"txts","taikailist.cgi"))[1..-1]
+  if SHURUI.empty? then
+    raise Exception.new("import_shurui not executed")
+  end
+  Parallel.each(lines,in_threads:NUM_THREADS){|line|
+     line.chomp!
+     line.sjis!
+     (taikainum,kaisaidate,iskonpa,kanrisha,koureitaikai) = line.split("\t")
+     shurui = SHURUI[koureitaikai.to_i]
+     (kyear,kmon,kday,khour,kmin,kweekday) = kaisaidate.split('/')
+     if kyear == "なし" then
+       kaisaidate = nil
+     else
+       kaisaidate = Date.new(kyear.to_i,kmon.to_i,kday.to_i)
+       kstart_at = HourMin.new(khour.to_i,kmin.to_i)
+     end
+     (tourokudate,kanrisha) = kanrisha.split('<>')
+     etype = iskonpa2etype(iskonpa)
+     kanrishas = kanrisha.split(',').map{|k| k.strip}
+     tbuf = File.readlines(File.join(HAGAKURE_BASE,"txts","#{taikainum}.cgi")).map{|x|
+       x.chomp!
+       x.sjis!
+     }
+     (taikainame,seisikimeishou,choices,kounin,teamnum,bikou,place) = parse_common(tbuf)
+     tbuf.each_with_index{|curl,lineno|
+       nextline = tbuf[lineno+1]
+       case curl
+       when '[SIMEKIRI]'
+        simekiri = nextline
+        (syear,smon,sday,sweekday) = simekiri.split('/')
+        simekiri = if syear == 'なし' then nil else Date.new(syear.to_i,smon.to_i,sday.to_i) end
+       end
+     }
+  }
 end
 
 import_user
 import_bbs
 import_schedule
+#import_shurui
+#import_event

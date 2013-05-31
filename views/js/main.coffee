@@ -4,7 +4,8 @@ requirejs.config
     jquery: "http://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min"
     zepto: "http://cdnjs.cloudflare.com/ajax/libs/zepto/1.0/zepto.min"
     backbone: "http://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.0.0/backbone-min"
-    underscore: "http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min"
+#    underscore: "http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min"
+    underscore: "http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore"
     foundation: "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.2/js/foundation/foundation"
     "foundation.topbar": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.2/js/foundation/foundation.topbar.min"
     "foundation.reveal": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.2/js/foundation/foundation.reveal.min"
@@ -18,7 +19,7 @@ requirejs.config
     "crypto-core": "libs/CryptoJS/components/core"
   shim:
     myutil:
-      deps: ["underscore"]
+      deps: ["underscore","zep_or_jq"]
     jquery:
       exports: "$"
     underscore:

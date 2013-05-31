@@ -13,8 +13,7 @@ class ScheduleItem
   include ModelBase
   property :type, Enum[:practice, :party, :etc], default: :etc #練習, コンパ, その他
   property :public, Boolean, default: true # 公開されているか
-  property :notify, Boolean, default: false # 期日が迫ったときに通知するか
-  property :emphasis, Flag[:start, :end, :place]  # 強調表示 => 開始時刻, 終了時刻, 場所
+  property :emphasis, Flag[:title, :start_at, :end_at, :place, :description]  # 強調表示 => タイトル, 開始時刻, 終了時刻, 場所, コメント
   property :title, String, length: 48, required: true
   property :date, Date, index: true, required: true # 日時
   property :start_at, HourMin # 開始時刻
@@ -24,7 +23,4 @@ class ScheduleItem
 
   belongs_to :user
 
-  before :save do
-    self.notify = true if (self.emphasis and self.emphasis.empty?.!)
-  end
 end

@@ -46,7 +46,8 @@
       <%= info ? info.names.join(" / ") : "" %>
     .item
       <% _.each(item,function(o){ %>
-      <%= o.title %>
+      .title
+        <%= o.title %>
       <% }) %>
 %script#templ-item-edit-info(type='text/template')
   .info-item-edit
@@ -61,7 +62,40 @@
 %script#templ-detail(type='text/template')
   .year-month-day
     <%= year %> 年 <%= mon %> 月 <%= day %> 日
+  .right
+    %button.small.round
+      追加
   .body
 
 %script#templ-detail-item(type='text/template')
-  <%= title %> @ <%= place %> => <%= start_at %> 〜 <%= end_at %>
+  %hr
+  .detail-item
+    .info
+      <%= title %> @ <%= place %> => <%= start_at %> 〜 <%= end_at %>
+      <% if(description){ %>
+      .description.panel
+        <%= description %>
+      <% } %>
+    .right
+      %button.edit.small.round
+        編集
+
+%script#templ-detail-item-edit(type='text/template')
+  %hr
+  .detail-item-edit
+    %form.item-detail-form.left
+      %label タイトル
+      %input(type='text' name='title' value='{{ title }}')
+      %label 場所
+      %input(type='text' name='place' value='{{ place }}')
+      %label 開始時刻 ( HH:MM 形式 )
+      %input(type='text' name='start_at' value='{{ start_at }}')
+      %label 終了時刻 ( HH:MM 形式 )
+      %input(type='text' name='end_at' value='{{ end_at }}')
+      %label 説明
+      %textarea(cols='100' rows='8' name='description') {{ description }}
+    .right
+      %button.edit-done.small.round
+        編集完了
+      %button.edit-cancel.small.round
+        キャンセル

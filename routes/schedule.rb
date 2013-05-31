@@ -8,16 +8,25 @@ class MainApp < Sinatra::Base
         )
       }
     end
+    put '/detail/update/:id' do
+      p @json["title"]
+      ScheduleItem.first(id:params[:id]).update(
+        title: @json["title"]
+      )
+    end
     get '/detail/:year/:mon/:day' do
       year = params[:year].to_i
       mon = params[:mon].to_i
       day = params[:day].to_i
       
       list = ScheduleItem.all(date:Date.new(year,mon,day)).map{|x|
-        {title: x.title,
+        {
+         id: x.id,
+         title: x.title,
          start_at: x.start_at,
-         end_at:x.end_at,
-         place:x.place
+         end_at: x.end_at,
+         place: x.place,
+         description: x.description
         }
       }
       {
@@ -25,6 +34,37 @@ class MainApp < Sinatra::Base
         mon:mon,
         day:day,
         list: list
+      }
+    end
+    def make_info(x)
+      return unless x
+      base = {
+        names: x.names
+      }
+      base[:is_holiday] = true if x.holiday
+      base
+    end
+    def make_item(x)
+      return unless x
+      base = {
+        type: x.type,
+        title: x.title,
+        place: x.place
+      }
+      base[:start_at] = x.start_at if x.start_at
+      base[:end_at] = x.end_at if x.end_at
+      base[:emphasis] = x.emphasis if x.emphasis.empty?.!
+      base
+    end
+    get '/get/:year/:mon/:day' do
+      (year,mon,day) = [:year,:mon,:day].map{|x|params[x].to_i}
+      date = Date.new(year,mon,day)
+      {
+        year: year,
+        mon: mon,
+        day: day,
+        info: make_info(ScheduleDateInfo.first(date:date)),
+        item: ScheduleItem.all(date:date).map{|x|make_item(x)}
       }
     end
     get '/cal/:year/:mon' do
@@ -39,23 +79,11 @@ class MainApp < Sinatra::Base
       day_infos = ScheduleDateInfo
         .all_month(:date,year,mon)
         .each_with_object({}){|x,h|
-          base = {
-            names: x.names
-          }
-          base[:is_holiday] = true if x.holiday
-          h[x.date.day] = base
+          h[x.date.day] = make_info(x)
         }
       items = ScheduleItem.all_month(:date,year,mon)
         .each_with_object(Hash.new{[]}){|x,h|
-          base = {
-            type: x.type,
-            title: x.title,
-            place: x.place
-          }
-          base[:start_at] = x.start_at if x.start_at
-          base[:end_at] = x.end_at if x.end_at
-          base[:emphasis] = x.emphasis if x.emphasis.empty?.!
-          h[x.date.day] <<= base
+          h[x.date.day] <<= make_item(x)
         }
       {
         year: year,

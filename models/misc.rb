@@ -28,7 +28,7 @@ module DataMapper
         when ::NilClass,::Kagetra::HourMin
           value
         else
-          raise Exception.new("invalid type: #{value.class.name}")
+          raise Exception.new("invalid class: #{value.class.name}")
         end
       end
       def dump(value)
@@ -38,7 +38,7 @@ module DataMapper
         when ::Kagetra::HourMin
           value.to_s
         else
-          raise Exception.new("invalid type: #{value.class.name}")
+          raise Exception.new("invalid class: #{value.class.name}")
         end
       end
       def typecast(value)

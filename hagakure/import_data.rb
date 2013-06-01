@@ -131,7 +131,7 @@ def import_schedule
           end_at = nil if end_at && end_at.empty?
 
           puts "#{kind} - #{title}"
-          type = case kind
+          kind = case kind
                  when "1"
                    :practice
                  when "2"
@@ -155,7 +155,7 @@ def import_schedule
           end
           item = ScheduleItem.create(
             user: user,
-            type: type,
+            kind: kind,
             public: not_public != "1",
             emphasis: emphasis,
             title: title,

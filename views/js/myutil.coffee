@@ -2,6 +2,19 @@ define (require, exports, module) ->
   _ = require("underscore")
   $ = require("zep_or_jq")
   _.mixin
+    gen_date: (args...) ->
+      ymd = ["year","mon","day"]
+      [year,mon,day] =
+        if args.length == 1
+          if args[0].get?
+            args[0].get(x) for x in ymd
+          else
+            args[0][x] for x in ymd
+        else
+          args
+      new Date(year,mon-1,day)
+    weekday_ja: ->
+      ["日","月","火","水","木","金","土"]
     wrap_submit: (f) ->
       ->
         try
@@ -9,7 +22,6 @@ define (require, exports, module) ->
         catch e
           console.log e
         return false
-
   $.fn.serializeObj = ->
     o = {}
     a = this.serializeArray()

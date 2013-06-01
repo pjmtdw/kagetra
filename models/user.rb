@@ -15,10 +15,7 @@ class User
   end
 
   def update_token!
-    self.update!(token: SecureRandom.base64(24))
-  end
-  def admin?
-    self.admin
+    self.update(token: SecureRandom.base64(24))
   end
 end
 

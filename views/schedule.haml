@@ -32,13 +32,6 @@
 
 %script#templ-cal(type='text/template')
   %ul#cal-body.large-block-grid-7.small-block-grid-4
-    %li 日
-    %li 月
-    %li 火
-    %li 水
-    %li 木
-    %li 金
-    %li 土
 %script#templ-item(type='text/template')
   .info-item
     %span.day
@@ -62,7 +55,7 @@
 
 %script#templ-detail(type='text/template')
   .year-month-day
-    <%= year %> 年 <%= mon %> 月 <%= day %> 日
+    <%= year %>年 <%= mon %>月 <%= day %>日 (<%= wday %>)
   .right
     %button#add-new-item.small.round
       追加

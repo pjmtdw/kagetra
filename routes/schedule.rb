@@ -53,7 +53,7 @@ class MainApp < Sinatra::Base
     def make_item(x)
       return unless x
       base = {
-        type: x.type,
+        kind: x.kind,
         title: x.title,
         place: x.place
       }

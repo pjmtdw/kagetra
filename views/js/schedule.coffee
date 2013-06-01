@@ -61,21 +61,29 @@ define ->
       window.schedule_detail_view.$el.foundation("reveal","open")
       [year,mon,day] = (this.model.get(x) for x in ['year','mon','day'])
       window.schedule_detail_view.refresh(year,mon,day)
+    get_date: ->
+      if this.model.get('current')
+        _.gen_date(this.model)
+    show_day: (date) ->
+      date = if date? then date else this.get_date()
+      if date
+        this.model.get('day').toString() +
+          (if window.is_small then "(#{_.weekday_ja()[date.getDay()]})" else "")
     render: ->
       this.edit_info = false
       info = this.model.get('info')
+      date = this.get_date()
       this.$el.html(this.template(
             item: this.model.get('item')
             info: info
-            day: this.model.get('day')
+            day: this.show_day(date)
       ))
       info_item = this.$el.find(".info-item")
       if this.model.get('current')
         info_item.addClass("current")
-        dt = new Date(this.model.get('year'),this.model.get('mon')-1,this.model.get('day'))
-        if (info and info.is_holiday) or (dt.getDay() == 0)
+        if (info and info.is_holiday) or (date.getDay() == 0)
           info_item.addClass("holiday")
-        else if dt.getDay() == 6
+        else if date.getDay() == 6
           info_item.addClass("saturday")
         else
           info_item.addClass("weekday")
@@ -86,7 +94,7 @@ define ->
       info = this.model.get('info')
       this.$el.html(this.template_edit_info(
         info: info
-        day: this.model.get('day')
+        day: this.show_day()
       ))
       if info and info.is_holiday
         this.$el.find(".holiday").prop("checked",true)
@@ -160,13 +168,17 @@ define ->
       ))
       that = this
       this.subviews = []
+      if not window.is_small
+        for x in _.weekday_ja()
+          $("#cal-body").append($("<li>#{x}</li>"))
       this.collection.each (m) ->
         v = new ScheduleItemView(model:m)
         if that.edit_info
           v.render_edit_info()
         else
           v.render()
-        $("#cal-body").append(v.$el)
+        if not window.is_small or m.get('current')
+          $("#cal-body").append(v.$el)
         that.subviews.push(v)
   ScheduleDetailModel = Backbone.Model.extend {
     urlRoot: "/api/schedule/detail/update"
@@ -247,10 +259,15 @@ define ->
       else
       this.collection.fetch().done(this.render)
     render: ->
+
+      [year,mon,day] = (this.collection[x] for x in ["year","mon","day"])
+      date = _.gen_date(year,mon,day)
       this.$el.html(this.template(
-        year: this.collection.year
-        mon: this.collection.mon
-        day: this.collection.day))
+        year: year
+        mon: mon
+        day: day
+        wday: _.weekday_ja()[date.getDay()]
+      ))
       that = this
       this.collection.each (m)->
         v = new ScheduleDetailItemView(model:m)

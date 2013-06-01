@@ -45,7 +45,14 @@ requirejs.config
 require ["zep_or_jq","myutil","deferred","foundation.reveal","foundation.topbar","backbone"], ->
   $ = require("zep_or_jq")
   Deferred.installInto(Zepto) if Zepto?
-  $( -> $(document).foundation() )
+  init_f = ->
+    # insert dummy element to detect whether it is small screen
+    v = $("<div class='show-for-small'></div>")
+    v.insertAfter("body")
+    window.is_small = v.is(":visible")
+    v.remove()
+
+    $(document).foundation()
   mod_name = $("script[data-start]").attr("data-start")
   if mod_name
-    require [mod_name], (mod) -> $( -> mod.init() )
+    require [mod_name], (mod) -> $( -> init_f();mod.init() )

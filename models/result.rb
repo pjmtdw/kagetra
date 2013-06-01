@@ -92,7 +92,7 @@ class ContestTeamOpponent
   property :round, Integer, unique_index: :u1, required: true
   property :round_name, String, length: 36
   property :comment, Text
-  property :type, Enum[:team, :single] # 団体戦, 個人戦
+  property :kind, Enum[:team, :single] # 団体戦, 個人戦
 end
 
 # 試合結果(団体戦)

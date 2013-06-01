@@ -30,6 +30,14 @@ module Kagetra
       {name: "ら行", range: ["ら", "ろ"]},
       {name: "わ行", range: ["ゎ", "ん"]}
     ]
+    def self.dm_debug
+      begin
+        yield
+      rescue DataMapper::SaveFailureError => e
+        p e.resource.errors
+        raise e
+      end
+    end
     def self.unicode_first(s)
       s[0].unpack("U*")[0]
     end

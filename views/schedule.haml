@@ -19,6 +19,7 @@
       <%= mon %> 月
     %button#next-month.small.round 次へ
     %button.toggle-edit-info.small.round 祝日編集
+    %button.toggle-edit-info.small.round 一括追加
 
 %script#templ-cal-edit-header(type='text/template')
   %span.year
@@ -63,8 +64,9 @@
   .year-month-day
     <%= year %> 年 <%= mon %> 月 <%= day %> 日
   .right
-    %button.small.round
+    %button#add-new-item.small.round
       追加
+  #container-new-item
   .body
 
 %script#templ-detail-item(type='text/template')

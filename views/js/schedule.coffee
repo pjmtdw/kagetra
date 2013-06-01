@@ -13,7 +13,8 @@ define ->
 
   ScheduleModel = Backbone.Model.extend {
     url: ->
-      "/api/schedule/get/#{this.get('year')}/#{this.get('mon')}/#{this.get('day')}"
+      [y,m,d] = (this.get(x) for x in ['year','mon','day'])
+      "/api/schedule/get/#{y}/#{m}/#{d}"
     parse: (data)->
       data.current = true unless data.current?
       data
@@ -58,9 +59,7 @@ define ->
     do_when_click: ->
       return if this.edit_info or not this.model.get('current')
       window.schedule_detail_view.$el.foundation("reveal","open")
-      year = this.model.get('year')
-      mon = this.model.get('mon')
-      day = this.model.get('day')
+      [year,mon,day] = (this.model.get(x) for x in ['year','mon','day'])
       window.schedule_detail_view.refresh(year,mon,day)
     render: ->
       this.edit_info = false
@@ -133,9 +132,7 @@ define ->
         holiday_new = v.$el.find(".holiday").is(":checked")
         
         if "#{names_new}" != "#{names_old}" or holiday_old != holiday_new
-          year = v.model.get("year")
-          mon = v.model.get("mon")
-          day = v.model.get("day")
+          [year,mon,day] = (v.model.get(x) for x in ["year","mon","day"])
           have_to_update["#{year}-#{mon}-#{day}"] = {
             names: names_new
             holiday: holiday_new
@@ -156,16 +153,13 @@ define ->
       )
                 
     render: ->
-      e = this.$el
-      e.empty()
-      body = []
-      that = this
-      this.subviews = []
       templ = if this.edit_info then this.template_edit else this.template
       this.$el.html(templ(
             year: this.collection.year
             mon: this.collection.mon
       ))
+      that = this
+      this.subviews = []
       this.collection.each (m) ->
         v = new ScheduleItemView(model:m)
         if that.edit_info
@@ -176,6 +170,12 @@ define ->
         that.subviews.push(v)
   ScheduleDetailModel = Backbone.Model.extend {
     urlRoot: "/api/schedule/detail/update"
+    defaults:
+      title: ""
+      place: ""
+      start_at: ""
+      end_at: ""
+      description: ""
   }
   ScheduleDetailCollection = Backbone.Collection.extend
     model: ScheduleDetailModel
@@ -197,33 +197,56 @@ define ->
       obj = this.$el.find('.item-detail-form').serializeObj()
       this.model.set(obj)
       that = this
-      this.model.save().done(->
-        that.toggle_edit()
-        day = window.schedule_detail_view.collection.day
-        window.schedule_view.get_subview(day).refresh())
-    toggle_edit: ->
-      this.edit_mode ^= true
-      if this.edit_mode
-        this.render_edit()
+      refresh_day = ->
+          day = window.schedule_detail_view.collection.day
+          window.schedule_view.get_subview(day).refresh()
+      if this.model.isNew()
+        this.model.save().done(->
+          window.schedule_detail_view.refresh()
+          refresh_day()
+        )
       else
-        this.render()
+        this.model.save().done(->
+          that.toggle_edit()
+          refresh_day()
+        )
+    toggle_edit: ->
+      if this.model.isNew()
+        this.$el.remove()
+      else
+        this.edit_mode ^= true
+        if this.edit_mode
+          this.render_edit()
+        else
+          this.render()
     initialize: ->
+      this.edit_mode = false
       _.bindAll(this,"toggle_edit","edit_done")
     render: ->
       this.$el.html(this.template(this.model.toJSON()))
     render_edit: ->
+      this.edit_mode = true
       this.$el.html(this.template_edit(this.model.toJSON()))
   ScheduleDetailView = Backbone.View.extend
     el: '#container-detail'
     template: _.template($("#templ-detail").html())
-    initialize: ->
-      _.bindAll(this,"render")
+    events:
+      "click #add-new-item": "do_add_new"
+    do_add_new: ->
+      m = new ScheduleDetailModel(year:this.collection.year,mon:this.collection.mon,day:this.collection.day)
+      v = new ScheduleDetailItemView(model:m)
+      $("#container-new-item").empty()
+      v.render_edit()
+      $("#container-new-item").append(v.$el)
+     initialize: ->
+      _.bindAll(this,"render","do_add_new")
       this.collection = new ScheduleDetailCollection()
     refresh: (year,mon,day) ->
-      this.collection.refresh(year,mon,day)
+      if year?
+        this.collection.refresh(year,mon,day)
+      else
       this.collection.fetch().done(this.render)
     render: ->
-      console.log(this.collection.year)
       this.$el.html(this.template(
         year: this.collection.year
         mon: this.collection.mon

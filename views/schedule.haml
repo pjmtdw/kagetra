@@ -3,12 +3,10 @@
 - content_for :js_start do
   schedule
 - content_for :css do
-  schedule
-= haml :top_bar
+  schedule, schedule_item
+= haml :top_bar, locals: {user: user}
 .row
   #schedule
-
-#container-detail.reveal-modal
 
 %script#templ-cal-header(type='text/template')
   .year-month
@@ -29,68 +27,7 @@
   %button#edit-info-done.small.round 編集完了
   %button.toggle-edit-info.small.round キャンセル
 
-
 %script#templ-cal(type='text/template')
   %ul#cal-body.large-block-grid-7.small-block-grid-4
-%script#templ-item(type='text/template')
-  .info-item
-    %span.day
-      <%= day %>
-    %span.info
-      <%= info ? info.names.join(" / ") : "" %>
-    .item
-      <% _.each(item,function(o){ %>
-      .title
-        <%= o.title %>
-      <% }) %>
-%script#templ-item-edit-info(type='text/template')
-  .info-item-edit
-    %span.day
-      <%= day %>
-    %input.holiday(type='checkbox')
-    %span 休日
-    %textarea.info
-      <%= info ? info.names.join("\n") : "" %>
 
-
-%script#templ-detail(type='text/template')
-  .year-month-day
-    <%= year %>年 <%= mon %>月 <%= day %>日 (<%= wday %>)
-  .right
-    %button#add-new-item.small.round
-      追加
-  #container-new-item
-  .body
-
-%script#templ-detail-item(type='text/template')
-  %hr
-  .detail-item
-    .info
-      <%= title %> @ <%= place %> => <%= start_at %> 〜 <%= end_at %>
-      <% if(description){ %>
-      .description.panel
-        <%= description %>
-      <% } %>
-    .right
-      %button.edit.small.round
-        編集
-
-%script#templ-detail-item-edit(type='text/template')
-  %hr
-  .detail-item-edit
-    %form.item-detail-form.left
-      %label タイトル
-      %input(type='text' name='title' value='{{ title }}')
-      %label 場所
-      %input(type='text' name='place' value='{{ place }}')
-      %label 開始時刻 ( HH:MM 形式 )
-      %input(type='text' name='start_at' value='{{ start_at }}')
-      %label 終了時刻 ( HH:MM 形式 )
-      %input(type='text' name='end_at' value='{{ end_at }}')
-      %label 説明
-      %textarea(cols='100' rows='8' name='description') {{ description }}
-    .right
-      %button.edit-done.small.round
-        編集完了
-      %button.edit-cancel.small.round
-        キャンセル
+= haml :schedule_item

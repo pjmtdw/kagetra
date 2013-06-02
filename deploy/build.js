@@ -12,6 +12,7 @@
     underscore: "empty:",
     foundation: "empty:",
     "foundation.topbar": "empty:",
+    "foundation.reveal": "empty:",
     modernizr: "empty:",
     json2: "empty:"
   },
@@ -20,6 +21,10 @@
     { name: "top",
       exclude: ["main"] },
     { name: "login",
+      exclude: ["main"] },
+    { name: "bbs",
+      exclude: ["main"] },
+    { name: "schedule",
       exclude: ["main"] }
   ]
 })

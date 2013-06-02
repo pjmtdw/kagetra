@@ -6,10 +6,10 @@ requirejs.config
     backbone: "http://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.0.0/backbone-min"
 #    underscore: "http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min"
     underscore: "http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore"
-    foundation: "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.2/js/foundation/foundation"
-    "foundation.topbar": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.2/js/foundation/foundation.topbar.min"
-    "foundation.reveal": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.2/js/foundation/foundation.reveal.min"
-    modernizr: "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.2/js/vendor/custom.modernizr.min"
+    foundation: "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/foundation/foundation"
+    "foundation.topbar": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/foundation/foundation.topbar.min"
+    "foundation.reveal": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/foundation/foundation.reveal.min"
+    modernizr: "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/vendor/custom.modernizr.min"
     json2: "http://cdnjs.cloudflare.com/ajax/libs/json2/20121008/json2"
     deferred: "libs/deferred.min"
     crypto: "libs/CryptoJS/crypto"
@@ -20,6 +20,8 @@ requirejs.config
   shim:
     myutil:
       deps: ["underscore","zep_or_jq"]
+    schedule_item:
+      deps: ["backbone"]
     jquery:
       exports: "$"
     underscore:
@@ -42,7 +44,8 @@ requirejs.config
     "crypto-pbkdf2":
       deps: ["crypto"]
 
-require ["zep_or_jq","myutil","deferred","foundation.reveal","foundation.topbar","backbone"], ->
+require ["zep_or_jq","myutil","deferred",
+     "foundation.reveal","foundation.topbar","backbone"], ->
   $ = require("zep_or_jq")
   Deferred.installInto(Zepto) if Zepto?
   init_f = ->

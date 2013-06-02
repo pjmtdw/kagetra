@@ -6,9 +6,9 @@
     %link(rel="shortcut icon" href="/img/favicon.ico")
     %link(rel="stylesheet" href="/css/base1.css")
     %link(rel="stylesheet" href="/css/base2.css")
-    - this_css = yield_content(:css).chomp
-    - if this_css.empty?.!
-      %link(rel="stylesheet" href="/css/#{this_css}.css")
+    - this_css = yield_content(:css)
+    - this_css.strip.split(/\s*,\s/).each do |x|
+      %link(rel="stylesheet" href="/css/#{x}.css")
   %body
     = yield
     %script(src="js/libs/require.js" data-main="js/main" data-start="#{yield_content(:js_start)}")

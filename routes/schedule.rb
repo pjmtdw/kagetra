@@ -21,26 +21,13 @@ class MainApp < Sinatra::Base
       )
     end
     get '/detail/:year/:mon/:day' do
-      year = params[:year].to_i
-      mon = params[:mon].to_i
-      day = params[:day].to_i
-      
+      (year,mon,day) = [:year,:mon,:day].map{|x|params[x].to_i}
       list = ScheduleItem.all(date:Date.new(year,mon,day)).map{|x|
-        {
-         id: x.id,
-         title: x.title,
-         start_at: x.start_at,
-         end_at: x.end_at,
-         place: x.place,
-         description: x.description
+        x.attributes.select{|k,_|
+          [:id,:title,:start_at,:end_at,:place,:description].include?(k)
         }
       }
-      {
-        year:year,
-        mon:mon,
-        day:day,
-        list: list
-      }
+      {year: year, mon: mon, day: day, list: list}
     end
     def make_info(x)
       return unless x
@@ -73,6 +60,22 @@ class MainApp < Sinatra::Base
         item: ScheduleItem.all(date:date).map{|x|make_item(x)}
       }
     end
+    get '/panel' do
+      PANEL_DAYS = 3
+      today = Date.today
+      cond = {:date.gte => today, :date.lt => today + PANEL_DAYS} 
+      arr = (0...PANEL_DAYS).map{|i|
+        d = today + i
+        {year: d.year, mon: d.mon, day: d.day, info: [], item:[]}
+      }
+      day_infos = ScheduleDateInfo.all(cond).each{|x|
+        arr[x.date-today][:info] << make_info(x)
+      }
+      items = ScheduleItem.all(cond).each{|x|
+        arr[x.date-today][:item] << make_item(x)
+      }
+      arr
+    end
     get '/cal/:year/:mon' do
       year = params[:year].to_i
       mon = params[:mon].to_i
@@ -104,6 +107,7 @@ class MainApp < Sinatra::Base
     end
   end
   get '/schedule' do
-    haml :schedule
+    user = get_user
+    haml :schedule, locals:{user: user}
   end
 end

@@ -4,7 +4,7 @@
   bbs
 - content_for :css do
   bbs
-= haml :top_bar
+= haml :top_bar, locals: {user: user}
 .row
   %div.large-6.columns
     %button#new-thread-toggle.small.round スレッド作成

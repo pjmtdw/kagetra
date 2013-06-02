@@ -1,5 +1,5 @@
-http_path = "/"
 css_dir = "public/css"
+http_stylesheets_path = "/css"
 sass_dir = "views/sass"
 output_style = :compressed
 

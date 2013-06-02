@@ -2,6 +2,9 @@
   %section.top-bar-section
     %ul.title-area
       %li.name
+        %h1.show-for-small
+          %a(href)
+            = user.name
         %li.toggle-topbar.menu-icon
           %a(href)
             %span Menu
@@ -28,7 +31,7 @@
         %a(href="/addr") 名簿
     %ul.left
       %li.has-dropdown
-        %a その他
+        %a(href="#") その他
         %ul.dropdown
           %li
             %a(href="/config") 設定
@@ -36,3 +39,6 @@
             %a(href="/bts") 要望・バグ報告
           %li
             %a(href="/user/logout") ログアウト
+    %ul.right
+      %li
+        %a(href) #{user.name}

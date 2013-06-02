@@ -3,9 +3,11 @@
 - content_for :js_start do
   top
 - content_for :css do
-  top
-= haml :top_bar
-%div
-  USER: #{user.name}
-.round
-  COUNT: #{count}
+  top, schedule_item
+= haml :top_bar, locals: {user:user}
+
+.row
+  .large-6.small-6.columns
+    %ul#schedule-panel.large-block-grid-3.small-block-grid-3
+
+= haml :schedule_item

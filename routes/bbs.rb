@@ -55,6 +55,7 @@ class MainApp < Sinatra::Base
     end
   end
   get '/bbs' do
-    haml :bbs
+    user = get_user
+    haml :bbs,{locals: {user: user}}
   end
 end

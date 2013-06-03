@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# License of this software is described in LICENSE file.
 require './conf'
 require 'bundler'
 

@@ -9,14 +9,14 @@ class Event
   property :official, Boolean, default: true # 公認大会
   property :kind, Enum[:contest, :practice, :party, :etc], default: :etc # 大会, 練習, コンパ, その他
   property :num_teams, Integer, default: 1 # 1 => 個人戦, 3 => 3人団体戦, 5 => 5人団体戦
-  property :desciprtion, Text # 備考
+  property :description, Text # 備考
   property :deadline, Date # 締切
   property :date, Date # 日時 
   property :start_at, HourMin #開始時刻
   property :end_at, HourMin #終了時刻
   property :place, String, length: 96 # 場所
-  belongs_to :event_group
-  # belongs_to :aggregate_attr 'UserAttributeKey' # 集計属性
+  belongs_to :event_group, required: false
+  belongs_to :aggregate_attr, 'UserAttributeKey', required: false # 集計属性
   # has n, :owner, 'User' # 管理者
   property :show_choice, Boolean, default: true # ユーザがどれを選択したか表示する
 end

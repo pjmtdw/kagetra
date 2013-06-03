@@ -29,8 +29,9 @@ class ContestPrize
 end
 
 # 試合結果(個人戦, 団体戦共通)
-class ContestMatchBase
+class ContestMatch
   include ModelBase
+  property :type, Discriminator # Single Table Inheritance between ContestTeamMatch and ContestSingleMatch
   property :user_id, Integer, unique_index: [:user_event_round,:user_opponent_team], required: true
   belongs_to :user
   property :result, Enum[:win,:lose,:default_win,:default_lose,:now] # 勝敗 => 勝ち, 負け, 不戦勝, 不戦敗, 対戦中
@@ -51,8 +52,7 @@ class ContestSingleUserClass
 end
 
 # 試合結果(個人戦)
-class ContestSingleMatch < ContestMatchBase
-  include ModelBase
+class ContestSingleMatch < ContestMatch
   property :event_id, Integer, unique_index: :user_event_round, required: true
   belongs_to :event
   property :round, Integer, unique_index: :user_event_round, required: true
@@ -96,8 +96,7 @@ class ContestTeamOpponent
 end
 
 # 試合結果(団体戦)
-class ContestTeamMatch < ContestMatchBase
-  include ModelBase
+class ContestTeamMatch < ContestMatch
   property :contest_team_opponent_id, Integer, unique_index: :user_opponent_team, required: true
   belongs_to :contest_team_opponent
   property :opponent_order, Integer # 将順

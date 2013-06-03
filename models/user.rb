@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 class User
   include ModelBase
-  property :name,          String, length: 24
-  property :furigana,      String, length: 36
+  property :name,          String, length: 24, required: true
+  property :furigana,      String, length: 36, required: true
   property :furigana_row,  Integer, index: true # 振り仮名の最初の一文字が五十音順のどの行か
   property :password_hash, String, length: 44
   property :password_salt, String, length: 32
@@ -35,16 +35,15 @@ end
 # ユーザ属性の名前
 class UserAttributeKey
   include ModelBase
-  property :name, String, length: 36
-  property :index, Integer # 順番
+  property :name, String, length: 36, required:true
+  property :index, Integer, required: true # 順番
 end
 
 # ユーザ属性の値
 class UserAttributeValue
   include ModelBase
   property :user_attribute_key_id, Integer, unique_index: :u1, required: true
-  property :value, String, length: 48
   belongs_to :user_attribute_key
-  property :index, Integer
+  property :value, String, length: 48, unique_index: :u1, required: true
+  property :index, Integer, required: true
 end
-

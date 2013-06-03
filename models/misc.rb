@@ -2,10 +2,11 @@ module ModelBase
   def self.included(base)
     base.class_eval do
       include DataMapper::Resource
-      property :id,            DataMapper::Property::Serial
+      p = DataMapper::Property
+      property :id, p::Serial
       # Automatically set/updated by dm-timestamps
-      property :created_at, DataMapper::Property::DateTime, index: true
-      property :updated_at, DataMapper::Property::DateTime, index: true
+      property :created_at, p::DateTime, index: true
+      property :updated_at, p::DateTime, index: true
 
       def self.all_month(prop,year,month)
         from = Date.new(year,month,1)
@@ -15,6 +16,7 @@ module ModelBase
     end
   end
 end
+
 module DataMapper
   class Property
     class HourMin < DataMapper::Property::String
@@ -47,10 +49,16 @@ module DataMapper
     end
   end
 end
+
 class MyConf
   include ModelBase
-  property :id,    Serial
   property :name,  String, length: 64, unique: true
   property :value, Json
 end
 
+class Test
+  include ModelBase
+  belongs_to :user
+  belongs_to :my_conf
+  validates_uniqueness_of :my_conf_id, scope: [:user_id]
+end

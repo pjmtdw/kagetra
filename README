@@ -57,7 +57,7 @@ for Ubuntu ->
 (3) Install JavaScript runtime for ExecJS
   $ apt-get install nodejs
 (4) Run web app
-  $ cd kagetra && bundle exec rackup config.ru
+  $ cd kagetra && bundle exec rackup
 
 [For Production]
 (1) Compile Sass to CSS
@@ -79,6 +79,6 @@ for Ubuntu ->
 
 [For Development]
 - Start interactive console for Sinatra
-  $ bundle exec tux -c config.ru
+  $ bundle exec tux
 - If you get "Internal Server Error" when compiling CoffeeScript but cannot know the position of the error, try executing
   $ coffee -c views/js/hoobar.coffee

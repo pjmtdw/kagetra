@@ -25,6 +25,18 @@ class String
 end
 
 def import_zokusei
+  File.readlines(File.join(HAGAKURE_BASE,"txts","zokusei.cgi")).each_with_index{|b,i|
+    b.chomp!
+    b.sjis!
+    cols = b.split(/\t/)
+    keys = cols[0].split(/<>/)
+    verbose_name = keys[0]
+    values = cols[1].split(/<>/)
+    attr_key = UserAttributeKey.create(name:verbose_name, index: i)
+    values.each_with_index{|v,ii|
+      UserAttributeValue.create(user_attribute_key:attr_key,value:v,index:ii)
+    }
+  }
 
 end
 
@@ -202,23 +214,24 @@ def import_shurui
     line.chomp!
     line.sjis!
     (num,name,description) = line.split("\t")
-    EventGroup.create(id:num, name:name, description:description)
-    SHURUI[num.to_i] = name
+    group = EventGroup.create(id:num, name:name, description:description)
+    SHURUI[num.to_i] = group
   }
 end
 
 def iskonpa2etype(iskonpa)
   case iskonpa
-  when -1 then :contest
-  when 0 then  :etc
-  when 1 then  :practice
-  when 2 then  :party
+  when "-1" then :contest
+  when "0" then  :etc
+  when "1" then  :practice
+  when "2" then  :party
   else raise Exception.new("invalid type: #{iskonpa}")
   end
 end
 
 def parse_common(tbuf)
   choices = []
+  (taikainame,seisikimeishou,choices,kounin,teamnum,bikou,place) = nil
   tbuf.each_with_index{|curl,lineno|
     nextline = tbuf[lineno+1]
     case curl
@@ -226,13 +239,13 @@ def parse_common(tbuf)
       (taikainame,seisikimeishou) = nextline.split('<>')
     when "[ANSWER]"
       (yes,no,notyet) = nextline.split('/')
-      yeses = yes.split('<>')
-      choices = yeses.map{|y| ['YES',y]} + [['NO',no]]
+      yeses = yes && yes.split('<>')
+      choices = yeses && yeses.map{|y| ['YES',y]} + [['NO',no]]
     when /^\[BIKOU\]/
       (kounin,teamnum) = curl[7..-1].split('-')
       kounin = (kounin == '1')
       teamnum = teamnum.to_i
-      bikou = nexline.body_replace
+      bikou = nextline.body_replace
     when "[PLACE]"
       place = nextline
     end
@@ -246,39 +259,112 @@ def import_event
     raise Exception.new("import_shurui not executed")
   end
   Parallel.each(lines,in_threads:NUM_THREADS){|line|
-     line.chomp!
-     line.sjis!
-     (taikainum,kaisaidate,iskonpa,kanrisha,koureitaikai) = line.split("\t")
-     shurui = SHURUI[koureitaikai.to_i]
-     (kyear,kmon,kday,khour,kmin,kweekday) = kaisaidate.split('/')
-     if kyear == "なし" then
-       kaisaidate = nil
-     else
-       kaisaidate = Date.new(kyear.to_i,kmon.to_i,kday.to_i)
-       kstart_at = HourMin.new(khour.to_i,kmin.to_i)
-     end
-     (tourokudate,kanrisha) = kanrisha.split('<>')
-     etype = iskonpa2etype(iskonpa)
-     kanrishas = kanrisha.split(',').map{|k| k.strip}
-     tbuf = File.readlines(File.join(HAGAKURE_BASE,"txts","#{taikainum}.cgi")).map{|x|
-       x.chomp!
-       x.sjis!
-     }
-     (taikainame,seisikimeishou,choices,kounin,teamnum,bikou,place) = parse_common(tbuf)
-     tbuf.each_with_index{|curl,lineno|
-       nextline = tbuf[lineno+1]
-       case curl
-       when '[SIMEKIRI]'
-        simekiri = nextline
-        (syear,smon,sday,sweekday) = simekiri.split('/')
-        simekiri = if syear == 'なし' then nil else Date.new(syear.to_i,smon.to_i,sday.to_i) end
-       end
-     }
+    line.chomp!
+    line.sjis!
+    (taikainum,kaisaidate,iskonpa,kanrisha,koureitaikai) = line.split("\t")
+    shurui = SHURUI[koureitaikai.to_i]
+    (kyear,kmon,kday,khour,kmin,kweekday) = kaisaidate.split('/')
+    if kyear == "なし" then
+      kaisaidate = nil
+    else
+      kaisaidate = Date.new(kyear.to_i,kmon.to_i,kday.to_i)
+      kstart_at = Kagetra::HourMin.new(khour.to_i,kmin.to_i)
+    end
+    (tourokudate,kanrisha) = kanrisha.split('<>')
+    etype = iskonpa2etype(iskonpa)
+    kanrishas = kanrisha.split(',').map{|k| k.strip}
+    tbuf = File.readlines(File.join(HAGAKURE_BASE,"taikai","#{taikainum}.cgi")).map{|x|
+      x.chomp!
+      x.sjis!
+    }
+    (taikainame,seisikimeishou,choices,kounin,teamnum,bikou,place) = parse_common(tbuf)
+    (bikou_opt,simekiri,agg_attr,show_choice) = nil
+    tbuf.each_with_index{|curl,lineno|
+      nextline = tbuf[lineno+1]
+      case curl
+      when '[SIMEKIRI]'
+       simekiri = nextline
+       (syear,smon,sday,sweekday) = simekiri.split('/')
+       simekiri = if syear == 'なし' then nil else Date.new(syear.to_i,smon.to_i,sday.to_i) end
+      when '[FUKA]'
+        fukas = nextline.split('#')
+        fukalist = fukas.map{|f|
+          next if f.empty?
+          (key,val) = f.split('.')
+          k = UserAttributeKey.first(index:key.to_i-1)
+          v = UserAttributeValue.first(user_attribute_key:k,index:val.to_i)
+        }.compact
+      when /^\[KAIHI\](\d?)/
+        agg_attr = UserAttributeKey.first(index:$1.to_i-1)
+        bikou_opt = ''
+        next unless agg_attr
+        if nextline.to_s.empty?.! then
+          xx = tbuf[lineno+2].split('&')
+          zz = xx.each_with_index.map{|x,ii|
+            next if x.empty?
+            v = UserAttributeValue.first(user_attribute_key:agg_attr,index:ii)
+            if not v then raise Exception.new("no UserAttributeValue which has user_attribute_key:#{agg_attr.id} and index:#{ii-1} at taikainum:#{taikainum}") end
+            v.value + x
+          }.compact
+          if zz.empty?.! then
+            bikou_opt = nextline + ": " + zz.join(", ")
+          end
+        end
+      when /^\[SANKA\](\d?)/
+        revised = $1 == '1'
+        member_yes= nextline
+        member_no = tbuf[lineno+2]
+        show_choice = true
+        userchoice = [[:yes,member_yes],[:no,member_no]].map{|typ,m|
+          case m[0]
+          when 1 then show = true
+          when 2 then show_choice = false
+          end
+          tts = m[1..-1].split(/<!--[0-9]-->/)
+          ttss = tts[1..-1]
+          next unless ttss
+          ttss.map{|zz|
+            zz.split(/\t/).each_with_index.map{|mm,ci|
+              mm.split(/ *, */).map{|ss|
+                next if ss.empty?
+                (name,date) = ss.split(/ *<> */).map{|x|x.strip}
+                {
+                  typ:typ,
+                  date:DateTime.parse(date.sub(/\*/,"")),
+                  name:name,
+                  ci:ci
+                }
+              }
+            }
+          }
+        }.flatten.compact
+      end
+    }
+    begin
+      evt = Event.create(
+        name:taikainame,
+        formal_name: seisikimeishou,
+        official: kounin,
+        kind:etype,
+        num_teams: teamnum,
+        description: "#{bikou}\n#{bikou_opt}",
+        deadline: simekiri,
+        date: kaisaidate,
+        created_at: DateTime.parse(tourokudate),
+        place: place,
+        event_group: shurui,
+        show_choice: show_choice,
+        aggregate_attr: agg_attr)
+    rescue DataMapper::SaveFailureError => e
+      puts "Error at #{taikainame}"
+      p e.resource.errors
+      raise e
+    end
   }
 end
-
+import_zokusei
 import_user
 import_bbs
 import_schedule
-#import_shurui
-#import_event
+import_shurui
+import_event

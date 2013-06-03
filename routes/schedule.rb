@@ -66,10 +66,10 @@ class MainApp < Sinatra::Base
       cond = {:date.gte => today, :date.lt => today + PANEL_DAYS} 
       arr = (0...PANEL_DAYS).map{|i|
         d = today + i
-        {year: d.year, mon: d.mon, day: d.day, info: [], item:[]}
+        {year: d.year, mon: d.mon, day: d.day, item:[]}
       }
       day_infos = ScheduleDateInfo.all(cond).each{|x|
-        arr[x.date-today][:info] << make_info(x)
+        arr[x.date-today][:info] = make_info(x)
       }
       items = ScheduleItem.all(cond).each{|x|
         arr[x.date-today][:item] << make_item(x)

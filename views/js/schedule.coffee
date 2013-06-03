@@ -68,7 +68,7 @@ define (require,exports,module) ->
     initialize: ->
       _.bindAll(this,"render","do_edit_info_done","do_toggle_edit_info","inc_month")
       this.collection = new ScheduleCollection()
-    get_subview: (day) ->
+    get_subview: (year,mon,day) ->
       this.subviews[this.collection.before_day+day-1]
     do_edit_info_done: ->
       have_to_update = {}
@@ -122,7 +122,8 @@ define (require,exports,module) ->
           $("#cal-body").append(v.$el)
         that.subviews.push(v)
   init: ->
+    window.show_schedule_weekday = window.is_small
     window.schedule_router = new ScheduleRouter()
     window.schedule_view = new ScheduleView()
-    window.schedule_detail_view = new $si.ScheduleDetailView()
+    window.schedule_detail_view = new $si.ScheduleDetailView(parent:window.schedule_view)
     Backbone.history.start()

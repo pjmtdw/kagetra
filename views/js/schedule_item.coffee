@@ -28,8 +28,9 @@ define ->
     show_day: (date) ->
       date = if date? then date else this.get_date()
       if date
-        this.model.get('day').toString() +
-          (if window.is_small then "(#{_.weekday_ja()[date.getDay()]})" else "")
+        (if window.show_schedule_month then "#{date.getMonth()+1} / " else "") +
+        date.getDate() +
+        (if window.show_schedule_weekday then " (#{_.weekday_ja()[date.getDay()]})" else "")
     render: ->
       this.edit_info = false
       info = this.model.get('info')
@@ -92,8 +93,9 @@ define ->
       this.model.set(obj)
       that = this
       refresh_day = ->
-          day = window.schedule_detail_view.collection.day
-          window.schedule_view.get_subview(day).refresh()
+        dv = window.schedule_detail_view
+        [year,mon,day] = (dv.collection[x] for x in ["year","mon","day"])
+        dv.parent.get_subview(year,mon,day).refresh()
       if this.model.isNew()
         this.model.save().done(->
           window.schedule_detail_view.refresh()
@@ -132,8 +134,9 @@ define ->
       $("#container-new-item").empty()
       v.render_edit()
       $("#container-new-item").append(v.$el)
-     initialize: ->
+     initialize: (opts)->
       _.bindAll(this,"render","do_add_new")
+      this.parent = opts.parent
       this.collection = new ScheduleDetailCollection()
     refresh: (year,mon,day) ->
       if year?

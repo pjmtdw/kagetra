@@ -16,7 +16,7 @@
     %input.holiday(type='checkbox')
     %span 休日
     %textarea.info
-      <%= ! _isEmpty(info) ? info.names.join("\n") : "" %>
+      <%= info ? info.names.join("\n") : "" %>
 %script#templ-detail(type='text/template')
   .year-month-day
     <%= year %>年 <%= mon %>月 <%= day %>日 (<%= wday %>)

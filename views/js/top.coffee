@@ -1,5 +1,17 @@
 define (require,exports,module) ->
   $si = require("schedule_item")
+  show_deadline = (deadline_day) ->
+    if not deadline_day?
+      ""
+    else if deadline_day < 0
+      "<span class='deadline-expired'>〆切を過ぎました</span>"
+    else if deadline_day == 0
+      "〆切は<span class='deadline-today'>今日</span>です"
+    else if deadline_day == 1
+      "〆切は<span class='deadline-tomorrow'>明日</span>です"
+    else
+      "〆切まであと<span class='deadline-future'>#{deadline_day}</span>日です"
+
   SchedulePanelCollection = Backbone.Collection.extend
     model: $si.ScheduleModel
     url: "/api/schedule/panel"
@@ -27,12 +39,26 @@ define (require,exports,module) ->
     set_comparator: (attr) ->
       this.order = attr
       sign = if attr == "created_at" then -1 else 1
-      f = (x)-> x.get(attr) || ("9999-12-31_" + x.get("name"))
+      f = if attr == "created_at" or attr == "date"
+            (x)-> x.get(attr) || ("9999-12-31_" + x.get("name"))
+          else if attr == "deadline_day"
+            (x)->
+              dd = x.get("deadline_day")
+              if not dd?
+                999999999
+              else if dd < 0
+                999999 - dd
+              else
+                dd
       this.comparator = (x,y) -> fx=f(x);fy=f(y);if fx>fy then sign else if fx<fy then -sign else 0
   EventItemView = Backbone.View.extend
+    el: '<li>'
     template: _.template($('#templ-event-item').html())
     render: ->
-      this.$el.html(this.template(name:this.model.get('name'),date:this.model.get('date')))
+      this.$el.html(this.template(
+        name:this.model.get('name'),
+        date:this.model.get('date'),
+        deadline:show_deadline(this.model.get('deadline_day'))))
 
   EventListView = Backbone.View.extend
     el: '#event-list'
@@ -48,7 +74,7 @@ define (require,exports,module) ->
       _.bindAll(this,"reorder")
       this.collection = new EventListCollection()
       this.collection.bind("sort sync", this.render, this)
-      this.collection.set_comparator('created_at')
+      this.collection.set_comparator('date')
       this.collection.fetch()
     render: ->
       this.$el.html(this.template())
@@ -58,7 +84,7 @@ define (require,exports,module) ->
       this.collection.each (m)->
         v = new EventItemView(model:m)
         v.render()
-        that.$el.find(".body").append(v.$el)
+        that.$el.find(".event-body").append(v.$el)
         that.subviews.push(v)
       
 

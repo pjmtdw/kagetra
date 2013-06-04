@@ -14,7 +14,7 @@ class Event
   property :date, Date # 日時 
   property :start_at, HourMin #開始時刻
   property :end_at, HourMin #終了時刻
-  property :place, String, length: 96 # 場所
+  property :place, String, length: 256 # 場所
   belongs_to :event_group, required: false
   belongs_to :aggregate_attr, 'UserAttributeKey', required: false # 集計属性
   # has n, :owner, 'User' # 管理者

@@ -362,9 +362,144 @@ def import_event
     end
   }
 end
+
+def get_user_or_add(username)
+  username.strip!
+  User.first_or_create({name:username},{furigana:"only_in_taikai_result"})
+end
+
+def import_contest_result_dantai(evt,sankas)
+end
+
+def import_contest_result_kojin(evt,sankas)
+  klass = nil
+  handle_single = lambda{|user,round,body|
+    return if body.to_s.empty?
+    (kaisen,result,maisuu,op_name,op_kai,comment) = body.split(/<>/)
+    kaisen = Kagetra::Utils.zenkaku_to_hankaku(s)
+    if kailen != "#{round}回戦" then
+      cur = ContestSingleRoundName.first_or_create(event:evt,round:round,klass:klass)
+      if cur.name != "決勝" and cur.name != "準決勝" then
+        cur.update(name: kaisen)
+      end
+    end
+    result = case result
+             when "WIN" then :win
+             when "LOSE" then :lose
+             when "NOW" then :now
+             when "FUSEN" then :default_win
+             else raise Exception.new("unknown result: #{result}")
+             end
+    score_int = Kagetra::Utils.eval_score_char(maisuu)
+    begin
+      ContestSingleMatch.create(
+        user:user,
+        result:result,
+        score_char: maisuu,
+        score_int: score_int,
+        opponent_name: op_name,
+        opponent_belonging: op_kai,
+        comment: comment,
+        event: evt,
+        round: round)
+    rescue DataMapper::SaveFailureError => e
+      puts "Error at #{evt} #{user} #{round} #{body}"
+      p e.resource.errors
+      raise e
+    end
+  }
+  handle_match = lambda{|curl,answercounter|
+    ss = curl.split(/\t/)
+    return if ss.empty?
+    if ss.size == 1 then
+      # TODO 
+    end
+  }
+end
+
+def import_endtaikai
+  lines = File.readlines(File.join(HAGAKURE_BASE,"txts","endtaikailist.cgi"))
+  if SHURUI.empty? then
+    raise Exception.new("import_shurui not executed")
+  end
+  Parallel.each(lines,in_threads:NUM_THREADS){|line|
+    line.chomp!
+    line.sjis!
+    (tnum,kaisaidate,iskonpa,kanrisha,taikainame,koureitaikai) = line.split(/\t/)
+    (kyear,kmon,kday,khour,kmin,kweekday) = kaisaidate.split(/\//)
+    invalid_kaisaidate = false
+    if kyear == "なし" then
+      kaisaidate = nil
+    else
+      if khour.to_s.empty? then
+        khour = 0
+      end
+      if kmin.to_s.empty? then
+        kmin = 0
+      end
+      if kday.to_s.empty? then
+        invalid_kaisaidate = true
+        kday = 1
+      end
+      kaisaidate = DateTime.new(kyear.to_i,kmon.to_i,kday.to_i,khour.to_i,kmin.to_i)
+    end
+    shurui = SHURUI[koureitaikai]
+    (tourokudate,kanrisha) = kanrisha.split(/<>/)
+    if tourokudate.nil? then
+      tourokudate = "1975/01/01"
+    end
+    (taikainame,seisikimeishou) = taikainame.split(/<>/)
+    tbuf = File.readlines(File.join(HAGAKURE_BASE,"resultdir/#{tnum}.cgi")).map{|x|
+      x.chomp!
+      x.sjis!
+    }
+    etype = iskonpa2etype(iskonpa)
+    (taikainame,seisikimeishou,choices,kounin,teamnum,bikou,place) = parse_common(tbuf)
+    if invalid_kaisaidate then
+      bikou += "\nDateInvaild: 日付は仮のもの．正しい日付は不明"
+    end
+    begin
+      evt = Event.create(name: taikainame,
+                       formal_name: seisikimeishou,
+                       official: kounin,
+                       kind: etype,
+                       num_teams: teamnum,
+                       description: bikou,
+                       date: kaisaidate,
+                       created_at: DateTime.parse(tourokudate),
+                       place: place,
+                       event_group: shurui)
+      if choices then 
+        choices.each_with_index{|(typ,name),i|
+          positive = (typ == 'YES')
+          EventChoice.create(name:name,positive:positive,event:evt,index:i)
+       }
+      end
+      sankas = nil
+      tbuf.each_with_index{|b,i|
+        if b.start_with?("[SANKA]") then
+          sankas = tbuf[(i+i)..-1]
+          break
+        end
+      }
+      if evt.num_teams == 1 then
+        import_contest_result_kojin(evt,sankas)
+      else
+        import_contest_result_dantai(evt,sankas)
+      end
+    rescue DataMapper::SaveFailureError => e
+      puts "Error at #{taikainame}"
+      p e.resource.errors
+      raise e
+    end
+
+  }
+end
+
 import_zokusei
 import_user
 import_bbs
 import_schedule
 import_shurui
 import_event
+import_endtaikai

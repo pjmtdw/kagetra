@@ -13,6 +13,12 @@ module ModelBase
         to = from >> 1
         all(prop.gte => from, prop.lt => to)
       end
+
+      def select_attr(*symbols)
+        self.attributes.select{|k,_|
+          symbols.include?(k)
+        }
+      end
     end
   end
 end

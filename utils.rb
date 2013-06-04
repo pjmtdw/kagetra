@@ -67,5 +67,17 @@ module Kagetra
     def self.hmac_password(hash,msg)
       Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::Digest.new('sha256'), hash, msg)).gsub("\n","")
     end
+    def self.zenkaku_to_hankaku(s)
+      NKF::nkf('-wZ0',s)
+    end
+    def self.eval_score_char(s)
+      s = self.zenkaku_to_hankaku(s).gsub(/\s+/,"")
+      if /^(\d|\+|\-)+$/ =~ s then
+        begin
+          eval(s)
+        rescue
+        end
+      end
+    end
   end
 end

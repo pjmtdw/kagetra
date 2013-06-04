@@ -11,3 +11,18 @@
     %ul#schedule-panel.large-block-grid-3.small-block-grid-3
 
 = haml :schedule_item
+#event-list.row
+
+%script#templ-event-list(type='text/template')
+  %dl#event-order.sub-nav
+    %dt 順序:
+    %dd.choice(data-order='created_at')
+      %a 追加日
+    %dd.choice(data-order='date')
+      %a 開始日
+    %dd.choice(data-order='deadline')
+      %a 締切日
+  .body
+
+%script#templ-event-item(type='text/template')
+  <%= name %> @ <%= date %>

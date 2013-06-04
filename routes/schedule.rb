@@ -23,9 +23,7 @@ class MainApp < Sinatra::Base
     get '/detail/:year/:mon/:day' do
       (year,mon,day) = [:year,:mon,:day].map{|x|params[x].to_i}
       list = ScheduleItem.all(date:Date.new(year,mon,day)).map{|x|
-        x.attributes.select{|k,_|
-          [:id,:title,:start_at,:end_at,:place,:description].include?(k)
-        }
+        x.select_attr(:id,:title,:start_at,:end_at,:place,:description)
       }
       {year: year, mon: mon, day: day, list: list}
     end

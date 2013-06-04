@@ -25,8 +25,4 @@ class MainApp < Sinatra::Base
       response.body = response.body.to_json
     end
   end
-  get '/' do
-    shared_salt = MyConf.first(name: "shared_password").value["salt"]
-    haml :index, locals: {shared_salt: shared_salt}
-  end
 end

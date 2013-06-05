@@ -22,7 +22,7 @@
       %a 締切日
     %dd.choice(data-order='created_at')
       %a 追加日
-    %dd.choice(data-order='participant')
+    %dd.choice(data-order='participant_count')
       %a 登録数
   %ul.event-body.large-block-grid-2.small-block-grid-1
 
@@ -31,7 +31,7 @@
     %div
       <%= name %> @ <%= date %> - <%= deadline %> 
     %div
-      登録数: <%= participant %>
+      登録数: <%= participant_count %>
       %button.small.show-detail
         詳細
     .event-choice
@@ -43,8 +43,16 @@
   <% }) %>
 
 %script#templ-event-detail(type='text/template')
-  hoge
-
+  %div 大会名: <%= data.name %>
+  %div 日付: <%= data.date %>
+  %div 〆切: <%= data.deadline %>
+  %div 備考: <%= data.description %>
+  %div
+    <% _.each(data.choices,function(c){ %>
+    %div
+      <%= c.name %> : <%= data.participant && data.participant[c.id] %>
+    <% }) %>
+  
 
 #container-event-detail.reveal-modal
 

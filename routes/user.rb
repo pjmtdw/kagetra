@@ -25,7 +25,6 @@ class MainApp < Sinatra::Base
       {result: res}
     end
     get '/auth_salt/:id' do
-      p params[:id]
       {salt: User.first(id: params[:id]).password_salt}
     end
     post '/auth_shared' do

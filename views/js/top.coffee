@@ -32,16 +32,18 @@ define (require,exports,module) ->
         that.subviews["#{y}-#{m}-#{d}"] = v
     get_subview: (year,mon,day) ->
       this.subviews["#{year}-#{mon}-#{day}"]
-  EventItemModel = Backbone.Model.extend {}
+  EventItemModel = Backbone.Model.extend {
+    urlRoot: "/api/event/item"
+  }
   EventListCollection = Backbone.Collection.extend
     model: EventItemModel
     url: "/api/event/list"
     set_comparator: (attr) ->
       this.order = attr
-      sign = if attr in ["created_at","participant"] then -1 else 1
+      sign = if attr in ["created_at","participant_count"] then -1 else 1
       f = if attr in ["created_at","date"]
             (x)-> x.get(attr) || ("9999-12-31_" + x.get("name"))
-          else if attr == "participant"
+          else if attr == "participant_count"
             (x)-> x.get(attr)
           else if attr == "deadline_day"
             (x)->
@@ -63,12 +65,15 @@ define (require,exports,module) ->
         name:this.model.get('name'),
         date:this.model.get('date'),
         deadline:show_deadline(this.model.get('deadline_day'))
-        participant:this.model.get('participant')
+        participant_count:this.model.get('participant_count')
         )
     initialize: ->
       _.bindAll(this,"do_when_click")
     do_when_click: ->
-      window.event_detail_view.$el.foundation("reveal","open")
+      dv = window.event_detail_view
+      dv.$el.foundation("reveal","open")
+      dv.model = this.model
+      dv.model.fetch(data:{mode:'detail'}).done(->dv.render())
   EventListView = Backbone.View.extend
     el: '#event-list'
     template: _.template($('#templ-event-list').html())
@@ -103,6 +108,10 @@ define (require,exports,module) ->
   EventDetailView = Backbone.View.extend
     el: "#container-event-detail"
     template: _.template($("#templ-event-detail").html())
+    initialize: ->
+      _.bindAll(this,"render")
+    render: ->
+      this.$el.html(this.template(data:this.model.toJSON()))
   EventChoiceModel = Backbone.Model.extend {
     url: -> "/api/event/choose/#{this.get('eid')}/#{this.get('choice')}"
   }
@@ -124,7 +133,6 @@ define (require,exports,module) ->
         {name:x.name,id:x.id} for x in choices
       }
       this.$el.html(this.template(data))
-      console.log this.model.get('choice')
       this.$el.find("dd[data-id='#{this.model.get('choice')}']").addClass("active")
 
   init: ->

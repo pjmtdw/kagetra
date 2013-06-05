@@ -17,8 +17,11 @@ class Event
   property :place, String, length: 256 # 場所
   belongs_to :event_group, required: false
   belongs_to :aggregate_attr, 'UserAttributeKey', required: false # 集計属性
-  # has n, :owner, 'User' # 管理者
+  # TODO: through: DataMapper::Resource で自動的に作られるテーブルには created_at, updated_atがない
+  has n, :owner, 'User' , through: DataMapper::Resource # 管理者
+  has n, :forbidden_attr, 'UserAttributeValue', through: DataMapper::Resource # 登録不可属性
   property :show_choice, Boolean, default: true # ユーザがどれを選択したか表示する
+  has n, :choice, 'EventChoice'
 end
 
 # 行事のグループ
@@ -31,23 +34,26 @@ end
 # 行事の選択肢
 class EventChoice
   include ModelBase
-  property :name, String, length: 24, required:true
+  property :name, String, length: 24, required: false
   property :positive, Boolean, required: true # 参加する, はい などの前向きな回答
   property :show_result, Boolean, default: true # 回答した人の一覧を表示する
   property :index, Integer, required: true # 順番
   belongs_to :event
-  has n, :user, through: :event_choice_user
+  has n, :choice_of_user,'EventChoiceUser'
+  has n, :user, through: :choice_of_user , via: :user
 end
 
 # どのユーザがどの選択肢を選んだか
 class EventChoiceUser
   include ModelBase
   belongs_to :event_choice
-  # we cannot set :unique_index => <index_name> directly to belongs_to
-  # this creates UNIQUE INDEX `unique_<table_name>_u1` ON `<table_name>` (`user_id`,`event_id`)
-  property :user_id, Integer, unique_index: :u1, required: true
-  property :event_id, Integer, unique_index: :u1, required: true
   belongs_to :user
-  belongs_to :event
+
+  # 一つの行事を複数選択することはできない
+  before :save do
+    self.event_choice.event.tap{|x|
+      x.choice.choice_of_user(user:self.user).destroy if x
+    }
+  end
 end
 

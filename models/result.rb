@@ -34,6 +34,7 @@ class ContestMatch
   property :type, Discriminator # Single Table Inheritance between ContestTeamMatch and ContestSingleMatch
   property :user_id, Integer, unique_index: [:user_event_round,:user_opponent_team], required: true
   belongs_to :user
+  property :user_name, String, length: 24 # 大会出場時の名前 (後に改名する人がいるために残しておく)
   property :result, Enum[:win,:lose,:default_win,:default_lose,:now] # 勝敗 => 勝ち, 負け, 不戦勝, 不戦敗, 対戦中
   property :score_str, String, length: 8 # 枚数(文字) "棄" とか "3+1" とかあるので文字列として用意しておく
   property :score_int, Integer # 枚数(数字)

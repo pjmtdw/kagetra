@@ -1,4 +1,4 @@
-%script#templ-item(type='text/template')
+%script#templ-schedule-item(type='text/template')
   .info-item
     %span.day
       <%= day %>
@@ -9,7 +9,7 @@
       .title.ellipsis
         <%= o.title %>
       <% }) %>
-%script#templ-item-edit-info(type='text/template')
+%script#templ-schedule-item-edit-info(type='text/template')
   .info-item-edit
     %span.day
       <%= day %>
@@ -17,7 +17,7 @@
     %span 休日
     %textarea.info
       <%= info ? info.names.join("\n") : "" %>
-%script#templ-detail(type='text/template')
+%script#templ-schedule-detail(type='text/template')
   .year-month-day
     <%= year %>年 <%= mon %>月 <%= day %>日 (<%= wday %>)
   .right
@@ -26,7 +26,7 @@
   #container-new-item
   .body
 
-%script#templ-detail-item(type='text/template')
+%script#templ-schedule-detail-item(type='text/template')
   %hr
   .detail-item
     .info
@@ -39,7 +39,7 @@
       %button.edit.small.round
         編集
 
-%script#templ-detail-item-edit(type='text/template')
+%script#templ-schedule-detail-item-edit(type='text/template')
   %hr
   .detail-item-edit
     %form.item-detail-form.left
@@ -68,4 +68,4 @@
       %button.edit-cancel.small.round
         キャンセル
 
-#container-detail.reveal-modal
+#container-schedule-detail.reveal-modal

@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
-class User
+class UserBase
   include ModelBase
+  property :type,          Discriminator
   property :name,          String, length: 24, required: true
+end
+
+class User < UserBase
   property :furigana,      String, length: 36, required: true
   property :furigana_row,  Integer, index: true # 振り仮名の最初の一文字が五十音順のどの行か
   property :password_hash, String, length: 44
@@ -9,14 +13,16 @@ class User
   property :token,         String, length: 32
   property :admin,         Boolean, default: false
   #has n, :attr, "UserAttributeValue", through: :user_attribute
-
   before :save do
     self.furigana_row = Kagetra::Utils.gojuon_row_num(self.furigana)
   end
-
   def update_token!
     self.update(token: SecureRandom.base64(24))
   end
+end
+
+# 行事や大会にしか登録していないユーザ
+class GuestUser < UserBase
 end
 
 # TODO: unique constraint that one user can have one attribute per key

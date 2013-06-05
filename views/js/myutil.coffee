@@ -2,6 +2,8 @@ define (require, exports, module) ->
   _ = require("underscore")
   $ = require("zep_or_jq")
   _.mixin
+    template_braces: (x) ->
+      _.template(x,false,interpolate: /\{\{(.+?)\}\}/g)
     gen_date: (args...) ->
       ymd = ["year","mon","day"]
       [year,mon,day] =

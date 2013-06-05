@@ -10,8 +10,8 @@ define ->
   ScheduleItemView = Backbone.View.extend
     events:
       "click":"do_when_click"
-    template: _.template($("#templ-item").html())
-    template_edit_info: _.template($("#templ-item-edit-info").html())
+    template: _.template($("#templ-schedule-item").html())
+    template_edit_info: _.template($("#templ-schedule-item-edit-info").html())
     el: "<li>"
     initialize: ->
       _.bindAll(this,"do_when_click","refresh","render")
@@ -82,8 +82,8 @@ define ->
       this.day = data.day
       data.list
   ScheduleDetailItemView = Backbone.View.extend
-    template: _.template($("#templ-detail-item").html())
-    template_edit: _.template($("#templ-detail-item-edit").html(),false,interpolate: /\{\{(.+?)\}\}/g)
+    template: _.template($("#templ-schedule-detail-item").html())
+    template_edit: _.template_braces($("#templ-schedule-detail-item-edit").html())
     events:
       "click .edit":"toggle_edit"
       "click .edit-cancel":"toggle_edit"
@@ -124,8 +124,8 @@ define ->
       this.edit_mode = true
       this.$el.html(this.template_edit(this.model.toJSON()))
   ScheduleDetailView = Backbone.View.extend
-    el: '#container-detail'
-    template: _.template($("#templ-detail").html())
+    el: '#container-schedule-detail'
+    template: _.template($("#templ-schedule-detail").html())
     events:
       "click #add-new-item": "do_add_new"
     do_add_new: ->

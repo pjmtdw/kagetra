@@ -38,9 +38,11 @@ define (require,exports,module) ->
     url: "/api/event/list"
     set_comparator: (attr) ->
       this.order = attr
-      sign = if attr == "created_at" then -1 else 1
-      f = if attr == "created_at" or attr == "date"
+      sign = if attr in ["created_at","participant"] then -1 else 1
+      f = if attr in ["created_at","date"]
             (x)-> x.get(attr) || ("9999-12-31_" + x.get("name"))
+          else if attr == "participant"
+            (x)-> x.get(attr)
           else if attr == "deadline_day"
             (x)->
               dd = x.get("deadline_day")
@@ -54,12 +56,19 @@ define (require,exports,module) ->
   EventItemView = Backbone.View.extend
     el: '<li>'
     template: _.template($('#templ-event-item').html())
+    events:
+      "click .show-detail": "do_when_click"
     render: ->
-      this.$el.html(this.template(
+      this.$el.html(this.template
         name:this.model.get('name'),
         date:this.model.get('date'),
-        deadline:show_deadline(this.model.get('deadline_day'))))
-
+        deadline:show_deadline(this.model.get('deadline_day'))
+        participant:this.model.get('participant')
+        )
+    initialize: ->
+      _.bindAll(this,"do_when_click")
+    do_when_click: ->
+      window.event_detail_view.$el.foundation("reveal","open")
   EventListView = Backbone.View.extend
     el: '#event-list'
     template: _.template($('#templ-event-list').html())
@@ -73,7 +82,7 @@ define (require,exports,module) ->
     initialize: ->
       _.bindAll(this,"reorder")
       this.collection = new EventListCollection()
-      this.collection.bind("sort sync", this.render, this)
+      this.collection.bind("sort", this.render, this)
       this.collection.set_comparator('date')
       this.collection.fetch()
     render: ->
@@ -85,12 +94,43 @@ define (require,exports,module) ->
         v = new EventItemView(model:m)
         v.render()
         that.$el.find(".event-body").append(v.$el)
+        cm = new EventChoiceModel({choices:m.get('choices'),choice:m.get('choice'),eid:m.get('id')})
+        cv = new EventChoiceView(model:cm)
+        cv.render()
+        v.$el.find(".event-choice").append(cv.$el)
         that.subviews.push(v)
       
+  EventDetailView = Backbone.View.extend
+    el: "#container-event-detail"
+    template: _.template($("#templ-event-detail").html())
+  EventChoiceModel = Backbone.Model.extend {
+    url: -> "/api/event/choose/#{this.get('eid')}/#{this.get('choice')}"
+  }
+  EventChoiceView = Backbone.View.extend
+    el: "<dd class='sub-nav'>"
+    template: _.template_braces($("#templ-event-choice").html())
+    events:
+      "click .choice" : "do_when_click"
+    initialize: ->
+      _.bindAll(this,"do_when_click")
+      this.model.bind("change",this.render,this)
+    do_when_click: (ev)->
+      id = $(ev.currentTarget).attr('data-id')
+      this.model.set('choice',id)
+      this.model.save()
+    render: ->
+      choices = this.model.get("choices")
+      data = {data:
+        {name:x.name,id:x.id} for x in choices
+      }
+      this.$el.html(this.template(data))
+      console.log this.model.get('choice')
+      this.$el.find("dd[data-id='#{this.model.get('choice')}']").addClass("active")
 
   init: ->
     window.show_schedule_weekday = true
     window.show_schedule_month = true
     window.schedule_panel_view = new SchedulePanelView()
     window.event_list_view = new EventListView()
+    window.event_detail_view = new EventDetailView()
     window.schedule_detail_view = new $si.ScheduleDetailView(parent:window.schedule_panel)

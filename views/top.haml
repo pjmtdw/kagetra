@@ -10,7 +10,6 @@
   .large-6.small-6.columns
     %ul#schedule-panel.large-block-grid-3.small-block-grid-3
 
-= haml :schedule_item
 .row
   #event-list
 
@@ -18,7 +17,7 @@
   %dl#event-order.sub-nav
     %dt 順序:
     %dd.choice(data-order='date')
-      %a 開始日
+      %a 開催日
     %dd.choice(data-order='deadline_day')
       %a 締切日
     %dd.choice(data-order='created_at')
@@ -29,4 +28,24 @@
 
 %script#templ-event-item(type='text/template')
   .panel
-    <%= name %> @ <%= date %> - <%= deadline %>
+    %div
+      <%= name %> @ <%= date %> - <%= deadline %> 
+    %div
+      登録数: <%= participant %>
+      %button.small.show-detail
+        詳細
+    .event-choice
+
+%script#templ-event-choice(type='text/template')
+  <% _.each(data,function(d){ %>
+  %dd.choice(data-id='{{d.id}}')
+    %a {{ d.name }}
+  <% }) %>
+
+%script#templ-event-detail(type='text/template')
+  hoge
+
+
+#container-event-detail.reveal-modal
+
+= haml :schedule_item

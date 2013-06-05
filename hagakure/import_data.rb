@@ -240,7 +240,7 @@ def parse_common(tbuf)
     when "[ANSWER]"
       (yes,no,notyet) = nextline.split('/')
       yeses = yes && yes.split('<>')
-      choices = yeses && yeses.map{|y| ['YES',y]} + [['NO',no]]
+      choices = yeses && yeses.map{|y| [:yes,y]} + [[:no,no]]
     when /^\[BIKOU\]/
       (kounin,teamnum) = curl[7..-1].split('-')
       kounin = (kounin == '1')
@@ -278,7 +278,7 @@ def import_event
       x.sjis!
     }
     (taikainame,seisikimeishou,choices,kounin,teamnum,bikou,place) = parse_common(tbuf)
-    (bikou_opt,simekiri,agg_attr,show_choice) = nil
+    (bikou_opt,simekiri,agg_attr,show_choice,fukalist,userchoice) = nil
     tbuf.each_with_index{|curl,lineno|
       nextline = tbuf[lineno+1]
       case curl
@@ -355,6 +355,39 @@ def import_event
         event_group: shurui,
         show_choice: show_choice,
         aggregate_attr: agg_attr)
+      kanrishas.each{|k|
+        user = User.first(name:k)
+        if user.nil? then
+          raise Exception.new("user name not found: #{name}")
+        end
+        evt.owner << user
+      }
+      evt.owner.save
+      fukalist.each{|k|
+        evt.forbidden_attr << k
+      }
+      evt.forbidden_attr.save
+      if not choices.nil? then
+        choices.each_with_index{|(kind,name),i|
+          EventChoice.create(name:name,positive: kind==:yes, event: evt, index: i)
+        }
+      else
+          # create default
+          EventChoice.create(positive:true, event: evt, index: 0)
+          EventChoice.create(positive:false, event: evt, index: 1)
+      end
+      userchoice.each{|uc|
+        user = User.first(name:uc[:name])
+        choice = if uc[:typ] == :yes then
+                    EventChoice.first(event:evt,positive:true,index:uc[:ci])
+                 else
+                    EventChoice.first(event:evt,positive:false)
+                 end
+        if choice.nil? then
+          raise Exception.new("choice is nil: user=#{user}, uc=#{uc.inspect}, evt=#{evt.inspect}")
+        end
+        EventChoiceUser.create(event_choice:choice,user:user,created_at:uc[:date])
+      }
     rescue DataMapper::SaveFailureError => e
       puts "Error at #{taikainame}"
       p e.resource.errors
@@ -471,7 +504,7 @@ def import_endtaikai
                        event_group: shurui)
       if choices then 
         choices.each_with_index{|(typ,name),i|
-          positive = (typ == 'YES')
+          positive = (typ == :yes)
           EventChoice.create(name:name,positive:positive,event:evt,index:i)
        }
       end
@@ -498,8 +531,8 @@ end
 
 import_zokusei
 import_user
-import_bbs
-import_schedule
+#import_bbs
+#import_schedule
 import_shurui
 import_event
-import_endtaikai
+#import_endtaikai

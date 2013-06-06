@@ -8,17 +8,20 @@ class ContestClass
   property :event_id, Integer, unique_index: [:u1,:u2], required: true
   belongs_to :event
   property :class_name, String, length: 16, unique_index: :u1 # 級の名前
-  property :class, Enum[:a,:b,:c,:d,:e,:f] # 実際の級のランク
+  property :class_rank, Enum[:a,:b,:c,:d,:e,:f,:g] # 実際の級のランク
   property :index, Integer, unique_index: :u2 # 順番
   property :num_person, Integer # その級の参加人数(個人戦)
   property :round_name, Json # 順位決定戦の名前(個人戦), {"4":"順決勝","5":"決勝"} のような形式
+  has n, :single_user_classes, 'ContestSingleUserClass'
+  has n, :single_users,'User',through: :single_user_classes,via: :user # 参加者(個人戦)
+  has n, :prizes, 'ContestPrize'
 end
 
 # 個人賞/入賞
 class ContestPrize
   include ModelBase
-  property :event_id, Integer, unique_index: :u1, required: true
-  belongs_to :event
+  property :contest_class_id, Integer, unique_index: :u1, required: true
+  belongs_to :contest_class
   property :user_id, Integer, unique_index: :u1, required: true
   belongs_to :user
   property :prize, String, length: 32 # 入賞
@@ -32,7 +35,6 @@ end
 class ContestMatch
   include ModelBase
   property :type, Discriminator # Single Table Inheritance between ContestTeamMatch and ContestSingleMatch
-  property :user_id, Integer, unique_index: [:user_event_round,:user_opponent_team], required: true
   belongs_to :user
   property :user_name, String, length: 24 # 大会出場時の名前 (後に改名する人がいるために残しておく)
   property :result, Enum[:win,:lose,:default_win,:default_lose,:now] # 勝敗 => 勝ち, 負け, 不戦勝, 不戦敗, 対戦中
@@ -54,9 +56,11 @@ end
 
 # 試合結果(個人戦)
 class ContestSingleMatch < ContestMatch
-  property :event_id, Integer, unique_index: :user_event_round, required: true
-  belongs_to :event
+  belongs_to :event, required: false
   property :round, Integer, unique_index: :user_event_round, required: true
+  # TODO: how to create UNIQUE INDEX (user_id, event_id, round) ?
+  # we use unique verification instead
+  validates_uniqueness_of :user_id, scope: [:event_id,:round]
 end
 
 # 誰がどのチームの何将か(団体戦)
@@ -98,7 +102,9 @@ end
 
 # 試合結果(団体戦)
 class ContestTeamMatch < ContestMatch
-  property :contest_team_opponent_id, Integer, unique_index: :user_opponent_team, required: true
-  belongs_to :contest_team_opponent
+  belongs_to :contest_team_opponent, required: false
   property :opponent_order, Integer # 将順
+  # TODO: how to create UNIQUE INDEX (user_id, contest_team_opponent_id) ?
+  # we use unique verification instead
+  validates_uniqueness_of :user_id, scope: [:contest_team_opponent_id]
 end

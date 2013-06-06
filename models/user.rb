@@ -3,16 +3,18 @@ class UserBase
   include ModelBase
   property :type,          Discriminator
   property :name,          String, length: 24, required: true
+  property :furigana,      String, length: 36
 end
 
 class User < UserBase
-  property :furigana,      String, length: 36, required: true
   property :furigana_row,  Integer, index: true # 振り仮名の最初の一文字が五十音順のどの行か
   property :password_hash, String, length: 44
   property :password_salt, String, length: 32
   property :token,         String, length: 32
   property :admin,         Boolean, default: false
   #has n, :attr, "UserAttributeValue", through: :user_attribute
+  validates_presence_of :furigana;
+
   before :save do
     self.furigana_row = Kagetra::Utils.gojuon_row_num(self.furigana)
   end
@@ -23,6 +25,9 @@ end
 
 # 行事や大会にしか登録していないユーザ
 class GuestUser < UserBase
+  before :save do
+    self.furigana = "only_in_event"
+  end
 end
 
 # TODO: unique constraint that one user can have one attribute per key

@@ -99,7 +99,7 @@ def import_bbs
             (num,is_public) = num.split("<>")
             is_public = ["1","on"].include?(is_public)
             thread = BbsThread.create(deleted: deleted, created_at: date, title: title, public: is_public)
-            item = BbsItem.create(item_props.merge(id: num, body: body, bbs_thread: thread))
+            item = thread.items.create(item_props.merge(id: num, body: body))
             thread.first_item = item
             thread.save
             # use update! to avoid automatic setting by dm-timestamps
@@ -108,7 +108,7 @@ def import_bbs
             puts title
           else
             body = others.join("\t").body_replace
-            item = BbsItem.create(item_props.merge(id: num, body: body, bbs_thread: thread))
+            item = thread.items.create(item_props.merge(id: num, body: body, bbs_thread: thread))
             item.update!(updated_at: date)
           end
         rescue DataMapper::SaveFailureError => e
@@ -360,13 +360,13 @@ def import_event
         if user.nil? then
           raise Exception.new("user name not found: #{name}")
         end
-        evt.owner << user
+        evt.owners << user
       }
-      evt.owner.save
+      evt.owners.save
       fukalist.each{|k|
-        evt.forbidden_attr << k
+        evt.forbidden_attrs << k
       }
-      evt.forbidden_attr.save
+      evt.forbidden_attrs.save
       if not choices.nil? then
         choices.each_with_index{|(kind,name),i|
           EventChoice.create(name:name,positive: kind==:yes, event: evt, index: i)
@@ -386,7 +386,8 @@ def import_event
         if choice.nil? then
           raise Exception.new("choice is nil: user=#{user}, uc=#{uc.inspect}, evt=#{evt.inspect}")
         end
-        EventChoiceUser.create(event_choice:choice,user:user,created_at:uc[:date])
+        choice.users << user
+        choice.users.save()
       }
     rescue DataMapper::SaveFailureError => e
       puts "Error at #{taikainame}"
@@ -398,7 +399,12 @@ end
 
 def get_user_or_add(username)
   username.strip!
-  User.first_or_create({name:username},{furigana:"only_in_taikai_result"})
+  begin
+    user = UserBase.first(name:username) || GuestUser.create(name:username)
+  rescue DataMapper::SaveFailureError => e
+    p e.resource.errors
+    raise e
+  end
 end
 
 def import_contest_result_dantai(evt,sankas)
@@ -409,12 +415,11 @@ def import_contest_result_kojin(evt,sankas)
   handle_single = lambda{|user,round,body|
     return if body.to_s.empty?
     (kaisen,result,maisuu,op_name,op_kai,comment) = body.split(/<>/)
-    kaisen = Kagetra::Utils.zenkaku_to_hankaku(s)
-    if kailen != "#{round}回戦" then
-      cur = ContestSingleRoundName.first_or_create(event:evt,round:round,klass:klass)
-      if cur.name != "決勝" and cur.name != "準決勝" then
-        cur.update(name: kaisen)
-      end
+    kaisen = Kagetra::Utils.zenkaku_to_hankaku(kaisen)
+    if kaisen != "#{round}回戦" then
+      klass.round_name ||= {}
+      klass.round_name[round] = kaisen
+      klass.save()
     end
     result = case result
              when "WIN" then :win
@@ -423,15 +428,15 @@ def import_contest_result_kojin(evt,sankas)
              when "FUSEN" then :default_win
              else raise Exception.new("unknown result: #{result}")
              end
-    score_int = Kagetra::Utils.eval_score_char(maisuu)
+    score_int = if maisuu then Kagetra::Utils.eval_score_char(maisuu) end
     begin
       ContestSingleMatch.create(
         user:user,
         result:result,
-        score_char: maisuu,
+        score_str: maisuu,
         score_int: score_int,
         opponent_name: op_name,
-        opponent_belonging: op_kai,
+        opponent_belongs: op_kai,
         comment: comment,
         event: evt,
         round: round)
@@ -445,9 +450,76 @@ def import_contest_result_kojin(evt,sankas)
     ss = curl.split(/\t/)
     return if ss.empty?
     if ss.size == 1 then
-      # TODO 
+      if ss[0].to_s.empty? then
+        return
+      end
+      user = get_user_or_add(ss[0])
+      choice = evt.choices.first(positive:true,index:answercounter)
+      if choice.nil? then
+        if answercounter == 0 then
+          evt.choices.create(positive:true,name:"参加する",index:0)
+        else
+          raise Exception.new("answercounter != 0 && choice does not exist")
+        end
+      end
+      evt.choices.users << user
+      evt.choices.users.save()
+      return
+    end
+    (name,prize) = ss[0...2]
+    if name.to_s.empty? then
+      return
+    end
+    user = get_user_or_add(name)
+    ContestSingleUserClass.create(user:user,contest_class:klass)
+    ss[2..-1].each_with_index{|body,round|
+      handle_single.call(user,round+1,body)
+    }
+    if prize then
+      (pr,pt,kpt) = prize.split(/<>/)
+      pt ||= 0
+      kpt ||= 0
+      if pr then
+        pt = if pt then pt.to_i else 0 end
+        kpt = if kpt then kpt.to_i else 0 end
+        promtype = nil
+        if /\((.+)\)/ =~ pr then
+          promtype = case $1
+          when 'ダッシュ' then :dash
+          when '昇級' then :rankup
+          end
+          if promtype then
+            pr = $` + $'
+          end
+        end
+        klass.prizes.create(rank:Kagetra::Utils.rank_from_prize(pr),user:user,prize:pr,promotion:promtype,point:pt,point_local:kpt)
+      end
     end
   }
+  answercounter = 0
+  order = 0
+  if sankas then
+    sankas.each_with_index{|curl,lineno|
+      next if curl.nil?
+      if curl == '##ASNWERKUGIRI##' then
+        answercounter+=1
+        next
+      elsif curl.start_with?("#")
+        next
+      end
+      if /^<!--(.*)-->\s*(\d*)/ =~ curl then
+        answercounter = 0
+        klass_name = $1
+        num_person = $2
+        num_person = if num_person == "" then nil else num_person.to_i end
+        kl = Kagetra::Utils.class_from_name(klass_name)
+        klass = evt.result_classes.create(index:order,class_rank:kl,class_name:klass_name,num_person:num_person)
+        order += 1
+      elsif klass
+        handle_match.call(curl,answercounter)
+      end
+    }
+  end
 end
 
 def import_endtaikai
@@ -531,8 +603,8 @@ end
 
 import_zokusei
 import_user
-#import_bbs
-#import_schedule
+import_bbs
+import_schedule
 import_shurui
 import_event
-#import_endtaikai
+import_endtaikai

@@ -7,7 +7,7 @@ class BbsThread
   property :public,        Boolean, default: false  # 公開されているか
   property :deleted,       ParanoidBoolean # 削除済み
   belongs_to :first_item, 'BbsItem', required: false # スレッドの最初の書き込み
-  has n, :bbs_item
+  has n, :items, 'BbsItem'
 end
 
 # 掲示板の書き込み

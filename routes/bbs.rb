@@ -12,8 +12,8 @@ class MainApp < Sinatra::Base
           qb = BbsThread.all(id: -1)
           [
             :title,
-            BbsThread.bbs_item.user_name,
-            BbsThread.bbs_item.body
+            BbsThread.items.user_name,
+            BbsThread.items.body
           ].each{|sym|
             # TODO: escape query
             qb |= BbsThread.all(sym.like => "%#{q}%")
@@ -22,7 +22,7 @@ class MainApp < Sinatra::Base
         }
       end
       query.all(order: [:updated_at.desc ]).chunks(THREADS_PER_PAGE)[page].map{|t|
-        items = t.bbs_item.map{|i|
+        items = t.items.map{|i|
           body = Rack::Utils.escape_html(i.body).gsub("\n","<br>")
           {
             body: body,

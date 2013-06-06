@@ -70,13 +70,42 @@ module Kagetra
     def self.zenkaku_to_hankaku(s)
       NKF::nkf('-wZ0',s)
     end
+
+    def self.kansuuji_to_arabic(s)
+      buf = s.clone
+      "一二三四五六七八九".scan(".").each_with_index{|x,i|
+        buf.gsub!(x,(i+1).to_s)
+      }
+      buf
+    end
+
+    def self.normalize_token(s)
+      self.zenkaku_to_hankaku(s).gsub(/\s+/,"")
+    end
     def self.eval_score_char(s)
-      s = self.zenkaku_to_hankaku(s).gsub(/\s+/,"")
+      s = self.normalize_token(s)
       if /^(\d|\+|\-)+$/ =~ s then
         begin
           eval(s)
         rescue
         end
+      end
+    end
+    def self.class_from_name(s)
+      s = self.normalize_token(s)
+      if /^[a-hA-H]/ =~ s
+        $&.downcase.to_sym
+      else
+        nil
+      end
+    end
+    def self.rank_from_prize(prize)
+      prize = self.normalize_token(prize)
+      prize = self.kansuuji_to_arabic(prize)
+      case prize
+      when "優勝" then 1
+      when "準優勝" then 2
+      when /^(\d+)位$/ then $1.to_i
       end
     end
   end

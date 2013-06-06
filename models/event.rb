@@ -3,7 +3,6 @@
 class Event
   include ModelBase
   property :deleted, ParanoidBoolean
-  property :done, Boolean, index: true # 過去の大会かどうか
   property :name, String, length: 48, required: true # 名称
   property :formal_name, String, length: 96 # 正式名称
   property :official, Boolean, default: true # 公認大会
@@ -18,10 +17,11 @@ class Event
   belongs_to :event_group, required: false
   belongs_to :aggregate_attr, 'UserAttributeKey', required: false # 集計属性
   # TODO: through: DataMapper::Resource で自動的に作られるテーブルには created_at, updated_atがない
-  has n, :owner, 'User' , through: DataMapper::Resource # 管理者
-  has n, :forbidden_attr, 'UserAttributeValue', through: DataMapper::Resource # 登録不可属性
+  has n, :owners, 'User' , through: DataMapper::Resource # 管理者
+  has n, :forbidden_attrs, 'UserAttributeValue', through: DataMapper::Resource # 登録不可属性
   property :show_choice, Boolean, default: true # ユーザがどれを選択したか表示する
-  has n, :choice, 'EventChoice'
+  has n, :choices, 'EventChoice'
+  has n, :result_classes, 'ContestClass' # 大会結果の各級の情報
 end
 
 # 行事のグループ
@@ -39,12 +39,12 @@ class EventChoice
   property :show_result, Boolean, default: true # 回答した人の一覧を表示する
   property :index, Integer, required: true # 順番
   belongs_to :event
-  has n, :choice_of_user,'EventChoiceUser'
-  has n, :user, through: :choice_of_user , via: :user
+  has n, :user_choices,'EventUserChoice'
+  has n, :users, through: :user_choices , via: :user
 end
 
 # どのユーザがどの選択肢を選んだか
-class EventChoiceUser
+class EventUserChoice
   include ModelBase
   belongs_to :event_choice
   belongs_to :user
@@ -52,7 +52,7 @@ class EventChoiceUser
   # 一つの行事を複数選択することはできない
   before :save do
     self.event_choice.event.tap{|x|
-      x.choice.choice_of_user(user:self.user).destroy if x
+      x.choices.user_choices(user:self.user).destroy if x
     }
   end
 end

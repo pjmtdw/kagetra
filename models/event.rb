@@ -29,6 +29,7 @@ class EventGroup
   include ModelBase
   property :name, String, length: 60, required: true
   property :description, Text
+  has n, :events
 end
 
 # 行事の選択肢

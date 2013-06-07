@@ -44,7 +44,7 @@ def import_user
   Parallel.each_with_index(File.readlines(File.join(HAGAKURE_BASE,"txts","namelist.cgi")),in_threads: NUM_THREADS){|code,index|
     next if index == 0
     code.chomp!
-    File.readlines(File.join(HAGAKURE_BASE,"passdir","#{code}.cgi")).each_with_index{|line,lineno|
+    File.readlines(File.join(HAGAKURE_BASE,"passdir","#{code}.cgi")).to_enum.with_index(1){|line,lineno|
       begin
         line.chomp!
         line.sjis!
@@ -54,7 +54,7 @@ def import_user
         puts name
         User.create(id: uid, name: name, furigana: furigana)
       rescue DataMapper::SaveFailureError => e
-        puts "Error at #{code} line #{lineno+1}"
+        puts "Error at #{code} line #{lineno}"
         p e.resource.errors
         raise e
       end
@@ -65,7 +65,7 @@ end
 
 def import_bbs
   Parallel.each(Dir.glob(File.join(HAGAKURE_BASE,"bbs","*.cgi")), in_threads: NUM_THREADS){|fn|
-    File.readlines(fn).each_with_index{|line,lineno|
+    File.readlines(fn).to_enum.with_index(1){|line,lineno|
       line.chomp!
       line.sjis!
       title = ""
@@ -112,7 +112,7 @@ def import_bbs
             item.update!(updated_at: date)
           end
         rescue DataMapper::SaveFailureError => e
-          puts "Error at #{fn} line #{lineno+1} index #{i+1}"
+          puts "Error at #{fn} line #{lineno} index #{i+1}"
           p e.resource.errors
           raise e
         end
@@ -127,9 +127,9 @@ def import_schedule
     raise Exception.new("bad schedule filename: #{base}") unless /^(\d+)_(\d+).cgi$/ =~ base
     year = $1.to_i
     mon = $2.to_i
-    File.readlines(fn).each_with_index{|line,lineno|
+    File.readlines(fn).to_enum.with_index(1){|line,lineno|
       begin
-        day = lineno + 1
+        day = lineno
         line.chomp!
         line.sjis!
         (day_info,*others) = line.split(/<&&>/)
@@ -200,7 +200,7 @@ def import_schedule
           end
         end
       rescue DataMapper::SaveFailureError => e
-        puts "Error at #{fn} line #{lineno+1}"
+        puts "Error at #{fn} line #{lineno}"
         p e.resource.errors
         raise e
       end
@@ -262,7 +262,7 @@ def import_event
     line.chomp!
     line.sjis!
     (taikainum,kaisaidate,iskonpa,kanrisha,koureitaikai) = line.split("\t")
-    shurui = SHURUI[koureitaikai.to_i]
+    shurui = if koureitaikai.to_s.empty?.! then SHURUI[koureitaikai.to_i] end
     (kyear,kmon,kday,khour,kmin,kweekday) = kaisaidate.split('/')
     if kyear == "なし" then
       kaisaidate = nil
@@ -369,12 +369,12 @@ def import_event
       evt.forbidden_attrs.save
       if not choices.nil? then
         choices.each_with_index{|(kind,name),i|
-          EventChoice.create(name:name,positive: kind==:yes, event: evt, index: i)
+          evt.choices.create(name:name,positive: kind==:yes, index: i)
         }
       else
           # create default
-          EventChoice.create(positive:true, event: evt, index: 0)
-          EventChoice.create(positive:false, event: evt, index: 1)
+          evt.choices.create(positive:true, index: 0)
+          evt.choices.create(positive:false, index: 1)
       end
       userchoice.each{|uc|
         user = User.first(name:uc[:name])
@@ -387,7 +387,7 @@ def import_event
           raise Exception.new("choice is nil: user=#{user}, uc=#{uc.inspect}, evt=#{evt.inspect}")
         end
         choice.users << user
-        choice.users.save()
+        choice.users.save
       }
     rescue DataMapper::SaveFailureError => e
       puts "Error at #{taikainame}"
@@ -408,6 +408,124 @@ def get_user_or_add(username)
 end
 
 def import_contest_result_dantai(evt,sankas)
+  klass = nil
+  team = nil
+  team_members = {}
+  handle_single = lambda{|user,round,body|
+    if body.to_s.empty? then
+      return
+    end
+    op_team = team.opponents.first(round:round)
+    (result,maisuu,op_name,shojun,n) = body.split(/<>/)
+    if result.to_s.empty? then
+      raise Exception.new("something wrong with: event: #{evt.inspect} body:#{body}")
+    end
+    n ||= 0
+    if op_team.kind == :single then
+      (shojun,opponent_belongs) = shojun.split(/&&/)
+    else
+      opponent_belongs = nil
+    end
+    shojun = if shojun.to_s.empty?.! then shojun.to_i end
+    result = case result
+              when 'WIN','LOSE','NOW'
+                result.downcase.to_sym
+              when 'FUSEN'
+                :default_win
+              else
+                raise Exception("unknwon result: #{result}")
+              end
+    score_int = Kagetra::Utils.eval_score_char(maisuu)
+    op_team.games.create(user_name:user.name,user:user,result:result,score_str:maisuu,score_int:score_int,opponent_name:op_name,opponent_belongs:opponent_belongs,opponent_order:shojun)
+  }
+  handle_match = lambda{|curl|
+    ss = curl.split(/\t/)
+    return if ss.empty?
+    if ss.size == 1 then
+      user = get_user_or_add(ss[0])
+      team_members[team] << user
+      return
+    end
+    (name,prize) = ss[0..2]
+    if name.to_s.empty? then
+      return
+    end
+    user = get_user_or_add(name)
+    team_members[team] << user
+    ss[2..-1].to_enum.with_index(1){|body,round|
+      handle_single.call(user,round,body)
+    }
+    if prize then
+      (pr,kpt) = prize.split(/<>/)
+      kpt = if kpt.to_s.empty? then
+        0
+      else
+        kpt.to_i
+      end
+      if pr.nil?.! then
+        klass.prizes.create(user:user,prize:pr,point:0,point_local:kpt)
+      end
+    end
+  }
+  handle_opponents = lambda{|tbuf|
+    return if tbuf.nil?
+    tbuf.to_enum.with_index(1){|b,round|
+      (kaisen,op_team) = b.split(/<>/)
+      kaisen = nil if kaisen == '#{round}回戦'
+      if op_team == "_KOJIN" then
+        op_team = nil
+        typ = :single
+      else
+        typ = :team
+      end
+      opponent = team.opponents.create(round:round,round_name:kaisen,kind:typ,name:op_team)
+    }
+  }
+  order = 0
+  sankas.each{|curl|
+    next if curl.to_s.empty? || curl.start_with?("#")
+    case curl
+    when /^<!--(.*)-->/
+      klass_name = $1
+      kl = Kagetra::Utils.class_from_name(klass_name)
+      klass = evt.result_classes.create(index:order,class_rank:kl,class_name:klass_name)
+      order += 1
+    when /^\(\((.*)\)\)/
+      team_name = $1
+      if klass.nil? then
+        raise Exception.new("no class for team: #{team_name}")
+      end
+      ss = curl.split(/\t/)
+      pr = ss[1]
+      if pr
+        pr.sub!('）',')')
+        pr.sub!('（','(')
+      end
+      promtype = nil
+      if /\((.+)\)/ =~ pr then
+        prom = $1
+        promtype =  case prom
+                      when "陥落" then :rank_down
+                      when "昇級" then :rank_up
+                    end
+        if promtype then
+          pr = $` + $'
+        end
+      end
+      team = klass.teams.create(name: team_name, prize: pr, rank: Kagetra::Utils.rank_from_prize(pr), promotion: promtype)
+      team_members[team] = []
+      handle_opponents.call(ss[2..-1])
+    else
+      if team then
+        handle_match.call(curl)
+      end
+    end
+  }
+  team_members.each{|k,v|
+    v.to_enum.with_index(1){|user,rank|
+      team.members.create(order_num:rank,user:user)
+    }
+  }
 end
 
 def import_contest_result_kojin(evt,sankas)
@@ -430,7 +548,8 @@ def import_contest_result_kojin(evt,sankas)
              end
     score_int = if maisuu then Kagetra::Utils.eval_score_char(maisuu) end
     begin
-      ContestSingleMatch.create(
+      klass.single_games.create(
+        user_name:user.name,
         user:user,
         result:result,
         score_str: maisuu,
@@ -438,7 +557,6 @@ def import_contest_result_kojin(evt,sankas)
         opponent_name: op_name,
         opponent_belongs: op_kai,
         comment: comment,
-        event: evt,
         round: round)
     rescue DataMapper::SaveFailureError => e
       puts "Error at #{evt} #{user} #{round} #{body}"
@@ -463,7 +581,7 @@ def import_contest_result_kojin(evt,sankas)
         end
       end
       evt.choices.users << user
-      evt.choices.users.save()
+      evt.choices.users.save
       return
     end
     (name,prize) = ss[0...2]
@@ -472,8 +590,8 @@ def import_contest_result_kojin(evt,sankas)
     end
     user = get_user_or_add(name)
     ContestSingleUserClass.create(user:user,contest_class:klass)
-    ss[2..-1].each_with_index{|body,round|
-      handle_single.call(user,round+1,body)
+    ss[2..-1].to_enum.with_index(1){|body,round|
+      handle_single.call(user,round,body)
     }
     if prize then
       (pr,pt,kpt) = prize.split(/<>/)
@@ -486,7 +604,7 @@ def import_contest_result_kojin(evt,sankas)
         if /\((.+)\)/ =~ pr then
           promtype = case $1
           when 'ダッシュ' then :dash
-          when '昇級' then :rankup
+          when '昇級' then :rank_up
           end
           if promtype then
             pr = $` + $'
@@ -548,7 +666,7 @@ def import_endtaikai
       end
       kaisaidate = DateTime.new(kyear.to_i,kmon.to_i,kday.to_i,khour.to_i,kmin.to_i)
     end
-    shurui = SHURUI[koureitaikai]
+    shurui = if koureitaikai.to_s.empty?.! then SHURUI[koureitaikai.to_i] end
     (tourokudate,kanrisha) = kanrisha.split(/<>/)
     if tourokudate.nil? then
       tourokudate = "1975/01/01"
@@ -577,13 +695,13 @@ def import_endtaikai
       if choices then 
         choices.each_with_index{|(typ,name),i|
           positive = (typ == :yes)
-          EventChoice.create(name:name,positive:positive,event:evt,index:i)
+          evt.choices.create(name:name,positive:positive,index:i)
        }
       end
       sankas = nil
-      tbuf.each_with_index{|b,i|
+      tbuf.to_enum.with_index(1){|b,i|
         if b.start_with?("[SANKA]") then
-          sankas = tbuf[(i+i)..-1]
+          sankas = tbuf[i..-1]
           break
         end
       }
@@ -603,8 +721,8 @@ end
 
 import_zokusei
 import_user
-import_bbs
-import_schedule
+#import_bbs
+#import_schedule
 import_shurui
 import_event
 import_endtaikai

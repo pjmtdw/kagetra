@@ -1,0 +1,54 @@
+- content_for :title do
+  大会結果
+- content_for :js_start do
+  result
+- content_for :css do
+  result
+= haml :top_bar, locals: {user:user}
+
+.row
+  .large-6.small-6.columns
+    %ul.breadcrumbs
+      %li
+        %a 大会一覧
+      %li
+        %a 個人記録
+      %li
+        %a 昇級履歴
+      %li
+        %a ランキング
+  .large-6.small-6.columns
+    .row
+      .large-5.small-5.columns
+        %input(type='text' placeholder='検索文字列')
+      .large-3.small-3.columns
+        %select
+          %option(value='name')選手名
+          %option(value='event')大会名
+          %option(value='belongs')所属会
+      .large-2.small-2.columns
+      %input(type='submit' value='検索')
+#contest-result
+
+%script#templ-contest-result(type='text/template')
+  .row
+    .large-8.small-8.columns
+      %ul.pagination
+        %li.arrow
+          %a &lsaquo;
+        <% _.each(list,function(x){ %>
+        %li.contest-link(data-id='{{x.id}}')
+          %a(href="#") {{ x.name }}
+        <% }) %>
+        %li.arrow
+          %a &rsaquo;
+    .large-4.small-4.columns
+      %a.small.button.dropdown(href='#' data-dropdown='contest-group') 過去の大会
+      %ul#contest-group.f-dropdown
+        <% _.each(group,function(x){ %>
+        %li.contest-link(data-id='{{x.id}}')
+          %a(href="#") {{ x.date }} {{ x.name }}
+        <% }) %>
+  .row
+    %div
+      {{ name }} @ {{ date }}

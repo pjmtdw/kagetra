@@ -40,7 +40,7 @@ class MainApp < Sinatra::Base
         title = params["title"]
         body = params["body"]
         thread = BbsThread.create(title: title)
-        item = BbsItem.create(body: body, bbs_thread: thread, user: user, user_name: user.name)
+        item = thread.items.create(body: body, user: user, user_name: user.name)
         thread.first_item = item
         thread.save
       }
@@ -51,7 +51,7 @@ class MainApp < Sinatra::Base
       thread_id = params["thread_id"]
       thread = BbsThread.first(id: thread_id)
       thread.touch
-      item = BbsItem.create(body: body, bbs_thread: thread, user: user, user_name: user.name)
+      item = thread.items.create(body: body, user: user, user_name: user.name)
     end
   end
   get '/bbs' do

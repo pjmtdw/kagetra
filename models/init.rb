@@ -1,4 +1,4 @@
-DataMapper::Model.raise_on_save_failure = true
+DataMapper::Model.raise_on_save_failure = CONF_DB_RAISE_SAVE_FAILURE
 
 if CONF_DB_DEBUG then
   DataMapper::Logger.new(STDOUT, :debug)

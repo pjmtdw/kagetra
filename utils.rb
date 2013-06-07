@@ -83,6 +83,7 @@ module Kagetra
       self.zenkaku_to_hankaku(s).gsub(/\s+/,"")
     end
     def self.eval_score_char(s)
+      return if s.nil?
       s = self.normalize_token(s)
       if /^(\d|\+|\-)+$/ =~ s then
         begin
@@ -92,6 +93,7 @@ module Kagetra
       end
     end
     def self.class_from_name(s)
+      return if s.nil?
       s = self.normalize_token(s)
       if /^[a-hA-H]/ =~ s
         $&.downcase.to_sym
@@ -100,6 +102,7 @@ module Kagetra
       end
     end
     def self.rank_from_prize(prize)
+      return if prize.nil?
       prize = self.normalize_token(prize)
       prize = self.kansuuji_to_arabic(prize)
       case prize

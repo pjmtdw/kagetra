@@ -1,0 +1,28 @@
+.game-result{
+  width: 120px;
+  height: 48px;
+  text-align: center;
+  padding: 5px;
+  border: 1px dotted gray;
+}
+.result-default_win{
+  background-color: #CCC;
+}
+
+.result-win{
+  background-color: #FFF;
+}
+
+.result-lose{
+  background-color: #CFF;
+}
+.result-user-name{
+  background-color: #FFC;
+}
+
+.class-name{
+  margin-top: 8px;
+  margin-bottom: 16px;
+  font-weight: bold;
+  font-size: large;
+}

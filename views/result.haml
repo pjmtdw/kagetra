@@ -38,7 +38,7 @@
           %a &lsaquo;
         <% _.each(list,function(x){ %>
         %li.contest-link(data-id='{{x.id}}')
-          %a(href="#") {{ x.name }}
+          %a {{ x.name }}
         <% }) %>
         %li.arrow
           %a &rsaquo;
@@ -47,8 +47,24 @@
       %ul#contest-group.f-dropdown
         <% _.each(group,function(x){ %>
         %li.contest-link(data-id='{{x.id}}')
-          %a(href="#") {{ x.date }} {{ x.name }}
+          %a {{ x.date }} {{ x.name }}
         <% }) %>
   .row
     %div
       {{ name }} @ {{ date }}
+  .row#contest-result-body
+
+%script#templ-contest-class(type='text/template')
+  .class-name {{ name }}
+  .row.body
+    <% _.each(user_results,function(x){ %>
+    .row
+      .left.game-result.result-user-name.ellipsis
+        %div {{ x.user_name }}
+      <% _.each(x.game_results,function(y){ %>
+      .left.game-result.ellipsis(class='result-{{y.result}}')
+        {{ _.result_str(y.result) }} {{ y.score_str }} {{ y.opponent_name }}
+        %br
+        ( {{y.opponent_belongs}} )
+      <% }) %>
+    <% }) %>

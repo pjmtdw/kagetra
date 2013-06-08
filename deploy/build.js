@@ -25,6 +25,8 @@
     { name: "bbs",
       exclude: ["main"] },
     { name: "schedule",
+      exclude: ["main"] },
+    { name: "result",
       exclude: ["main"] }
   ]
 })

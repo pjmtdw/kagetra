@@ -2,6 +2,12 @@ define (require, exports, module) ->
   _ = require("underscore")
   $ = require("zep_or_jq")
   _.mixin
+    result_str: (s) ->
+      {win: '○'
+      lose: '●'
+      now: '対戦中'
+      default_win: '不戦'
+      }[s]
     template_braces: (x) ->
       _.template(x,false,interpolate: /\{\{(.+?)\}\}/g)
     gen_date: (args...) ->

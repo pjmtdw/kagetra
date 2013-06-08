@@ -64,6 +64,7 @@ end
 
 
 def import_bbs
+  num_to_line = {}
   Parallel.each(Dir.glob(File.join(HAGAKURE_BASE,"bbs","*.cgi")), in_threads: NUM_THREADS){|fn|
     File.readlines(fn).to_enum.with_index(1){|line,lineno|
       line.chomp!
@@ -71,6 +72,15 @@ def import_bbs
       title = ""
       is_public = false
       thread = nil
+
+      check_duplicate = lambda{|num|
+        cur = "#{fn} #{lineno}"
+        if num_to_line.has_key?(num) then
+          raise Exception.new("id duplicate: #{num} in #{cur} and #{num_to_line[num]}")
+        end
+        num_to_line[num] = cur
+      }
+
       # there is some data which includes "\t" in body which was created when hagakure was immature
       # thus, we cannot simply split by "\t\t"
       line.scan(/((\t|^)\d+(<>(\d|on)?)?\t\d\t.+?)((?=\t\d+(<>)?\t)|$)/).each_with_index{|kakiko,i|
@@ -97,6 +107,7 @@ def import_bbs
             title = others[0] || ""
             body = (others[1..-1] || []).join("\t").body_replace
             (num,is_public) = num.split("<>")
+            check_duplicate.call(num)
             is_public = ["1","on"].include?(is_public)
             thread = BbsThread.create(deleted: deleted, created_at: date, title: title, public: is_public)
             item = thread.items.create(item_props.merge(id: num, body: body))
@@ -107,6 +118,7 @@ def import_bbs
             thread.update!(updated_at: date)
             puts title
           else
+            check_duplicate.call(num)
             body = others.join("\t").body_replace
             item = thread.items.create(item_props.merge(id: num, body: body, bbs_thread: thread))
             item.update!(updated_at: date)
@@ -721,8 +733,8 @@ end
 
 import_zokusei
 import_user
-#import_bbs
-#import_schedule
+import_bbs
+import_schedule
 import_shurui
 import_event
 import_endtaikai

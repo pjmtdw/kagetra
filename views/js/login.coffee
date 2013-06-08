@@ -4,12 +4,12 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
 
   UserListView = Backbone.View.extend
     el: "#login"
-    initialize: -> this.render()
+    initialize: -> @render()
     events:
       "change #initials": "render"
     render: ->
-      this.model.set id:$("#initials").val()
-      this.model.fetch
+      @model.set id:$("#initials").val()
+      @model.fetch
         success: (data) ->
           $("#names").html data_to_option(data.toJSON().list)
 

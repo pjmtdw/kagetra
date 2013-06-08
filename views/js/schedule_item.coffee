@@ -1,12 +1,12 @@
 define ->
-  ScheduleModel = Backbone.Model.extend {
+  ScheduleModel = Backbone.Model.extend
     url: ->
-      [y,m,d] = (this.get(x) for x in ['year','mon','day'])
+      [y,m,d] = (@get(x) for x in ['year','mon','day'])
       "/api/schedule/get/#{y}/#{m}/#{d}"
     parse: (data)->
       data.current = true unless data.current?
       data
-  }
+
   ScheduleItemView = Backbone.View.extend
     events:
       "click":"do_when_click"
@@ -16,32 +16,32 @@ define ->
     initialize: ->
       _.bindAll(this,"do_when_click","refresh","render")
     refresh: ->
-      this.model.fetch().done(this.render)
+      @model.fetch().done(@render)
     do_when_click: ->
-      return if this.edit_info or not this.model.get('current')
+      return if @edit_info or not @model.get('current')
       window.schedule_detail_view.$el.foundation("reveal","open")
-      [year,mon,day] = (this.model.get(x) for x in ['year','mon','day'])
+      [year,mon,day] = (@model.get(x) for x in ['year','mon','day'])
       window.schedule_detail_view.refresh(year,mon,day)
     get_date: ->
-      if this.model.get('current')
-        _.gen_date(this.model)
+      if @model.get('current')
+        _.gen_date(@model)
     show_day: (date) ->
-      date = if date? then date else this.get_date()
+      date = if date? then date else @get_date()
       if date
-        (if window.show_schedule_month then "#{date.getMonth()+1} / " else "") +
-        date.getDate() +
+        (if window.show_schedule_month then "#{date.getMonth()+1} / " else "")
+        date.getDate()
         (if window.show_schedule_weekday then " (#{_.weekday_ja()[date.getDay()]})" else "")
     render: ->
-      this.edit_info = false
-      info = this.model.get('info')
-      date = this.get_date()
-      this.$el.html(this.template(
-            item: this.model.get('item')
+      @edit_info = false
+      info = @model.get('info')
+      date = @get_date()
+      @$el.html(@template(
+            item: @model.get('item')
             info: info
-            day: this.show_day(date)
+            day: @show_day(date)
       ))
-      info_item = this.$el.find(".info-item")
-      if this.model.get('current')
+      info_item = @$el.find(".info-item")
+      if @model.get('current')
         info_item.addClass("current")
         if (info and info.is_holiday) or (date.getDay() == 0)
           info_item.addClass("holiday")
@@ -52,18 +52,18 @@ define ->
       else
         info_item.addClass("not-current")
     render_edit_info: ->
-      this.edit_info = true
-      info = this.model.get('info')
-      this.$el.html(this.template_edit_info(
+      @edit_info = true
+      info = @model.get('info')
+      @$el.html(@template_edit_info(
         info: info
-        day: this.show_day()
+        day: @show_day()
       ))
       if info and info.is_holiday
-        this.$el.find(".holiday").prop("checked",true)
-      if not this.model.get('current')
-        this.$el.find(".info-item-edit").addClass("not-current-edit")
-        
-  ScheduleDetailModel = Backbone.Model.extend {
+        @$el.find(".holiday").prop("checked",true)
+      if not @model.get('current')
+        @$el.find(".info-item-edit").addClass("not-current-edit")
+
+  ScheduleDetailModel = Backbone.Model.extend
     urlRoot: "/api/schedule/detail/update"
     defaults:
       title: ""
@@ -71,15 +71,15 @@ define ->
       start_at: ""
       end_at: ""
       description: ""
-  }
+
   ScheduleDetailCollection = Backbone.Collection.extend
     model: ScheduleDetailModel
     refresh: (year,mon,day) ->
-      this.url = "/api/schedule/detail/#{year}/#{mon}/#{day}"
+      @url = "/api/schedule/detail/#{year}/#{mon}/#{day}"
     parse: (data) ->
-      this.year = data.year
-      this.mon = data.mon
-      this.day = data.day
+      @year = data.year
+      @mon = data.mon
+      @day = data.day
       data.list
   ScheduleDetailItemView = Backbone.View.extend
     template: _.template($("#templ-schedule-detail-item").html())
@@ -89,75 +89,74 @@ define ->
       "click .edit-cancel":"toggle_edit"
       "click .edit-done":"edit_done"
     edit_done: ->
-      obj = this.$el.find('.item-detail-form').serializeObj()
-      this.model.set(obj)
-      that = this
+      obj = @$el.find('.item-detail-form').serializeObj()
+      @model.set(obj)
       refresh_day = ->
         dv = window.schedule_detail_view
         [year,mon,day] = (dv.collection[x] for x in ["year","mon","day"])
         dv.parent.get_subview(year,mon,day).refresh()
-      if this.model.isNew()
-        this.model.save().done(->
+      if @model.isNew()
+        @model.save().done(->
           window.schedule_detail_view.refresh()
           refresh_day()
         )
       else
-        this.model.save().done(->
-          that.toggle_edit()
+        @model.save().done(->
+          @toggle_edit()
           refresh_day()
         )
     toggle_edit: ->
-      if this.model.isNew()
-        this.$el.remove()
+      if @model.isNew()
+        @$el.remove()
       else
-        this.edit_mode ^= true
-        if this.edit_mode
-          this.render_edit()
+        @edit_mode ^= true
+        if @edit_mode
+          @render_edit()
         else
-          this.render()
+          @render()
     initialize: ->
-      this.edit_mode = false
+      @edit_mode = false
       _.bindAll(this,"toggle_edit","edit_done")
     render: ->
-      this.$el.html(this.template(this.model.toJSON()))
+      @$el.html(@template(@model.toJSON()))
     render_edit: ->
-      this.edit_mode = true
-      this.$el.html(this.template_edit(this.model.toJSON()))
+      @edit_mode = true
+      @$el.html(@template_edit(@model.toJSON()))
+
   ScheduleDetailView = Backbone.View.extend
     el: '#container-schedule-detail'
     template: _.template($("#templ-schedule-detail").html())
     events:
       "click #add-new-item": "do_add_new"
     do_add_new: ->
-      m = new ScheduleDetailModel(year:this.collection.year,mon:this.collection.mon,day:this.collection.day)
+      m = new ScheduleDetailModel(year:@collection.year,mon:@collection.mon,day:@collection.day)
       v = new ScheduleDetailItemView(model:m)
       $("#container-new-item").empty()
       v.render_edit()
       $("#container-new-item").append(v.$el)
      initialize: (opts)->
       _.bindAll(this,"render","do_add_new")
-      this.parent = opts.parent
-      this.collection = new ScheduleDetailCollection()
+      @parent = opts.parent
+      @collection = new ScheduleDetailCollection()
     refresh: (year,mon,day) ->
       if year?
-        this.collection.refresh(year,mon,day)
+        @collection.refresh(year,mon,day)
       else
-      this.collection.fetch().done(this.render)
+      @collection.fetch().done(@render)
     render: ->
 
-      [year,mon,day] = (this.collection[x] for x in ["year","mon","day"])
+      [year,mon,day] = (@collection[x] for x in ["year","mon","day"])
       date = _.gen_date(year,mon,day)
-      this.$el.html(this.template(
+      @$el.html(@template(
         year: year
         mon: mon
         day: day
         wday: _.weekday_ja()[date.getDay()]
       ))
-      that = this
-      this.collection.each (m)->
+      for m in @collection.models
         v = new ScheduleDetailItemView(model:m)
         v.render()
-        that.$el.find('.body').append(v.$el)
+        @$el.find('.body').append(v.$el)
   {
     ScheduleDetailView: ScheduleDetailView
     ScheduleModel: ScheduleModel

@@ -7,7 +7,7 @@ class ContestClass
   include ModelBase
   property :event_id, Integer, unique_index: [:u1,:u2], required: true
   belongs_to :event
-  property :class_name, String, length: 16, unique_index: :u1 # 級の名前
+  property :class_name, String, length: 16, required: true, unique_index: :u1 # 級の名前
   property :class_rank, Enum[:a,:b,:c,:d,:e,:f,:g] # 実際の級のランク
   property :index, Integer, unique_index: :u2 # 順番
   property :num_person, Integer # その級の参加人数(個人戦)
@@ -26,24 +26,24 @@ class ContestPrize
   belongs_to :contest_class
   property :user_id, Integer, unique_index: :u1, required: true
   belongs_to :user
-  property :prize, String, length: 32 # 入賞
+  property :prize, String, length: 32, required: true # 実際の名前 (優勝, 全勝賞など)
   property :promotion, Enum[:rank_up, :dash] # 昇級, ダッシュ
   property :point, Integer # A級のポイント
   property :point_local, Integer # 会内ポイント
-  property :rank, Integer # 順位
+  property :rank, Integer # 順位(1=優勝, 2=準優勝, 3=三位, 4=四位, ...)
 end
 
 # 試合結果(個人戦, 団体戦共通)
 class ContestGame
   include ModelBase
-  property :type, Discriminator # Single Table Inheritance between ContestTeamGame and ContestSingleGame
+  property :type, Discriminator, index: true # Single Table Inheritance between ContestTeamGame and ContestSingleGame
   belongs_to :user
-  property :user_name, String, length: 24 # 大会出場時の名前 (後に改名する人がいるために残しておく)
-  property :result, Enum[:now,:win,:lose,:default_win] # 勝敗 => 対戦中, 勝ち, 負け, 不戦勝,
+  property :user_name, String, length: 24, required: true # 大会出場時の名前 (後に改名する人がいるために残しておく)
+  property :result, Enum[:now,:win,:lose,:default_win], required: true # 勝敗 => 対戦中, 勝ち, 負け, 不戦勝,
   property :score_str, String, length: 8 # 枚数(文字) "棄" とか "3+1" とかあるので文字列として用意しておく
   property :score_int, Integer # 枚数(数字)
   property :opponent_name, String, length: 24 # 対戦相手の名前
-  property :opponent_belongs, String, length: 36 # 対戦相手の所属, 個人戦のみ使用 (ただし団体戦の大会でも対戦相手の所属がバラバラなものもあるので用意しておく))
+  property :opponent_belongs, String, length: 36 # 対戦相手の所属, 個人戦のみ使用 (ただし団体戦の大会でも対戦相手の所属がバラバラな場合はここに書く))
   property :comment, Text # コメント
 end
 
@@ -61,7 +61,7 @@ class ContestSingleGame < ContestGame
   # These properties are actually 'required: true'. However, it corresponds to SQL constraint 'NOT NULL'
   # As for single table inheritance, other classes which inherits this base class cannot create instance if we set 'required: true'.
   # Thus we use 'validates_presence_of' instead
-  belongs_to :contest_class, required: false
+  belongs_to :contest_class, required: false, index: true
   property :round, Integer
   # TODO: how to create UNIQUE INDEX (user_id, contest_class_id, round) ?
   # we use unique verification instead
@@ -99,16 +99,16 @@ class ContestTeamOpponent
   property :contest_team_id, Integer, unique_index: :u1, required: true
   belongs_to :contest_team
   property :name, String, length: 48 # 対戦相手のチーム名
-  property :round, Integer, unique_index: :u1, required: true
-  property :round_name, String, length: 36
+  property :round, Integer, unique_index: :u1, required: true # n回戦
+  property :round_name, String, length: 36 # 決勝, 順位決定戦など
   property :comment, Text
-  property :kind, Enum[:team, :single] # 団体戦, 個人戦
+  property :kind, Enum[:team, :single] # 団体戦, 個人戦 (大会としては団体戦だけど各自が別々のチーム相手に対戦)
   has n, :games, 'ContestTeamGame'
 end
 
 # 試合結果(団体戦)
 class ContestTeamGame < ContestGame
-  belongs_to :contest_team_opponent, required: false
+  belongs_to :contest_team_opponent, required: false, index: true
   property :opponent_order, Integer # 将順
   # TODO: how to create UNIQUE INDEX (user_id, contest_team_opponent_id) ?
   # we use unique verification instead

@@ -47,24 +47,45 @@
       %ul#contest-group.f-dropdown
         <% _.each(group,function(x){ %>
         %li.contest-link(data-id='{{x.id}}')
-          %a {{ x.date }} {{ x.name }}
+          %a.ellipsis {{ x.date }} {{ x.name }}
         <% }) %>
   .row
     %div
       {{ name }} @ {{ date }}
-  .row#contest-result-body
+  .row
+    .section-container.tabs(data-section="tabs")
+      %section
+        %p.title(data-section-title)
+          %a 試合結果
+        .content(data-section-content)
+          #contest-result-body.row
+      %section
+        %p.title(data-section-title)
+          %a
+            コメント
+            %span#contest-comment-count
+        .content(data-section-content)
+          #contest-comment.row
 
 %script#templ-contest-class(type='text/template')
   .class-name {{ name }}
   .row.body
-    <% _.each(user_results,function(x){ %>
-    .row
-      .left.game-result.result-user-name.ellipsis
-        %div {{ x.user_name }}
-      <% _.each(x.game_results,function(y){ %>
-      .left.game-result.ellipsis(class='result-{{y.result}}')
-        {{ _.result_str(y.result) }} {{ y.score_str }} {{ y.opponent_name }}
-        %br
-        ( {{y.opponent_belongs}} )
+    .large-12.small-12.columns
+      <% _.each(user_results,function(x){ %>
+      .row
+        .left.game-result.result-user-name.ellipsis
+          %div {{ x.user_name }}
+        <% _.each(x.game_results,function(y){ %>
+        .left.game-result.ellipsis(class='result-{{y.result}}')
+          {{ _.result_str(y.result) }} {{ y.score_str }} {{ y.opponent_name }}
+          %br
+          ( {{y.opponent_belongs}} )
+        <% }) %>
       <% }) %>
-    <% }) %>
+
+%script#templ-contest-comment(type='text/template')
+  <% _.each(data,function(x){ %>
+  %div <%= x.user_name %> @ <%= x.date %>
+  %div <%= x.body %>
+  %hr
+  <% }) %>

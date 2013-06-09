@@ -1,11 +1,9 @@
 #!/usr/bin/env ruby
 # -*- coding: utf-8 -*-
 
-HAGAKURE_BASE="/home/maho/hagakure/subdomains/hagakure/httpdocs"
 NUM_THREADS = 8
 
 require './init'
-require 'nkf'
 require 'parallel'
 
 SHURUI = {}
@@ -25,7 +23,7 @@ class String
 end
 
 def import_zokusei
-  File.readlines(File.join(HAGAKURE_BASE,"txts","zokusei.cgi")).each_with_index{|b,i|
+  File.readlines(File.join(CONF_HAGAKURE_BASE,"txts","zokusei.cgi")).each_with_index{|b,i|
     b.chomp!
     b.sjis!
     cols = b.split(/\t/)
@@ -41,10 +39,10 @@ def import_zokusei
 end
 
 def import_user
-  Parallel.each_with_index(File.readlines(File.join(HAGAKURE_BASE,"txts","namelist.cgi")),in_threads: NUM_THREADS){|code,index|
+  Parallel.each_with_index(File.readlines(File.join(CONF_HAGAKURE_BASE,"txts","namelist.cgi")),in_threads: NUM_THREADS){|code,index|
     next if index == 0
     code.chomp!
-    File.readlines(File.join(HAGAKURE_BASE,"passdir","#{code}.cgi")).to_enum.with_index(1){|line,lineno|
+    File.readlines(File.join(CONF_HAGAKURE_BASE,"passdir","#{code}.cgi")).to_enum.with_index(1){|line,lineno|
       begin
         line.chomp!
         line.sjis!
@@ -65,7 +63,7 @@ end
 
 def import_bbs
   num_to_line = {}
-  Parallel.each(Dir.glob(File.join(HAGAKURE_BASE,"bbs","*.cgi")), in_threads: NUM_THREADS){|fn|
+  Parallel.each(Dir.glob(File.join(CONF_HAGAKURE_BASE,"bbs","*.cgi")), in_threads: NUM_THREADS){|fn|
     File.readlines(fn).to_enum.with_index(1){|line,lineno|
       line.chomp!
       line.sjis!
@@ -99,7 +97,7 @@ def import_bbs
           deleted: deleted,
           created_at: date,
           user_name: name,
-          user_host: host,
+          remote_host: host,
           user: user
         }
         begin
@@ -134,7 +132,7 @@ def import_bbs
 end
 
 def import_schedule
-  Parallel.each(Dir.glob(File.join(HAGAKURE_BASE,"scheduledir","*.cgi")), in_threads: NUM_THREADS){|fn|
+  Parallel.each(Dir.glob(File.join(CONF_HAGAKURE_BASE,"scheduledir","*.cgi")), in_threads: NUM_THREADS){|fn|
     base = File.basename(fn)
     raise Exception.new("bad schedule filename: #{base}") unless /^(\d+)_(\d+).cgi$/ =~ base
     year = $1.to_i
@@ -221,7 +219,7 @@ def import_schedule
 end
 
 def import_shurui
-  lines = File.readlines(File.join(HAGAKURE_BASE,"txts","shurui.cgi"))
+  lines = File.readlines(File.join(CONF_HAGAKURE_BASE,"txts","shurui.cgi"))
   lines.each{|line|
     line.chomp!
     line.sjis!
@@ -266,7 +264,7 @@ def parse_common(tbuf)
 end
 
 def import_event
-  lines = File.readlines(File.join(HAGAKURE_BASE,"txts","taikailist.cgi"))[1..-1]
+  lines = File.readlines(File.join(CONF_HAGAKURE_BASE,"txts","taikailist.cgi"))[1..-1]
   if SHURUI.empty? then
     raise Exception.new("import_shurui not executed")
   end
@@ -285,11 +283,12 @@ def import_event
     (tourokudate,kanrisha) = kanrisha.split('<>')
     etype = iskonpa2etype(iskonpa)
     kanrishas = kanrisha.split(',').map{|k| k.strip}
-    tbuf = File.readlines(File.join(HAGAKURE_BASE,"taikai","#{taikainum}.cgi")).map{|x|
+    tbuf = File.readlines(File.join(CONF_HAGAKURE_BASE,"taikai","#{taikainum}.cgi")).map{|x|
       x.chomp!
       x.sjis!
     }
     (taikainame,seisikimeishou,choices,kounin,teamnum,bikou,place) = parse_common(tbuf)
+    puts taikainame
     (bikou_opt,simekiri,agg_attr,show_choice,fukalist,userchoice) = nil
     tbuf.each_with_index{|curl,lineno|
       nextline = tbuf[lineno+1]
@@ -354,6 +353,7 @@ def import_event
     }
     begin
       evt = Event.create(
+        id: taikainum,
         name:taikainame,
         formal_name: seisikimeishou,
         official: kounin,
@@ -448,7 +448,16 @@ def import_contest_result_dantai(evt,sankas)
                 raise Exception("unknwon result: #{result}")
               end
     score_int = Kagetra::Utils.eval_score_char(maisuu)
-    op_team.games.create(user_name:user.name,user:user,result:result,score_str:maisuu,score_int:score_int,opponent_name:op_name,opponent_belongs:opponent_belongs,opponent_order:shojun)
+    op_team.games.create(
+      user_name:user.name,
+      user:user,
+      result:result,
+      score_str:maisuu,
+      score_int:score_int,
+      opponent_name:op_name,
+      opponent_belongs:opponent_belongs,
+      opponent_order:shojun,
+    )
   }
   handle_match = lambda{|curl|
     ss = curl.split(/\t/)
@@ -467,14 +476,14 @@ def import_contest_result_dantai(evt,sankas)
     ss[2..-1].to_enum.with_index(1){|body,round|
       handle_single.call(user,round,body)
     }
-    if prize then
+    if prize.to_s.empty?.! then
       (pr,kpt) = prize.split(/<>/)
       kpt = if kpt.to_s.empty? then
         0
       else
         kpt.to_i
       end
-      if pr.nil?.! then
+      if pr.to_s.empty?.! then
         klass.prizes.create(user:user,prize:pr,point:0,point_local:kpt)
       end
     end
@@ -605,11 +614,11 @@ def import_contest_result_kojin(evt,sankas)
     ss[2..-1].to_enum.with_index(1){|body,round|
       handle_single.call(user,round,body)
     }
-    if prize then
+    if prize.to_s.empty?.! then
       (pr,pt,kpt) = prize.split(/<>/)
       pt ||= 0
       kpt ||= 0
-      if pr then
+      if pr.to_s.empty?.! then
         pt = if pt then pt.to_i else 0 end
         kpt = if kpt then kpt.to_i else 0 end
         promtype = nil
@@ -653,7 +662,7 @@ def import_contest_result_kojin(evt,sankas)
 end
 
 def import_endtaikai
-  lines = File.readlines(File.join(HAGAKURE_BASE,"txts","endtaikailist.cgi"))
+  lines = File.readlines(File.join(CONF_HAGAKURE_BASE,"txts","endtaikailist.cgi"))
   if SHURUI.empty? then
     raise Exception.new("import_shurui not executed")
   end
@@ -676,7 +685,7 @@ def import_endtaikai
         invalid_kaisaidate = true
         kday = 1
       end
-      kaisaidate = DateTime.new(kyear.to_i,kmon.to_i,kday.to_i,khour.to_i,kmin.to_i)
+      kaisaidate = Date.new(kyear.to_i,kmon.to_i,kday.to_i)
     end
     shurui = if koureitaikai.to_s.empty?.! then SHURUI[koureitaikai.to_i] end
     (tourokudate,kanrisha) = kanrisha.split(/<>/)
@@ -684,17 +693,20 @@ def import_endtaikai
       tourokudate = "1975/01/01"
     end
     (taikainame,seisikimeishou) = taikainame.split(/<>/)
-    tbuf = File.readlines(File.join(HAGAKURE_BASE,"resultdir/#{tnum}.cgi")).map{|x|
+    tbuf = File.readlines(File.join(CONF_HAGAKURE_BASE,"resultdir/#{tnum}.cgi")).map{|x|
       x.chomp!
       x.sjis!
     }
     etype = iskonpa2etype(iskonpa)
     (taikainame,seisikimeishou,choices,kounin,teamnum,bikou,place) = parse_common(tbuf)
+    puts "#{kaisaidate.year} - #{taikainame}"
     if invalid_kaisaidate then
       bikou += "\nDateInvaild: 日付は仮のもの．正しい日付は不明"
     end
     begin
-      evt = Event.create(name: taikainame,
+      evt = Event.create(
+                       id: tnum,
+                       name: taikainame,
                        formal_name: seisikimeishou,
                        official: kounin,
                        kind: etype,
@@ -731,6 +743,40 @@ def import_endtaikai
   }
 end
 
+def import_event_comment 
+  files = Dir.glob(File.join(CONF_HAGAKURE_BASE,"taikai","*-c.cgi"))
+  Parallel.each(files,in_threads:NUM_THREADS){|fn|
+    taikainum = if /^(\d+)-c.cgi$/ =~ File.basename(fn) then
+      $1
+    else
+      raise Exception.new("invalid filename: #{fn}")
+    end
+    evt = Event.first(id:taikainum)
+    if not evt then
+      puts "WARNING: event with id=#{taikainum} not found. ignoring comment file '#{fn}'"
+      next
+    end
+    lines = File.readlines(fn)[1..-1]
+    lines.to_enum.with_index(2){|line,lineno|
+      begin
+        line.chomp!
+        line.sjis!
+        next if line.empty?
+        (created,user_name,user_host,body) = line.split(/<>/)
+        user = User.first(name: user_name)
+        evt.comments.create(created_at: DateTime.parse(created),
+                            user: user,
+                            user_name: user_name,
+                            remote_host: user_host,
+                            body: body.body_replace)
+      rescue Exception => e
+        puts "Error at file #{fn}:#{lineno}"
+        raise e
+      end
+    }
+  }
+end
+
 import_zokusei
 import_user
 import_bbs
@@ -738,3 +784,4 @@ import_schedule
 import_shurui
 import_event
 import_endtaikai
+import_event_comment

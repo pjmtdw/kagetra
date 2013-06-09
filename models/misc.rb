@@ -23,6 +23,23 @@ module ModelBase
   end
 end
 
+module CommentBase
+  def self.included(base)
+    base.class_eval do
+      p = DataMapper::Property
+      
+      property :deleted, p::ParanoidBoolean
+      property :body, p::Text, required: true # 内容
+      property :user_name, p::String, length: 24, required: true # 書き込んだ人の名前
+      property :remote_host, p::String, length: 72 
+      property :remote_addr, p::String, length: 48
+      property :user_agent, p::String, length: 256
+      belongs_to :user, required: false # 内部的なユーザID
+    end
+  end
+  # TODO: trim remote_host, remote_addr, user_agent if it is too long
+end
+
 module DataMapper
   class Property
     class HourMin < DataMapper::Property::String

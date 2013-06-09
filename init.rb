@@ -14,6 +14,7 @@ require 'haml'
 
 require 'json'
 require 'base64'
+require 'nkf'
 
 require 'data_mapper'
 require 'dm-chunked_query'

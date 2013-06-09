@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# 行事
+# 大会/行事
 class Event
   include ModelBase
   property :deleted, ParanoidBoolean
@@ -22,6 +22,7 @@ class Event
   property :show_choice, Boolean, default: true # ユーザがどれを選択したか表示する
   has n, :choices, 'EventChoice'
   has n, :result_classes, 'ContestClass' # 大会結果の各級の情報
+  has n, :comments, 'EventComment' # コメント
 end
 
 # 行事のグループ
@@ -56,5 +57,12 @@ class EventUserChoice
       x.choices.user_choices(user:self.user).destroy if x
     }
   end
+end
+
+# 大会/行事のコメント
+class EventComment
+  include ModelBase
+  include CommentBase
+  belongs_to :event
 end
 

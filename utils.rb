@@ -67,6 +67,10 @@ module Kagetra
     def self.hmac_password(hash,msg)
       Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::Digest.new('sha256'), hash, msg)).gsub("\n","")
     end
+    def self.escape_html_br(s)
+      Rack::Utils.escape_html(s).gsub("\n","<br>")
+    end
+
     def self.zenkaku_to_hankaku(s)
       NKF::nkf('-wZ0',s)
     end

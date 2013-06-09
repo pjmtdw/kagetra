@@ -28,8 +28,8 @@ define ->
     show_day: (date) ->
       date = if date? then date else @get_date()
       if date
-        (if window.show_schedule_month then "#{date.getMonth()+1} / " else "")
-        date.getDate()
+        (if window.show_schedule_month then "#{date.getMonth()+1} / " else "") +
+        date.getDate() +
         (if window.show_schedule_weekday then " (#{_.weekday_ja()[date.getDay()]})" else "")
     render: ->
       @edit_info = false

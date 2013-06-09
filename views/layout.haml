@@ -10,5 +10,8 @@
     - this_css.strip.split(/\s*,\s/).each do |x|
       %link(rel="stylesheet" href="/css/#{x}.css")
   %body
+    %a(name="anchor-top")
     = yield
+    .row
+      %a.right(href="#anchor-top") &uArr; 一番上へ
     %script(src="js/libs/require.js" data-main="js/main" data-start="#{yield_content(:js_start)}")

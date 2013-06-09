@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
   EVENTS_PER_PAGE = 4
   HALF_PAGE = EVENTS_PER_PAGE/2
@@ -27,7 +28,9 @@ class MainApp < Sinatra::Base
       end
 
       list = all.map{|x| x.select_attr(:id,:name)}
+      
       group = evt.event_group.events(order:[:date.desc]).map{|x| x.select_attr(:id,:name,:date)}
+
       evt.select_attr(:id,:name,:num_teams,:date).merge({
         list: list,
         group: group,
@@ -35,51 +38,62 @@ class MainApp < Sinatra::Base
       })
     end
     def event_results(evt)
+      # 後で少しずつ取得するのは遅いのでまとめて取得
+      games = evt.result_classes.single_games
+      round_num = games.aggregate(:round.max)
+      user_games = games.all.map{|gm|
+        [gm.user.id,gm.select_attr(:result,:opponent_name,:opponent_belongs,:score_str)]
+      }.each_with_object(Hash.new{[]}){|(uid,attrs),h|
+        h[uid] <<= attrs
+      }
+      
       evt.result_classes.map{|klass|
         {
           name: klass.class_name,
-          user_results: result_sort(klass.single_games)
+          user_results: result_sort(klass.single_games,user_games,round_num)
         }
       }
     end
-    def result_sort(games)
-      round_num = games.aggregate(:round.max)
+
+    # 勝ち数の多い順に並べる
+    def result_sort(games,user_games,round_num)
       temp_res = {}
-      games.users.each{|user|
+
+      # 後で少しずつ取得するのは遅いのでまとめて取得
+      users = Hash[games.users.all.map{|u|
+        [u.id,u.name]}]
+
+      users.keys.each{|uid|
         score = ["Z"] * round_num
         score_opt = ["Z"] * round_num # 同じ勝ち数の場合の順番
-        res = [nil] * round_num
-        games.all(user:user).each{|m|
-          index = m.round - 1
-          res[index] = m
+        user_games[uid].each_with_index{|m,index|
           (score[index],score_opt[index]) = 
-            case m.result
+            case m[:result]
               when :win then ["A","A"]
               when :default_win then ["A","B"]
               when :lose then ["C","C"]
             end
-            temp_res[user] = {
+            temp_res[uid] = {
               score: score,
-              res: res,
               score_opt: score_opt
             }
         }
       }
       # 自分が負けた以降の順番は負けた相手の成績順になる
       games.all(result: :lose, order: :round.desc).each{|m|
-        x = temp_res.find{|u,v|u.name == m.opponent_name}
+        x = temp_res.find{|uid,v|users[uid] == m.opponent_name}
         if x then
-          temp_res[m.user][:score][m.round..-1] = x[1][:score][m.round..-1]
+          temp_res[m.user.id][:score][m.round..-1] = x[1][:score][m.round..-1]
         end
       }
-      temp_res.map{|u,v|
-        {user:u}.merge(v)
+      temp_res.map{|uid,v|
+        {user_id:uid}.merge(v)
       }.sort_by{|x|
         x[:score]+x[:score_opt]
       }.map{|x|
         {
-          user_name: x[:user].name,
-          game_results: x[:res].compact.map{|gm|gm.select_attr(:result,:opponent_name,:opponent_belongs,:score_str)}
+          user_name: users[x[:user_id]],
+          game_results: user_games[x[:user_id]]
         }
       }
     end

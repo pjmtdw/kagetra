@@ -53,11 +53,28 @@ define ->
         v = new ContestClassView(model:m)
         $("#contest-result-body").append(v.$el)
 
-
+      this.$el.foundation('section','reflow')
+      window.comment_view.refresh(@collection.id)
     refresh: (id) ->
       @collection.id = id
       @collection.fetch()
+  ContestCommentCollection = Backbone.Collection.extend
+    url: -> "/api/event/comment/#{@id}"
+  ContestCommentView = Backbone.View.extend
+    template: _.template($("#templ-contest-comment").html())
+    initialize: ->
+      _.bindAll(this,"refresh")
+      @collection = new ContestCommentCollection()
+      @collection.bind("sync",@render,this)
+    render: ->
+      $("#contest-comment").html(@template(data:@collection.toJSON()))
+      $("#contest-comment-count").text("(#{@collection.length})")
+    refresh: (id) ->
+      @collection.id = id
+      @collection.fetch()
+
   init: ->
     window.result_router = new CotestResultRouter()
     window.result_view = new ContestResultView()
+    window.comment_view = new ContestCommentView()
     Backbone.history.start()

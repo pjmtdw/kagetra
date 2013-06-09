@@ -23,9 +23,8 @@ class MainApp < Sinatra::Base
       end
       query.all(order: [:updated_at.desc ]).chunks(THREADS_PER_PAGE)[page].map{|t|
         items = t.items.map{|i|
-          body = Rack::Utils.escape_html(i.body).gsub("\n","<br>")
           {
-            body: body,
+            body: Kagetra::Utils.escape_html_br(i.body),
             name: i.user_name,
             date: i.created_at.strftime("%Y-%m-%d %H:%M:%S")
           }

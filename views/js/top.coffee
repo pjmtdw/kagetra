@@ -41,10 +41,17 @@ define (require,exports,module) ->
     set_comparator: (attr) ->
       @order = attr
       sign = if attr in ["created_at","participant_count"] then -1 else 1
+      ETERNAL_FUTURE = "9999-12-31_"
+      ETERNAL_PAST = "0000-01-01_"
       f = if attr in ["created_at","date"]
-            (x)-> x.get(attr) || ("9999-12-31_" + x.get("name"))
-          else if attr == "participant_count"
-            (x)-> x.get(attr)
+            (x)-> x.get(attr) || (ETERNAL_FUTURE + x.get("name"))
+          else if attr == "not_chosen"
+            (x)->
+              c = x.get('choice')
+              if not c? then return ETERNAL_PAST
+              p = (y.positive for y in x.get('choices') when y.id == c)[0]
+              if p then x.get('date') else (ETERNAL_FUTURE + x.get("name"))
+
           else if attr == "deadline_day"
             (x)->
               dd = x.get("deadline_day")
@@ -99,8 +106,8 @@ define (require,exports,module) ->
         v = new EventItemView(model:m)
         v.render()
         @$el.find(".event-body").append(v.$el)
-        cm = new EventChoiceModel({choices:m.get('choices'),choice:m.get('choice'),eid:m.get('id')})
-        cv = new EventChoiceView(model:cm)
+        cm = new EventChoiceModel(choices:m.get('choices'),choice:m.get('choice'),eid:m.get('id'))
+        cv = new EventChoiceView(model:cm,event_name:m.get('name'))
         cv.render()
         v.$el.find(".event-choice").append(cv.$el)
         @subviews.push(v)
@@ -119,15 +126,24 @@ define (require,exports,module) ->
   EventChoiceView = Backbone.View.extend
     el: "<dd class='sub-nav'>"
     template: _.template_braces($("#templ-event-choice").html())
+    template_alert: _.template($("#templ-sticky-alert").html())
     events:
       "click .choice" : "do_when_click"
-    initialize: ->
+    initialize: (arg)->
+      this.event_name = arg.event_name
       _.bindAll(this,"do_when_click")
       @model.bind("change",@render,this)
     do_when_click: (ev)->
-      id = $(ev.currentTarget).attr('data-id')
+      ct = $(ev.currentTarget)
+      id = ct.attr('data-id')
       @model.set('choice',id)
-      @model.save()
+      that = this
+      @model.save().done(->
+        c = $("#sticky-alert-container")
+        if c.find("#sticky-alert").length == 0
+          c.append(that.template_alert())
+        c.find(".content").append($("<div/>",{text:"登録完了: " + that.event_name + " =>" + ct.text()}))
+      )
     render: ->
       choices = @model.get("choices")
       data = {data:

@@ -22,8 +22,8 @@
       %a 締切日
     %dd.choice(data-order='created_at')
       %a 追加日
-    %dd.choice(data-order='participant_count')
-      %a 登録数
+    %dd.choice(data-order='not_chosen')
+      %a 未選択
   %ul.event-body.large-block-grid-2.small-block-grid-1
 
 %script#templ-event-item(type='text/template')
@@ -52,8 +52,15 @@
     %div
       <%= c.name %> : <%= data.participant && data.participant[c.id] %>
     <% }) %>
-  
+
+%script#templ-sticky-alert(type='text/template')
+  #sticky-alert.alert-box.success(data-alert)
+    .content
+    %a.close &times;
+
 
 #container-event-detail.reveal-modal
 
 = haml :schedule_item
+
+#sticky-alert-container

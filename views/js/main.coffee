@@ -11,6 +11,7 @@ requirejs.config
     "foundation.reveal": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/foundation/foundation.reveal.min"
     "foundation.dropdown": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/foundation/foundation.dropdown.min"
     "foundation.section": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/foundation/foundation.section.min"
+    "foundation.alerts": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/foundation/foundation.alerts.min"
     modernizr: "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/vendor/custom.modernizr.min"
     json2: "http://cdnjs.cloudflare.com/ajax/libs/json2/20121008/json2"
     deferred: "libs/deferred.min"
@@ -43,6 +44,8 @@ requirejs.config
       deps: ["foundation"]
     "foundation.section":
       deps: ["foundation"]
+    "foundation.alerts":
+      deps: ["foundation"]
     "crypto-hmac":
       deps: ["crypto"]
     "crypto-base64":
@@ -51,7 +54,7 @@ requirejs.config
       deps: ["crypto"]
 
 require ["zep_or_jq","myutil","deferred","backbone"
-     "foundation.reveal","foundation.topbar","foundation.dropdown","foundation.section"], ->
+     "foundation.reveal","foundation.topbar","foundation.dropdown","foundation.section","foundation.alerts"], ->
   $ = require("zep_or_jq")
   Deferred.installInto(Zepto) if Zepto?
   init_f = ->

@@ -61,7 +61,7 @@ class MainApp < Sinatra::Base
     get '/panel' do
       PANEL_DAYS = 3
       today = Date.today
-      cond = {:date.gte => today, :date.lt => today + PANEL_DAYS} 
+      cond = {:date.gte => today, :date.lt => today + PANEL_DAYS}
       arr = (0...PANEL_DAYS).map{|i|
         d = today + i
         {year: d.year, mon: d.mon, day: d.day, item:[]}

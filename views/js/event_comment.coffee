@@ -1,6 +1,9 @@
 define ->
   EventCommentCollection = Backbone.Collection.extend
     url: -> "/api/event/comment/list/#{@id}"
+    parse: (data) ->
+      @event_name = data.event_name
+      data.list
   EventCommentView = Backbone.View.extend
     el: "#event-comment"
     template: _.template($("#templ-event-comment").html())
@@ -22,7 +25,7 @@ define ->
       @collection = new EventCommentCollection()
       @collection.bind("sync",@render,this)
     render: ->
-      @$el.html(@template(data:@collection.toJSON()))
+      @$el.html(@template(event_name:@collection.event_name,data:@collection.toJSON()))
       @comment_num_obj.text("(#{@collection.length})")
       
     refresh: (id, comment_num_obj) ->

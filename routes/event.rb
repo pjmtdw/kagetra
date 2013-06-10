@@ -43,12 +43,16 @@ class MainApp < Sinatra::Base
     end
     get '/comment/list/:id' do
       evt = Event.first(id:params[:id].to_i)
-      evt.comments(order: [:created_at.desc]).map{|x|
+      list = evt.comments(order: [:created_at.desc]).map{|x|
         x.select_attr(:user_name)
           .merge({
             date: x.created_at.strftime('%Y-%m-%d %H:%M:%S'),
             body: Kagetra::Utils.escape_html_br(x.body)
           })
+      }
+      {
+        event_name: evt.name,
+        list: list
       }
     end
     post '/comment/item' do

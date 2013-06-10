@@ -28,7 +28,7 @@ class MainApp < Sinatra::Base
       end
 
       list = all.map{|x| x.select_attr(:id,:name)}
-      
+
       gr = evt.event_group
       group = if gr then gr.events(:date.lte => Date.today, order:[:date.desc]).map{|x| x.select_attr(:id,:name,:date)} else [] end
 
@@ -47,7 +47,7 @@ class MainApp < Sinatra::Base
       }.each_with_object(Hash.new{[]}){|(uid,attrs),h|
         h[uid] <<= attrs
       }
-      
+
       evt.result_classes.map{|klass|
         {
           name: klass.class_name,
@@ -68,7 +68,7 @@ class MainApp < Sinatra::Base
         score = ["Z"] * round_num
         score_opt = ["Z"] * round_num # 同じ勝ち数の場合の順番
         user_games[uid].each_with_index{|m,index|
-          (score[index],score_opt[index]) = 
+          (score[index],score_opt[index]) =
             case m[:result]
               when :win then ["A","A"]
               when :default_win then ["A","B"]

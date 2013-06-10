@@ -70,7 +70,9 @@ define (require,exports,module) ->
       "click .show-detail": "show_detail"
       "click .show-comment": "show_comment"
     render: ->
-      @$el.html(@template(@model.toJSON()))
+      json = @model.toJSON()
+      json.deadline = show_deadline(@model.get('deadline_day'))
+      @$el.html(@template(json))
     initialize: ->
       _.bindAll(this,"show_detail","show_comment")
     show_detail: ->
@@ -163,5 +165,5 @@ define (require,exports,module) ->
     window.schedule_panel_view = new SchedulePanelView()
     window.event_list_view = new EventListView()
     window.event_detail_view = new EventDetailView()
-    window.schedule_detail_view = new $si.ScheduleDetailView(parent:window.schedule_panel)
+    window.schedule_detail_view = new $si.ScheduleDetailView(parent:window.schedule_panel_view)
     window.event_comment_view = new $ec.EventCommentView()

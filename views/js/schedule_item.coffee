@@ -101,8 +101,9 @@ define ->
           refresh_day()
         )
       else
+        that = this
         @model.save().done(->
-          @toggle_edit()
+          that.toggle_edit()
           refresh_day()
         )
     toggle_edit: ->

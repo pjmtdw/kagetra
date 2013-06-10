@@ -31,11 +31,13 @@
     %div
       <%= name %> @ <%= date %> - <%= deadline %> 
     %div
-      登録数: <%= participant_count %>
+      登録数:
+      %span.participant-count <%= participant_count %>
       %button.small.show-detail
         詳細
-      %button.small.show-comment
-        コメント (<%= comment_count %>)
+      %span.button.small.show-comment
+        コメント 
+        %span.comment-count (<%= comment_count %>)
     .event-choice
 
 %script#templ-event-choice(type='text/template')

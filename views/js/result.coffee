@@ -63,7 +63,7 @@ define (require,exports,module) ->
       cv = window.comment_view
       # since comment_view is reflowed, we have to reset element
       cv.setElement($("#event-comment").get(0))
-      cv.refresh(@collection.id)
+      cv.refresh(@collection.id, $("#event-comment-count"))
     refresh: (id) ->
       @collection.id = id
       @collection.fetch()

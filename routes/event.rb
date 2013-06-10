@@ -34,8 +34,9 @@ class MainApp < Sinatra::Base
     post '/choose/:eid/:cid' do
       begin
         user = get_user
-        event = Event.first(id:params[:eid].to_i)
-        event.choices.first(id:params[:cid].to_i).user_choices.create(user:user)
+        evt = Event.first(id:params[:eid].to_i)
+        evt.choices.first(id:params[:cid].to_i).user_choices.create(user:user)
+        {count: evt.choices(positive: true).users.count}
       rescue DataMapper::SaveFailureError => e
         p e.resource.errors
       end

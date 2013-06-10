@@ -81,7 +81,7 @@ define (require,exports,module) ->
     show_comment: ->
       $("#event-comment").foundation("reveal","open")
       cv = window.event_comment_view
-      cv.refresh(@model.get('id'))
+      cv.refresh(@model.get('id'),@$el.find(".comment-count"))
 
       
 
@@ -110,7 +110,7 @@ define (require,exports,module) ->
         v.render()
         @$el.find(".event-body").append(v.$el)
         cm = new EventChoiceModel(choices:m.get('choices'),choice:m.get('choice'),eid:m.get('id'))
-        cv = new EventChoiceView(model:cm,event_name:m.get('name'))
+        cv = new EventChoiceView(model:cm,event_name:m.get('name'),parent:v)
         cv.render()
         v.$el.find(".event-choice").append(cv.$el)
         @subviews.push(v)
@@ -134,6 +134,7 @@ define (require,exports,module) ->
       "click .choice" : "do_when_click"
     initialize: (arg)->
       this.event_name = arg.event_name
+      this.parent = arg.parent
       _.bindAll(this,"do_when_click")
       @model.bind("change",@render,this)
     do_when_click: (ev)->
@@ -141,11 +142,12 @@ define (require,exports,module) ->
       id = ct.attr('data-id')
       @model.set('choice',id)
       that = this
-      @model.save().done(->
+      @model.save().done((data)->
         c = $("#sticky-alert-container")
         if c.find("#sticky-alert").length == 0
           c.append(that.template_alert())
         c.find(".content").append($("<div/>",{html:"登録完了: " + that.event_name + " &rArr;" + ct.text()}))
+        that.parent.$el.find(".participant-count").text(data.count)
       )
     render: ->
       choices = @model.get("choices")

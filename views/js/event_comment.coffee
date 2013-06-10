@@ -17,14 +17,16 @@ define ->
       false
     do_toggle: ->
       @$el.find(".comment-form").toggle()
-    initialize: ->
+    initialize: (arg) ->
       _.bindAll(this,"refresh","do_toggle","do_comment")
       @collection = new EventCommentCollection()
       @collection.bind("sync",@render,this)
     render: ->
       @$el.html(@template(data:@collection.toJSON()))
-      $("#event-comment-count").text("(#{@collection.length})")
-    refresh: (id) ->
+      @comment_num_obj.text("(#{@collection.length})")
+      
+    refresh: (id, comment_num_obj) ->
+      @comment_num_obj = comment_num_obj
       @collection.id = id
       @collection.fetch()
   {

@@ -63,9 +63,9 @@
         %p.title(data-section-title)
           %a
             コメント
-            %span#contest-comment-count
+            %span#event-comment-count
         .content(data-section-content)
-          #contest-comment.row
+          #event-comment.row
 
 %script#templ-contest-class(type='text/template')
   .class-name {{ name }}
@@ -83,9 +83,4 @@
         <% }) %>
       <% }) %>
 
-%script#templ-contest-comment(type='text/template')
-  <% _.each(data,function(x){ %>
-  %div <%= x.user_name %> @ <%= x.date %>
-  %div <%= x.body %>
-  %hr
-  <% }) %>
+= haml :event_comment

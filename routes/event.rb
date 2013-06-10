@@ -5,6 +5,7 @@ class MainApp < Sinatra::Base
       r = ev.select_attr(:name,:date,:deadline,:created_at,:id)
       r[:deadline_day] = (r[:deadline]-today).to_i if r[:deadline]
       r[:participant_count] = ev.choices(positive: true).users.count
+      r[:comment_count] = ev.comments.count
       r[:choices] = ev.choices(order:[:index.asc]).map{|x|x.select_attr(:positive,:name,:id)}
       t = ev.choices.user_choices.first(user:user)
       r[:choice] = t && t.event_choice.id
@@ -15,7 +16,7 @@ class MainApp < Sinatra::Base
       ev = Event.first(id:params[:id].to_i)
       r = event_info(ev,user)
       if params[:mode] == "detail"
-        r.merge!(ev.select_attr(:description))
+        r.merge!({description: Kagetra::Utils.escape_html_br(ev.description)})
         r[:participant] = ev.choices(positive:true).each_with_object({}){|c,obj|
           obj[c.id] = c.users.map{|u|
             u.name
@@ -39,7 +40,7 @@ class MainApp < Sinatra::Base
         p e.resource.errors
       end
     end
-    get '/comment/:id' do
+    get '/comment/list/:id' do
       evt = Event.first(id:params[:id].to_i)
       evt.comments(order: [:created_at.desc]).map{|x|
         x.select_attr(:user_name)
@@ -48,6 +49,16 @@ class MainApp < Sinatra::Base
             body: Kagetra::Utils.escape_html_br(x.body)
           })
       }
+    end
+    post '/comment/item' do
+      begin
+        user = get_user
+        evt = Event.first(id:params[:event_id].to_i)
+        # TODO: automatically set user_name from user in model's :save hook
+        c = evt.comments.create(user:user,body:params[:body],user_name:user.name)
+      rescue DataMapper::SaveFailureError => e
+        p e.resource.errors
+      end
     end
   end
 end

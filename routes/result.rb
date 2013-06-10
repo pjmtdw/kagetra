@@ -29,7 +29,8 @@ class MainApp < Sinatra::Base
 
       list = all.map{|x| x.select_attr(:id,:name)}
       
-      group = evt.event_group.events(order:[:date.desc]).map{|x| x.select_attr(:id,:name,:date)}
+      gr = evt.event_group
+      group = if gr then gr.events(:date.lte => Date.today, order:[:date.desc]).map{|x| x.select_attr(:id,:name,:date)} else [] end
 
       evt.select_attr(:id,:name,:num_teams,:date).merge({
         list: list,

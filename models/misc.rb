@@ -35,6 +35,7 @@ module CommentBase
       property :remote_addr, p::String, length: 48
       property :user_agent, p::String, length: 256
       belongs_to :user, required: false # 内部的なユーザID
+
     end
   end
   # TODO: trim remote_host, remote_addr, user_agent if it is too long

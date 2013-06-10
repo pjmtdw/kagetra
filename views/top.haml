@@ -34,6 +34,8 @@
       登録数: <%= participant_count %>
       %button.small.show-detail
         詳細
+      %button.small.show-comment
+        コメント (<%= comment_count %>)
     .event-choice
 
 %script#templ-event-choice(type='text/template')
@@ -46,11 +48,14 @@
   %div 大会名: <%= data.name %>
   %div 日付: <%= data.date %>
   %div 〆切: <%= data.deadline %>
-  %div 備考: <%= data.description %>
+  %div 備考:
+  .panel <%= data.description %>
   %div
-    <% _.each(data.choices,function(c){ %>
+    <% _.each(_.filter(data.choices,function(c){return c.positive}),function(c){ %>
+    <% p = data.participant && data.participant[c.id] || [] %>
     %div
-      <%= c.name %> : <%= data.participant && data.participant[c.id] %>
+      <%= c.name %> (<%= p.length %>) :
+    .panel <%= p.join(", ") %>
     <% }) %>
 
 %script#templ-sticky-alert(type='text/template')
@@ -61,6 +66,10 @@
 
 #container-event-detail.reveal-modal
 
+#event-comment.reveal-modal
+
 = haml :schedule_item
+
+= haml :event_comment
 
 #sticky-alert-container

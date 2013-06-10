@@ -1,5 +1,6 @@
 define (require,exports,module) ->
   $si = require("schedule_item")
+  $ec = require("event_comment")
   show_deadline = (deadline_day) ->
     if not deadline_day?
       ""
@@ -66,21 +67,23 @@ define (require,exports,module) ->
     el: '<li>'
     template: _.template($('#templ-event-item').html())
     events:
-      "click .show-detail": "do_when_click"
+      "click .show-detail": "show_detail"
+      "click .show-comment": "show_comment"
     render: ->
-      @$el.html(@template
-        name:@model.get('name'),
-        date:@model.get('date'),
-        deadline:show_deadline(@model.get('deadline_day'))
-        participant_count:@model.get('participant_count')
-        )
+      @$el.html(@template(@model.toJSON()))
     initialize: ->
-      _.bindAll(this,"do_when_click")
-    do_when_click: ->
+      _.bindAll(this,"show_detail","show_comment")
+    show_detail: ->
       dv = window.event_detail_view
       dv.$el.foundation("reveal","open")
       dv.model = @model
-      dv.model.fetch(data:{mode:'detail'}).done(->dv.render())
+      dv.model.fetch(data:{mode:'detail'}).done(dv.render)
+    show_comment: ->
+      $("#event-comment").foundation("reveal","open")
+      cv = window.event_comment_view
+      cv.refresh(@model.get('id'))
+
+      
 
   EventListView = Backbone.View.extend
     el: '#event-list'
@@ -142,7 +145,7 @@ define (require,exports,module) ->
         c = $("#sticky-alert-container")
         if c.find("#sticky-alert").length == 0
           c.append(that.template_alert())
-        c.find(".content").append($("<div/>",{text:"登録完了: " + that.event_name + " =>" + ct.text()}))
+        c.find(".content").append($("<div/>",{html:"登録完了: " + that.event_name + " &rArr;" + ct.text()}))
       )
     render: ->
       choices = @model.get("choices")
@@ -159,3 +162,4 @@ define (require,exports,module) ->
     window.event_list_view = new EventListView()
     window.event_detail_view = new EventDetailView()
     window.schedule_detail_view = new $si.ScheduleDetailView(parent:window.schedule_panel)
+    window.event_comment_view = new $ec.EventCommentView()

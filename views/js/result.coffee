@@ -1,4 +1,9 @@
-define ->
+define (require,exports,module) ->
+  # Requirng schedule_item in multiple scripts cause minified file larger
+  # since both scripts contains whole content of schedule_item.js.
+  # TODO: do not require schedule_item here and load it dynamically.
+  $ec = require("event_comment")
+  
   CotestResultRouter = Backbone.Router.extend
     routes:
       "contest/:id": "contest"
@@ -28,6 +33,7 @@ define ->
       @id = data.id
       @group = data.group
       data.event_results
+  # TODO: split this view to ContestInfoView which has name, date, group, list  and ContestResultView which only has result
   ContestResultView = Backbone.View.extend
     el: '#contest-result'
     template: _.template_braces($('#templ-contest-result').html())
@@ -54,21 +60,10 @@ define ->
         $("#contest-result-body").append(v.$el)
 
       this.$el.foundation('section','reflow')
-      window.comment_view.refresh(@collection.id)
-    refresh: (id) ->
-      @collection.id = id
-      @collection.fetch()
-  ContestCommentCollection = Backbone.Collection.extend
-    url: -> "/api/event/comment/#{@id}"
-  ContestCommentView = Backbone.View.extend
-    template: _.template($("#templ-contest-comment").html())
-    initialize: ->
-      _.bindAll(this,"refresh")
-      @collection = new ContestCommentCollection()
-      @collection.bind("sync",@render,this)
-    render: ->
-      $("#contest-comment").html(@template(data:@collection.toJSON()))
-      $("#contest-comment-count").text("(#{@collection.length})")
+      cv = window.comment_view
+      # since comment_view is reflowed, we have to reset element
+      cv.setElement($("#event-comment").get(0))
+      cv.refresh(@collection.id)
     refresh: (id) ->
       @collection.id = id
       @collection.fetch()
@@ -76,5 +71,5 @@ define ->
   init: ->
     window.result_router = new CotestResultRouter()
     window.result_view = new ContestResultView()
-    window.comment_view = new ContestCommentView()
+    window.comment_view = new $ec.EventCommentView()
     Backbone.history.start()

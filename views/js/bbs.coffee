@@ -20,10 +20,7 @@ define ->
     initialize: ->
       @render()
     render: ->
-      name = @model.get('name')
-      date = @model.get('date')
-      body = @model.get('body')
-      @$el.html(@template(name: name, date: date, body: body))
+      @$el.html(@template(@model.toJSON()))
 
   BbsThreadModel = Backbone.Model.extend {}
 

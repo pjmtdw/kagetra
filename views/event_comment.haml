@@ -1,0 +1,10 @@
+%script#templ-event-comment(type='text/template')
+  %button.toggle-comment.round.small コメントする
+  %form.comment-form.hide
+    %textarea(name='body' rows=15)
+    %input.button.small.round(type='submit' value='送信')
+  <% _.each(data,function(x){ %>
+  %div <%= x.user_name %> @ <%= x.date %>
+  %div <%= x.body %>
+  %hr
+  <% }) %>

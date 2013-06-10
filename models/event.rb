@@ -64,5 +64,6 @@ class EventComment
   include ModelBase
   include CommentBase
   belongs_to :event
+
 end
 

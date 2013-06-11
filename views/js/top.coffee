@@ -1,6 +1,7 @@
 define (require,exports,module) ->
   $si = require("schedule_item")
   $ec = require("event_comment")
+  $ed = require("event_detail")
   show_deadline = (deadline_day) ->
     if not deadline_day?
       ""
@@ -33,11 +34,9 @@ define (require,exports,module) ->
         @subviews["#{y}-#{m}-#{d}"] = v
     get_subview: (year,mon,day) ->
       @subviews["#{year}-#{mon}-#{day}"]
-  EventItemModel = Backbone.Model.extend
-    urlRoot: "/api/event/item"
 
   EventListCollection = Backbone.Collection.extend
-    model: EventItemModel
+    model: $ed.EventItemModel
     url: "/api/event/list"
     set_comparator: (attr) ->
       @order = attr
@@ -72,18 +71,14 @@ define (require,exports,module) ->
     render: ->
       json = @model.toJSON()
       json.deadline = show_deadline(@model.get('deadline_day'))
-      @$el.html(@template(json))
+      @$el.html(@template(data:json))
     initialize: ->
       _.bindAll(this,"show_detail","show_comment")
     show_detail: ->
-      dv = window.event_detail_view
-      dv.$el.foundation("reveal","open")
-      dv.model = @model
-      dv.model.fetch(data:{mode:'detail'}).done(dv.render)
+      window.event_detail_view.reveal(@model)
     show_comment: ->
-      $("#event-comment").foundation("reveal","open")
-      cv = window.event_comment_view
-      cv.refresh(@model.get('id'),@$el.find(".comment-count"))
+      window.event_comment_view
+        .reveal(@model.get('id'),@$el.find(".comment-count"))
 
       
 
@@ -116,14 +111,6 @@ define (require,exports,module) ->
         cv.render()
         v.$el.find(".event-choice").append(cv.$el)
         @subviews.push(v)
-
-  EventDetailView = Backbone.View.extend
-    el: "#container-event-detail"
-    template: _.template($("#templ-event-detail").html())
-    initialize: ->
-      _.bindAll(this,"render")
-    render: ->
-      @$el.html(@template(data:@model.toJSON()))
 
   EventChoiceModel = Backbone.Model.extend
     url: -> "/api/event/choose/#{@get('eid')}/#{@get('choice')}"
@@ -164,6 +151,6 @@ define (require,exports,module) ->
     window.show_schedule_month = true
     window.schedule_panel_view = new SchedulePanelView()
     window.event_list_view = new EventListView()
-    window.event_detail_view = new EventDetailView()
+    window.event_detail_view = new $ed.EventDetailView()
     window.schedule_detail_view = new $si.ScheduleDetailView(parent:window.schedule_panel_view)
     window.event_comment_view = new $ec.EventCommentView()

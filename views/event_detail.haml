@@ -1,0 +1,14 @@
+%script#templ-event-detail(type='text/template')
+  %div 大会名: <%= data.name %>
+  %div 日付: <%= data.date %>
+  %div 〆切: <%= data.deadline %>
+  %div 備考:
+  .panel <%= data.description %>
+  %div
+    <% _.each(_.filter(data.choices,function(c){return c.positive}),function(c){ %>
+    <% p = data.participant && data.participant[c.id] || [] %>
+    %div
+      <%= c.name %> (<%= p.length %>) :
+    .panel <%= p.join(", ") %>
+    <% }) %>
+

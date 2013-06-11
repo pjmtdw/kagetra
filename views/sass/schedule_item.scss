@@ -4,6 +4,9 @@
   .day {
     font-weight: bold;
   }
+  &.today{
+    border: 3px green solid;
+  }
   &.current{
   }
   &.holiday{
@@ -26,27 +29,16 @@
 #container-detail{
   .year-month-day{
     font-weight: bold;
-    float: left;
   }
   .description{
     margin-left: 10px;
     margin-top: 8px;
   }
   .detail-item{
-    .info{
-      float: left;
-    }
-    .right{
-      float: right;
-    }
     .description{
-      float: left;
       clear: both;
     }
   }
   .detail-item-edit{
-      .right{
-        float: right;
-      }
   }
 }

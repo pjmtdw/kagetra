@@ -15,8 +15,8 @@ module ModelBase
       end
 
       def select_attr(*symbols)
-        self.attributes.select{|k,_|
-          symbols.include?(k)
+        self.attributes.select{|k,v|
+          symbols.include?(k) and v.nil?.!
         }
       end
     end

@@ -37,3 +37,7 @@ $use-mozilla-ellipsis-binding: true;
 .ellipsis {
   @include ellipsis;
 }
+
+.clearfix {
+  @include clearfix();
+}

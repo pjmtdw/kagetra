@@ -29,15 +29,15 @@
 %script#templ-event-item(type='text/template')
   .panel
     %div
-      <%= name %> @ <%= date %> - <%= deadline %> 
+      <%= data.name %> @ <%= data.date %> - <%= data.deadline %> 
     %div
       登録数:
-      %span.participant-count <%= participant_count %>
+      %span.participant-count <%= data.participant_count %>
       %button.small.show-detail
         詳細
       %span.button.small.show-comment
         コメント 
-        %span.comment-count (<%= comment_count %>)
+        %span.comment-count (<%= data.comment_count %>)
     .event-choice
 
 %script#templ-event-choice(type='text/template')
@@ -46,20 +46,6 @@
     %a {{ d.name }}
   <% }) %>
 
-%script#templ-event-detail(type='text/template')
-  %div 大会名: <%= data.name %>
-  %div 日付: <%= data.date %>
-  %div 〆切: <%= data.deadline %>
-  %div 備考:
-  .panel <%= data.description %>
-  %div
-    <% _.each(_.filter(data.choices,function(c){return c.positive}),function(c){ %>
-    <% p = data.participant && data.participant[c.id] || [] %>
-    %div
-      <%= c.name %> (<%= p.length %>) :
-    .panel <%= p.join(", ") %>
-    <% }) %>
-
 %script#templ-sticky-alert(type='text/template')
   #sticky-alert.alert-box.success(data-alert)
     .content
@@ -67,11 +53,10 @@
 
 
 #container-event-detail.reveal-modal
-
 #event-comment.reveal-modal
 
 = haml :schedule_item
-
 = haml :event_comment
+= haml :event_detail
 
 #sticky-alert-container

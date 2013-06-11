@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 module MiscHelpers
   def get_user
-    user = User.first(id: session[:user_id], token: session[:user_token]) || User.new(name:"guest")
+    user = User.first(id: session[:user_id], token: session[:user_token])
+    if user.nil? then
+      halt 403,'Login Required. <a href="/">[TOP]</a>'
+    end
+    user
   end
 end

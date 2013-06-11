@@ -26,12 +26,15 @@ define ->
       @collection.bind("sync",@render,this)
     render: ->
       @$el.html(@template(event_name:@collection.event_name,data:@collection.toJSON()))
-      @comment_num_obj.text("(#{@collection.length})")
+      if @comment_num_obj? then @comment_num_obj.text("(#{@collection.length})")
       
     refresh: (id, comment_num_obj) ->
       @comment_num_obj = comment_num_obj
       @collection.id = id
       @collection.fetch()
+    reveal: (id, comment_num_obj) ->
+      @$el.foundation("reveal","open")
+      @refresh(id, comment_num_obj)
   {
     EventCommentView: EventCommentView
   }

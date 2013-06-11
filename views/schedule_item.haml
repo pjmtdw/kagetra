@@ -4,6 +4,11 @@
       <%= day %>
     %span.info
       <%= ! _.isEmpty(info) ? info.names.join(" / ") : "" %>
+    .event
+      <% _.each(event,function(o){ %>
+      .title.ellipsis
+        <%= o.name %>
+      <% }) %>
     .item
       <% _.each(item,function(o){ %>
       .title.ellipsis
@@ -18,7 +23,7 @@
     %textarea.info
       <%= info ? info.names.join("\n") : "" %>
 %script#templ-schedule-detail(type='text/template')
-  .year-month-day
+  .year-month-day.left
     <%= year %>年 <%= mon %>月 <%= day %>日 (<%= wday %>)
   .right
     %button#add-new-item.small.round
@@ -26,13 +31,24 @@
   #container-new-item
   .body
 
+%script#templ-schedule-detail-event(type='text/template')
+  %hr
+  .schedule-detail-event.clearfix
+    .left <%= data.name %> @ <%= data.place %>
+    .right
+      %span.detail.button.small
+        詳細
+      %span.comment.button.small
+        コメント
+        %span.comment-count (<%= data.comment_count %>)
+
 %script#templ-schedule-detail-item(type='text/template')
   %hr
-  .detail-item
-    .info
+  .detail-item.clearfix
+    .info.left
       <%= title %> @ <%= place %> => <%= start_at %> 〜 <%= end_at %>
       <% if(description){ %>
-      .description.panel
+      .description.panel.left
         <%= description %>
       <% } %>
     .right

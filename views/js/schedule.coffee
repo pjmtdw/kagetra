@@ -3,6 +3,8 @@ define (require,exports,module) ->
   # since both scripts contains whole content of schedule_item.js.
   # TODO: do not require schedule_item here and load it dynamically.
   $si = require("schedule_item")
+  $ec = require("event_comment")
+  $ed = require("event_detail")
 
   ScheduleRouter = Backbone.Router.extend
     routes:
@@ -35,6 +37,7 @@ define (require,exports,module) ->
               mon: @mon
               day: i
               info: data.day_infos[i.toString()]
+              event: data.events[i.toString()]
               item: data.items[i.toString()]}
       aft = if data.after_day > 0
               for i in [1..data.after_day]
@@ -97,8 +100,9 @@ define (require,exports,module) ->
         url:'/api/schedule/update_holiday',
         contentType:'application/json',
         data:JSON.stringify(have_to_update))
+      that = this
       res.done( ->
-        @collection.fetch().done(@do_toggle_edit_info)
+        that.collection.fetch().done(that.do_toggle_edit_info)
       )
 
     render: ->
@@ -125,4 +129,6 @@ define (require,exports,module) ->
     window.schedule_router = new ScheduleRouter()
     window.schedule_view = new ScheduleView()
     window.schedule_detail_view = new $si.ScheduleDetailView(parent:window.schedule_view)
+    window.event_comment_view = new $ec.EventCommentView()
+    window.event_detail_view = new $ed.EventDetailView()
     Backbone.history.start()

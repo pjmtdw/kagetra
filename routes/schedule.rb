@@ -22,30 +22,32 @@ class MainApp < Sinatra::Base
     end
     get '/detail/:year/:mon/:day' do
       (year,mon,day) = [:year,:mon,:day].map{|x|params[x].to_i}
-      list = ScheduleItem.all(date:Date.new(year,mon,day)).map{|x|
+      date = Date.new(year,mon,day)
+      list = ScheduleItem.all(date:date).map{|x|
         x.select_attr(:id,:title,:start_at,:end_at,:place,:description)
       }
-      {year: year, mon: mon, day: day, list: list}
+      events = Event.all(date:date).map{|x|
+        x.select_attr(:id,:name,:place).merge({
+          comment_count: x.comments.count
+        })
+      }
+      {year: year, mon: mon, day: day, list: list, events: events}
     end
     def make_info(x)
       return unless x
-      base = {
-        names: x.names
-      }
+      base = x.select_attr(:names)
       base[:is_holiday] = true if x.holiday
       base
     end
     def make_item(x)
       return unless x
-      base = {
-        kind: x.kind,
-        title: x.title,
-        place: x.place
-      }
-      base[:start_at] = x.start_at if x.start_at
-      base[:end_at] = x.end_at if x.end_at
+      base = x.select_attr(:kind,:title,:place,:start_at,:end_at)
       base[:emphasis] = x.emphasis if x.emphasis.empty?.!
       base
+    end
+    def make_event(x)
+      return unless x
+      x.select_attr(:name)
     end
     get '/get/:year/:mon/:day' do
       (year,mon,day) = [:year,:mon,:day].map{|x|params[x].to_i}
@@ -64,13 +66,22 @@ class MainApp < Sinatra::Base
       cond = {:date.gte => today, :date.lt => today + PANEL_DAYS}
       arr = (0...PANEL_DAYS).map{|i|
         d = today + i
-        {year: d.year, mon: d.mon, day: d.day, item:[]}
+        {year: d.year, mon: d.mon, day: d.day}
       }
-      day_infos = ScheduleDateInfo.all(cond).each{|x|
-        arr[x.date-today][:info] = make_info(x)
-      }
-      items = ScheduleItem.all(cond).each{|x|
-        arr[x.date-today][:item] << make_item(x)
+      [
+        [ScheduleDateInfo,:info,:make_info,Hash],
+        [ScheduleItem,:item,:make_item,Array],
+        [Event,:event,:make_event,Array]
+      ].each{|klass,sym,func,obj|
+        klass.all(cond).each{|x|
+          p = arr[x.date-today]
+          p[sym] ||= obj.new
+          if obj == Array then 
+            p[sym] <<= send(func,x)
+          else
+            p[sym] = send(func,x)
+          end
+        }
       }
       arr
     end
@@ -83,15 +94,21 @@ class MainApp < Sinatra::Base
       before_day = fday.cwday % 7
       after_day = 7 - lday.cwday
       today = Date.today.day
-      day_infos = ScheduleDateInfo
-        .all_month(:date,year,mon)
-        .each_with_object({}){|x,h|
-          h[x.date.day] = make_info(x)
+
+      (day_infos,items,events) = [
+        [ScheduleDateInfo,:info,:make_info,Hash],
+        [ScheduleItem,:item,:make_item,Array],
+        [Event,:event,:make_event,Array]
+      ].map{|klass,sym,func,obj|
+        klass.all_month(:date,year,mon)
+        .each_with_object(if obj == Array then Hash.new{[]} else {} end){|x,h|
+          if obj == Array then
+            h[x.date.day] <<= send(func,x)
+          else
+            h[x.date.day] = send(func,x)
+          end
         }
-      items = ScheduleItem.all_month(:date,year,mon)
-        .each_with_object(Hash.new{[]}){|x,h|
-          h[x.date.day] <<= make_item(x)
-        }
+      }
       {
         year: year,
         mon: mon,
@@ -100,7 +117,8 @@ class MainApp < Sinatra::Base
         before_day: before_day,
         after_day: after_day,
         day_infos: day_infos,
-        items: items
+        items: items,
+        events: events
       }
     end
   end

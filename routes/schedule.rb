@@ -27,9 +27,7 @@ class MainApp < Sinatra::Base
         x.select_attr(:id,:title,:start_at,:end_at,:place,:description)
       }
       events = Event.all(date:date).map{|x|
-        x.select_attr(:id,:name,:place).merge({
-          comment_count: x.comments.count
-        })
+        x.select_attr(:id,:name,:place,:comment_count)
       }
       {year: year, mon: mon, day: day, list: list, events: events}
     end

@@ -1,14 +1,16 @@
+# -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
   namespace '/api/event' do
-    def event_info(ev,user)
+    def event_info(ev,user,user_choices=nil)
       today = Date.today
-      r = ev.select_attr(:name,:date,:deadline,:created_at,:id)
+      r = ev.select_attr(:name,:date,:deadline,:created_at,:id,:participant_count,:comment_count)
       r[:deadline_day] = (r[:deadline]-today).to_i if r[:deadline]
-      r[:participant_count] = ev.choices(positive: true).users.count
-      r[:comment_count] = ev.comments.count
       r[:choices] = ev.choices(order:[:index.asc]).map{|x|x.select_attr(:positive,:name,:id)}
-      t = ev.choices.user_choices.first(user:user)
-      r[:choice] = t && t.event_choice.id
+      r[:choice] = if user_choices then user_choices[ev.id] 
+                   else
+                     t = user.event_user_choices.event_choices.first(event:ev)
+                     t && t.id
+                   end
       r
     end
     get '/item/:id' do
@@ -27,8 +29,13 @@ class MainApp < Sinatra::Base
     end
     get '/list' do
       user = get_user
-      (Event.all(:date.gte => Date.today) + Event.all(date: nil)).map{|ev|
-        event_info(ev,user)
+      events = (Event.all(:date.gte => Date.today) + Event.all(date: nil))
+
+      # 各eventごとに取得するのは遅いのでまとめて取得しておく
+      user_choices = user.event_user_choices.event_choice(event:events).to_enum.with_object({}){|x,h|h[x.event_id]=x.id}
+
+      events.map{|ev|
+        event_info(ev,user,user_choices)
       }
     end
     post '/choose/:eid/:cid' do

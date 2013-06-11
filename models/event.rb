@@ -14,6 +14,10 @@ class Event
   property :start_at, HourMin #開始時刻
   property :end_at, HourMin #終了時刻
   property :place, String, length: 256 # 場所
+
+  property :comment_count, Integer, default: 0 # コメント数 (毎回aggregateするのは遅いのでキャッシュ)
+  property :participant_count, Integer, default: 0 # 参加者数 (毎回aggregateするのは遅いのでキャッシュ)
+
   belongs_to :event_group, required: false
   belongs_to :aggregate_attr, 'UserAttributeKey', required: false # 集計属性
   # TODO: through: DataMapper::Resource で自動的に作られるテーブルには created_at, updated_atがない
@@ -51,10 +55,21 @@ class EventUserChoice
   belongs_to :event_choice
   belongs_to :user
 
-  # 一つの行事を複数選択することはできない
   before :save do
-    self.event_choice.event.tap{|x|
-      x.choices.user_choices(user:self.user).destroy if x
+    self.event_choice.event.tap{|ev|
+      if ev then
+        # 一つの行事を複数選択することはできない
+        ev.choices.user_choices(user:self.user).destroy
+      end
+    }
+  end
+  after :save do
+    self.event_choice.event.tap{|ev|
+      if ev then
+        # 参加者数の更新
+        ev.participant_count = ev.choices(positive: true).users.count
+        ev.save
+      end
     }
   end
 end
@@ -64,6 +79,11 @@ class EventComment
   include ModelBase
   include CommentBase
   belongs_to :event
-
+  after :save do
+    # コメント数の更新
+    ev = self.event
+    ev.comment_count = ev.comments.count
+    ev.save
+  end
 end
 

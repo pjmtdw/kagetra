@@ -391,15 +391,14 @@ def import_event
       userchoice.each{|uc|
         user = User.first(name:uc[:name])
         choice = if uc[:typ] == :yes then
-                    EventChoice.first(event:evt,positive:true,index:uc[:ci])
+                    evt.choices.first(positive:true,index:uc[:ci])
                  else
-                    EventChoice.first(event:evt,positive:false)
+                    evt.choices.first(positive:false)
                  end
         if choice.nil? then
           raise Exception.new("choice is nil: user=#{user}, uc=#{uc.inspect}, evt=#{evt.inspect}")
         end
-        choice.users << user
-        choice.users.save
+        choice.user_choices.create(user:user)
       }
     rescue DataMapper::SaveFailureError => e
       puts "Error at #{taikainame}"
@@ -412,7 +411,7 @@ end
 def get_user_or_add(username)
   username.strip!
   begin
-    user = UserBase.first(name:username) || GuestUser.create(name:username)
+    user = User.first_or_create({name:username},{guest:true,name:username,furigana:"only_in_event"}) 
   rescue DataMapper::SaveFailureError => e
     p e.resource.errors
     raise e
@@ -449,6 +448,7 @@ def import_contest_result_dantai(evt,sankas)
               end
     score_int = Kagetra::Utils.eval_score_char(maisuu)
     op_team.games.create(
+      type: :team,
       user_name:user.name,
       user:user,
       result:result,
@@ -570,6 +570,7 @@ def import_contest_result_kojin(evt,sankas)
     score_int = if maisuu then Kagetra::Utils.eval_score_char(maisuu) end
     begin
       klass.single_games.create(
+        type: :single,
         user_name:user.name,
         user:user,
         result:result,
@@ -596,13 +597,12 @@ def import_contest_result_kojin(evt,sankas)
       choice = evt.choices.first(positive:true,index:answercounter)
       if choice.nil? then
         if answercounter == 0 then
-          evt.choices.create(positive:true,name:"参加する",index:0)
+          choice = evt.choices.create(positive:true,name:"参加する",index:0)
         else
           raise Exception.new("answercounter != 0 && choice does not exist")
         end
       end
-      evt.choices.users << user
-      evt.choices.users.save
+      choice.user_choices.create(user:user)
       return
     end
     (name,prize) = ss[0...2]

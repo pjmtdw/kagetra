@@ -14,7 +14,7 @@ class ContestClass
   property :round_name, Json # 順位決定戦の名前(個人戦), {"4":"順決勝","5":"決勝"} のような形式
   has n, :single_user_classes, 'ContestSingleUserClass'
   has n, :single_users,'User',through: :single_user_classes,via: :user # 参加者(個人戦)
-  has n, :single_games,'ContestSingleGame' # 試合結果(個人戦)
+  has n, :single_games,'ContestGame' # 試合結果(個人戦)
   has n, :prizes, 'ContestPrize'
   has n, :teams, 'ContestTeam' # 参加チーム(団体戦)
 end
@@ -36,43 +36,59 @@ end
 # 試合結果(個人戦, 団体戦共通)
 class ContestGame
   include ModelBase
-  property :type, Discriminator, index: true # Single Table Inheritance between ContestTeamGame and ContestSingleGame
+  # Discriminator を使った Single Table Inheritance は子クラスにインデックスを作れないし
+  # 親クラスと子クラスの間のunique_indexを作れないので自分で切り変える
+  property :type, Enum[:single,:team] , index: true # 個人戦, 団体戦
+  # belongs_to does not support unique_index so we do this ugly hack.
+  property :user_id, Integer, unique_index: [:u1,:u2], required: true
   belongs_to :user
   property :user_name, String, length: 24, required: true # 大会出場時の名前 (後に改名する人がいるために残しておく)
   property :result, Enum[:now,:win,:lose,:default_win], required: true # 勝敗 => 対戦中, 勝ち, 負け, 不戦勝,
   property :score_str, String, length: 8 # 枚数(文字) "棄" とか "3+1" とかあるので文字列として用意しておく
-  property :score_int, Integer # 枚数(数字)
+  property :score_int, Integer, index: true # 枚数(数字)
   property :opponent_name, String, length: 24 # 対戦相手の名前
   property :opponent_belongs, String, length: 36 # 対戦相手の所属, 個人戦のみ使用 (ただし団体戦の大会でも対戦相手の所属がバラバラな場合はここに書く))
   property :comment, Text # コメント
+
+  is_single = ->(x){ x.type == :single }
+  is_team = ->(x){ x.type == :team }
+ 
+  # 個人戦用
+  property :contest_class_id, Integer, unique_index: :u1, index: true
+  belongs_to :contest_class
+  property :round, Integer, unique_index: :u1
+
+  # required:true の代わりに条件付きvalidationする(required:trueだとDBにNOT NULLを付けてしまう)
+  validates_presence_of :contest_class_id, if: is_single
+  validates_presence_of :round, if: is_single
+  validates_absence_of :contest_team_opponent_id, if: is_single
+  validates_absence_of :opponent_order, if: is_single
+
+  # 団体戦用
+  property :contest_team_opponent_id, Integer, unique_index: :u2, index: true
+  belongs_to :contest_team_opponent
+  property :opponent_order, Integer, unique_index: :u2 # 将順
+
+  validates_presence_of :contest_team_opponent_id, if: is_team
+  validates_absence_of :contest_class_id, if: is_team
+  validates_absence_of :round, if: is_team
+
 end
 
 # 誰がどの級に出場したか(個人戦)
 class ContestSingleUserClass
   include ModelBase
+  # belongs_to does not support unique_index so we do this ugly hack.
   property :user_id, Integer, unique_index: :u1, required: true
   property :contest_class_id, Integer, unique_index: :u1, required: true
   belongs_to :user
   belongs_to :contest_class
 end
 
-# 試合結果(個人戦)
-class ContestSingleGame < ContestGame
-  # These properties are actually 'required: true'. However, it corresponds to SQL constraint 'NOT NULL'
-  # As for single table inheritance, other classes which inherits this base class cannot create instance if we set 'required: true'.
-  # Thus we use 'validates_presence_of' instead
-  belongs_to :contest_class, required: false, index: true
-  property :round, Integer
-  # TODO: how to create UNIQUE INDEX (user_id, contest_class_id, round) ?
-  # we use unique verification instead
-  validates_uniqueness_of :user_id, scope: [:contest_class_id,:round]
-  validates_presence_of :contest_class_id
-  validates_presence_of :round
-end
-
 # 誰がどのチームの何将か(団体戦)
 class ContestTeamMember
   include ModelBase
+  # belongs_to does not support unique_index so we do this ugly hack.
   property :user_id, Integer, unique_index: :u1, required: true
   belongs_to :user
   property :contest_team_id, Integer, unique_index: :u1, required: true
@@ -83,6 +99,7 @@ end
 # どのチームがどの級に出場しているか(団体戦)
 class ContestTeam
   include ModelBase
+  # belongs_to does not support unique_index so we do this ugly hack.
   property :contest_class_id, Integer, unique_index: :u1, required: true
   belongs_to :contest_class
   property :name, String, length: 48, unique_index: :u1, required: true # チーム名
@@ -103,15 +120,5 @@ class ContestTeamOpponent
   property :round_name, String, length: 36 # 決勝, 順位決定戦など
   property :comment, Text
   property :kind, Enum[:team, :single] # 団体戦, 個人戦 (大会としては団体戦だけど各自が別々のチーム相手に対戦)
-  has n, :games, 'ContestTeamGame'
-end
-
-# 試合結果(団体戦)
-class ContestTeamGame < ContestGame
-  belongs_to :contest_team_opponent, required: false, index: true
-  property :opponent_order, Integer # 将順
-  # TODO: how to create UNIQUE INDEX (user_id, contest_team_opponent_id) ?
-  # we use unique verification instead
-  validates_uniqueness_of :user_id, scope: [:contest_team_opponent_id]
-  validates_presence_of :contest_team_opponent_id
+  has n, :games, 'ContestGame' # 試合結果(団体戦)
 end

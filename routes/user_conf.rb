@@ -12,8 +12,10 @@ class MainApp < Sinatra::Base
   end
   get '/user_conf' do
     user = get_user
-    cur_salt = user.password_salt
-    new_salt = Kagetra::Utils.gen_salt
-    haml :user_conf, locals:{user: user, cur_salt: cur_salt, new_salt: new_salt}
+    @cur_salt = user.password_salt
+    @new_salt = Kagetra::Utils.gen_salt
+    attr_keys = UserAttributeKey.all(order:[:index.asc])
+    @user_attrs = user.attrs.map{|x|k=x.value.attr_key;[k.index,k.name,x.value.value]}.sort_by{|i,n,v|i}
+    haml :user_conf, locals:{user: user}
   end
 end

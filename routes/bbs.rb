@@ -30,7 +30,7 @@ class MainApp < Sinatra::Base
           }
         }
         title = Rack::Utils.escape_html(t.title)
-        {thread_id: t.id, title: title, items: items}
+        {thread_id: t.id, title: title, items: items, public: t.public}
       }
     end
     post '/thread/new' do
@@ -38,7 +38,8 @@ class MainApp < Sinatra::Base
         user = get_user
         title = params["title"]
         body = params["body"]
-        thread = BbsThread.create(title: title)
+        public = params["public"].empty?.!
+        thread = BbsThread.create(title: title, public: public)
         item = thread.items.create(body: body, user: user, user_name: user.name)
         thread.first_item = item
         thread.save

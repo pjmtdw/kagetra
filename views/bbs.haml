@@ -7,7 +7,7 @@
 = haml :top_bar, locals: {user: user}
 .row
   %div.large-6.columns
-    %button#new-thread-toggle.small.round スレッド作成
+    %button#new-thread-toggle.small.round(data-toggle-text="キャンセル") スレッド作成
     %button#search-toggle.small.round 検索
 #search-row.row.hide
   %form#search-form.large-6.columns
@@ -20,11 +20,17 @@
   %form#new-thread-form.large-12.columns
     %fieldset
       %legend スレッド作成
-      %label タイトル
-      %input#new-thread-title(type='text')
-      %label 内容
-      %textarea#new-thread-body(rows=30)
-      %input.button.small.round(type='submit' value='送信')
+      .row
+        .large-10.columns
+          %label タイトル
+          %input#new-thread-title(type='text')
+        .large-2.column
+          %input#new-thread-public(type='checkbox') 外部公開
+      .row
+        .large-12.columns
+          %label 内容
+          %textarea#new-thread-body(rows=30)
+          %input.button.small.round(type='submit' value='送信')
 
 .row
   %div.large-6.columns
@@ -34,13 +40,16 @@
   #bbs-body
 
 %script#templ-thread(type='text/template')
-  .thread
-    .title
-      <%= title %>
+  .thread(class='{{data.public?"public":"private"}}')
+    %div.clearfix
+      .left.title
+        {{data.title}}
+      .right.is-public
+        {{data.public?"外部公開":""}}
     .items
-      <%= items %>
+      {{data.items}}
     .response
-      %button.response-toggle.small.round レスする
+      %button.response-toggle.small.round(data-toggle-text="キャンセル") レスする
       .response-container
 %script#templ-item(type='text/template')
   .item

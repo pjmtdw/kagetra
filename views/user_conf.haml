@@ -6,6 +6,11 @@
   user_conf
 = haml :top_bar, locals: {user:user}
 
+.row
+  .large-12.columns
+    - @user_attrs.each do |i,k,v|
+      %span.label.success.round #{k}: #{v}
+
 #user-conf
 
 #change-pass
@@ -16,7 +21,7 @@
       %form.form
         %fieldset
           %legend ユーザ設定
-          %label 掲示板の外部公開スレに書き込むときの名前
+          %label 掲示板の外部公開スレに書き込む際の名前
           %input(type='text' name='bbs_public_name' value='{{ bbs_public_name }}')
           %input.button.small.round(type='submit' value='送信')
 
@@ -35,5 +40,5 @@
           %input.button.small.round(type='submit' value='送信')
 
 %script
-  var g_cur_salt="#{cur_salt}";
-  var g_new_salt="#{new_salt}";
+  var g_cur_salt="#{@cur_salt}";
+  var g_new_salt="#{@new_salt}";

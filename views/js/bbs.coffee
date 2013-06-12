@@ -29,13 +29,15 @@ define ->
     url: "/api/bbs/threads"
 
   BbsThreadView = Backbone.View.extend
-    template: _.template($("#templ-thread").html())
+    template: _.template_braces($("#templ-thread").html())
     template_response: _.template($("#templ-response").html())
     events:
       'submit .response-form': 'do_response'
       'click .response-toggle': 'toggle_response'
     toggle_response: ->
       container = @$el.find(".response-container")
+      @$el.find(".response-toggle").toggleBtnText()
+
       if container.is(":empty")
         container.html @template_response()
       else
@@ -54,7 +56,7 @@ define ->
         m = new BbsThreadModel(item)
         v = new BbsItemView(model: m)
         v.$el.html()
-      h = @template(title: title, items: items)
+      h = @template(data:{title: title, items: items, public: @model.get("public")})
       @$el.html(h)
 
   BbsView = Backbone.View.extend
@@ -80,8 +82,10 @@ define ->
     data =
       title: $("#new-thread-title").val()
       body: $("#new-thread-body").val()
+      public: if $("#new-thread-public").is(":checked") then "on" else ""
     $.post("/api/bbs/thread/new",data).done(
         $("#new-thread-row").hide()
+        $("#new-thread-toggle").toggleBtnText()
         refresh_all
         )
 
@@ -97,7 +101,16 @@ define ->
           refresh_all()
         row.toggle()
         )
-    $("#new-thread-toggle").click( -> $("#new-thread-row").toggle())
+    ntg = $("#new-thread-toggle")
+    ntg.click(->
+      row = $("#new-thread-row")
+      ntg.toggleBtnText()
+      if row.is(":visible")
+        row.hide()
+      else
+        row.show()
+
+    )
     $("#new-thread-form").submit(_.wrap_submit(create_new_thread))
     $("#search-form").submit(_.wrap_submit(do_search))
     Backbone.history.start()

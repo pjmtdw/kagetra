@@ -9,9 +9,10 @@ class MainApp < Sinatra::Base
       }
     end
     post '/detail/update' do
+      user = get_user
       date = Date.new(@json["year"],@json["mon"],@json["day"])
       Kagetra::Utils.dm_debug{
-        ScheduleItem.create(user: get_user,date: date, title: @json["title"])
+        ScheduleItem.create(user: user,date: date, title: @json["title"])
       }
     end
     put '/detail/update/:id' do

@@ -39,6 +39,12 @@ define (require, exports, module) ->
         catch e
           console.log e.message
         return false
+  $.fn.toggleBtnText = ->
+    a = "data-toggle-text"
+    t = this.attr(a)
+    this.attr(a,this.text())
+    this.text(t)
+
   $.fn.serializeObj = ->
     o = {}
     a = this.serializeArray()

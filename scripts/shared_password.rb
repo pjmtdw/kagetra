@@ -14,8 +14,14 @@ $stdin.noecho{|stdin|
   end
 
   hash = Kagetra::Utils.hash_password(pass1)
-  User.create(name: "admin", furigana: "admin", password_hash: hash[:hash], password_salt: hash[:salt])
-  puts "created user 'admin' with user_password == shard_password "
-  MyConf.create(name: "shared_password", value: Kagetra::Utils.hash_password(pass1))
+  User.update_or_create({name: "admin", furigana: "admin"},{password_hash: hash[:hash], password_salt: hash[:salt]})
+  puts "created user 'admin' and set password to shard_password "
+
+  MyConf.update_or_create({name: "shared_password"}, {value: Kagetra::Utils.hash_password(pass1)})
   puts "saved shared password to db"
+  User.all(password_hash: nil).each{|user|
+    hash = Kagetra::Utils.hash_password(pass1)
+    user.update(password_hash: hash[:hash], password_salt: hash[:salt])
+  }
+  puts "updated all users which password is empty to shard password"
 }

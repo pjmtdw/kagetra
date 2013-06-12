@@ -12,6 +12,8 @@ class MainApp < Sinatra::Base
   end
   get '/user_conf' do
     user = get_user
-    haml :user_conf, locals:{user: user}
+    cur_salt = user.password_salt
+    new_salt = Kagetra::Utils.gen_salt
+    haml :user_conf, locals:{user: user, cur_salt: cur_salt, new_salt: new_salt}
   end
 end

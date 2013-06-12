@@ -1,4 +1,33 @@
 # -*- coding: utf-8 -*-
+
+
+# copied from http://blog.tquadrado.com/2010/datamapper-update_or_create/
+module DataMapper
+  module Model
+    # update_or_create method: finds and updates, or creates;
+    #   -upon create, returns the object
+    #   -upon update, returns the object (by default, returned True)
+    # @param[Hash] Conditions hash for the search query.
+    # @param[Hash] Attributes hash with the property value for the update or creation of a new row.
+    # @param[Boolean] Merger is a boolean that determines if the conditions are merged with the attributes upon create.
+    #   If true, merges conditions to attributes and passes the merge to the create method;
+    #   If false, only attributes are passed into the create method
+    # @return[Object] DataMapper object 
+    def update_or_create(conditions = {}, attributes = {}, merger = true)
+      begin
+	if (row = first(conditions))
+          row.update(attributes)
+	  row
+	else
+	  create(merger ? (conditions.merge(attributes)) : attributes )
+	end
+      rescue
+        false
+      end
+    end
+  end # Module Model
+end # Module DataMapper
+
 module Kagetra
   class HourMin
     def initialize(hour,min)
@@ -55,8 +84,12 @@ module Kagetra
         x[:name]
       }
     end
+
+    def self.gen_salt
+      SecureRandom.base64(24)
+    end
     def self.hash_password(pass,salt=nil)
-      salt ||= SecureRandom.base64(24)
+      salt ||= gen_salt
       # Iteration must be at least 1,000 for secure pbkdf2.
       # However, CryptoJS is too slow for executing 1,000 iterations on browser.
       {

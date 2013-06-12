@@ -2,6 +2,15 @@ define (require, exports, module) ->
   _ = require("underscore")
   $ = require("zep_or_jq")
   _.mixin
+    pbkdf2_password: (pass, salt) ->
+      CryptoJS.PBKDF2(pass,salt, {keySize: 256/32, iterations: 100}).toString(CryptoJS.enc.Base64)
+    hmac_password: (pass,salt) ->
+      secret = _.pbkdf2_password(pass,salt) 
+      hmac = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, secret)
+      msg = CryptoJS.lib.WordArray.random(128/8).toString(CryptoJS.enc.Base64)
+      hmac.update(msg)
+      hash = hmac.finalize().toString(CryptoJS.enc.Base64)
+      [hash, msg]
     result_str: (s) ->
       {win: '○'
       lose: '●'
@@ -28,7 +37,7 @@ define (require, exports, module) ->
         try
           _.bind(f,this)()
         catch e
-          console.log e
+          console.log e.message
         return false
   $.fn.serializeObj = ->
     o = {}

@@ -32,7 +32,7 @@ def import_zokusei
     values = cols[1].split(/<>/)
     attr_key = UserAttributeKey.create(name:verbose_name, index: i)
     values.each_with_index{|v,ii|
-      UserAttributeValue.create(user_attribute_key:attr_key,value:v,index:ii)
+      attr_key.values.create(value:v,index:ii)
     }
   }
 
@@ -48,9 +48,13 @@ def import_user
         line.sjis!
         (uid,name,password_hash,login_num,last_login,user_agent) = line.split("\t")
         (uid,auth) = uid.split("<>")
-        (name,furigana,zokusei) = name.split("+")
+        (name,furigana,*zokusei) = name.split("+")
+        u = User.create(id: uid, name: name, furigana: furigana)
         puts name
-        User.create(id: uid, name: name, furigana: furigana)
+        zokusei[1..-1].each_with_index{|a,i|
+          val = UserAttributeKey.first(index:i).values.first(index:a)
+          u.attrs.create(value:val)
+        }
       rescue DataMapper::SaveFailureError => e
         puts "Error at #{code} line #{lineno}"
         p e.resource.errors
@@ -303,7 +307,7 @@ def import_event
           next if f.empty?
           (key,val) = f.split('.')
           k = UserAttributeKey.first(index:key.to_i-1)
-          v = UserAttributeValue.first(user_attribute_key:k,index:val.to_i)
+          v = k.values.first(index:val.to_i)
         }.compact
       when /^\[KAIHI\](\d?)/
         agg_attr = UserAttributeKey.first(index:$1.to_i-1)
@@ -313,8 +317,8 @@ def import_event
           xx = tbuf[lineno+2].split('&')
           zz = xx.each_with_index.map{|x,ii|
             next if x.empty?
-            v = UserAttributeValue.first(user_attribute_key:agg_attr,index:ii)
-            if not v then raise Exception.new("no UserAttributeValue which has user_attribute_key:#{agg_attr.id} and index:#{ii-1} at taikainum:#{taikainum}") end
+            v = agg_attr.values.first(index:ii)
+            if not v then raise Exception.new("no UserAttributeValue which has key:#{agg_attr.id} and index:#{ii-1} at taikainum:#{taikainum}") end
             v.value + x
           }.compact
           if zz.empty?.! then
@@ -529,9 +533,6 @@ def import_contest_result_dantai(evt,sankas)
                       when "陥落" then :rank_down
                       when "昇級" then :rank_up
                     end
-        if promtype then
-          pr = $` + $'
-        end
       end
       team = klass.teams.create(name: team_name, prize: pr, rank: Kagetra::Utils.rank_from_prize(pr), promotion: promtype)
       team_members[team] = []
@@ -626,9 +627,6 @@ def import_contest_result_kojin(evt,sankas)
           promtype = case $1
           when 'ダッシュ' then :dash
           when '昇級' then :rank_up
-          end
-          if promtype then
-            pr = $` + $'
           end
         end
         klass.prizes.create(rank:Kagetra::Utils.rank_from_prize(pr),user:user,prize:pr,promotion:promtype,point:pt,point_local:kpt)

@@ -30,7 +30,8 @@ class MainApp < Sinatra::Base
       list = all.map{|x| x.select_attr(:id,:name)}
 
       gr = evt.event_group
-      group = if gr then gr.events(:date.lte => Date.today, order:[:date.desc]).map{|x| x.select_attr(:id,:name,:date)} else [] end
+      group = if gr then gr.events(:date.lte => Date.today, order:[:date.desc])
+                .map{|x| x.select_attr(:id,:name,:date)} else [] end
 
       evt.select_attr(:id,:name,:num_teams,:date).merge({
         list: list,
@@ -42,12 +43,11 @@ class MainApp < Sinatra::Base
       # 後で少しずつ取得するのは遅いのでまとめて取得
       games = evt.result_classes.single_games
       round_num = games.aggregate(:round.max)
-      user_games = games.all.map{|gm|
+      user_games = games.map{|gm|
         [gm.user.id,gm.select_attr(:result,:opponent_name,:opponent_belongs,:score_str)]
       }.each_with_object(Hash.new{[]}){|(uid,attrs),h|
         h[uid] <<= attrs
       }
-
       evt.result_classes.map{|klass|
         {
           name: klass.class_name,
@@ -61,7 +61,7 @@ class MainApp < Sinatra::Base
       temp_res = {}
 
       # 後で少しずつ取得するのは遅いのでまとめて取得
-      users = Hash[games.users.all.map{|u|
+      users = Hash[games.users.map{|u|
         [u.id,u.name]}]
 
       users.keys.each{|uid|

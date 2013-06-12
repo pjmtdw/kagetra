@@ -13,5 +13,5 @@
     %a(name="anchor-top")
     = yield
     .row
-      %a.right(href="#anchor-top") &uArr; 一番上へ
+      %a.right(href="javascript:window.scrollTo(0,0);") &uArr; 一番上へ
     %script(src="js/libs/require.js" data-main="js/main" data-start="#{yield_content(:js_start)}")

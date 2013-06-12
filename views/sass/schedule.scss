@@ -7,3 +7,8 @@
   }
 }
 
+.info-item {
+  &.today{
+    border: 3px green solid;
+  }
+}

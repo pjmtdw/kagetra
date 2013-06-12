@@ -1,0 +1,35 @@
+- content_for :title do
+  ユーザ設定
+- content_for :js_start do
+  user_conf
+- content_for :css do
+  user_conf
+= haml :top_bar, locals: {user:user}
+
+#user-conf
+
+#change-pass
+
+%script#templ-user-conf(type='text/template')
+  .row
+    .large-6.columns
+      %form.form
+        %fieldset
+          %legend ユーザ設定
+          %label 掲示板の外部公開スレに書き込むときの名前
+          %input(type='text' name='bbs_public_name' value='{{ bbs_public_name }}')
+          %input.button.small.round(type='submit' value='送信')
+
+%script#templ-change-pass(type='text/template')
+  .row
+    .large-6.columns
+      %form.form
+        %fieldset
+          %legend パスワード変更
+          %label 現在のパスワード
+          %input.pass-cur(type='password')
+          %label 新パスワード
+          %input.pass-new(type='password')
+          %label 新パスワードの再確認
+          %input.pass-retype(type='password')
+          %input.button.small.round(type='submit' value='送信')

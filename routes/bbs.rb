@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
   THREADS_PER_PAGE = 10
   namespace '/api/bbs' do
@@ -7,15 +8,15 @@ class MainApp < Sinatra::Base
       query = BbsThread.all
       if qs then
         qs.strip.split(/\s+/).each{|q|
-          # dummy query that never matches
-          # TODO: more smarter way to create this ?
+          # 一件もヒットしないダミーのクエリ
+          # TODO: 以下をする正しい方法
           qb = BbsThread.all(id: -1)
           [
             :title,
             BbsThread.items.user_name,
             BbsThread.items.body
           ].each{|sym|
-            # TODO: escape query
+            # TODO: クエリのエスケープ
             qb |= BbsThread.all(sym.like => "%#{q}%")
           }
           query &= qb

@@ -32,7 +32,7 @@ define (require,exports,module) ->
       @date = data.date
       @id = data.id
       @group = data.group
-      data.event_results
+      data.contest_results
   # TODO: split this view to ContestInfoView which has name, date, group, list  and ContestResultView which only has result
   ContestResultView = Backbone.View.extend
     el: '#contest-result'

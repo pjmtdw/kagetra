@@ -5,8 +5,8 @@ module ModelBase
       p = DataMapper::Property
       property :id, p::Serial
       # Automatically set/updated by dm-timestamps
-      property :created_at, p::DateTime, index: true
-      property :updated_at, p::DateTime, index: true
+      property :created_at, p::DateTime, index: true, lazy: true
+      property :updated_at, p::DateTime, index: true, lazy: true
 
       def self.all_month(prop,year,month)
         from = Date.new(year,month,1)
@@ -15,7 +15,11 @@ module ModelBase
       end
 
       def select_attr(*symbols)
-        self.attributes.select{|k,v|
+        attrs = self.attributes
+        symbols.each{|s|
+          raise Exception.new("'#{s}' is not a property of '#{self.class}'") unless attrs.has_key?(s)
+        }
+        attrs.select{|k,v|
           symbols.include?(k) and v.nil?.!
         }
       end

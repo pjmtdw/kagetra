@@ -378,7 +378,7 @@ def import_event
         formal_name: seisikimeishou,
         official: kounin,
         kind:etype,
-        num_teams: teamnum,
+        team_size: teamnum,
         description: "#{bikou}\n#{bikou_opt}",
         deadline: simekiri,
         date: kaisaidate,
@@ -744,7 +744,7 @@ def import_endtaikai
                        formal_name: seisikimeishou,
                        official: kounin,
                        kind: etype,
-                       num_teams: teamnum,
+                       team_size: teamnum,
                        description: bikou,
                        date: kaisaidate,
                        created_at: DateTime.parse(tourokudate),
@@ -765,7 +765,7 @@ def import_endtaikai
           break
         end
       }
-      if evt.num_teams == 1 then
+      if evt.team_size == 1 then
         import_contest_result_kojin(evt,sankas)
       else
         import_contest_result_dantai(evt,sankas)

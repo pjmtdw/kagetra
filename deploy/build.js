@@ -27,6 +27,8 @@
     { name: "schedule",
       exclude: ["main"] },
     { name: "result",
+      exclude: ["main"] },
+    { name: "user_conf",
       exclude: ["main"] }
   ]
 })

@@ -2,14 +2,14 @@
 class User
   include ModelBase
   property :guest,         Boolean, default: false # 行事や大会にしか登録していないユーザ
-  property :name,          String, length: 24, required: true
-  property :furigana,      String, length: 36, required: true
-  property :furigana_row,  Integer, index: true # 振り仮名の最初の一文字が五十音順のどの行か
-  property :password_hash, String, length: 44
-  property :password_salt, String, length: 32
-  property :token,         String, length: 32 # 認証用トークン
+  property :name,          String, length: 24, required: true, lazy: true
+  property :furigana,      String, length: 36, required: true, lazy: true
+  property :furigana_row,  Integer, index: true, lazy:true # 振り仮名の最初の一文字が五十音順のどの行か
+  property :password_hash, String, length: 44, lazy: true
+  property :password_salt, String, length: 32, lazy: true
+  property :token,         String, length: 32, lazy: true # 認証用トークン
   property :admin,         Boolean, default: false
-  property :bbs_public_name, String, length: 24
+  property :bbs_public_name, String, length: 24, lazy: true
 
   has n, :attrs, 'UserAttribute'
   

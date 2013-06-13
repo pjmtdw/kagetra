@@ -64,7 +64,7 @@ class MainApp < Sinatra::Base
       begin
         user = get_user
         evt = Event.first(id:params[:event_id].to_i)
-        # TODO: automatically set user_name from user in model's :save hook
+        # TODO: createの引数として渡すのではなく user_name は user から自動的に model の中でセットする
         c = evt.comments.create(user:user,body:params[:body],user_name:user.name)
       rescue DataMapper::SaveFailureError => e
         p e.resource.errors

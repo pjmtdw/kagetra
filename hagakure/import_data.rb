@@ -22,8 +22,20 @@ class String
   end
 end
 
+def guess_agg_attr(tbuf)
+  r = tbuf.map{|x|
+    if /^<!--(.*)-->/ =~ x then
+      UserAttributeKey.first(UserAttributeKey.values.value => $1)
+    end
+  }.compact.group_by{|x|x}.map{|k,v|[v.size,k]}.sort_by{|c,x|c}.last || [1,UserAttributeKey.first(index:0)]
+  r[1]
+end
+
 def import_zokusei
-  File.readlines(File.join(CONF_HAGAKURE_BASE,"txts","zokusei.cgi")).each_with_index{|b,i|
+  puts "import_zokusei begin"
+  k = UserAttributeKey.create(name:"全員", index: 0)
+  k.values.create(value:"全員", index: 0)
+  File.readlines(File.join(CONF_HAGAKURE_BASE,"txts","zokusei.cgi")).to_enum.with_index(1){|b,i|
     b.chomp!
     b.sjis!
     cols = b.split(/\t/)
@@ -39,6 +51,7 @@ def import_zokusei
 end
 
 def import_user
+  puts "import_user begin"
   Parallel.each_with_index(File.readlines(File.join(CONF_HAGAKURE_BASE,"txts","namelist.cgi")),in_threads: NUM_THREADS){|code,index|
     next if index == 0
     code.chomp!
@@ -51,7 +64,7 @@ def import_user
         (name,furigana,*zokusei) = name.split("+")
         u = User.create(id: uid, name: name, furigana: furigana)
         puts name
-        zokusei[1..-1].each_with_index{|a,i|
+        zokusei.each_with_index{|a,i|
           val = UserAttributeKey.first(index:i).values.first(index:a)
           u.attrs.create(value:val)
         }
@@ -66,6 +79,7 @@ end
 
 
 def import_bbs
+  puts "import_bbs begin"
   num_to_line = {}
   Parallel.each(Dir.glob(File.join(CONF_HAGAKURE_BASE,"bbs","*.cgi")), in_threads: NUM_THREADS){|fn|
     File.readlines(fn).to_enum.with_index(1){|line,lineno|
@@ -136,6 +150,7 @@ def import_bbs
 end
 
 def import_schedule
+  puts "import_schedule begin"
   Parallel.each(Dir.glob(File.join(CONF_HAGAKURE_BASE,"scheduledir","*.cgi")), in_threads: NUM_THREADS){|fn|
     base = File.basename(fn)
     raise Exception.new("bad schedule filename: #{base}") unless /^(\d+)_(\d+).cgi$/ =~ base
@@ -223,6 +238,7 @@ def import_schedule
 end
 
 def import_shurui
+  puts "import_shurui begin"
   lines = File.readlines(File.join(CONF_HAGAKURE_BASE,"txts","shurui.cgi"))
   lines.each{|line|
     line.chomp!
@@ -306,11 +322,11 @@ def import_event
         fukalist = fukas.map{|f|
           next if f.empty?
           (key,val) = f.split('.')
-          k = UserAttributeKey.first(index:key.to_i-1)
+          k = UserAttributeKey.first(index:key.to_i)
           v = k.values.first(index:val.to_i)
         }.compact
       when /^\[KAIHI\](\d?)/
-        agg_attr = UserAttributeKey.first(index:$1.to_i-1)
+        agg_attr = UserAttributeKey.first(index:$1.to_i)
         bikou_opt = ''
         next unless agg_attr
         if nextline.to_s.empty?.! then
@@ -335,10 +351,9 @@ def import_event
           when 1 then show = true
           when 2 then show_choice = false
           end
-          tts = m[1..-1].split(/<!--[0-9]-->/)
-          ttss = tts[1..-1]
+          ttss = m[1..-1].scan(/<!--(\d+)-->(.*?)(?=<!--\d+-->|$)/)
           next unless ttss
-          ttss.map{|zz|
+          ttss.map{|attr_index,zz|
             zz.split(/\t/).each_with_index.map{|mm,ci|
               mm.split(/ *, */).map{|ss|
                 next if ss.empty?
@@ -347,7 +362,8 @@ def import_event
                   typ:typ,
                   date:DateTime.parse(date.sub(/\*/,"")),
                   name:name,
-                  ci:ci
+                  ci:ci,
+                  attr_index:attr_index.to_i
                 }
               }
             }
@@ -402,7 +418,8 @@ def import_event
         if choice.nil? then
           raise Exception.new("choice is nil: user=#{user}, uc=#{uc.inspect}, evt=#{evt.inspect}")
         end
-        choice.user_choices.create(user:user)
+        av = agg_attr.values.first(index:uc[:attr_index])
+        choice.user_choices.create(user:user, attr_value: av)
       }
     rescue DataMapper::SaveFailureError => e
       puts "Error at #{taikainame}"
@@ -587,7 +604,7 @@ def import_contest_result_kojin(evt,sankas)
       raise e
     end
   }
-  handle_match = lambda{|curl,answercounter|
+  handle_match = lambda{|curl,answercounter,klass|
     ss = curl.split(/\t/)
     return if ss.empty?
     if ss.size == 1 then
@@ -603,7 +620,24 @@ def import_contest_result_kojin(evt,sankas)
           raise Exception.new("answercounter != 0 && choice does not exist")
         end
       end
-      choice.user_choices.create(user:user)
+      av = evt.aggregate_attr.values.first(value:klass.class_name)
+      if av.nil? and evt.kind == :contest then
+        rank = Kagetra::Utils.class_from_name(klass.class_name)
+        if rank.nil?.! then
+          evt.aggregate_attr.values.each{|x|
+            r = Kagetra::Utils.class_from_name(x.value)
+            if r == rank then
+              av = x
+              break
+            end
+          }
+        end
+      end
+      if av.nil? then
+        av = evt.aggregate_attr.values.first(index: 0)
+        puts "WARNING: #{klass.class_name} の属性を推定できませんでした．#{av.value} にしておきます．"
+      end
+      choice.user_choices.create(user:user,attr_value:av)
       return
     end
     (name,prize) = ss[0...2]
@@ -653,13 +687,14 @@ def import_contest_result_kojin(evt,sankas)
         klass = evt.result_classes.create(index:order,class_rank:kl,class_name:klass_name,num_person:num_person)
         order += 1
       elsif klass
-        handle_match.call(curl,answercounter)
+        handle_match.call(curl,answercounter,klass)
       end
     }
   end
 end
 
 def import_endtaikai
+  puts "import_endtaikai begin"
   lines = File.readlines(File.join(CONF_HAGAKURE_BASE,"txts","endtaikailist.cgi"))
   if SHURUI.empty? then
     raise Exception.new("import_shurui not executed")
@@ -701,6 +736,7 @@ def import_endtaikai
     if invalid_kaisaidate then
       bikou += "\nDateInvaild: 日付は仮のもの．正しい日付は不明"
     end
+    agg_attr = guess_agg_attr(tbuf)
     begin
       evt = Event.create(
                        id: tnum,
@@ -713,7 +749,9 @@ def import_endtaikai
                        date: kaisaidate,
                        created_at: DateTime.parse(tourokudate),
                        place: place,
-                       event_group: shurui)
+                       event_group: shurui,
+                       aggregate_attr: agg_attr
+      )
       if choices then 
         choices.each_with_index{|(typ,name),i|
           positive = (typ == :yes)
@@ -742,6 +780,7 @@ def import_endtaikai
 end
 
 def import_event_comment 
+  puts "import_event_comment begin"
   files = Dir.glob(File.join(CONF_HAGAKURE_BASE,"taikai","*-c.cgi"))
   Parallel.each(files,in_threads:NUM_THREADS){|fn|
     taikainum = if /^(\d+)-c.cgi$/ =~ File.basename(fn) then
@@ -774,7 +813,6 @@ def import_event_comment
     }
   }
 end
-
 import_zokusei
 import_user
 import_bbs

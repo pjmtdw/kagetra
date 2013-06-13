@@ -3,7 +3,6 @@ define (require,exports,module) ->
   # since both scripts contains whole content of schedule_item.js.
   # TODO: do not require schedule_item here and load it dynamically.
   $si = require("schedule_item")
-  $ec = require("event_comment")
   $ed = require("event_detail")
 
   ScheduleRouter = Backbone.Router.extend
@@ -129,6 +128,6 @@ define (require,exports,module) ->
     window.schedule_router = new ScheduleRouter()
     window.schedule_view = new ScheduleView()
     window.schedule_detail_view = new $si.ScheduleDetailView(parent:window.schedule_view)
-    window.event_comment_view = new $ec.EventCommentView()
+    window.event_comment_view = new $ed.EventCommentView()
     window.event_detail_view = new $ed.EventDetailView()
     Backbone.history.start()

@@ -1,6 +1,5 @@
 define (require,exports,module) ->
   $si = require("schedule_item")
-  $ec = require("event_comment")
   $ed = require("event_detail")
   show_deadline = (deadline_day) ->
     if not deadline_day?
@@ -153,4 +152,4 @@ define (require,exports,module) ->
     window.event_list_view = new EventListView()
     window.event_detail_view = new $ed.EventDetailView()
     window.schedule_detail_view = new $si.ScheduleDetailView(parent:window.schedule_panel_view)
-    window.event_comment_view = new $ec.EventCommentView()
+    window.event_comment_view = new $ed.EventCommentView()

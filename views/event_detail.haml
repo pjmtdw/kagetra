@@ -8,7 +8,27 @@
     <% _.each(_.filter(data.choices,function(c){return c.positive}),function(c){ %>
     <% p = data.participant && data.participant[c.id] || [] %>
     %div
-      <%= c.name %> (<%= p.length %>) :
-    .panel <%= p.join(", ") %>
+      <%= c.name %> (<%= _.flatten(_.map(p,function(x){return _.values(x)})).length %>) :
+      .panel
+        <% _.each(p,function(q){ %>
+        %div.participants
+          %span.label.round <%= _.keys(q)[0] %>
+          <%= _.values(q)[0].join(", ") %>
+        
+        <% }) %>
     <% }) %>
 
+%script#templ-event-comment(type='text/template')
+  <%= event_name %>
+  %button.toggle-comment.round.small(data-toggle-text='キャンセル') コメントする
+  %form.comment-form.hide
+    %textarea(name='body' rows=15)
+    %input.button.small.round(type='submit' value='送信')
+  <% _.each(data,function(x){ %>
+  %hr
+  .comment-item
+    %div.name-date
+      %span.name <%= x.user_name %>
+      %span.date @ <%= x.date %>
+    %div <%= x.body %>
+  <% }) %>

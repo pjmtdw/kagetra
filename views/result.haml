@@ -3,7 +3,7 @@
 - content_for :js_start do
   result
 - content_for :css do
-  result, event_comment
+  result, event_detail
 = haml :top_bar, locals: {user:user}
 
 .row
@@ -83,4 +83,4 @@
         <% }) %>
       <% }) %>
 
-= haml :event_comment
+= haml :event_detail

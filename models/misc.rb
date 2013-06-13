@@ -31,9 +31,9 @@ module CommentBase
       property :deleted, p::ParanoidBoolean
       property :body, p::Text, required: true # 内容
       property :user_name, p::String, length: 24, required: true # 書き込んだ人の名前
-      property :remote_host, p::String, length: 72 
-      property :remote_addr, p::String, length: 48
-      property :user_agent, p::String, length: 256
+      property :remote_host, p::String, length: 72, lazy: true 
+      property :remote_addr, p::String, length: 48, lazy: true
+      property :user_agent, p::String, length: 256, lazy: true
       belongs_to :user, required: false # 内部的なユーザID
 
     end

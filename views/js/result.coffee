@@ -2,7 +2,7 @@ define (require,exports,module) ->
   # Requirng schedule_item in multiple scripts cause minified file larger
   # since both scripts contains whole content of schedule_item.js.
   # TODO: do not require schedule_item here and load it dynamically.
-  $ec = require("event_comment")
+  $ed = require("event_detail")
   
   CotestResultRouter = Backbone.Router.extend
     routes:
@@ -71,5 +71,5 @@ define (require,exports,module) ->
   init: ->
     window.result_router = new CotestResultRouter()
     window.result_view = new ContestResultView()
-    window.comment_view = new $ec.EventCommentView()
+    window.comment_view = new $ed.EventCommentView()
     Backbone.history.start()

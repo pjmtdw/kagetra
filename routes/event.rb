@@ -20,10 +20,8 @@ class MainApp < Sinatra::Base
       if params[:mode] == "detail"
         r.merge!({description: Kagetra::Utils.escape_html_br(ev.description)})
         r[:participant] = ev.choices(positive:true).each_with_object({}){|c,obj|
-          obj[c.id] = c.users.map{|u|
-            u.name
-          }
-        }
+          obj[c.id] = c.user_choices.group_by{|x|x.attr_value}
+          .sort_by{|k,v|k.index}.map{|k,v| {k.value => v.map{|x|x.user.name}}}}
       end
       r
     end

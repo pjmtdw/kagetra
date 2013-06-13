@@ -3,7 +3,7 @@
 - content_for :js_start do
   schedule
 - content_for :css do
-  schedule, schedule_item, event_comment
+  schedule, schedule_item, event_detail
 = haml :top_bar, locals: {user: user}
 .row
   #schedule
@@ -33,5 +33,4 @@
 #container-event-detail.reveal-modal
 #event-comment.reveal-modal
 = haml :schedule_item
-= haml :event_comment
 = haml :event_detail

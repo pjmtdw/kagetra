@@ -21,6 +21,7 @@ $stdin.noecho{|stdin|
   puts "saved shared password to db"
   User.all(password_hash: nil).each{|user|
     hash = Kagetra::Utils.hash_password(pass1)
+    puts "setting password of #{user.name}"
     user.update(password_hash: hash[:hash], password_salt: hash[:salt])
   }
   puts "updated all users which password is empty to shard password"

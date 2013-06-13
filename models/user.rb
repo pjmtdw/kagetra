@@ -39,7 +39,7 @@ end
 class UserAttributeKey
   include ModelBase
   property :name, String, length: 36, required:true
-  property :index, Integer, required: true # 順番
+  property :index, Integer, required: true, unique: true # 順番
   has n, :values, 'UserAttributeValue', child_key: [:attr_key_id]
 end
 

@@ -45,6 +45,7 @@ class EventChoice
   property :show_result, Boolean, default: true # 回答した人の一覧を表示する
   property :index, Integer, required: true # 順番
   belongs_to :event
+  # 注意: EventUserChiceにはuserがnilのものも存在するので user_choices.count と users.count は一致しない
   has n, :user_choices,'EventUserChoice'
   has n, :users, through: :user_choices , via: :user
 end
@@ -53,23 +54,28 @@ end
 class EventUserChoice
   include ModelBase
   belongs_to :event_choice
-  belongs_to :user
-  belongs_to :attr_value, 'UserAttributeValue' # ユーザ属性は変更されるかもしれないので残しておく
+  property :user_name, String, length: 24, allow_nil: false # 後に改名する人やUserにない人を登録できるようにするため用意しておく
+  belongs_to :user, required: false # Userにない人を登録できるようにするため required: false にしておく
+  property :attr_value_id, Integer, allow_nil: false
+  belongs_to :attr_value, 'UserAttributeValue'
 
   before :save do
-    self.event_choice.event.tap{|ev|
-      if ev then
-        # 一つの行事を複数選択することはできない
-        ev.choices.user_choices(user:self.user).destroy
-      end
-    }
+    if self.user then
+      self.user_name = self.user.name
+      self.event_choice.event.tap{|ev|
+        if ev then
+          self.attr_value = self.user.attrs.values.first(attr_key: ev.aggregate_attr)
+          # 一つの行事を複数選択することはできない
+          ev.choices.user_choices(user:self.user).destroy
+        end
+      }
+    end
   end
   after :save do
     self.event_choice.event.tap{|ev|
       if ev then
         # 参加者数の更新
-        ev.participant_count = ev.choices(positive: true).users.count
-        ev.save
+        ev.update(participant_count:ev.choices(positive: true).user_choices.count)
       end
     }
   end
@@ -83,8 +89,6 @@ class EventComment
   after :save do
     # コメント数の更新
     ev = self.event
-    ev.comment_count = ev.comments.count
-    ev.save
+    ev.update(comment_count: ev.comments.count)
   end
 end
-

@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 class User
   include ModelBase
-  property :guest,         Boolean, default: false # 行事や大会にしか登録していないユーザ
   property :name,          String, length: 24, required: true, lazy: true
   property :furigana,      String, length: 36, required: true, lazy: true
-  property :furigana_row,  Integer, index: true, lazy:true # 振り仮名の最初の一文字が五十音順のどの行か
+  property :furigana_row,  Integer, index: true, allow_nil: false, lazy:true # 振り仮名の最初の一文字が五十音順のどの行か
   property :password_hash, String, length: 44, lazy: true
   property :password_salt, String, length: 32, lazy: true
   property :token,         String, length: 32, lazy: true # 認証用トークン
@@ -46,8 +45,8 @@ end
 # ユーザ属性の値
 class UserAttributeValue
   include ModelBase
-  #property :user_attribute_key_id, Integer, unique_index: :u1, required: true
+  property :attr_key_id, Integer, unique_index: :u1, required: true
   belongs_to :attr_key, 'UserAttributeKey'
   property :value, String, length: 48, required: true
-  property :index, Integer, required: true
+  property :index, Integer, unique_index: :u1, required: true
 end

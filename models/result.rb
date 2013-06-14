@@ -1,6 +1,14 @@
 # -*- coding: utf-8 -*-
 
-# 個人戦, 団体戦共通
+# 大会出場者(後に改名する人がいる可能性があるのと，Userにない人を追加できるようにするため)
+class ContestUser
+  include ModelBase
+  property :name, String, length: 24, required: true
+  property :user_id, Integer, unique_index: :u1, required: false
+  belongs_to :user
+  property :event_id, Integer, unique_index: :u1, required: true
+  belongs_to :event
+end
 
 # 大会の各級の情報
 class ContestClass
@@ -13,7 +21,7 @@ class ContestClass
   property :num_person, Integer # その級の参加人数(個人戦)
   property :round_name, Json # 順位決定戦の名前(個人戦), {"4":"順決勝","5":"決勝"} のような形式
   has n, :single_user_classes, 'ContestSingleUserClass'
-  has n, :single_users,'User',through: :single_user_classes,via: :user # 参加者(個人戦)
+  has n, :single_users,'ContestUser',through: :single_user_classes,via: :contest_user # 参加者(個人戦)
   has n, :single_games,'ContestGame' # 試合結果(個人戦)
   has n, :prizes, 'ContestPrize'
   has n, :teams, 'ContestTeam' # 参加チーム(団体戦)
@@ -24,14 +32,15 @@ class ContestPrize
   include ModelBase
   property :contest_class_id, Integer, unique_index: :u1, required: true
   belongs_to :contest_class
-  property :user_id, Integer, unique_index: :u1, required: true
-  belongs_to :user
+  property :contest_user_id, Integer, unique_index: :u1, required: true
+  belongs_to :contest_user
   property :prize, String, length: 32, required: true # 実際の名前 (優勝, 全勝賞など)
   property :promotion, Enum[:rank_up, :dash] # 昇級, ダッシュ
   property :point, Integer # A級のポイント
   property :point_local, Integer # 会内ポイント
   property :rank, Integer # 順位(1=優勝, 2=準優勝, 3=三位, 4=四位, ...)
 end
+
 
 # 試合結果(個人戦, 団体戦共通)
 class ContestGame
@@ -40,9 +49,8 @@ class ContestGame
   # 親クラスと子クラスの間のunique_indexを作れないので自分で切り変える
   property :type, Enum[:single,:team] , index: true # 個人戦, 団体戦
   # belongs_to does not support unique_index so we do this ugly hack.
-  property :user_id, Integer, unique_index: [:u1,:u2], required: true
-  belongs_to :user
-  property :user_name, String, length: 24, required: true # 大会出場時の名前 (後に改名する人がいるために残しておく)
+  property :contest_user_id, Integer, unique_index: [:u1,:u2], required: true
+  belongs_to :contest_user
   property :result, Enum[:now,:win,:lose,:default_win], required: true # 勝敗 => 対戦中, 勝ち, 負け, 不戦勝,
   property :score_str, String, length: 8 # 枚数(文字) "棄" とか "3+1" とかあるので文字列として用意しておく
   property :score_int, Integer, index: true # 枚数(数字)
@@ -79,9 +87,9 @@ end
 class ContestSingleUserClass
   include ModelBase
   # belongs_to does not support unique_index so we do this ugly hack.
-  property :user_id, Integer, unique_index: :u1, required: true
+  property :contest_user_id, Integer, unique_index: :u1, required: true
   property :contest_class_id, Integer, unique_index: :u1, required: true
-  belongs_to :user
+  belongs_to :contest_user
   belongs_to :contest_class
 end
 
@@ -89,8 +97,8 @@ end
 class ContestTeamMember
   include ModelBase
   # belongs_to does not support unique_index so we do this ugly hack.
-  property :user_id, Integer, unique_index: :u1, required: true
-  belongs_to :user
+  property :contest_user_id, Integer, unique_index: :u1, required: true
+  belongs_to :contest_user
   property :contest_team_id, Integer, unique_index: :u1, required: true
   belongs_to :contest_team
   property :order_num, Integer, unique_index: :u1, required: true # 将順

@@ -21,7 +21,7 @@ class MainApp < Sinatra::Base
         r.merge!({description: Kagetra::Utils.escape_html_br(ev.description)})
         r[:participant] = ev.choices(positive:true).each_with_object({}){|c,obj|
           obj[c.id] = c.user_choices.group_by{|x|x.attr_value}
-          .sort_by{|k,v|k.index}.map{|k,v| {k.value => v.map{|x|x.user.name}}}}
+          .sort_by{|k,v|k.index}.map{|k,v| {k.value => v.map{|x|x.user_name}}}}
       end
       r
     end
@@ -41,7 +41,7 @@ class MainApp < Sinatra::Base
         user = get_user
         evt = Event.first(id:params[:eid].to_i)
         evt.choices.first(id:params[:cid].to_i).user_choices.create(user:user)
-        {count: evt.choices(positive: true).users.count}
+        {count: evt.participant_count}
       rescue DataMapper::SaveFailureError => e
         p e.resource.errors
       end
@@ -64,8 +64,7 @@ class MainApp < Sinatra::Base
       begin
         user = get_user
         evt = Event.first(id:params[:event_id].to_i)
-        # TODO: createの引数として渡すのではなく user_name は user から自動的に model の中でセットする
-        c = evt.comments.create(user:user,body:params[:body],user_name:user.name)
+        c = evt.comments.create(user:user,body:params[:body])
       rescue DataMapper::SaveFailureError => e
         p e.resource.errors
       end

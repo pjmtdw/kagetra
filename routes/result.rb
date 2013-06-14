@@ -14,7 +14,7 @@ class MainApp < Sinatra::Base
                         contest_results_single(evt) else
                         contest_results_team(evt) end
 
-      evt.select_attr(:id,:name,:num_teams,:date).merge({
+      evt.select_attr(:id,:name,:team_size,:date).merge({
         list: list,
         group: group,
         team_size: evt.team_size,
@@ -58,7 +58,7 @@ class MainApp < Sinatra::Base
       games = evt.result_classes.single_games
       round_num = games.aggregate(:round.max)
       user_games = games.map{|gm|
-        [gm.user.id,gm.select_attr(:result,:opponent_name,:opponent_belongs,:score_str)]
+        [gm.contest_user.id,gm.select_attr(:result,:opponent_name,:opponent_belongs,:score_str)]
       }.each_with_object(Hash.new{[]}){|(uid,attrs),h|
         h[uid] <<= attrs
       }
@@ -75,7 +75,7 @@ class MainApp < Sinatra::Base
       temp_res = {}
 
       # 後で少しずつ取得するのは遅いのでまとめて取得
-      users = Hash[games.users.map{|u|
+      users = Hash[games.contest_users.map{|u|
         [u.id,u.name]}]
 
       users.keys.each{|uid|
@@ -98,7 +98,7 @@ class MainApp < Sinatra::Base
       games.all(result: :lose, order: :round.desc).each{|m|
         x = temp_res.find{|uid,v|users[uid] == m.opponent_name}
         if x then
-          temp_res[m.user.id][:score][m.round..-1] = x[1][:score][m.round..-1]
+          temp_res[m.contest_user.id][:score][m.round..-1] = x[1][:score][m.round..-1]
         end
       }
       temp_res.map{|uid,v|
@@ -119,7 +119,7 @@ class MainApp < Sinatra::Base
         ops = team.opponents
         round_ops = Hash[ops.map{|o|[o.round,o]}]
         max_round = ops.size
-        temp = ops.games.group_by{|game| game.user}
+        temp = ops.games.group_by{|game| game.contest_user}
           .map{|user,results|
             res = Hash[results.map{|game|
               [game.contest_team_opponent.round,game]

@@ -284,6 +284,7 @@ def parse_common(tbuf)
 end
 
 def import_event
+  puts "import_event begin"
   lines = File.readlines(File.join(CONF_HAGAKURE_BASE,"txts","taikailist.cgi"))[1..-1]
   if SHURUI.empty? then
     raise Exception.new("import_shurui not executed")
@@ -409,6 +410,7 @@ def import_event
           evt.choices.create(positive:false, index: 1)
       end
       userchoice.each{|uc|
+        puts "adding: user #{uc[:name]} to #{evt.name}"
         user = User.first(name:uc[:name])
         choice = if uc[:typ] == :yes then
                     evt.choices.first(positive:true,index:uc[:ci])
@@ -429,10 +431,11 @@ def import_event
   }
 end
 
-def get_user_or_add(username)
+def get_user_or_add(evt,username)
   username.strip!
   begin
-    user = User.first_or_create({name:username},{guest:true,name:username,furigana:"only_in_event"}) 
+    u = User.first(name:username)
+    ContestUser.first_or_create({name:username,user:u,event:evt}) 
   rescue DataMapper::SaveFailureError => e
     p e.resource.errors
     raise e
@@ -470,8 +473,7 @@ def import_contest_result_dantai(evt,sankas)
     score_int = Kagetra::Utils.eval_score_char(maisuu)
     op_team.games.create(
       type: :team,
-      user_name:user.name,
-      user:user,
+      contest_user:user,
       result:result,
       score_str:maisuu,
       score_int:score_int,
@@ -484,7 +486,7 @@ def import_contest_result_dantai(evt,sankas)
     ss = curl.split(/\t/)
     return if ss.empty?
     if ss.size == 1 then
-      user = get_user_or_add(ss[0])
+      user = get_user_or_add(evt,ss[0])
       team_members[team] << user
       return
     end
@@ -492,7 +494,7 @@ def import_contest_result_dantai(evt,sankas)
     if name.to_s.empty? then
       return
     end
-    user = get_user_or_add(name)
+    user = get_user_or_add(evt,name)
     team_members[team] << user
     ss[2..-1].to_enum.with_index(1){|body,round|
       handle_single.call(user,round,body)
@@ -505,7 +507,7 @@ def import_contest_result_dantai(evt,sankas)
         kpt.to_i
       end
       if pr.to_s.empty?.! then
-        klass.prizes.create(user:user,prize:pr,point:0,point_local:kpt)
+        klass.prizes.create(contest_user:user,prize:pr,point:0,point_local:kpt)
       end
     end
   }
@@ -553,6 +555,7 @@ def import_contest_result_dantai(evt,sankas)
       end
       team = klass.teams.create(name: team_name, prize: pr, rank: Kagetra::Utils.rank_from_prize(pr), promotion: promtype)
       team_members[team] = []
+      puts "dantai result #{evt.name} of #{team_name}"
       handle_opponents.call(ss[2..-1])
     else
       if team then
@@ -562,7 +565,7 @@ def import_contest_result_dantai(evt,sankas)
   }
   team_members.each{|k,v|
     v.to_enum.with_index(1){|user,rank|
-      team.members.create(order_num:rank,user:user)
+      team.members.create(order_num:rank,contest_user:user)
     }
   }
 end
@@ -589,8 +592,7 @@ def import_contest_result_kojin(evt,sankas)
     begin
       klass.single_games.create(
         type: :single,
-        user_name:user.name,
-        user:user,
+        contest_user:user,
         result:result,
         score_str: maisuu,
         score_int: score_int,
@@ -611,7 +613,6 @@ def import_contest_result_kojin(evt,sankas)
       if ss[0].to_s.empty? then
         return
       end
-      user = get_user_or_add(ss[0])
       choice = evt.choices.first(positive:true,index:answercounter)
       if choice.nil? then
         if answercounter == 0 then
@@ -637,15 +638,18 @@ def import_contest_result_kojin(evt,sankas)
         av = evt.aggregate_attr.values.first(index: 0)
         puts "WARNING: #{klass.class_name} の属性を推定できませんでした．#{av.value} にしておきます．"
       end
-      choice.user_choices.create(user:user,attr_value:av)
+      name = ss[0]
+      user = User.first(name: name)
+      choice.user_choices.create(user:user,user_name:name,attr_value:av)
       return
     end
     (name,prize) = ss[0...2]
     if name.to_s.empty? then
       return
     end
-    user = get_user_or_add(name)
-    ContestSingleUserClass.create(user:user,contest_class:klass)
+    user = get_user_or_add(evt,name)
+    puts "result of #{evt.name} user #{user.name}"
+    ContestSingleUserClass.create(contest_user:user,contest_class:klass)
     ss[2..-1].to_enum.with_index(1){|body,round|
       handle_single.call(user,round,body)
     }
@@ -663,7 +667,7 @@ def import_contest_result_kojin(evt,sankas)
           when '昇級' then :rank_up
           end
         end
-        klass.prizes.create(rank:Kagetra::Utils.rank_from_prize(pr),user:user,prize:pr,promotion:promtype,point:pt,point_local:kpt)
+        klass.prizes.create(rank:Kagetra::Utils.rank_from_prize(pr),contest_user:user,prize:pr,promotion:promtype,point:pt,point_local:kpt)
       end
     end
   }
@@ -684,7 +688,12 @@ def import_contest_result_kojin(evt,sankas)
         num_person = $2
         num_person = if num_person == "" then nil else num_person.to_i end
         kl = Kagetra::Utils.class_from_name(klass_name)
-        klass = evt.result_classes.create(index:order,class_rank:kl,class_name:klass_name,num_person:num_person)
+        begin
+          klass = evt.result_classes.create(index:order,class_rank:kl,class_name:klass_name,num_person:num_person)
+        rescue Exception => e
+          p "order:#{order}, class_rank:#{kl}, klass_name:#{klass_name}, num_person: #{num_person}"
+          throw e
+        end
         order += 1
       elsif klass
         handle_match.call(curl,answercounter,klass)

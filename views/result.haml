@@ -36,7 +36,7 @@
       %ul.pagination
         %li.arrow
           %a &lsaquo;
-        <% _.each(list,function(x){ %>
+        <% _.each(recent_list,function(x){ %>
         %li.contest-link(data-id='{{x.id}}')
           %a {{ x.name }}
         <% }) %>
@@ -67,11 +67,20 @@
         .content(data-section-content)
           #event-comment.row
 
-%script#templ-contest-class(type='text/template')
-  .class-name {{ name }}
+%script#templ-contest-chunk(type='text/template')
   .row.body
-    .large-12.small-12.columns
-      <% _.each(user_results,function(x){ %>
+    .large-12.columns
+      .row.chunk-header
+        .left.game-result.ellipsis
+          {{ data.header_left }}
+        <% _.each(data.rounds,function(xs){ %>
+        .left.game-result.ellipsis
+          <% _.each(xs,function(x){ %>
+          %div {{ x }}
+          <% }) %>
+        <% }) %>
+
+      <% _.each(data.user_results,function(x){ %>
       .row
         .left.game-result.result-user-name.ellipsis
           %div {{ x.user_name }}

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
 # copied from http://blog.tquadrado.com/2010/datamapper-update_or_create/
 module DataMapper
   module Model

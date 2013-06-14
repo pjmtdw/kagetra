@@ -11,26 +11,24 @@ define (require,exports,module) ->
     contest: (id)->
       window.result_view.refresh(id)
 
-  ContestClassModel = Backbone.Model.extend {}
+  ContestChunkModel = Backbone.Model.extend {}
 
-  ContestClassView = Backbone.View.extend
+  ContestChunkView = Backbone.View.extend
     el: '<div class="columns">'
-    template: _.template_braces($('#templ-contest-class').html())
+    template: _.template_braces($('#templ-contest-chunk').html())
     initialize: ->
       @render()
     render: ->
-      @$el.html(@template(
-        name:@model.get('name')
-        user_results: @model.get('user_results')
-      ))
+      @$el.html(@template(data:@model.toJSON()))
   ContestResultCollection = Backbone.Collection.extend
     url: -> '/api/result/contest/' + (@id or "latest")
-    model: ContestClassModel
+    model: ContestChunkModel
     parse: (data)->
-      @list = data.list
+      @recent_list = data.recent_list
       @name = data.name
       @date = data.date
       @id = data.id
+      @contest_classes = data.contest_classes
       @group = data.group
       data.contest_results
   # TODO: split this view to ContestInfoView which has name, date, group, list  and ContestResultView which only has result
@@ -49,14 +47,19 @@ define (require,exports,module) ->
     render: ->
       col = @collection
       @$el.html(@template(
-        list:col.list
+        recent_list:col.recent_list
         group:col.group
         name:col.name
         date:col.date
       ))
       @$el.find("li[data-id='#{col.id}']").addClass("current")
+      cur_class = null
       col.each (m)->
-        v = new ContestClassView(model:m)
+        if m.get("class_id") != cur_class
+          cur_class = m.get("class_id")
+          class_name = col.contest_classes[cur_class]
+          $("#contest-result-body").append($("<div>",{class:"columns class-name",text:class_name}))
+        v = new ContestChunkView(model:m)
         $("#contest-result-body").append(v.$el)
 
       this.$el.foundation('section','reflow')

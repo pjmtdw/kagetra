@@ -4,7 +4,7 @@ class MainApp < Sinatra::Base
   HALF_PAGE = EVENTS_PER_PAGE/2
   namespace '/api/result' do
     get '/contest/:id' do
-      (evt,list) = recent_contests(params[:id])
+      (evt,recent_list) = recent_contests(params[:id])
 
       gr = evt.event_group
       group = if gr then gr.events(:date.lte => Date.today, order:[:date.desc])
@@ -14,10 +14,13 @@ class MainApp < Sinatra::Base
                         contest_results_single(evt) else
                         contest_results_team(evt) end
 
+      contest_classes = Hash[evt.result_classes.map{|c| [c.id,c.class_name]}]
+
       evt.select_attr(:id,:name,:team_size,:date).merge({
-        list: list,
+        recent_list: recent_list,
         group: group,
         team_size: evt.team_size,
+        contest_classes: contest_classes,
         contest_results: contest_results
       })
     end
@@ -56,15 +59,23 @@ class MainApp < Sinatra::Base
     def contest_results_single(evt)
       # 後で少しずつ取得するのは遅いのでまとめて取得
       games = evt.result_classes.single_games
-      round_num = games.aggregate(:round.max)
       user_games = games.map{|gm|
         [gm.contest_user.id,gm.select_attr(:result,:opponent_name,:opponent_belongs,:score_str)]
       }.each_with_object(Hash.new{[]}){|(uid,attrs),h|
         h[uid] <<= attrs
       }
       evt.result_classes.map{|klass|
+        round_num = klass.single_games.aggregate(:round.max) || 0
         {
-          name: klass.class_name,
+          class_id: klass.id,
+          header_left: "名前",
+          rounds: (1..round_num).map{|x| rn = klass.round_name
+            [if rn and rn[x.to_s] then
+              rn[x.to_s]
+            else
+              "#{x}回戦"
+            end]
+        },
           user_results: result_sort(klass.single_games,user_games,round_num)
         }
       }
@@ -116,7 +127,7 @@ class MainApp < Sinatra::Base
     # 団体戦の結果
     def contest_results_team(evt)
       evt.result_classes.teams.map{|team|
-        ops = team.opponents
+        ops = team.opponents(order: :round.asc)
         round_ops = Hash[ops.map{|o|[o.round,o]}]
         max_round = ops.size
         temp = ops.games.group_by{|game| game.contest_user}
@@ -128,7 +139,7 @@ class MainApp < Sinatra::Base
               game = res[round]
               if game then
                 game.select_attr(:opponent_name,:result,:score_str).merge({
-                  opponent_belongs: round_ops[round].name + " " + game.opponent_order.to_s
+                  opponent_belongs: game.opponent_order.to_s
                 })
               else
                 {result: "break"}
@@ -141,7 +152,9 @@ class MainApp < Sinatra::Base
           }
         user_results = temp
         {
-          name:team.name, 
+          class_id: team.contest_class.id,
+          header_left: team.name, 
+          rounds: ops.map{|x|[x.round_name,x.name]},
           user_results: user_results 
         }
       }

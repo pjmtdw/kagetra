@@ -13,3 +13,7 @@
 @import "foundation/components/dropdown-buttons"; // *requires components/buttons
 @import "foundation/components/split-buttons"; // *requires components/buttons
 @import "foundation/components/top-bar";  // *requires components/grid
+
+.button-custom {
+  @include button($button-sml, teal, false, false, false, false)
+}

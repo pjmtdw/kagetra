@@ -27,22 +27,31 @@
   %ul.event-body.large-block-grid-2.small-block-grid-1
 
 %script#templ-event-item(type='text/template')
-  .panel
-    %div
-      <%= data.name %> @ <%= data.date %> - <%= data.deadline %> 
-    %div
-      登録数:
-      %span.participant-count <%= data.participant_count %>
-      %button.small.show-detail
-        詳細
-      %span.button.small.show-comment
-        コメント 
-        %span.comment-count (<%= data.comment_count %>)
-    .event-choice
+  .panel.event-item
+    .row
+      .large-12.columns.event-name <%= data.name %>
+    .row
+      .large-6.columns
+        開催日: <%= _.show_date(data.date) %>
+      .large-6.columns.deadline 締切: <%= data.deadline %> 
+    .row
+      .large-12.columns
+        .event-choice
+    .row
+      .large-6.columns
+        登録数:
+        %span.participant-count <%= data.participant_count %>
+        名
+      .large-6.columns.buttons
+        %button.button-custom.show-detail
+          詳細
+        %span.button-custom.show-comment
+          コメント 
+          %span.comment-count (<%= data.comment_count %>)
 
 %script#templ-event-choice(type='text/template')
   <% _.each(data,function(d){ %>
-  %dd.choice(data-id='{{d.id}}')
+  %dd.choice(data-id='{{d.id}}' class='positive-{{d.positive}}')
     %a {{ d.name }}
   <% }) %>
 

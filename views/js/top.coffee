@@ -1,17 +1,28 @@
 define (require,exports,module) ->
   $si = require("schedule_item")
   $ed = require("event_detail")
+  _.mixin
+    show_date: (s) ->
+      return "なし" unless s
+      today = new Date()
+      [y,m,d] = (parseInt(x) for x in s.split('-'))
+      sa = "<span class='event-date'>"
+      sb = "</span>"
+      ymd = "#{sa}#{m}#{sb} 月 #{sa}#{d}#{sb} 日"
+      if today.getFullYear() != y
+        ymd = "#{sa}#{y}#{sb} 年 " + ymd
+      ymd
   show_deadline = (deadline_day) ->
     if not deadline_day?
-      ""
+      "なし"
     else if deadline_day < 0
-      "<span class='deadline-expired'>〆切を過ぎました</span>"
+      "<span class='deadline-expired'>過ぎました</span>"
     else if deadline_day == 0
-      "〆切は<span class='deadline-today'>今日</span>です"
+      "<span class='deadline-today'>今日</span>"
     else if deadline_day == 1
-      "〆切は<span class='deadline-tomorrow'>明日</span>です"
+      "<span class='deadline-tomorrow'>明日</span>"
     else
-      "〆切まであと<span class='deadline-future'>#{deadline_day}</span>日です"
+      "あと <span class='deadline-future'>#{deadline_day}</span> 日"
 
   SchedulePanelCollection = Backbone.Collection.extend
     model: $si.ScheduleModel
@@ -140,7 +151,7 @@ define (require,exports,module) ->
     render: ->
       choices = @model.get("choices")
       data = {data:
-        {name:x.name,id:x.id} for x in choices
+        x for x in choices
       }
       @$el.html(@template(data))
       @$el.find("dd[data-id='#{@model.get('choice')}']").addClass("active")

@@ -1,3 +1,63 @@
+@import "foundation/components/global";
+@import "foundation/components/buttons";
+.event-item{
+  .buttons{
+    text-align: right;
+    button,.button-custom{
+      margin-bottom: 0;
+    }
+  }
+  .participant-count{
+    font-weight: bold;
+    font-size: 120%;
+    color: teal;
+  }
+  .event-choice{
+    .sub-nav{
+      margin-top: 6px;
+      margin-bottom: 6px;
+      .choice{
+        &.positive-true.active a{
+          background-color: blue;
+        }
+        &.positive-false.active a{
+          background-color: gray;
+        }
+        a{
+          font-size: 110%;
+          cursor: pointer;
+          color: #036;
+          text-decoration: underline;
+        }
+        &.active a{
+          color: white;
+          text-decoration: none;
+        }
+      }
+    }
+  }
+  .event-name{
+    border-bottom: 1px dotted silver;
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+  .event-date{
+    color: maroon;
+    font-weight: bold;
+    font-size: 120%;
+  }
+  .deadline{
+    text-align: right;
+    .deadline-expired {
+      color: gray;
+    }
+    .deadline-future,.deadline-today,.deadline-tomorrow {
+      color: green;
+      font-weight: bold;
+      font-size: 120%;
+    }
+  }
+}
 #sticky-alert {
   position:fixed;
   bottom:0;

@@ -3,7 +3,8 @@ class MainApp < Sinatra::Base
   namespace '/api/event' do
     def event_info(ev,user,user_choices=nil)
       today = Date.today
-      r = ev.select_attr(:name,:date,:deadline,:created_at,:id,:participant_count,:comment_count)
+      r = ev.select_attr(:name,:deadline,:created_at,:id,:participant_count,:comment_count)
+      r[:date] = ev.date.strftime("%Y-%m-%d") if ev.date
       r[:deadline_day] = (r[:deadline]-today).to_i if r[:deadline]
       r[:choices] = ev.choices(order:[:index.asc]).map{|x|x.select_attr(:positive,:name,:id)}
       r[:choice] = if user_choices then user_choices[ev.id] 

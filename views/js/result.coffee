@@ -14,22 +14,18 @@ define (require,exports,module) ->
   ContestChunkModel = Backbone.Model.extend {}
 
   ContestChunkView = Backbone.View.extend
-    el: '<div class="columns">'
     template: _.template_braces($('#templ-contest-chunk').html())
     initialize: ->
       @render()
     render: ->
-      @$el.html(@template(data:@model.toJSON()))
+      @$el.html(@template(data:_.extend(@model.toJSON(),team_size:window.result_view.collection.team_size)))
   ContestResultCollection = Backbone.Collection.extend
     url: -> '/api/result/contest/' + (@id or "latest")
     model: ContestChunkModel
     parse: (data)->
-      @recent_list = data.recent_list
-      @name = data.name
-      @date = data.date
-      @id = data.id
-      @contest_classes = data.contest_classes
-      @group = data.group
+      for x in ["recent_list","name","date","id",
+        "contest_classes","group","team_size"]
+        @[x] = data[x]
       data.contest_results
   # TODO: split this view to ContestInfoView which has name, date, group, list  and ContestResultView which only has result
   ContestResultView = Backbone.View.extend
@@ -58,7 +54,7 @@ define (require,exports,module) ->
         if m.get("class_id") != cur_class
           cur_class = m.get("class_id")
           class_name = col.contest_classes[cur_class]
-          $("#contest-result-body").append($("<div>",{class:"columns class-name",text:class_name}))
+          $("#contest-result-body").append($("<div>",{class:"class-name label round",text:class_name}))
         v = new ContestChunkView(model:m)
         $("#contest-result-body").append(v.$el)
 

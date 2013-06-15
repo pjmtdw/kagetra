@@ -68,28 +68,29 @@
           #event-comment.row
 
 %script#templ-contest-chunk(type='text/template')
-  .row.body
-    .large-12.columns
-      .row.chunk-header
-        .left.game-result.ellipsis
-          {{ data.header_left }}
-        <% _.each(data.rounds,function(xs){ %>
-        .left.game-result.ellipsis
-          <% _.each(xs,function(x){ %>
-          %div {{ x }}
+  .row
+    .columns
+      %table.chunk-body
+        %thead.chunk-header
+          %tr 
+            %th {{ data.header_left }}
+            <% _.each(data.rounds,function(xs){ %>
+            %th 
+              <% _.each(xs,function(x){ %>
+              %div {{ x }}
+              <% }) %>
+              <% }) %>
+        %tbody
+        <% _.each(data.user_results,function(x){ %>
+        %tr
+          %td.user-name {{ x.user_name }}
+          <% _.each(x.game_results,function(y){ %>
+          %td(class='result-{{y.result}}')
+            %div
+              {{ _.result_str(y.result) }} {{ y.score_str }} {{ y.opponent_name }}
+            %div
+              {{ _.show_opponent_belongs(data.team_size,y.opponent_belongs) }}
           <% }) %>
         <% }) %>
-
-      <% _.each(data.user_results,function(x){ %>
-      .row
-        .left.game-result.result-user-name.ellipsis
-          %div {{ x.user_name }}
-        <% _.each(x.game_results,function(y){ %>
-        .left.game-result.ellipsis(class='result-{{y.result}}')
-          {{ _.result_str(y.result) }} {{ y.score_str }} {{ y.opponent_name }}
-          %br
-          ( {{y.opponent_belongs}} )
-        <% }) %>
-      <% }) %>
 
 = haml :event_detail

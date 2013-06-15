@@ -139,7 +139,7 @@ class MainApp < Sinatra::Base
               game = res[round]
               if game then
                 game.select_attr(:opponent_name,:result,:score_str).merge({
-                  opponent_belongs: game.opponent_order.to_s
+                  opponent_belongs: game.select_attr(:opponent_order,:opponent_belongs)
                 })
               else
                 {result: "break"}

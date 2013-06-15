@@ -73,9 +73,9 @@
       %table.chunk-body
         %thead.chunk-header
           %tr 
-            %th {{ data.header_left }}
+            %th.leftmost {{ _.show_header_left(data.header_left) }}
             <% _.each(data.rounds,function(xs){ %>
-            %th 
+            %th.result
               <% _.each(xs,function(x){ %>
               %div {{ x }}
               <% }) %>
@@ -83,9 +83,14 @@
         %tbody
         <% _.each(data.user_results,function(x){ %>
         %tr
-          %td.user-name {{ x.user_name }}
+          %td.leftmost.user-name
+            %div {{ x.user_name }}
+            %div
+              <% if(x.prize){ %>
+              %div.prize {{ _.show_prize(x.prize) }}
+              <% } %>
           <% _.each(x.game_results,function(y){ %>
-          %td(class='result-{{y.result}}')
+          %td.result(class='result-{{y.result}}')
             %div
               {{ _.result_str(y.result) }} {{ y.score_str }} {{ y.opponent_name }}
             %div

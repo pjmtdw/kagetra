@@ -35,15 +35,17 @@ class MainApp < Sinatra::Base
       }
     end
     post '/thread/new' do
-      BbsItem.transaction{
-        user = get_user
-        title = params["title"]
-        body = params["body"]
-        public = params["public"].empty?.!
-        thread = BbsThread.create(title: title, public: public)
-        item = thread.items.create(body: body, user: user, user_name: user.name)
-        thread.first_item = item
-        thread.save
+      Kagetra::Utils.dm_debug{
+        BbsItem.transaction{
+          user = get_user
+          title = params["title"]
+          body = params["body"]
+          public = params["public"].empty?.!
+          thread = BbsThread.create(title: title, public: public)
+          item = thread.items.create(body: body, user: user, user_name: user.name)
+          thread.first_item = item
+          thread.save
+        }
       }
     end
     post '/response/new' do

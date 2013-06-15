@@ -49,4 +49,3 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
   init: ->
     $("#login").submit(_.wrap_submit(on_login_submit))
     $("#shared-pass").submit(_.wrap_submit(on_shared_pass_submit))
-    $("#shared-pass input[type=password]").focus()

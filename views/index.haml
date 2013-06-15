@@ -9,7 +9,7 @@
           %label 共通パスワード
           .row
             .large-11.small-11.columns
-              %input(type='password')
+              %input(type='password' autofocus)
             .large-1.small-1.columns
               %input(type='submit' value='GO')
 .row
@@ -18,7 +18,7 @@
       %legend ログイン
       .row
         .large-3.columns
-          %select#initials
+          %select#initials(autofocus)
             - Kagetra::Utils.gojuon_row_names.each_with_index do |name,index|
               %option(value=index)= name
             %option(value="-1") その他

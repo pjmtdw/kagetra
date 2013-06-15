@@ -3,6 +3,42 @@ define (require,exports,module) ->
   # since both scripts contains whole content of schedule_item.js.
   # TODO: do not require schedule_item here and load it dynamically.
   $ed = require("event_detail")
+
+  _.mixin
+    result_str: (s) ->
+      {win: '○'
+      lose: '●'
+      now: '対戦中'
+      default_win: '不戦'
+      }[s]
+    show_opponent_belongs: (team_size,s) ->
+      return "" unless s
+      r = []
+      if team_size == 1
+        r.push s
+      else
+        r.push s.opponent_belongs if s.opponent_belongs
+        r.push(switch s.opponent_order
+          when 1 then "主将"
+          when 2 then "副将"
+          else "#{s.opponent_order}将") if s.opponent_order?
+      "(#{r.join(" / ")})" if r.length > 0
+    show_prize: (s) ->
+      r = []
+      ss = s.prize
+      if s.point then r.push "#{s.point}pt"
+      if s.point_local then r.push "#{s.point_local}kpt"
+      if r.length > 0
+        ss += " [#{r.join(",")}]"
+      ss
+    show_header_left: (s) ->
+      if not s?
+        "名前"
+      else
+        a = $("<div>",text:s.team_name)
+        b = $("<div>",class:"team-prize",text:s.team_prize)
+        a[0].outerHTML + b[0].outerHTML
+        
   
   CotestResultRouter = Backbone.Router.extend
     routes:

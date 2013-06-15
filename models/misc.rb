@@ -41,7 +41,7 @@ module CommentBase
       belongs_to :user, required: false # 内部的なユーザID
 
       before :save do
-        if self.user then
+        if self.user_name.to_s.empty? and self.user then
           self.user_name = self.user.name
         end
       end

@@ -26,6 +26,7 @@ class Event
   property :show_choice, Boolean, default: true # ユーザがどれを選択したか表示する
   has n, :choices, 'EventChoice'
   has n, :result_classes, 'ContestClass' # 大会結果の各級の情報
+  has n, :result_users, 'ContestUser' # 大会結果の出場者
   has n, :comments, 'EventComment' # コメント
 end
 

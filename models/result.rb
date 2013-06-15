@@ -8,6 +8,8 @@ class ContestUser
   belongs_to :user
   property :event_id, Integer, unique_index: :u1, required: true
   belongs_to :event
+  has 1, :prize, 'ContestPrize'
+  has n, :games, 'ContestGame'
 end
 
 # 大会の各級の情報
@@ -112,7 +114,7 @@ class ContestTeam
   belongs_to :contest_class
   property :name, String, length: 48, unique_index: :u1, required: true # チーム名
   property :prize, String, length: 24 # チーム入賞
-  property :rank, Integer # 順位
+  property :rank, Integer # チーム入賞から推定した順位
   property :promotion, Enum[:rank_up,:rank_down] # 昇級, 陥落
   has n, :members, 'ContestTeamMember'
   has n, :opponents, 'ContestTeamOpponent'

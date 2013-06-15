@@ -27,15 +27,38 @@
 }
 
 .chunk-body{
+  .team-prize{
+    margin-top: 5px;
+    color: #039;
+  }
   thead{
     background-color: #FDC;
   }
   td,th{
     border: 1px dotted gray;
     text-align: center;
-    width: 128px;
+  }
+  .result{
+    min-width: 108px;
+    max-width: 128px;
+    div{
+      // expand table width even if it is smaller than display width
+      width: inherit;
+    }
+  }
+  .leftmost{
+    max-width: 128px;
+    min-width: 76px;
   }
   .user-name{
     background-color: #FFD;
+    .prize{
+      margin-top: 5px;
+      color: purple;
+      font-weight: bold;
+    }
+  }
+  col{
+    width: 100px;
   }
 }

@@ -58,17 +58,20 @@ class MainApp < Sinatra::Base
     # 個人戦の結果
     def contest_results_single(evt)
       # 後で少しずつ取得するのは遅いのでまとめて取得
-      games = evt.result_classes.single_games
-      user_games = games.map{|gm|
+      cls = evt.result_classes
+      user_games = cls.single_games.map{|gm|
         [gm.contest_user.id,gm.select_attr(:result,:opponent_name,:opponent_belongs,:score_str)]
       }.each_with_object(Hash.new{[]}){|(uid,attrs),h|
         h[uid] <<= attrs
       }
-      evt.result_classes.map{|klass|
+      prizes = Hash[cls.prizes.map{|p|
+        [p.contest_user.id, p.select_attr(:prize, :point, :point_local)]
+      }]
+
+      cls.map{|klass|
         round_num = klass.single_games.aggregate(:round.max) || 0
         {
           class_id: klass.id,
-          header_left: "名前",
           rounds: (1..round_num).map{|x| rn = klass.round_name
             [if rn and rn[x.to_s] then
               rn[x.to_s]
@@ -76,13 +79,13 @@ class MainApp < Sinatra::Base
               "#{x}回戦"
             end]
         },
-          user_results: result_sort(klass.single_games,user_games,round_num)
+          user_results: result_sort(klass.single_games,user_games,round_num,prizes)
         }
       }
     end
 
     # 勝ち数の多い順に並べる
-    def result_sort(games,user_games,round_num)
+    def result_sort(games,user_games,round_num,prizes)
       temp_res = {}
 
       # 後で少しずつ取得するのは遅いのでまとめて取得
@@ -117,10 +120,15 @@ class MainApp < Sinatra::Base
       }.sort_by{|x|
         x[:score]+x[:score_opt]
       }.map{|x|
-        {
-          user_name: users[x[:user_id]],
-          game_results: user_games[x[:user_id]]
+        uid = x[:user_id]
+        r = {
+          user_name: users[uid],
+          game_results: user_games[uid]
         }
+        if prizes.has_key?(uid) then
+          r[:prize] = prizes[uid]
+        end
+        r 
       }
     end
     
@@ -145,16 +153,27 @@ class MainApp < Sinatra::Base
                 {result: "break"}
               end
             }
-            {
+            r = {
               user_name: user.name,
               game_results: game_results
             }
+            if user.prize.nil?.! then
+              r[:prize] = user.prize.select_attr(:prize,:point_local)
+            end
+            r
           }
+        hl = {team_name: team.name}
+        if team.prize then
+          hl[:team_prize] = team.prize
+        end
         user_results = temp
         {
           class_id: team.contest_class.id,
-          header_left: team.name, 
-          rounds: ops.map{|x|[x.round_name,x.name]},
+          header_left: hl, 
+          rounds: ops.map{|x|[
+            x.round_name,
+            if x.kind == :single then "(個人戦)" else x.name end
+        ]},
           user_results: user_results 
         }
       }

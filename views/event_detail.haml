@@ -22,7 +22,7 @@
   <%= event_name %>
   %button.toggle-comment.round.small(data-toggle-text='キャンセル') コメントする
   %form.comment-form.hide
-    %textarea(name='body' rows=15)
+    %textarea(name='body' rows=15 autofocus)
     %input.button.small.round(type='submit' value='送信')
   <% _.each(data,function(x){ %>
   %hr

@@ -11,24 +11,6 @@ define (require, exports, module) ->
       hmac.update(msg)
       hash = hmac.finalize().toString(CryptoJS.enc.Base64)
       [hash, msg]
-    result_str: (s) ->
-      {win: '○'
-      lose: '●'
-      now: '対戦中'
-      default_win: '不戦'
-      }[s]
-    show_opponent_belongs: (team_size,s) ->
-      return "" unless s
-      r = []
-      if team_size == 1
-        r.push s
-      else
-        r.push s.opponent_belongs if s.opponent_belongs
-        r.push(switch s.opponent_order
-          when 1 then "主将"
-          when 2 then "副将"
-          else "#{s.opponent_order}将") if s.opponent_order?
-      "(#{r.join("・")})" if r.length > 0
     template_braces: (x) ->
       _.template(x,false,interpolate: /\{\{(.+?)\}\}/g)
     gen_date: (args...) ->

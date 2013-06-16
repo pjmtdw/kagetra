@@ -1,0 +1,70 @@
+- content_for :title do
+  管理画面  
+- content_for :js_start do
+  admin
+- content_for :css do
+  admin
+= haml :top_bar, locals: {user:user}
+
+.row
+  .large-12.columns
+    %ul.breadcrumbs
+      %li
+        %a ユーザ編集
+      %li
+        %a 設定
+
+#admin-view
+
+%script#templ-admin-view(type='text/template')
+  %form#filter-form
+    .row
+      .large-2.columns
+        %input#filter-text(type='text' placeholder='名前 or ふりがな' value='{{ filter_text }}' autofocus)
+      .large-1.columns
+        %input(type='submit' value='フィルタ')
+      .large-3.columns.left
+        選択:
+        %span#selected-count {{ _.filter(data,function(x){return x.selected}).length }}
+        %button.small.round#reveal-edit
+          編集開始
+  .row
+    %table
+      %thead
+        %th.select-user(data-user-id='-1') &oplus;
+        %th 名前
+        %th ふりがな
+      %tbody
+        <% _.each(data,function(x){ %>
+        <% if(x.visible){ %>
+        %tr
+          %td.select-user(data-user-id='{{x.id}}' class='{{x.selected?"selected":""}}') &oplus;
+          %td {{ x.name }}
+          %td {{ x.furigana }}
+        <% } %>
+        <% }) %>
+
+%script#templ-admin-edit(type='text/template')
+  編集対象:
+  .panel
+    <% _.each(data,function(x){ %>
+    <% if(x.selected){ %>
+    <%= x.name %>
+    <% } %>
+    <% }) %>
+  %fieldset
+    %legend 権限編集
+    .row
+      .large-3.columns
+        %select#permission-name
+          %option(value='admin') 管理者
+          %option(value='loginable') ログイン
+          %option(value='event_edit') 大会や行事の追加編集
+      .large-9.columns
+        権限を
+        %button.small.round#add-permission 付与
+        %button.small.round#del-permission 剥奪
+
+
+#admin-edit.reveal-modal
+

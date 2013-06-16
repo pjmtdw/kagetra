@@ -1,0 +1,8 @@
+.select-user{
+  cursor: pointer;
+  color: gray;
+  &.selected{
+    color: green;
+    font-weight: bold;
+  }
+}

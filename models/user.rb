@@ -7,7 +7,9 @@ class User
   property :password_hash, String, length: 44, lazy: true
   property :password_salt, String, length: 32, lazy: true
   property :token,         String, length: 32, lazy: true # 認証用トークン
-  property :admin,         Boolean, default: false
+  property :admin,          Boolean, default: false # 管理者
+  property :loginable,      Boolean, default: true # ログインできるか
+  property :permission, Flag[:event_edit]
   property :bbs_public_name, String, length: 24, lazy: true
   property :show_new_from, DateTime # 掲示板, コメントなどの新着メッセージはこれ以降の日時のものを表示
 

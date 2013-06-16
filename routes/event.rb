@@ -62,7 +62,7 @@ class MainApp < Sinatra::Base
             date: x.created_at.strftime('%Y-%m-%d %H:%M:%S'),
             body: Kagetra::Utils.escape_html_br(x.body)
           })
-        if x.user.id != user.id and 
+        if (x.user.nil? or x.user.id != user.id) and 
           user.show_new_from.nil?.! and
           x.created_at >= user.show_new_from then
           r[:is_new] = true

@@ -14,7 +14,7 @@ $stdin.noecho{|stdin|
   end
 
   hash = Kagetra::Utils.hash_password(pass1)
-  User.update_or_create({name: "admin", furigana: "admin"},{password_hash: hash[:hash], password_salt: hash[:salt]})
+  User.update_or_create({name: "admin", furigana: "admin"},{password_hash: hash[:hash], password_salt: hash[:salt], admin: true})
   puts "created user 'admin' and set password to shard_password "
 
   MyConf.update_or_create({name: "shared_password"}, {value: Kagetra::Utils.hash_password(pass1)})

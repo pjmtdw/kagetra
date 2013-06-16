@@ -33,6 +33,9 @@
       %li.has-dropdown
         %a(href="#") その他
         %ul.dropdown
+          - if user.admin then
+            %li
+              %a(href="/admin") 管理画面
           %li
             %a(href="/user_conf") ユーザ設定
           %li

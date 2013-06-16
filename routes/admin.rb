@@ -3,28 +3,45 @@ class MainApp < Sinatra::Base
   THREADS_PER_PAGE = 10
   namespace '/api/admin' do
     get '/list' do
-      User.all.map{|x|
-        x.select_attr(:id,:name,:furigana)
+      # UserAttribute.all.map{|x|[x.user_id,x.value_id]} が遅いので手動でクエリする
+      # TODO: 上記が遅い原因を探り, 手動クエリを使わない方法を見つける
+      user_attrs = Hash[repository(:default).adapter
+        .select('SELECT user_id, value_id FROM user_attributes')
+        .group_by{|x| x[:user_id]}.map{|xs|[xs[0],xs[1].map{|x|x[:value_id]}]}]
+      value_names = Hash[UserAttributeValue.all.map{|x|[x.id,x.value]}]
+      key_names = UserAttributeKey.all.map{|x|[x.id,x.name]}
+      key_values = Hash[UserAttributeKey.all.map{|x|[x.id,x.values.map{|v|v.id}]}]
+
+      list = User.all.map{|u|
+        r = u.select_attr(:id,:name,:furigana)
+        a = user_attrs[u.id]
+        r[:attrs] = a if a
+        r
+      }
+      {
+        key_names: key_names,
+        value_names: value_names,
+        key_values: key_values,
+        list: list
       }
     end
     post '/permission' do
-      case @json["type"]
-      when "admin","loginable" then
-        change_admin_or_loginable(@json)
-      else
-        change_permission(@json)
-      end
-    end
-
-    def change_admin_or_loginable(json)
-      v = (json["mode"] == "add")
-      sym = json["type"].to_sym
-      users = User.all(id: json["uids"]).update(sym => v)
-    end
-    def change_permission(json)
       is_add = (json["mode"] == "add")
       sym = json["type"].to_sym
       users = User.all(id: json["uids"])
+      case @json["type"]
+      when "admin","loginable" then
+        change_admin_or_loginable(is_add,sym,users)
+      else
+        change_permission(is_add,sym,users)
+      end
+    end
+
+    def change_admin_or_loginable(is_add,sym,users)
+      users.update(sym => is_add)
+    end
+
+    def change_permission(is_add,sym,users)
       users.each{|u|
         np = if is_add then
           u.permission + [sym]

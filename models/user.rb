@@ -54,6 +54,7 @@ class UserLoginMonthly
   property :count, Integer, default: 0, required: true
 end
 
+# どのユーザがどの属性を持っているか
 class UserAttribute
   include ModelBase
   belongs_to :user
@@ -81,4 +82,5 @@ class UserAttributeValue
   belongs_to :attr_key, 'UserAttributeKey'
   property :value, String, length: 48, required: true
   property :index, Integer, unique_index: :u1, required: true
+  property :default, Boolean, default: false # ユーザ作成時のデフォルトの値
 end

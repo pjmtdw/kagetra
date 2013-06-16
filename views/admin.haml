@@ -12,28 +12,50 @@
       %li
         %a ユーザ編集
       %li
+        %a ユーザ追加
+      %li
+        %a 属性編集
+      %li
         %a 設定
 
 #admin-view
+  .header
+  .body
 
-%script#templ-admin-view(type='text/template')
-  %form#filter-form
-    .row
-      .large-2.columns
-        %input#filter-text(type='text' placeholder='名前 or ふりがな' value='{{ filter_text }}' autofocus)
-      .large-1.columns
-        %input(type='submit' value='フィルタ')
-      .large-3.columns.left
-        選択:
-        %span#selected-count {{ _.filter(data,function(x){return x.selected}).length }}
-        %button.small.round#reveal-edit
-          編集開始
+%script#templ-admin-header(type='text/template')
+  .row
+    %form#filter-form
+      .row
+        .large-2.columns
+          %input#filter-text(type='text' placeholder='名前 or ふりがな' autofocus)
+        .large-3.columns.left
+          .row
+            .large-6.columns
+              %select#attr-key-names
+                <% _.each(key_names,function(x){ %>
+                %option(value='{{x[0]}}') {{ x[1] }}
+                <% }) %>
+            .large-6.columns
+              %select#attr-key-values
+
+%script#templ-admin-body(type='text/template')
+  .row
+    .large-12.columns
+      選択:
+      %span#selected-count {{ _.filter(data,function(x){return x.selected}).length }}
+      %button.small.round#reveal-edit
+        一括編集
+      %button.small.round#clear-select
+        選択取消
   .row
     %table
       %thead
         %th.select-user(data-user-id='-1') &oplus;
         %th 名前
         %th ふりがな
+        <% _.each(key_names,function(x){ %>
+        %th {{ x[1] }}
+        <% }) %>
       %tbody
         <% _.each(data,function(x){ %>
         <% if(x.visible){ %>
@@ -41,6 +63,9 @@
           %td.select-user(data-user-id='{{x.id}}' class='{{x.selected?"selected":""}}') &oplus;
           %td {{ x.name }}
           %td {{ x.furigana }}
+          <% _.each(x.attrs,function(a){ %>
+          %td {{ value_names[a] }}
+          <% }) %>
         <% } %>
         <% }) %>
 

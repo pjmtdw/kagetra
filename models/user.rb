@@ -9,17 +9,47 @@ class User
   property :token,         String, length: 32, lazy: true # 認証用トークン
   property :admin,         Boolean, default: false
   property :bbs_public_name, String, length: 24, lazy: true
+  property :show_new_from, DateTime # 掲示板, コメントなどの新着メッセージはこれ以降の日時のものを表示
 
   has n, :attrs, 'UserAttribute'
   
   has n, :event_user_choices
 
+  has 1, :login_latest, 'UserLoginLatest'
+  has n, :login_log, 'UserLoginLog'
+  has n, :login_monthly, 'UserLoginMonthly'
+
   before :save do
     self.furigana_row = Kagetra::Utils.gojuon_row_num(self.furigana)
   end
-  def update_token!
-    self.update(token: SecureRandom.base64(24))
+  def change_token! 
+    self.token = SecureRandom.base64(24)
   end
+end
+
+# 最後のログイン(updated_atが実際のログインの日時)
+class UserLoginLatest
+  include ModelBase
+  include UserEnv
+  property :user_id, Integer, unique: true, required: true
+  belongs_to :user
+end
+
+# 直近数日間のログイン履歴(created_atがログインの日時)
+class UserLoginLog
+  include ModelBase
+  include UserEnv
+  belongs_to :user
+end
+
+# ユーザが月に何回ログインしたか
+class UserLoginMonthly
+  include ModelBase
+  property :user_id, Integer, unique_index: :u1, required: true
+  belongs_to :user
+  property :year, Integer, unique_index: :u1, required: true
+  property :month, Integer, unique_index: :u1, required: true
+  property :count, Integer, default: 0, required: true
 end
 
 class UserAttribute

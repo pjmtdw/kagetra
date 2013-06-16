@@ -13,13 +13,15 @@ class Event
   property :date, Date # 日時 
   property :start_at, HourMin #開始時刻
   property :end_at, HourMin #終了時刻
-  property :place, String, length: 256, lazy: true # 場所
+  property :place, String, length: 255, lazy: true # 場所
 
   property :comment_count, Integer, default: 0 # コメント数 (毎回aggregateするのは遅いのでキャッシュ)
   property :participant_count, Integer, default: 0 # 参加者数 (毎回aggregateするのは遅いのでキャッシュ)
 
   belongs_to :event_group, required: false
   belongs_to :aggregate_attr, 'UserAttributeKey' # 集計属性
+  belongs_to :latest_comment, 'EventComment', required: false # 最終コメント
+
   # TODO: through: DataMapper::Resource で自動的に作られるテーブルには created_at, updated_atがない
   has n, :owners, 'User' , through: DataMapper::Resource # 管理者
   has n, :forbidden_attrs, 'UserAttributeValue', through: DataMapper::Resource # 登録不可属性
@@ -90,6 +92,6 @@ class EventComment
   after :save do
     # コメント数の更新
     ev = self.event
-    ev.update(comment_count: ev.comments.count)
+    ev.update(comment_count: ev.comments.count, latest_comment: self)
   end
 end

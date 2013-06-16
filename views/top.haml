@@ -22,8 +22,8 @@
       %a 締切日
     %dd.choice(data-order='created_at')
       %a 追加日
-    %dd.choice(data-order='not_chosen')
-      %a 未選択
+    %dd.choice(data-order='latest_comment_date')
+      %a 最終書込
   %ul.event-body.large-block-grid-2.small-block-grid-1
 
 %script#templ-event-item(type='text/template')
@@ -31,23 +31,22 @@
     .row
       .large-12.columns.event-name <%= data.name %>
     .row
-      .large-6.columns
+      .large-7.columns
         開催日: <%= _.show_date(data.date) %>
-      .large-6.columns.deadline 締切: <%= data.deadline %> 
+      .large-5.columns.deadline 締切: <%= data.deadline %> 
     .row
       .large-12.columns
         .event-choice
     .row
-      .large-6.columns
+      .large-4.columns
         登録数:
         %span.participant-count <%= data.participant_count %>
         名
-      .large-6.columns.buttons
+      .large-8.columns.buttons
         %button.button-custom.show-detail
           詳細
         %span.button-custom.show-comment
-          コメント 
-          %span.comment-count (<%= data.comment_count %>)
+          コメント <%= _.show_new_comment(data.comment_count,data.has_new_comment) %>
 
 %script#templ-event-choice(type='text/template')
   <% _.each(data,function(d){ %>

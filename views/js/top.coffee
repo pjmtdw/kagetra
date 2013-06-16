@@ -2,13 +2,23 @@ define (require,exports,module) ->
   $si = require("schedule_item")
   $ed = require("event_detail")
   _.mixin
+    show_new_comment: (count,has_new)->
+      c = if has_new
+        " <span class='new-comment'>new</span>"
+      else
+        ""
+      "( <span class='comment-count'>#{count}</span>#{c} )"
     show_date: (s) ->
       return "なし" unless s
       today = new Date()
       [y,m,d] = (parseInt(x) for x in s.split('-'))
+      date = new Date(y,m-1,d)
       sa = "<span class='event-date'>"
       sb = "</span>"
-      ymd = "#{sa}#{m}#{sb} 月 #{sa}#{d}#{sb} 日"
+      sw = "<span class='event-weekday'>"
+      wday = _.weekday_ja()[date.getDay()]
+
+      ymd = "#{sa}#{m}#{sb} 月 #{sa}#{d}#{sb} 日 (#{sw}#{wday}#{sb})"
       if today.getFullYear() != y
         ymd = "#{sa}#{y}#{sb} 年 " + ymd
       ymd
@@ -50,18 +60,12 @@ define (require,exports,module) ->
     url: "/api/event/list"
     set_comparator: (attr) ->
       @order = attr
-      sign = if attr in ["created_at","participant_count"] then -1 else 1
+      sign = if attr in ["created_at","latest_comment_date","participant_count"] then -1 else 1
       ETERNAL_FUTURE = "9999-12-31_"
       ETERNAL_PAST = "0000-01-01_"
-      f = if attr in ["created_at","date"]
-            (x)-> x.get(attr) || (ETERNAL_FUTURE + x.get("name"))
-          else if attr == "not_chosen"
-            (x)->
-              c = x.get('choice')
-              if not c? then return ETERNAL_PAST
-              p = (y.positive for y in x.get('choices') when y.id == c)[0]
-              if p then x.get('date') else (ETERNAL_FUTURE + x.get("name"))
-
+      f = if attr in ["created_at","date","latest_comment_date"]
+            PREFIX = if sign == -1 then ETERNAL_PAST else ETERNAL_FUTURE
+            (x)-> x.get(attr) || (PREFIX + x.get("name"))
           else if attr == "deadline_day"
             (x)->
               dd = x.get("deadline_day")

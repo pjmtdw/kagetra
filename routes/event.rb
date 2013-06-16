@@ -3,8 +3,14 @@ class MainApp < Sinatra::Base
   namespace '/api/event' do
     def event_info(ev,user,user_choices=nil)
       today = Date.today
-      r = ev.select_attr(:name,:deadline,:created_at,:id,:participant_count,:comment_count)
-      r[:date] = ev.date.strftime("%Y-%m-%d") if ev.date
+      r = ev.select_attr(:name,:date,:deadline,:created_at,:id,:participant_count,:comment_count)
+      if ev.latest_comment.nil?.! then
+        comment_date = ev.latest_comment.created_at
+        r[:latest_comment_date] = comment_date
+        if user.show_new_from.nil?.! then
+          r[:has_new_comment] = true if comment_date > user.show_new_from and ev.latest_comment.user.id != user.id
+        end
+      end
       r[:deadline_day] = (r[:deadline]-today).to_i if r[:deadline]
       r[:choices] = ev.choices(order:[:index.asc]).map{|x|x.select_attr(:positive,:name,:id)}
       r[:choice] = if user_choices then user_choices[ev.id] 
@@ -48,13 +54,20 @@ class MainApp < Sinatra::Base
       end
     end
     get '/comment/list/:id' do
+      user = get_user
       evt = Event.first(id:params[:id].to_i)
       list = evt.comments(order: [:created_at.desc]).map{|x|
-        x.select_attr(:user_name)
+        r = x.select_attr(:user_name)
           .merge({
             date: x.created_at.strftime('%Y-%m-%d %H:%M:%S'),
             body: Kagetra::Utils.escape_html_br(x.body)
           })
+        if x.user.id != user.id and 
+          user.show_new_from.nil?.! and
+          x.created_at >= user.show_new_from then
+          r[:is_new] = true
+        end
+        r
       }
       {
         event_name: evt.name,

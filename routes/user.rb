@@ -9,15 +9,34 @@ class MainApp < Sinatra::Base
     end
     post '/auth_user' do
       uid = params[:user_id]
-      hash = User.first(id: uid).password_hash
+      user = User.first(id: uid)
+      hash = user.password_hash
       msg = params[:msg]
       trial_hash = params[:hash]
       correct_hash = Kagetra::Utils.hmac_password(hash,msg)
       res = if trial_hash == correct_hash then
-        u = User.first(id: uid)
-        u.update_token!
+        User.transaction{
+          latest = UserLoginLatest.first_or_new(user: user)
+
+          user.change_token!
+          user.show_new_from = latest.updated_at
+          user.save
+
+          latest.set_env(request)
+          latest.touch
+          latest.save
+
+          log = user.login_log.new
+          log.set_env(request)
+          log.save
+
+          dt = Date.today
+          monthly = user.login_monthly.first_or_new(year:dt.year,month:dt.month)
+          monthly.count += 1
+          monthly.save
+        }
         session[:user_id] = uid
-        session[:user_token] = u.token
+        session[:user_token] = user.token
         "OK"
       else
         "FAIL"
@@ -56,7 +75,10 @@ class MainApp < Sinatra::Base
     end
   end
   get '/user/logout' do
-    get_user.update_token!
+    user = get_user
+    user.change_token!
+    user.save
+
     session.clear
     redirect '/'
   end

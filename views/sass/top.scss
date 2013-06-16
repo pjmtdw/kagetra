@@ -10,7 +10,14 @@
   .participant-count{
     font-weight: bold;
     font-size: 120%;
-    color: teal;
+    color: #63F;
+  }
+  .new-comment{
+    color: #F80;
+  }
+  .comment-count{
+    font-size: 120%;
+    text-shadow: 0.1em 0.1em 0.2em silver;
   }
   .event-choice{
     .sub-nav{
@@ -18,14 +25,13 @@
       margin-bottom: 6px;
       .choice{
         &.positive-true.active a{
-          background-color: blue;
+          background-color: #63F;
         }
         &.positive-false.active a{
           background-color: gray;
         }
         a{
           font-size: 110%;
-          cursor: pointer;
           color: #036;
           text-decoration: underline;
         }
@@ -39,12 +45,16 @@
   .event-name{
     border-bottom: 1px dotted silver;
     font-weight: bold;
-    margin-bottom: 5px;
+    margin-bottom: 7px;
   }
   .event-date{
     color: maroon;
     font-weight: bold;
     font-size: 120%;
+  }
+  .event-weekday{
+    color: maroon;
+    font-weight: bold;
   }
   .deadline{
     text-align: right;
@@ -65,5 +75,21 @@
   div{
     margin-top: 7px;
     margin-right: 5px;
+  }
+  .close{
+    cursor: pointer;
+  }
+}
+#event-list{
+  .sub-nav{
+    a {
+      cursor: pointer;
+      &:hover{
+        color: brown;
+      }
+    }
+    .active a:hover{
+      color: white;
+    }
   }
 }

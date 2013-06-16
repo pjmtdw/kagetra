@@ -8,11 +8,15 @@
     .date {
       color: brown;
     }
+    .is-new{
+      background-color: #F80;
+      text-shadow: 0.1em 0.1em 0.2em gray;
+    }
   }
 }
 .participants{
   margin: 3px 0px;
   .label{
-    background-color: gray;
+    background-color: #63F;
   }
 }

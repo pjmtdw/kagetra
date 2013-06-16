@@ -27,17 +27,34 @@ module ModelBase
   end
 end
 
-module CommentBase
+module UserEnv
   def self.included(base)
     base.class_eval do
       p = DataMapper::Property
-      
+      property :remote_host, p::String, length: 72, lazy: true 
+      property :remote_addr, p::String, length: 48, lazy: true
+      property :user_agent, p::String, length: 255, lazy: true
+    end
+    def set_env(req)
+      # TODO: DRY way to get the length of property ?
+      host = req.env["REMOTE_HOST"]
+      addr = req.ip
+      agent = req.user_agent
+      self.remote_host = host[0...72] if host
+      self.remote_addr = addr[0...48] if addr
+      self.user_agent = agent[0...255] if agent
+    end
+  end
+end
+
+module CommentBase
+  def self.included(base)
+    base.class_eval do
+      include UserEnv
+      p = DataMapper::Property 
       property :deleted, p::ParanoidBoolean
       property :body, p::Text, required: true # 内容
       property :user_name, p::String, length: 24, allow_nil: false # 書き込んだ人の名前
-      property :remote_host, p::String, length: 72, lazy: true 
-      property :remote_addr, p::String, length: 48, lazy: true
-      property :user_agent, p::String, length: 256, lazy: true
       belongs_to :user, required: false # 内部的なユーザID
 
       before :save do

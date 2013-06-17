@@ -8,33 +8,51 @@
 = haml :top_bar, locals: {user: user}
 
 .row
-  .large-2.columns
+  .large-3.columns
     #addrbook-panel
-      %form
-        %input#password(type="password" placeholder="共通パスワード" autofocus)
+      %form#panel-form
+        .row
+          .large-9.small-9.columns
+            %input#password(type="password" placeholder="名簿パスワード" autofocus)
+          .large-3.small-3.columns
+            %input.button.small(type="submit" value="確認")
         %select#panel-initials
           - Kagetra::Utils.gojuon_row_names.each_with_index do |name,index|
             %option(value=index)= name
           %option(value="-1") その他
-        %select#panel-users(size=24)
+        %select#panel-users(size='24')
           .panel
-  .large-10.columns
+  .large-9.columns
     #addrbook-body
 
 %script#templ-addrbook-body-enc(type='text/template')
   %div
 %script#templ-addrbook-body(type='text/template')
   %table
-    <% _.each(_.pairs(data),function(x){ %>
+    <% _.each(data,function(x){ %>
     %tr
       %td <%= x[0] %>
       %td <%= x[1] %>
     <% }) %>
 
 %script#templ-addrbook-body-edit(type='text/template')
-  %div
+  %form#addrbook-form(method='post')
+    %input.button.small.round(type='submit' value='更新')
+    %table
+      <% _.each(data,function(x){ %>
+      %tr
+        %td {{ x[0] }}
+        %td
+          %input(type='text' name='{{ x[0] }}' value='{{ x[1] }}')
+      <% }) %>
 
 %script#templ-addrbook-panel(type='text/template')
   <% _.each(data.list,function(x){ %>
   %option(value='{{x[0]}}') {{x[1]}}
   <% }) %>
+
+%script
+  var g_confirm_enc="#{confirm_enc}";
+  var g_confirm_str="#{::G_ADDRBOOK_CONFIRM_STR}";
+  var g_keys_str='#{::G_ADDRBOOK_KEYS.to_json}';
+  var g_myid='#{user.id}';

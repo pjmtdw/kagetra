@@ -20,8 +20,8 @@ module DataMapper
 	else
 	  create(merger ? (conditions.merge(attributes)) : attributes )
 	end
-      rescue
-        false
+      rescue Exception => e
+        throw e
       end
     end
   end # Module Model
@@ -48,7 +48,7 @@ module Kagetra
     # Equivalent to:
     #   CryptoJS.AES.encrypt(plain_text, "Secret Passphrase")
     #   $ openssl enc -e -base64 -aes-256-cbc -in infile -out outfile -pass pass:"Secret Passphrase"
-    def self.openssl_enc(passphrase, plain)
+    def self.openssl_enc(plain, passphrase)
       salt = SecureRandom.random_bytes(8)
       aes = OpenSSL::Cipher::Cipher.new('AES-256-CBC').encrypt
       aes.pkcs5_keyivgen(passphrase, salt, 1)
@@ -57,9 +57,9 @@ module Kagetra
     end
 
     # Equivalent to:
-    #   CryptoJS.AES.decrypt(plain_text, "Secret Passphrase")
+    #   CryptoJS.AES.decrypt(encrypted_text, "Secret Passphrase")
     #   $ openssl enc -d -base64 -aes-256-cbc -in infile -out outfile -pass pass:"Secret Passphrase"
-    def self.openssl_dec(passphrase, encrypted)
+    def self.openssl_dec(encrypted, passphrase)
       cryptArr = Base64.strict_decode64(encrypted)
       magic = cryptArr[0..7] # must be "Salted__" but will ignore here
       salt  = cryptArr[8..15]

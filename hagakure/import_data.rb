@@ -826,6 +826,8 @@ end
 def import_meibo
   reverse_changed = Hash[CONF_USERNAME_CHANGED.map{|k,v|[v,k]}]
   ((meta,_),*rest) = CSV.read(CONF_MEIBO_CSV).zip(0..Float::INFINITY)
+  MyConf.update_or_create({name: "addrbook_confirm_enc"},{value: {text:Kagetra::Utils.openssl_enc(G_ADDRBOOK_CONFIRM_STR,CONF_MEIBO_PASSWD)}})
+
   Parallel.each(rest,in_threads:NUM_THREADS){|line,lineno|
     res = Hash[meta.zip(line)]
     updated_at = DateTime.parse(res["更新日時"])
@@ -841,7 +843,7 @@ def import_meibo
         raise Exception.new("no user name: #{name}")
       end
     end
-    book = AddrBook.create(user:user, text: Kagetra::Utils.openssl_enc(CONF_MEIBO_PASSWD,res.to_json))
+    book = AddrBook.create(user:user, text: Kagetra::Utils.openssl_enc(res.to_json,CONF_MEIBO_PASSWD))
     book.update!(updated_at: updated_at)
   }
 end

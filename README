@@ -20,8 +20,6 @@ ORM:
   DataMapper
 Database:
   SQLite, MySQL, PostgreSQL (which is supported by DataMapper)
-Wiki Backend:
-  Git
 HTML Template Engine:
   Haml
 CSS Template Engine:

@@ -45,6 +45,30 @@ module Kagetra
     end
   end
   module Utils
+    # Equivalent to:
+    #   CryptoJS.AES.encrypt(plain_text, "Secret Passphrase")
+    #   $ openssl enc -e -base64 -aes-256-cbc -in infile -out outfile -pass pass:"Secret Passphrase"
+    def self.openssl_enc(passphrase, plain)
+      salt = SecureRandom.random_bytes(8)
+      aes = OpenSSL::Cipher::Cipher.new('AES-256-CBC').encrypt
+      aes.pkcs5_keyivgen(passphrase, salt, 1)
+      encrypted = aes.update(plain) + aes.final
+      Base64.strict_encode64("Salted__"+salt+encrypted)
+    end
+
+    # Equivalent to:
+    #   CryptoJS.AES.decrypt(plain_text, "Secret Passphrase")
+    #   $ openssl enc -d -base64 -aes-256-cbc -in infile -out outfile -pass pass:"Secret Passphrase"
+    def self.openssl_dec(passphrase, encrypted)
+      cryptArr = Base64.strict_decode64(encrypted)
+      magic = cryptArr[0..7] # must be "Salted__" but will ignore here
+      salt  = cryptArr[8..15]
+      data  = cryptArr[16..-1] 
+      aes = OpenSSL::Cipher::Cipher.new('AES-256-CBC').decrypt
+      aes.pkcs5_keyivgen(passphrase, salt, 1)
+      aes.update(data) + aes.final
+    end
+
     # in UNICODE order
     GOJUON_ROWS = [
       {name: "あ行", range: ["ぁ", "お"]},
@@ -92,12 +116,12 @@ module Kagetra
       # Iteration must be at least 1,000 for secure pbkdf2.
       # However, CryptoJS is too slow for executing 1,000 iterations on browser.
       {
-       hash: Base64.encode64(OpenSSL::PKCS5.pbkdf2_hmac_sha1(pass,salt,100,32)).gsub("\n",""),
+       hash: Base64.strict_encode64(OpenSSL::PKCS5.pbkdf2_hmac_sha1(pass,salt,100,32)),
        salt: salt
       }
     end
     def self.hmac_password(hash,msg)
-      Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::Digest.new('sha256'), hash, msg)).gsub("\n","")
+      Base64.strict_encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::Digest.new('sha256'), hash, msg))
     end
     def self.escape_html_br(s)
       Rack::Utils.escape_html(s).gsub("\n","<br>")

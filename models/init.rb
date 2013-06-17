@@ -11,6 +11,7 @@ require_relative 'bbs'
 require_relative 'schedule'
 require_relative 'event'
 require_relative 'result'
+require_relative 'addrbook'
 
 DataMapper.finalize
 DataMapper.auto_upgrade!

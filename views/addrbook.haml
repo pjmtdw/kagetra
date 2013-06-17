@@ -1,0 +1,40 @@
+/ 名簿（住所録）
+- content_for :title do
+  名簿  
+- content_for :js_start do
+  addrbook
+- content_for :css do
+  addrbook
+= haml :top_bar, locals: {user: user}
+
+.row
+  .large-2.columns
+    #addrbook-panel
+      %form
+        %input#password(type="password" placeholder="共通パスワード" autofocus)
+        %select#panel-initials
+          - Kagetra::Utils.gojuon_row_names.each_with_index do |name,index|
+            %option(value=index)= name
+          %option(value="-1") その他
+        %select#panel-users(size=24)
+          .panel
+  .large-10.columns
+    #addrbook-body
+
+%script#templ-addrbook-body-enc(type='text/template')
+  %div
+%script#templ-addrbook-body(type='text/template')
+  %table
+    <% _.each(_.pairs(data),function(x){ %>
+    %tr
+      %td <%= x[0] %>
+      %td <%= x[1] %>
+    <% }) %>
+
+%script#templ-addrbook-body-edit(type='text/template')
+  %div
+
+%script#templ-addrbook-panel(type='text/template')
+  <% _.each(data.list,function(x){ %>
+  %option(value='{{x[0]}}') {{x[1]}}
+  <% }) %>

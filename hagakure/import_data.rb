@@ -822,11 +822,47 @@ def import_event_comment
     }
   }
 end
+
+def import_meibo
+  reverse_changed = Hash[CONF_USERNAME_CHANGED.map{|k,v|[v,k]}]
+  ((meta,_),*rest) = CSV.read(CONF_MEIBO_CSV).zip(0..Float::INFINITY)
+  Parallel.each(rest,in_threads:NUM_THREADS){|line,lineno|
+    res = Hash[meta.zip(line)]
+    updated_at = DateTime.parse(res["更新日時"])
+    res.delete("更新日時")
+    name = res["名前"].gsub(/\s+/,'')
+    user = User.first(name:name)
+    if user.nil? then
+      names = [CONF_USERNAME_CHANGED[name],reverse_changed[name]].compact
+      if names.empty?.! then
+        user = User.first(name:names)
+      end
+      if user.nil? then
+        raise Exception.new("no user name: #{name}")
+      end
+    end
+    book = AddrBook.create(user:user, text: Kagetra::Utils.openssl_enc(CONF_MEIBO_PASSWD,res.to_json))
+    book.update!(updated_at: updated_at)
+  }
+end
+
+def import_album
+  # TODO
+end
+
+def import_wiki
+  # TODO
+end
+
 import_zokusei
 import_user
+import_meibo
 import_bbs
 import_schedule
 import_shurui
 import_event
 import_endtaikai
 import_event_comment
+import_album
+import_wiki
+

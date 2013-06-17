@@ -19,6 +19,7 @@ requirejs.config
     "crypto-pbkdf2": "libs/CryptoJS/rollups/pbkdf2"
     "crypto-hmac": "libs/CryptoJS/rollups/hmac-sha256"
     "crypto-base64": "libs/CryptoJS/components/enc-base64-min"
+    "crypto-aes": "libs/CryptoJS/rollups/aes"
     "crypto-core": "libs/CryptoJS/components/core"
   shim:
     myutil:
@@ -51,6 +52,8 @@ requirejs.config
     "crypto-base64":
       deps: ["crypto"]
     "crypto-pbkdf2":
+      deps: ["crypto"]
+    "crypto-aes":
       deps: ["crypto"]
 
 require ["zep_or_jq","myutil","deferred","backbone"

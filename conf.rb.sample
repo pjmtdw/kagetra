@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-CONF_APP_NAME = '景虎'
+CONF_APP_NAME = "景虎"
 
 #CONF_DB_PATH = "sqlite3://#{Dir.pwd}/db/data.db"
 CONF_DB_PATH = "mysql://root:hogefuga@localhost/test"
@@ -8,9 +8,20 @@ CONF_DB_PATH = "mysql://root:hogefuga@localhost/test"
 CONF_DB_DEBUG = true
 CONF_DB_RAISE_SAVE_FAILURE = true
 
+# 葉隠からのデータ取り込み用
+CONF_HAGAKURE_BASE = '/path/to/hagakure/'
+
+# 名簿暗号化用パスワード
+# 注意: 暗号化/復号はクライアント側で行われるのでサーバ側に格納しておく必要はない．
+#       従ってサーバのデータ流出の際でも復号されないように
+#       葉隠データ取り込み後は必ず削除すること
+CONF_MEIBO_PASSWD = "password_of_meibo"
+
+# MeiboDownloaderによって作られたCSV
+CONF_MEIBO_CSV = "/path/to/hagakure/meibo.csv"
+
 CONF_USERNAME_CHANGED = {
   '佐藤太郎' => '鈴木太郎',
   '高橋次郎' => '高橋次郎'
 }
 
-CONF_HAGAKURE_BASE = '/path/to/hagakure/'

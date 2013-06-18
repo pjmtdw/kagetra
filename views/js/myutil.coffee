@@ -39,6 +39,15 @@ define (require, exports, module) ->
     this.attr(a,this.text())
     this.text(t)
 
+  # data-checkbox-checked="true" -> checked
+  # underscore.jsのtemplateとしてHamlを使うと %input(type='checkbox' {{ checked?"checked":"" }})
+  # みたいなことができないので %input(type='checkbox' data-checkbox-checked='true') したあとこの関数を呼ぶ
+  $.fn.checkboxApply = ->
+    a = "data-checkbox-checked"
+    for [s,t] in [["true",true],["false",false]]
+      this.find("input[#{a}='#{s}']").prop("checked",t)
+
+  # formのinput要素を{name: value}形式にする
   $.fn.serializeObj = ->
     o = {}
     a = this.serializeArray()
@@ -46,7 +55,12 @@ define (require, exports, module) ->
       if o[this.name]?
         if !o[this.name].push
           o[this.name] = [o[this.name]]
-        o[this.name].push(this.value || '')
+        o[this.name].push(this.value || null)
       else
-        o[this.name] = this.value || ''
+        o[this.name] = this.value || null
+    # checkbox でチェックされていないものを集めてくる
+    this.find("input[type='checkbox']:not(:checked)").each(->
+      o[this.name] = null
+    )
+    console.log o
     o

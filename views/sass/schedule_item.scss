@@ -56,16 +56,25 @@ $weekday-color: #FFD;
     color: blue;
   }
   .is-holiday{
-    background-color: red;
     margin-right: 8px;
   }
   .description{
     margin-left: 10px;
     margin-top: 8px;
   }
-  .detail-item{
-    .description{
-      clear: both;
+  .detail-item,.schedule-detail-event{
+    .hourmin{
+      color: #300;
+    }
+    .title{
+      color: #003;
+    }
+    .place{
+      color: #030;
+    }
+    .emphasis{
+      font-weight: bold;
+      text-decoration: underline;
     }
   }
   .detail-item-edit{

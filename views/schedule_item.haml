@@ -24,7 +24,7 @@
       <%= info ? info.names.join("\n") : "" %>
 %script#templ-schedule-detail(type='text/template')
   <% if(data.is_holiday){ %>
-  .is-holiday.label.round.left 祝日
+  .is-holiday.label.round.alert.left 祝日
   <% } %>
   .year-month-day.left
     %span.year <%= data.year %>
@@ -48,7 +48,8 @@
 %script#templ-schedule-detail-event(type='text/template')
   %hr
   .schedule-detail-event.clearfix
-    .left <%= data.name %> @ <%= data.place %>
+    .left
+      <%= _.show_item_detail(data) %>
     .right
       %span.detail.button.small
         詳細
@@ -60,11 +61,7 @@
   %hr
   .detail-item.clearfix
     .info.left
-      <%= start_at %> &sim; <%= end_at %> <%= title %> @ <%= place %>
-      <% if(description){ %>
-      .description.panel.left
-        <%= description %>
-      <% } %>
+      <%= _.show_item_detail(data) %>
     .right
       %button.edit.small.round
         編集
@@ -72,54 +69,49 @@
 %script#templ-schedule-detail-item-edit(type='text/template')
   %hr
   .detail-item-edit
-    %form.item-detail-form.left
+    %form.item-detail-form.left.custom
       .row
         .large-12.columns
           .row
             .large-6.columns
-              .row.collapse
-                %label タイトル
+              .row
                 .large-9.columns
-                  %input(type='text' name='title' value='{{ title }}')
+                  %input(type='text' name='title' value='{{ data.title }}' placeholder='タイトル')
                 .large-3.columns
-                  %input(type='checkbox') 強調
+                  %input(type='checkbox' name='emph_title' data-checkbox-checked='{{ data.emph_title?"true":"false" }}') 強調
 
             .large-6.columns
               .row
                 .large-6.columns
-                  %select
+                  %select(name='kind')
                     %option 練習
                     %option コンパ
                     %option その他 
                 .large-6.columns
-                  %input(type='checkbox') 非公開
+                  %input.bottom(type='checkbox' name='not_public') 非公開
       .row
         .large-12.columns
           .row
-            %label 場所
             .large-9.columns
-              %input(type='text' name='place' value='{{ place }}')
+              %input(type='text' name='place' value='{{ data.place }}' placeholder='場所' )
             .large-3.columns
-              %input(type='checkbox') 強調
+              %input(type='checkbox' name='emph_place' data-checkbox-checked='{{ data.emph_place?"true":"false" }}') 強調
       .row
         .large-6.small-6.columns
           .row
-            %label 開始時刻
             .large-9.columns
-              %input(type='text' name='start_at' value='{{ start_at }}' placeholder='hh:mm' )
+              %input(type='text' name='start_at' value='{{ data.start_at }}' placeholder='開始 ( hh:mm )' )
             .large-3.columns
-              %input(type='checkbox') 強調
+              %input(type='checkbox' name='emph_start_at' data-checkbox-checked='{{ data.emph_start_at?"true":"false" }}') 強調
         .large-6.small-6.columns
           .row
-            %label 終了時刻
             .large-9.columns
-              %input(type='text' name='end_at' value='{{ end_at }}' placeholder='hh:mm' )
+              %input(type='text' name='end_at' value='{{ data.end_at }}' placeholder='終了 ( hh:mm )' )
             .large-3.columns
-              %input(type='checkbox') 強調
+              %input(type='checkbox' name='emph_end_at' data-checkbox-checked='{{ data.emph_end_at?"true":"false" }}') 強調
       .row
         .large-12.small-12.columns
-          %label 説明
-          %textarea(cols='100' rows='8' name='description') {{ description }}
+          %textarea(cols='100' rows='8' name='description' placeholder='説明') {{ data.description }}
     .right
       %button.edit-done.small.round
         編集完了

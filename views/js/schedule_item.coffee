@@ -1,4 +1,20 @@
 define ->
+  _.mixin
+    show_item_detail: (data)->
+      hm = if data.start_at or data.end_at
+        c1 = if data.emph_start_at then "emphasis" else ""
+        c2 = if data.emph_end_at then "emphasis" else ""
+        "[ <span class='hourmin #{c1}'>#{data.start_at ? ''}</span> &sim; <span class='hourmin #{c2}'>#{data.end_at ? ''}</span> ] "
+      pl = if data.place
+        c = if data.emph_place then "emphasis" else ""
+        " @ <span class='place #{c}'>#{data.place ? ''}</span>"
+      ds = if data.description
+        "<div class='description panel left'>#{data.description}</div>"
+      tt = if data.title or data.name
+        c = if data.emph_title then "emphasis" else ""
+        "<span class='title #{c}'>#{data.title or data.name}</span>"
+      ss = (hm ? '') + (tt ? '') + (pl ? '')
+      "<div>#{ss}</div>" + (ds ? '')
   ScheduleModel = Backbone.Model.extend
     url: ->
       [y,m,d] = (@get(x) for x in ['year','mon','day'])
@@ -69,12 +85,6 @@ define ->
 
   ScheduleDetailModel = Backbone.Model.extend
     urlRoot: "/api/schedule/detail/update"
-    defaults:
-      title: ""
-      place: ""
-      start_at: ""
-      end_at: ""
-      description: ""
 
   ScheduleDetailCollection = Backbone.Collection.extend
     model: ScheduleDetailModel
@@ -125,10 +135,12 @@ define ->
       @edit_mode = false
       _.bindAll(this,"toggle_edit","edit_done")
     render: ->
-      @$el.html(@template(@model.toJSON()))
+      @$el.html(@template(data:@model.toJSON()))
     render_edit: ->
       @edit_mode = true
-      @$el.html(@template_edit(@model.toJSON()))
+      @$el.html(@template_edit(data:@model.toJSON()))
+      @$el.checkboxApply()
+      @$el.foundation("forms","init")
   ScheduleDetailEventView = Backbone.View.extend
     events:
       "click .detail" : "show_detail"

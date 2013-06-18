@@ -8,27 +8,50 @@ class MainApp < Sinatra::Base
         )
       }
     end
-    post '/detail/update' do
-      user = get_user
-      date = Date.new(@json["year"],@json["mon"],@json["day"])
+    def update_or_create(id, user, json)
+      date = if not id then
+        Date.new(json["year"],json["mon"],json["day"])
+      end
+      emph = ["title","place","start_at","end_at"].map{|s|
+        if json["emph_"+s].to_s.empty?.! then
+          s.to_sym
+        end
+      }.compact
       Kagetra::Utils.dm_debug{
-        ScheduleItem.create(user: user,date: date, title: @json["title"])
+        ScheduleItem.update_or_create(
+          {id: id},
+          {
+            user: user,
+            title: json["title"],
+            place: json["place"],
+            emphasis: emph,
+            description: json["description"],
+            start_at: json["start_at"],
+            end_at: json["end_at"]
+          }.merge(if date then {date: date} else {} end)
+        )
       }
     end
+    post '/detail/update' do
+      user = get_user
+      update_or_create(nil, user, @json)
+    end
     put '/detail/update/:id' do
-      # todo update others
-      ScheduleItem.first(id:params[:id]).update(
-        title: @json["title"]
-      )
+      user = get_user
+      update_or_create(params[:id], user, @json)
     end
     get '/detail/:year/:mon/:day' do
       (year,mon,day) = [:year,:mon,:day].map{|x|params[x].to_i}
       date = Date.new(year,mon,day)
       list = ScheduleItem.all(date:date).map{|x|
-        x.select_attr(:id,:title,:start_at,:end_at,:place,:description)
+        r = x.select_attr(:id,:title,:start_at,:end_at,:place,:description)
+        x.emphasis.each{|e|
+          r["emph_#{e}".to_sym] = "on"
+        }
+        r
       }
       events = Event.all(date:date).map{|x|
-        x.select_attr(:id,:name,:place,:comment_count)
+        x.select_attr(:id,:name,:place,:comment_count,:start_at,:end_at)
       }
       info = ScheduleDateInfo.first(date:date)
       day_infos = if info then info.select_attr(:names,:holiday) end

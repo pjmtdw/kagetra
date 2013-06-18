@@ -43,9 +43,21 @@ $weekday-color: #FFD;
     height: 80px;
   }
 }
-#container-detail{
+#container-schedule-detail{
   .year-month-day{
-    font-weight: bold;
+    .year,.mon,.day,.wday{
+      font-weight: bold;
+      font-size: 110%;
+      color: maroon;
+    }
+  }
+  .day-infos{
+    margin-left: 10px;
+    color: blue;
+  }
+  .is-holiday{
+    background-color: red;
+    margin-right: 8px;
   }
   .description{
     margin-left: 10px;

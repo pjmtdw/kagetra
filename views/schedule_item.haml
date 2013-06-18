@@ -23,11 +23,25 @@
     %textarea.info
       <%= info ? info.names.join("\n") : "" %>
 %script#templ-schedule-detail(type='text/template')
+  <% if(data.is_holiday){ %>
+  .is-holiday.label.round.left 祝日
+  <% } %>
   .year-month-day.left
-    <%= year %>年 <%= mon %>月 <%= day %>日 (<%= wday %>)
+    %span.year <%= data.year %>
+    年
+    %span.mon <%= data.mon %>
+    月
+    %span.day <%= data.day %>
+    日 (
+    %span.wday <%= data.wday %>
+    )
+  <% if(data.day_infos){ %>
+  .day-infos.left
+    <%= data.day_infos.join(", ") %>
+  <% } %>
   .right
     %button#add-new-item.small.round
-      追加
+      予定追加
   #container-new-item
   .body
 
@@ -60,20 +74,48 @@
   .detail-item-edit
     %form.item-detail-form.left
       .row
-        .large-12.small-12.columns
-          %label タイトル
-          %input(type='text' name='title' value='{{ title }}')
+        .large-12.columns
+          .row
+            .large-6.columns
+              .row.collapse
+                %label タイトル
+                .large-9.columns
+                  %input(type='text' name='title' value='{{ title }}')
+                .large-3.columns
+                  %input(type='checkbox') 強調
+
+            .large-6.columns
+              .row
+                .large-6.columns
+                  %select
+                    %option 練習
+                    %option コンパ
+                    %option その他 
+                .large-6.columns
+                  %input(type='checkbox') 非公開
       .row
-        .large-12.small-12.columns
-          %label 場所
-          %input(type='text' name='place' value='{{ place }}')
+        .large-12.columns
+          .row
+            %label 場所
+            .large-9.columns
+              %input(type='text' name='place' value='{{ place }}')
+            .large-3.columns
+              %input(type='checkbox') 強調
       .row
         .large-6.small-6.columns
-          %label 開始時刻
-          %input(type='text' name='start_at' value='{{ start_at }}' placeholder='hh:mm' )
+          .row
+            %label 開始時刻
+            .large-9.columns
+              %input(type='text' name='start_at' value='{{ start_at }}' placeholder='hh:mm' )
+            .large-3.columns
+              %input(type='checkbox') 強調
         .large-6.small-6.columns
-          %label 終了時刻
-          %input(type='text' name='end_at' value='{{ end_at }}' placeholder='hh:mm' )
+          .row
+            %label 終了時刻
+            .large-9.columns
+              %input(type='text' name='end_at' value='{{ end_at }}' placeholder='hh:mm' )
+            .large-3.columns
+              %input(type='checkbox') 強調
       .row
         .large-12.small-12.columns
           %label 説明

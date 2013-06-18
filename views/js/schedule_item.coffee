@@ -84,6 +84,7 @@ define ->
       @year = data.year
       @mon = data.mon
       @day = data.day
+      @day_infos = data.day_infos
       @events = data.events
       data.list
   ScheduleDetailItemView = Backbone.View.extend
@@ -167,7 +168,12 @@ define ->
 
       [year,mon,day] = (@collection[x] for x in ["year","mon","day"])
       date = _.gen_date(year,mon,day)
-      @$el.html(@template(
+      di = @collection.day_infos
+      names = if di then di.names
+      is_holiday = if di then di.holiday
+      @$el.html(@template(data:
+        is_holiday: is_holiday
+        day_infos: names
         year: year
         mon: mon
         day: day

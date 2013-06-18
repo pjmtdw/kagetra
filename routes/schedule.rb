@@ -30,7 +30,9 @@ class MainApp < Sinatra::Base
       events = Event.all(date:date).map{|x|
         x.select_attr(:id,:name,:place,:comment_count)
       }
-      {year: year, mon: mon, day: day, list: list, events: events}
+      info = ScheduleDateInfo.first(date:date)
+      day_infos = if info then info.select_attr(:names,:holiday) end
+      {year: year, mon: mon, day: day, list: list, events: events, day_infos: day_infos}
     end
     def make_info(x)
       return unless x

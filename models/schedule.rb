@@ -15,7 +15,7 @@ module ScheduleItemBase
       p = DataMapper::Property
       property :kind, p::Enum[:practice, :party, :etc], default: :etc #練習, コンパ, その他
       property :public, p::Boolean, default: true # 公開されているか
-      property :emphasis, p::Flag[:title, :start_at, :end_at, :place, :description]  # 強調表示 => タイトル, 開始時刻, 終了時刻, 場所, コメント
+      property :emphasis, p::Flag[:title, :start_at, :end_at, :place]  # 強調表示 => タイトル, 開始時刻, 終了時刻, 場所
       property :title, p::String, length: 48, required: true
       property :start_at, p::HourMin # 開始時刻
       property :end_at, p::HourMin # 終了時刻

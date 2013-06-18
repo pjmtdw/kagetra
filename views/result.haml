@@ -7,7 +7,7 @@
 = haml :top_bar, locals: {user:user}
 
 .row
-  .large-6.small-6.columns
+  .large-7.small-7.columns
     %ul.breadcrumbs
       %li
         %a 大会一覧
@@ -17,17 +17,17 @@
         %a 昇級履歴
       %li
         %a ランキング
-  .large-6.small-6.columns
-    .row
-      .large-5.small-5.columns
+  .large-5.small-5.columns
+    .row.collapse
+      .large-6.small-5.columns
         %input(type='text' placeholder='検索文字列')
-      .large-3.small-3.columns
+      .large-4.small-3.columns
         %select
           %option(value='name')選手名
           %option(value='event')大会名
           %option(value='belongs')所属会
       .large-2.small-2.columns
-      %input(type='submit' value='検索')
+        %input.button.postfix.radius(type='submit' value='検索')
 #contest-result
 
 %script#templ-contest-result(type='text/template')

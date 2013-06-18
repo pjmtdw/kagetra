@@ -7,11 +7,11 @@
       .row
         .large-8.columns
           %label 共通パスワード
-          .row
-            .large-11.small-11.columns
+          .row.collapse
+            .large-10.small-10.columns
               %input(type='password' autofocus)
-            .large-1.small-1.columns
-              %input(type='submit' value='GO')
+            .large-2.small-2.columns
+              %input.button.postfix.radius(type='submit' value='GO')
 .row
   %form#login.large-6.columns.hide
     %fieldset
@@ -27,11 +27,11 @@
       .row
         .large-8.columns
           %label 個人パスワード
-          .row
-            .large-11.small-11.columns
+          .row.collapse
+            .large-10.small-10.columns
               %input(type='password')
-            .large-1.small-1.columns
-              %input(type='submit' value='GO')
+            .large-2.small-0.columns
+              %input.button.postfix.radius(type='submit' value='GO')
 %script(data-start="login")
 %script
   var g_shared_salt="#{shared_salt}";

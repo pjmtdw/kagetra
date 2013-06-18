@@ -50,8 +50,9 @@
           %a.ellipsis {{ x.date }} {{ x.name }}
         <% }) %>
   .row
-    %div
-      {{ name }} @ {{ date }}
+    %div.contest-name-date
+      %span.contest-name {{ name }} 
+      %span.contest-date @ {{ date }}
   .row
     .section-container.tabs(data-section="tabs")
       %section

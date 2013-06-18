@@ -52,11 +52,17 @@ define ["crypto-aes", "crypto-hmac","crypto-pbkdf2","crypto-base64"], ->
         obj = $("#addrbook-form").serializeObj()
         json = JSON.stringify(obj)
         pass = $("#password").val()
-        if not check_password(pass)
+        if pass.length == 0
+          alert("名簿パスワードを入力して下さい")
+          $("#password").focus()
+          return false
+        else if not check_password(pass)
           alert("名簿パスワードが違います")
+          $("#password").focus()
           return false
         text = CryptoJS.AES.encrypt(json,pass).toString(CryptoJS.enc.BASE64)
         @model.set("text",text)
+        @model.set("found",true) # AddrBookViwe が render するときに text の方を使う
         @model.save().done(-> alert("更新しました"))
       catch e
         console.log e.message
@@ -74,15 +80,21 @@ define ["crypto-aes", "crypto-hmac","crypto-pbkdf2","crypto-base64"], ->
       res = null
       if @model.get("found")
         text = @model.get("text")
-        dec = CryptoJS.AES.decrypt(text,$("#password").val())
+        pass = $("#password").val()
+        if pass.length == 0
+          $("#addrbook-body").text("名簿パスワードを入力して下さい")
+          $("#password").focus()
+          return
+        dec = CryptoJS.AES.decrypt(text,pass)
         try
           res = JSON.parse(dec.toString(CryptoJS.enc.Utf8))
         catch e
           # TODO: Malformed UTF-8 data ではなく，ハッシュ値の確認などの方法で復号失敗を検知する
-          $("#addrbook-body").text("復号失敗: " + e.message)
+          console.log e.message
+          $("#addrbook-body").text("復号失敗．おそらく名簿パスワードが違います．")
           return
       else
-        res = @model.get("default")
+        res = _.clone(@model.get("default"))
 
       data = []
       for k in window.addrbook_keys

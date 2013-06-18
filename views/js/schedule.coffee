@@ -112,8 +112,14 @@ define (require,exports,module) ->
       ))
       @subviews = []
       if not window.is_small
-        for x in _.weekday_ja()
-          $("#cal-body").append($("<li>#{x}</li>"))
+        for x,i in _.weekday_ja()
+          ac = if i == 0
+                 "weekday-sunday"
+               else if i == 6
+                 "weekday-saturday"
+               else
+                 ""
+          $("#cal-body").append($("<li>",{text:x,class:"weekday-name #{ac}"}))
       for m in @collection.models
         v = new $si.ScheduleItemView(model:m)
         if @edit_info

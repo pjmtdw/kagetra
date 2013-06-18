@@ -75,14 +75,10 @@
     margin-top: 7px;
     margin-right: 5px;
   }
-  .close{
-    cursor: pointer;
-  }
 }
 #event-list{
   .sub-nav{
     a {
-      cursor: pointer;
       &:hover{
         color: brown;
       }

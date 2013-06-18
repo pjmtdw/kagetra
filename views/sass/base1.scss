@@ -17,3 +17,14 @@
 .button-custom {
   @include button($button-sml, teal, false, false, false, false)
 }
+
+.pagination,.breadcrumbs,.sub-nav{
+  a{
+    cursor: pointer;
+  }
+}
+.alert-box{
+  .close{
+    cursor: pointer;
+  }
+}

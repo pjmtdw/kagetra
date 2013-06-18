@@ -62,3 +62,13 @@
     width: 100px;
   }
 }
+.contest-name-date{
+  margin-bottom: 8px;
+  .contest-name{
+    font-size: 110%;
+    font-weight: bold;
+  }
+  .contest-date{
+    color: brown;
+  }
+}

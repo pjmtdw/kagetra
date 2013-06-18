@@ -1,3 +1,22 @@
+.year-month{
+  .year,.mon{
+    font-size: 140%;
+    font-weight: bold;
+    color: maroon;
+  }
+}
+
+.weekday-name{
+  text-align: center;
+  font-weight: bold;
+  &.weekday-sunday{
+    color: red;
+  }
+  &.weekday-saturday{
+    color: blue;
+  }
+}
+
 .not-current{
   background-color: silver;
 }

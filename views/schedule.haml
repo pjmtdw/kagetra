@@ -9,15 +9,19 @@
   #schedule
 
 %script#templ-cal-header(type='text/template')
-  .year-month
-    %button#prev-month.small.round 前へ
-    %span.year
-      <%= year %> 年
-    %span.mon
-      <%= mon %> 月
-    %button#next-month.small.round 次へ
-    %button.toggle-edit-info.small.round 祝日編集
-    %button.toggle-edit-info.small.round 一括追加
+  .row
+    .large-4.columns.year-month.large-offset-4
+      %button#prev-month.small.round.success &laquo;
+      %span.year
+        <%= year %>
+      年
+      %span.mon
+        <%= mon %>
+      月
+      %button#next-month.small.round.success &raquo;
+    .large-3.columns
+      %button.toggle-edit-info.small.round 祝日編集
+      %button.toggle-edit-info.small.round 一括追加
 
 %script#templ-cal-edit-header(type='text/template')
   %span.year

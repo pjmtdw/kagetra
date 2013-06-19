@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
-  THREADS_PER_PAGE = 10
   namespace '/api/admin' do
     get '/list' do
       # UserAttribute.all.map{|x|[x.user_id,x.value_id]} が遅いので手動でクエリする

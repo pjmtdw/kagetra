@@ -13,7 +13,7 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
     initialize: ->
       _.bindAll(this,"render","do_submit")
       @model = new UserConfModel()
-      @model.bind("sync",@render)
+      this.listenTo(@model,"sync",@render)
       @model.fetch()
     render: ->
       @$el.html(@template(@model.toJSON()))

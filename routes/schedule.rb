@@ -12,7 +12,7 @@ class MainApp < Sinatra::Base
       date = if not id then
         Date.new(json["year"],json["mon"],json["day"])
       end
-      emph = ["title","place","start_at","end_at"].map{|s|
+      emph = ["name","place","start_at","end_at"].map{|s|
         if json["emph_"+s].to_s.empty?.! then
           s.to_sym
         end
@@ -21,8 +21,8 @@ class MainApp < Sinatra::Base
         ScheduleItem.update_or_create(
           {id: id},
           {
-            user: user,
-            title: json["title"],
+            owner: user,
+            name: json["name"],
             place: json["place"],
             emphasis: emph,
             description: json["description"],
@@ -32,11 +32,24 @@ class MainApp < Sinatra::Base
         )
       }
     end
-    post '/detail/update' do
+    def make_detail_item(x,raw)
+      r = x.select_attr(:id,:start_at,:end_at)
+      ats = [:name,:place,:description]
+      sym = if raw then :select_attr else :select_attr_escape end
+      r = r.merge(x.send(sym,*ats))
+      x.emphasis.each{|e|
+        r["emph_#{e}".to_sym] = "on"
+      }
+      r
+    end
+    get '/detail/item/:id' do
+      make_detail_item(ScheduleItem.get(params[:id]),params[:raw]=="true")
+    end
+    post '/detail/item' do
       user = get_user
       update_or_create(nil, user, @json)
     end
-    put '/detail/update/:id' do
+    put '/detail/item/:id' do
       user = get_user
       update_or_create(params[:id], user, @json)
     end
@@ -44,11 +57,7 @@ class MainApp < Sinatra::Base
       (year,mon,day) = [:year,:mon,:day].map{|x|params[x].to_i}
       date = Date.new(year,mon,day)
       list = ScheduleItem.all(date:date).map{|x|
-        r = x.select_attr(:id,:title,:start_at,:end_at,:place,:description)
-        x.emphasis.each{|e|
-          r["emph_#{e}".to_sym] = "on"
-        }
-        r
+        make_detail_item(x,false)
       }
       events = Event.all(date:date).map{|x|
         x.select_attr(:id,:name,:place,:comment_count,:start_at,:end_at)
@@ -65,7 +74,7 @@ class MainApp < Sinatra::Base
     end
     def make_item(x)
       return unless x
-      base = x.select_attr(:kind,:title,:place,:start_at,:end_at)
+      base = x.select_attr(:kind,:name,:place,:start_at,:end_at)
       base[:emphasis] = x.emphasis if x.emphasis.empty?.!
       base
     end

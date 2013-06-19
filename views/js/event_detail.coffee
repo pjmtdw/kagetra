@@ -38,9 +38,9 @@ define ->
       @$el.find(".comment-form").toggle()
       @$el.find(".toggle-comment").toggleBtnText()
     initialize: (arg) ->
-      _.bindAll(this,"refresh","do_toggle","do_comment")
+      _.bindAll(this,"render","refresh","do_toggle","do_comment")
       @collection = new EventCommentCollection()
-      @collection.bind("sync",@render,this)
+      this.listenTo(@collection,"sync",@render)
     render: ->
       @$el.html(@template(event_name:@collection.event_name,data:@collection.toJSON()))
       if @comment_num_obj? then @comment_num_obj.text(@collection.length)

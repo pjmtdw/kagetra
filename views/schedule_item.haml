@@ -12,7 +12,7 @@
     .item
       <% _.each(item,function(o){ %>
       .title.ellipsis
-        <%= o.title %>
+        <%= o.name %>
       <% }) %>
 %script#templ-schedule-item-edit-info(type='text/template')
   .info-item-edit
@@ -76,9 +76,9 @@
             .large-6.columns
               .row
                 .large-9.columns
-                  %input(type='text' name='title' value='{{ data.title }}' placeholder='タイトル')
+                  %input(type='text' name='name' value='{{ data.name }}' placeholder='タイトル')
                 .large-3.columns
-                  %input(type='checkbox' name='emph_title' data-checkbox-checked='{{ data.emph_title?"true":"false" }}') 強調
+                  %input(type='checkbox' name='emph_name' data-checkbox-checked='{{ data.emph_name?"true":"false" }}') 強調
 
             .large-6.columns
               .row

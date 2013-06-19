@@ -6,6 +6,8 @@ NUM_THREADS = 8
 require './init'
 require 'parallel'
 
+$global_lock = Mutex.new
+
 SHURUI = {}
 
 class String
@@ -195,11 +197,11 @@ def import_schedule
             end
           end
           item = ScheduleItem.create(
-            user: user,
+            owner: user,
             kind: kind,
             public: not_public != "1",
             emphasis: emphasis,
-            title: title,
+            name: title,
             date: date,
             start_at: start_at,
             end_at: end_at,
@@ -387,7 +389,9 @@ def import_event
         place: place,
         event_group: shurui,
         show_choice: show_choice,
-        aggregate_attr: agg_attr)
+        aggregate_attr: agg_attr,
+        start_at: Kagetra::HourMin.new(khour,kmin)
+      )
       kanrishas.each{|k|
         user = User.first(name:k)
         if user.nil? then
@@ -435,7 +439,10 @@ def get_user_or_add(evt,username)
   username.strip!
   begin
     u = User.first(name:username)
-    ContestUser.first_or_create({name:username,user:u,event:evt}) 
+    $global_lock.synchronize{
+      # first_or_create は thread safe ではないみたい
+      ContestUser.first_or_create({name:username,user:u,event:evt}) 
+    }
   rescue DataMapper::SaveFailureError => e
     p e.resource.errors
     raise e
@@ -759,7 +766,8 @@ def import_endtaikai
                        created_at: DateTime.parse(tourokudate),
                        place: place,
                        event_group: shurui,
-                       aggregate_attr: agg_attr
+                       aggregate_attr: agg_attr,
+                       start_at: Kagetra::HourMin.new(khour,kmin)
       )
       if choices then 
         choices.each_with_index{|(typ,name),i|
@@ -848,8 +856,96 @@ def import_meibo
   }
 end
 
-def import_album
-  # TODO
+def import_album_stage1
+  lines = File.readlines(File.join(CONF_HAGAKURE_BASE,"txts/album_subdirlist.cgi"))
+  Parallel.each(lines,in_threads:NUM_THREADS){|line|
+    line.chomp!
+    line.sjis!
+    (num,name,place,year,mon,day,comment) = line.split(/\t/)
+    puts name
+    comment = nil if comment and comment.empty?
+    place = nil if place and place.empty?
+    (fyear,tyear) = year.split(/<>/)
+    (fmon,tmon) = mon.split(/<>/)
+    (fday,tday) = day.split(/<>/)
+    fdate = begin Date.new(fyear.to_i,fmon.to_i,fday.to_i) rescue nil end
+    tdate = begin Date.new(tyear.to_i,tmon.to_i,tday.to_i) rescue nil end
+    Kagetra::Utils.dm_debug(line){
+      AlbumGroup.create(id:num.to_i,name:name,place:place,start_at:fdate,end_at:tdate,comment:comment)
+    }
+  }
+
+  old_ids = {} # 関連写真用のID一覧
+
+  # 関連写真があるのでまず最初にAlbumItemを作ってから後でupdateする
+  Parallel.each(Dir.glob(File.join(CONF_HAGAKURE_BASE,"album","albumlist_*.cgi")), in_threads: NUM_THREADS){|fn|
+    lines = File.readlines(fn)
+    (dnum,dname) = lines[0].chomp.sub(/^\+/,"").split(/\t/)
+    lines[1..-1].each{|line|
+      line.chomp!
+      line.sjis!
+      (fnum,fname,group,_,_,_,_,year) = line.split(/\t/)
+      puts "#{dnum}-#{fnum}"
+      group = nil if group and group.empty?
+      Kagetra::Utils.dm_debug(line){
+        ag = if group.nil?.! then
+          AlbumGroup.get(group)
+        else
+          if year.to_s.empty? then year = nil end
+          # 年が整数値でないものはそういう名前のグループを作る
+          if year.nil? or year =~ /^\d+$/ then
+            $global_lock.synchronize{
+              AlbumGroup.first_or_create({year:year,dummy:true})
+            }
+          else
+            $global_lock.synchronize{
+              AlbumGroup.first_or_create({name:year})
+            }
+          end
+        end
+        item = ag.items.create()
+        $global_lock.synchronize{
+          key = [dnum,fnum]
+          if old_ids.has_key?(key) then
+            raise Exception.new("duplicate old_id key for #{key}")
+          else
+            old_ids[key] = [item.id, "#{dname}/#{fname}"]
+          end
+        }
+      }
+    }
+  }
+
+  old_ids
+end
+
+def import_album_stage2(old_ids)
+  Parallel.each(old_ids.values,in_threads:NUM_THREADS){|item_id,prefix|
+    puts prefix
+    lines = File.readlines(File.join(CONF_HAGAKURE_BASE,"album/#{prefix}.cgi"))
+    item = AlbumItem.get(item_id)
+    item.photo = AlbumPhoto.create(album_item:item,path:"#{prefix}.jpg")
+    item.thumb = AlbumThumbnail.create(album_item:item,path:"#{prefix}_SMALL.jpg")
+    (title,year,mon,day,place,comment,width,height,importance,subdir,keyword,user) = nil
+    lines.each{|line|
+      line.chomp!
+      line.sjis!
+      case line
+      when %r(<title>(.*)</title>)
+        title = $1
+      when %r(<!year>(.*)<!/year>.*<!mon>(.*)<!/mon>.*<!day>(.*)<!/day>)
+        (year,mon,day) = [$1,$2,$3]
+      when %r(<!place>(.*)<!/place>)
+        place = $1
+      when %r(<!comment>(.*)<!/comment>)
+        comment = $1
+      end
+    }
+    day = begin Date.new(year.to_i,mon.to_i,day.to_i) rescue nil end
+    Kagetra::Utils.dm_debug(prefix){
+      item.update(name:title,place:place,take_at_day:day)
+    }
+  }
 end
 
 def import_wiki
@@ -865,6 +961,6 @@ import_shurui
 import_event
 import_endtaikai
 import_event_comment
-import_album
 import_wiki
-
+old_ids = import_album_stage1
+import_album_stage2(old_ids)

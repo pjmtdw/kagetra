@@ -10,9 +10,9 @@ define ->
         " @ <span class='place #{c}'>#{data.place ? ''}</span>"
       ds = if data.description
         "<div class='description panel left'>#{data.description}</div>"
-      tt = if data.title or data.name
-        c = if data.emph_title then "emphasis" else ""
-        "<span class='title #{c}'>#{data.title or data.name}</span>"
+      tt = if data.name
+        c = if data.emph_name then "emphasis" else ""
+        "<span class='title #{c}'>#{data.name}</span>"
       ss = (hm ? '') + (tt ? '') + (pl ? '')
       "<div>#{ss}</div>" + (ds ? '')
   ScheduleModel = Backbone.Model.extend
@@ -84,7 +84,7 @@ define ->
         @$el.find(".info-item-edit").addClass("not-current-edit")
 
   ScheduleDetailModel = Backbone.Model.extend
-    urlRoot: "/api/schedule/detail/update"
+    urlRoot: "/api/schedule/detail/item"
 
   ScheduleDetailCollection = Backbone.Collection.extend
     model: ScheduleDetailModel
@@ -128,12 +128,12 @@ define ->
       else
         @edit_mode ^= true
         if @edit_mode
-          @render_edit()
+          @model.fetch(data:{raw:"true"}).done(@render_edit)
         else
-          @render()
+          @model.fetch().done(@render)
     initialize: ->
       @edit_mode = false
-      _.bindAll(this,"toggle_edit","edit_done")
+      _.bindAll(this,"toggle_edit","edit_done","render","render_edit")
     render: ->
       @$el.html(@template(data:@model.toJSON()))
     render_edit: ->

@@ -67,8 +67,8 @@ define ->
       @render_body()
       false
     initialize: ->
-      _.bindAll(this,"do_submit","do_select_user","do_key_change")
-      @collection.bind("sync",@.render_all,this)
+      _.bindAll(this,"render_all","do_submit","do_select_user","do_key_change")
+      this.listenTo(@collection,"sync",@.render_all)
       @collection.fetch()
     render_all: ->
       @render_header()

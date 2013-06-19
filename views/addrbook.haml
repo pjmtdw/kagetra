@@ -11,11 +11,11 @@
   .large-3.columns
     #addrbook-panel
       %form#panel-form
-        .row
+        .row.collapse
           .large-9.small-9.columns
             %input#password(type="password" placeholder="名簿パスワード" autofocus)
           .large-3.small-3.columns
-            %input.button.small(type="submit" value="確認")
+            %input.button.small.postfix.radius(type="submit" value="確認")
         %select#panel-initials
           - Kagetra::Utils.gojuon_row_names.each_with_index do |name,index|
             %option(value=index)= name

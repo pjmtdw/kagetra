@@ -27,7 +27,7 @@ define ["crypto-aes", "crypto-hmac","crypto-pbkdf2","crypto-base64"], ->
     initialize: ->
       _.bindAll(this,"render","refresh")
       @model = new AddrBookPanelModel()
-      @model.bind("sync", @render, this)
+      this.listenTo(@model,"sync", @render)
       @model.set("id",0)
       @model.fetch()
       $("#panel-users").attr("size","1") if window.is_small
@@ -73,9 +73,9 @@ define ["crypto-aes", "crypto-hmac","crypto-pbkdf2","crypto-base64"], ->
     template: _.template($("#templ-addrbook-body").html())
 
     initialize: ->
-      _.bindAll(this,"do_when_submit")
+      _.bindAll(this,"render","do_when_submit")
       @model = new AddrBookModel()
-      @model.bind("sync", @render, this)
+      this.listenTo(@model,"sync", @render)
     render: ->
       res = null
       if @model.get("found")

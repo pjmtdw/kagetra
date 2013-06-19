@@ -1,0 +1,30 @@
+- content_for :title do
+  アルバム
+- content_for :js_start do
+  album
+- content_for :css do
+  album
+= haml :top_bar, locals: {user: user}
+
+#album
+
+#album-year
+
+%script#templ-album(type='text/template')
+  .row
+    %ul.large-block-grid-7.small-block-grid-4
+      <% _.each(data.list,function(x){ %>
+      %li
+        %div.group-year(data-year='{{x?x:"__else__"}}') {{ x?x+'年':'その他' }}
+      <% }) %>
+
+%script#templ-album-year(type='text/template')
+  .row
+    %a(href="#") 戻る
+    %ul.large-block-grid-3.small-block-grid-2
+      <% _.each(data.list,function(x){ %>
+      %li
+        %div.group-item(data-group-id='{{x?x:"__else__"}}')
+          %div {{ x.start_at }}
+          %div {{ x.name }}
+      <% }) %>

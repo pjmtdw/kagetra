@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
-  THREADS_PER_PAGE = 10
+  BBS_THREADS_PER_PAGE = 10
   namespace '/api/bbs' do
     get '/threads' do
       page = params["page"].to_i - 1
@@ -22,7 +22,7 @@ class MainApp < Sinatra::Base
           query &= qb
         }
       end
-      query.all(order: [:updated_at.desc ]).chunks(THREADS_PER_PAGE)[page].map{|t|
+      query.all(order: [:updated_at.desc ]).chunks(BBS_THREADS_PER_PAGE)[page].map{|t|
         items = t.items.map{|i|
           {
             body: Kagetra::Utils.escape_html_br(i.body),

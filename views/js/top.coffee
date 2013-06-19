@@ -107,9 +107,9 @@ define (require,exports,module) ->
       @collection.set_comparator(order)
       @collection.sort()
     initialize: ->
-      _.bindAll(this,"reorder")
+      _.bindAll(this,"render","reorder")
       @collection = new EventListCollection()
-      @collection.bind("sort", @render, this)
+      this.listenTo(@collection,"sort", @render)
       @collection.set_comparator('date')
       @collection.fetch()
     render: ->
@@ -138,8 +138,8 @@ define (require,exports,module) ->
     initialize: (arg)->
       this.event_name = arg.event_name
       this.parent = arg.parent
-      _.bindAll(this,"do_when_click")
-      @model.bind("change",@render,this)
+      _.bindAll(this,"render","do_when_click")
+      this.listenTo(@model,"change",@render)
     do_when_click: (ev)->
       ct = $(ev.currentTarget)
       id = ct.attr('data-id')

@@ -73,9 +73,9 @@ define (require,exports,module) ->
       id = $(ev.currentTarget).attr('data-id')
       window.result_router.navigate("contest/#{id}",trigger:true)
     initialize: ->
-      _.bindAll(this,"refresh","contest_link")
+      _.bindAll(this,"render","refresh","contest_link")
       @collection = new ContestResultCollection()
-      @collection.bind("sync",@render,this)
+      this.listenTo(@collection,"sync",@render)
     render: ->
       col = @collection
       @$el.html(@template(

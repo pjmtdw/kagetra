@@ -82,11 +82,11 @@ module Kagetra
       {name: "ら行", range: ["ら", "ろ"]},
       {name: "わ行", range: ["ゎ", "ん"]}
     ]
-    def self.dm_debug
+    def self.dm_debug(arg=nil)
       begin
         yield
       rescue DataMapper::SaveFailureError => e
-        p e.resource.errors
+        puts "#{e.resource.errors.inspect} #{if arg then 'at '+arg end}"
         raise e
       end
     end

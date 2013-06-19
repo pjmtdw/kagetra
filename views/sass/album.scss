@@ -1,0 +1,9 @@
+.group-year,.group-item{
+  background-color: #FFD;
+  border: 1px dotted gray;
+  padding: 3px;
+  cursor: pointer;
+  &:hover{
+    background-color: #DFF;
+  }
+}

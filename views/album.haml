@@ -6,16 +6,17 @@
   album
 = haml :top_bar, locals: {user: user}
 
-#album
-
+#album-top
 #album-year
+#album-group
+#album-item
 
-%script#templ-album(type='text/template')
+%script#templ-album-top(type='text/template')
   .row
     %ul.large-block-grid-7.small-block-grid-4
       <% _.each(data.list,function(x){ %>
       %li
-        %div.group-year(data-year='{{x?x:"__else__"}}') {{ x?x+'年':'その他' }}
+        %div.gbase.year(data-year='{{x?x:"_else_"}}') {{ x?x+'年':'その他' }}
       <% }) %>
 
 %script#templ-album-year(type='text/template')
@@ -24,7 +25,30 @@
     %ul.large-block-grid-3.small-block-grid-2
       <% _.each(data.list,function(x){ %>
       %li
-        %div.group-item(data-group-id='{{x?x:"__else__"}}')
+        <% if(x.type == "group"){ %>
+        %div.gbase.group(data-group-id='{{x.id}}')
           %div {{ x.start_at }}
           %div {{ x.name }}
+        <% }else{ %>
+        %div.gbase.item(data-item-id='{{x.id}}')
+          %div {{ x.date }}
+          %div {{ x.name }}
+        <% } %>
       <% }) %>
+
+%script#templ-album-group(type='text/template')
+  .row
+    {{ data.name }}
+    %ul.large-block-grid-4.small-block-grid-2
+      <% _.each(data.items,function(x){ %>
+      %li
+        %div.gbase.thumbnail(data-item-id='{{x.id}}')
+          %img(src='/static/album/thumb/{{ x.id }}')
+
+      <% }) %>
+      
+
+%script#templ-album-item(type='text/template')
+  .row
+    {{ data.name }}
+    %img(src='/static/album/photo/{{ data.id }}')

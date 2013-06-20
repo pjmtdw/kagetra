@@ -1,9 +1,23 @@
-.group-year,.group-item{
-  background-color: #FFD;
+.gbase{
   border: 1px dotted gray;
   padding: 3px;
   cursor: pointer;
-  &:hover{
-    background-color: #DFF;
+  &.group,&.year{
+    background-color: #DDF;
+    &:hover{
+      background-color: #DFF;
+    }
+  }
+  &.item{
+    background-color: #FFD;
+    &:hover{
+      background-color: #FFB;
+    }
+  }
+  &.thumbnail{
+    background-color: #FFD;
+    &:hover{
+      background-color: #FFB;
+    }
   }
 }

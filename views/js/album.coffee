@@ -1,41 +1,56 @@
 define ->
   AlbumRouter = Backbone.Router.extend
+    removeall: ->
+      for s in ["top","year","group","item"]
+        window["album_#{s}_view"]?.remove()
+    set_id_fetch: (prefix,klass,id) ->
+      @removeall()
+      v = new klass()
+      window["album_#{prefix}_view"] = v
+      v.model.set("id",id).fetch()
     routes:
       "year/:year" : "year"
+      "group/:id" : "group"
+      "item/:id" : "item"
       "" : "start"
-    year: (year) ->
-      window.album_view.$el.hide()
-      window.album_year_view.model.set("id",year)
-      window.album_year_view.model.fetch().done( ->
-        window.album_year_view.$el.show()
-      )
+    year: (year) -> @set_id_fetch("year",AlbumYearView,year)
+    group: (id) -> @set_id_fetch("group",AlbumGroupView,id)
+    item: (id) -> @set_id_fetch("item",AlbumItemView,id)
     start: ->
-      window.album_year_view.$el.hide()
-      window.album_view.model.fetch().done( ->
-        window.album_view.$el.show()
-      )
-
+      @removeall()
+      v = new AlbumTopView()
+      window.album_top_view = v
+      v.model.fetch()
 
   AlbumYearModel =  Backbone.Model.extend
     urlRoot: "/api/album/year"
   AlbumYearView = Backbone.View.extend
-    el: "#album-year"
+    events:
+      "click .gbase.group": "goto_group"
+      "click .gbase.item": "goto_item"
+    goto_group: (ev)->
+      id = $(ev.currentTarget).attr("data-group-id")
+      window.album_router.navigate("group/#{id}", trigger:true)
+    goto_item: (ev)->
+      id = $(ev.currentTarget).attr("data-item-id")
+      window.album_router.navigate("item/#{id}", trigger:true)
+
     template: _.template_braces($("#templ-album-year").html())
     initialize: ->
       _.bindAll(this,"render")
       @model = new AlbumYearModel()
       this.listenTo(@model,"sync",@render)
     render: ->
+      @model.set("list",_.sortBy(@model.get("list"),(x)->x.start_at or x.date).reverse())
       @$el.html(@template(data:@model.toJSON()))
-
+      @$el.appendTo("#album-year")
 
   AlbumModel = Backbone.Model.extend
     url: "/api/album/years"
-  AlbumView = Backbone.View.extend
-    el:"#album"
-    template: _.template_braces($("#templ-album").html())
+  AlbumTopView = Backbone.View.extend
+    template: _.template_braces($("#templ-album-top").html())
     events:
-      "click .group-year": "do_list_year"
+      "click .gbase.year": "do_list_year"
     do_list_year: (ev)->
       year = $(ev.currentTarget).attr("data-year")
       window.album_router.navigate("year/#{year}", trigger:true)
@@ -43,12 +58,43 @@ define ->
     initialize: ->
       _.bindAll(this,"render","do_list_year")
       @model = new AlbumModel()
-      this.listenTo(@model,"sync",@render)
+      this.listenTo(@model,"sync",@render) # View.remove() したときにちゃんと stopListening されるように @model.bind() じゃなくて .listenTo() の方を使う
 
     render: ->
       @$el.html(@template(data:@model.toJSON()))
+      # el:"#album-top" にして @$el.append(...) すると View.remove() するときに #album-top も一緒に消えてしまい
+      # 次に render しようとしても #album-top がないためそれに append() できない
+      # なので代わりに el には何も設定せず (デフォルトで <div> ) #album-top に appendTo する
+      @$el.appendTo("#album-top")
+  AlbumGroupModel = Backbone.Model.extend
+    urlRoot: "/api/album/group"
+  AlbumGroupView = Backbone.View.extend
+    template: _.template_braces($("#templ-album-group").html())
+    events:
+      "click .gbase.thumbnail":"goto_item"
+    goto_item:(ev)->
+      id = $(ev.currentTarget).attr("data-item-id")
+      window.album_router.navigate("item/#{id}", trigger:true)
+    initialize: ->
+      _.bindAll(this,"render")
+      @model = new AlbumGroupModel()
+      this.listenTo(@model,"sync",@render)
+    render: ->
+      @$el.html(@template(data:@model.toJSON()))
+      @$el.appendTo("#album-group")
+  AlbumItemModel = Backbone.Model.extend
+    urlRoot: "/api/album/item"
+  AlbumItemView = Backbone.View.extend
+    template: _.template_braces($("#templ-album-item").html())
+    initialize: ->
+      _.bindAll(this,"render")
+      @model = new AlbumItemModel()
+      this.listenTo(@model,"sync",@render)
+    render: ->
+      @$el.html(@template(data:@model.toJSON()))
+      @$el.appendTo("#album-item")
+
+
   init: ->
     window.album_router = new AlbumRouter()
-    window.album_view = new AlbumView()
-    window.album_year_view = new AlbumYearView()
     Backbone.history.start()

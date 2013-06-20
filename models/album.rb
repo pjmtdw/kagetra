@@ -32,9 +32,10 @@ class AlbumItem
   property :name, String, length: 72
   property :place, String, length: 128 # 場所
   belongs_to :owner, 'User', required: false
+  property :comment, Text
 
-  property :take_at_day , Date # 撮影日
-  property :take_at_hourmin , HourMin # 撮影時刻
+  property :date , Date # 撮影日
+  property :hourmin , HourMin # 撮影時刻
   property :chosen_as_daily, Boolean, default: true # 今日の一枚として選ばれるかどうか
   belongs_to :album_group
   has 1, :photo, 'AlbumPhoto'
@@ -43,6 +44,7 @@ class AlbumItem
 
   has n, :album_relations, child_key: [:source_id]
   has n, :relations, self, through: :album_relations, via: :target
+  has n, :comment_log, 'AlbumCommentLog' # コメントの編集履歴
 end
 
 # 関連写真
@@ -77,7 +79,12 @@ class AlbumThumbnail
   include AlbumBase
 end
 
-# コメントの編集履歴
+# コメントの編集履歴(created_atが編集日時)
+class AlbumCommentLog
+  include ModelBase
+  belongs_to :user
+  property :patch, Text # 逆向きのdiff ( $ diff new old )
+end
 
 # タグ
 class AlbumTag

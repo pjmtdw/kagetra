@@ -61,10 +61,22 @@ def import_user
       begin
         line.chomp!
         line.sjis!
-        (uid,name,password_hash,login_num,last_login,user_agent) = line.split("\t")
+        (uid,name,password_hash,login_num,last_login,user_info) = line.split("\t")
+        last_login.sub!(/\*$/,"") if last_login
         (uid,auth) = uid.split("<>")
         (name,furigana,*zokusei) = name.split("+")
-        u = User.create(id: uid, name: name, furigana: furigana)
+        (remote_host,user_agent,last_access) = user_info.split("<>") if user_info
+        last_login = begin DateTime.parse(last_login) rescue nil end
+        (n_total,n_monthbefore,n_yearbefore) = login_num.split("<>").map{|x|x.to_i} if login_num
+        u = User.create(id: uid, name: name, furigana: furigana, show_new_from: last_login)
+        if last_login
+          u.login_latest = UserLoginLatest.create(user:u,remote_host:remote_host,user_agent:user_agent)
+          u.login_latest.update!(updated_at:last_login)
+        end
+        if login_num and n_total and n_total > 0 then
+          n_monthbefore = 0 if n_monthbefore.nil? 
+          u.login_monthly.create(year:last_login.year,month:last_login.month,count:n_total-n_monthbefore)
+        end
         puts name
         zokusei.each_with_index{|a,i|
           val = UserAttributeKey.first(index:i).values.first(index:a)
@@ -79,6 +91,27 @@ def import_user
   }
 end
 
+def import_login_log
+  files = Dir.glob(File.join(CONF_HAGAKURE_BASE,"passdir","ranking*.cgi"))
+  Parallel.each(files, in_threads:NUM_THREADS){|fn|
+    next unless /ranking(\d{4})(\d{2})\.cgi$/ =~ fn
+    year = $1.to_i
+    month = $2.to_i
+    puts "y=#{year}, m=#{month}"
+    File.readlines(fn)[1..-1].each{|line|
+      line.chomp!
+      (num,uid) = line.split(/<>/)
+      user = User.get(uid.to_i)
+      if user.nil? then
+        puts "USER ID:#{uid} not found: ignoring login log"
+        next
+      end
+      Kagetra::Utils.dm_debug(fn){
+        UserLoginMonthly.update_or_create({user:user, year:year, month: month},{count:num.to_i})
+      }
+    }
+  }
+end
 
 def import_bbs
   puts "import_bbs begin"
@@ -943,24 +976,70 @@ def import_album_stage2(old_ids)
     }
     day = begin Date.new(year.to_i,mon.to_i,day.to_i) rescue nil end
     Kagetra::Utils.dm_debug(prefix){
-      item.update(name:title,place:place,take_at_day:day)
+      item.update(name:title,place:place,date:day)
     }
   }
+end
+
+def import_comment(comment)
+  cs = comment.split(/\t/)
+  comment = ""
+  cs.each{|c|
+    if %w(^##<name>(.*?)</name><date>(.*?)</date>(.*)) =~ c then
+      editdate = DateTime.parse($2)
+      username = $1
+      patch = $3.gsub("<br>","\n")
+      comment = mypatch(comment,patch)
+    else
+      comment = c.gsub("<br>","\n")
+    end
+  }
+  comment
+end
+
+def mypatch(comment,patch)
+  lines = comment.lines
+  patches = patch.lines
+  output = []
+  [-1..lines.size].each{|i|
+    j = i + 1
+    deletemode = false
+    while p = patch.shift do
+      case p
+      when /^\-#{j},/
+        deletemode = true
+      when /^\+#{j},/
+        if i >= 0 and not deletemode then
+          output << lines[i]
+        end
+        output << $'
+        deletemode = true
+      when /^(\+|\-)(\d+),/ and $2.to_i > j
+        patches.insert(0,p)
+        break
+      end
+    }
+    if i >=0 and not deletemode
+      output << line[i]
+    end
+  }
+  output.join("\n")
 end
 
 def import_wiki
   # TODO
 end
 
-import_zokusei
-import_user
-import_meibo
-import_bbs
-import_schedule
-import_shurui
-import_event
-import_endtaikai
-import_event_comment
-import_wiki
+#import_zokusei
+#import_user
+#import_login_log
+#import_meibo
+#import_bbs
+#import_schedule
+#import_shurui
+#import_event
+#import_endtaikai
+#import_event_comment
+#import_wiki
 old_ids = import_album_stage1
 import_album_stage2(old_ids)

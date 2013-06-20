@@ -2,6 +2,12 @@
   border: 1px dotted gray;
   padding: 3px;
   cursor: pointer;
+  .date{
+    color: maroon;
+  }
+  .count{
+    color: #030;
+  }
   &.group,&.year{
     background-color: #DDF;
     &:hover{

@@ -27,11 +27,13 @@
       %li
         <% if(x.type == "group"){ %>
         %div.gbase.group(data-group-id='{{x.id}}')
-          %div {{ x.start_at }}
+          %div.clearfix
+            %div.date.left {{ x.start_at }}
+            %div.count.right {{ x.item_count }}
           %div {{ x.name }}
         <% }else{ %>
         %div.gbase.item(data-item-id='{{x.id}}')
-          %div {{ x.date }}
+          %div.date {{ x.date }}
           %div {{ x.name }}
         <% } %>
       <% }) %>

@@ -22,9 +22,8 @@ class Event
   belongs_to :aggregate_attr, 'UserAttributeKey' # 集計属性
   belongs_to :latest_comment, 'EventComment', required: false # 最終コメント
 
-  # TODO: through: DataMapper::Resource で自動的に作られるテーブルには created_at, updated_atがない
-  has n, :owners, 'User' , through: DataMapper::Resource # 管理者
-  has n, :forbidden_attrs, 'UserAttributeValue', through: DataMapper::Resource # 登録不可属性
+  property :owners, Json # 管理者一覧( User.id の配列 )
+  property :forbidden_attrs, Json # 登録不可属性 ( UserAttributeValue.id の配列 )
   property :show_choice, Boolean, default: true # ユーザがどれを選択したか表示する
   has n, :choices, 'EventChoice'
   has n, :result_classes, 'ContestClass' # 大会結果の各級の情報

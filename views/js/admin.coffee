@@ -5,11 +5,50 @@ define ->
   AdminCollection = Backbone.Collection.extend
     model: AdminModel
     url: "/api/admin/list"
+    initialize: ->
+      @sort_keys = [["furigana",1]]
     parse: (data) ->
-      @value_names = data.value_names
+      @attr_values = data.attr_values
       @key_names = data.key_names
       @key_values = data.key_values
       data.list
+    # default_order: 1=asc, -1=desc
+    add_comp_sort: (key,default_order) ->
+      lst = _.last(@sort_keys)
+      if lst[0] == key
+        @sort_keys.pop()
+        @sort_keys.push([key,-lst[1]])
+      else
+        @sort_keys.push([key,default_order])
+      @sort_keys = @sort_keys[-4..-1] # only sort keys by last four
+      that = this
+      fs = (k) ->
+        mp = {
+          login_latest: (x) -> x.get("login_latest") || "0000_01_01"
+          furigana: (x) -> x.get("furigana")
+        }
+        if mp[k]
+          return mp[k]
+        if k.indexOf("attr-key:") == 0
+          kindex = parseInt(k["attr-key:".length..-1])
+          return (x) ->
+            attrs=x.get('attrs')
+            if not attrs then return -1
+            that.attr_values[attrs[kindex]].index
+      gs = ([fs(x),y] for [x,y] in @sort_keys)
+      gs.reverse()
+      h = (q,x,y) ->
+        sign=q[1];qx=q[0](x);qy=q[0](y)
+        if qx>qy then sign else if qx<qy then -sign else 0
+      @comparator = (x,y) ->
+        r = 0
+        for g in gs
+          z = h(g,x,y)
+          if z != 0
+            r = z
+            break
+        r
+      @sort()
   AdminView = Backbone.View.extend
     el: "#admin-view"
     template_header: _.template_braces($("#templ-admin-header").html())
@@ -20,6 +59,13 @@ define ->
       "click #reveal-edit" : "do_reveal_edit"
       "change #attr-key-names" : "do_key_change"
       "change #attr-key-values" : "do_submit"
+      "click .thead-last-login" : -> @collection.add_comp_sort("login_latest",-1)
+      "click .thead-furigana" : -> @collection.add_comp_sort("furigana",1)
+      "click .thead-key-name" : "do_sort_attr"
+    do_sort_attr: (ev)->
+      kindex = $(ev.currentTarget).attr("data-key-index")
+      @collection.add_comp_sort("attr-key:#{kindex}",1)
+
     apply_filter: ->
       f_name = $("#filter-text").val()
       f_attr = parseInt($("#attr-key-values").val())
@@ -37,7 +83,7 @@ define ->
       kid = $("#attr-key-names").val()
       $("#attr-key-values").empty()
       for i in @collection.key_values[kid]
-        v = @collection.value_names[i]
+        v = @collection.attr_values[i].value
         $("#attr-key-values").append("<option value='#{i}'>#{v}</option>")
       $("#attr-key-values").trigger("change")
     do_reveal_edit: ->
@@ -67,8 +113,8 @@ define ->
       @render_body()
       false
     initialize: ->
-      _.bindAll(this,"render_all","do_submit","do_select_user","do_key_change")
       this.listenTo(@collection,"sync",@.render_all)
+      this.listenTo(@collection,"sort",@.render_body)
       @collection.fetch()
     render_all: ->
       @render_header()
@@ -76,7 +122,7 @@ define ->
     render_body: ->
       @$el.find(".body").html(@template_body(
         data:@collection.toJSON()
-        value_names: @collection.value_names
+        attr_values: @collection.attr_values
         key_names: @collection.key_names
       ))
     render_header: ->
@@ -102,8 +148,6 @@ define ->
         type: "POST").done( -> alert("更新完了"))
       
     template: _.template($("#templ-admin-edit").html())
-    initialize: ->
-      _.bindAll(this,"change_permission")
     render: ->
       @$el.html(@template(data:@collection.toJSON()))
     reveal: ->

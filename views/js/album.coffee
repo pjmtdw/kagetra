@@ -22,8 +22,31 @@ define ->
       window.album_top_view = v
       v.model.fetch()
 
+  AlbumTopModel = Backbone.Model.extend
+    url: "/api/album/years"
+
+  AlbumTopView = Backbone.View.extend
+    template: _.template_braces($("#templ-album-top").html())
+    events:
+      "click .gbase.year": "do_list_year"
+    do_list_year: (ev)->
+      year = $(ev.currentTarget).attr("data-year")
+      window.album_router.navigate("year/#{year}", trigger:true)
+
+    initialize: ->
+      @model = new AlbumTopModel()
+      this.listenTo(@model,"sync",@render) # View.remove() したときにちゃんと stopListening されるように @model.bind() じゃなくて .listenTo() の方を使う
+
+    render: ->
+      @$el.html(@template(data:@model.toJSON()))
+      # el:"#album-top" にして @$el.append(...) すると View.remove() するときに #album-top も一緒に消えてしまい
+      # 次に render しようとしても #album-top がないためそれに append() できない
+      # なので代わりに el には何も設定せず (デフォルトで <div> ) #album-top に appendTo する
+      @$el.appendTo("#album-top")
+
   AlbumYearModel =  Backbone.Model.extend
     urlRoot: "/api/album/year"
+
   AlbumYearView = Backbone.View.extend
     events:
       "click .gbase.group": "goto_group"
@@ -37,7 +60,6 @@ define ->
 
     template: _.template_braces($("#templ-album-year").html())
     initialize: ->
-      _.bindAll(this,"render")
       @model = new AlbumYearModel()
       this.listenTo(@model,"sync",@render)
     render: ->
@@ -45,29 +67,9 @@ define ->
       @$el.html(@template(data:@model.toJSON()))
       @$el.appendTo("#album-year")
 
-  AlbumModel = Backbone.Model.extend
-    url: "/api/album/years"
-  AlbumTopView = Backbone.View.extend
-    template: _.template_braces($("#templ-album-top").html())
-    events:
-      "click .gbase.year": "do_list_year"
-    do_list_year: (ev)->
-      year = $(ev.currentTarget).attr("data-year")
-      window.album_router.navigate("year/#{year}", trigger:true)
-
-    initialize: ->
-      _.bindAll(this,"render","do_list_year")
-      @model = new AlbumModel()
-      this.listenTo(@model,"sync",@render) # View.remove() したときにちゃんと stopListening されるように @model.bind() じゃなくて .listenTo() の方を使う
-
-    render: ->
-      @$el.html(@template(data:@model.toJSON()))
-      # el:"#album-top" にして @$el.append(...) すると View.remove() するときに #album-top も一緒に消えてしまい
-      # 次に render しようとしても #album-top がないためそれに append() できない
-      # なので代わりに el には何も設定せず (デフォルトで <div> ) #album-top に appendTo する
-      @$el.appendTo("#album-top")
   AlbumGroupModel = Backbone.Model.extend
     urlRoot: "/api/album/group"
+
   AlbumGroupView = Backbone.View.extend
     template: _.template_braces($("#templ-album-group").html())
     events:
@@ -76,18 +78,17 @@ define ->
       id = $(ev.currentTarget).attr("data-item-id")
       window.album_router.navigate("item/#{id}", trigger:true)
     initialize: ->
-      _.bindAll(this,"render")
       @model = new AlbumGroupModel()
       this.listenTo(@model,"sync",@render)
     render: ->
       @$el.html(@template(data:@model.toJSON()))
       @$el.appendTo("#album-group")
+
   AlbumItemModel = Backbone.Model.extend
     urlRoot: "/api/album/item"
   AlbumItemView = Backbone.View.extend
     template: _.template_braces($("#templ-album-item").html())
     initialize: ->
-      _.bindAll(this,"render")
       @model = new AlbumItemModel()
       this.listenTo(@model,"sync",@render)
     render: ->

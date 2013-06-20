@@ -52,9 +52,10 @@
       %thead
         %th.select-user(data-user-id='-1') &oplus;
         %th 名前
-        %th ふりがな
-        <% _.each(key_names,function(x){ %>
-        %th {{ x[1] }}
+        %th.thead.thead-furigana ふりがな
+        %th.thead.thead-last-login 最終ログイン
+        <% _.each(key_names,function(x,index){ %>
+        %th.thead.thead-key-name(data-key-index='{{ index }}') {{ x[1] }}
         <% }) %>
       %tbody
         <% _.each(data,function(x){ %>
@@ -63,8 +64,9 @@
           %td.select-user(data-user-id='{{x.id}}' class='{{x.selected?"selected":""}}') &oplus;
           %td {{ x.name }}
           %td {{ x.furigana }}
+          %td {{ x.login_latest }}
           <% _.each(x.attrs,function(a){ %>
-          %td {{ value_names[a] }}
+          %td {{ attr_values[a].value }}
           <% }) %>
         <% } %>
         <% }) %>

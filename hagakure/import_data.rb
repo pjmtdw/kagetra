@@ -1014,11 +1014,13 @@ def mypatch(comment,patch)
         end
         output << $'
         deletemode = true
-      when /^(\+|\-)(\d+),/ and $2.to_i > j
-        patches.insert(0,p)
-        break
+      when /^(\+|\-)(\d+),/
+        if $2.to_i > j then
+          patches.insert(0,p)
+          break
+        end
       end
-    }
+    end
     if i >=0 and not deletemode
       output << line[i]
     end
@@ -1030,16 +1032,16 @@ def import_wiki
   # TODO
 end
 
-#import_zokusei
-#import_user
-#import_login_log
-#import_meibo
-#import_bbs
-#import_schedule
-#import_shurui
-#import_event
-#import_endtaikai
-#import_event_comment
-#import_wiki
+import_zokusei
+import_user
+import_login_log
+import_meibo
+import_bbs
+import_schedule
+import_shurui
+import_event
+import_endtaikai
+import_event_comment
+import_wiki
 old_ids = import_album_stage1
 import_album_stage2(old_ids)

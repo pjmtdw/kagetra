@@ -3,7 +3,7 @@ class MainApp < Sinatra::Base
   namespace '/api/album' do
     get '/year/:year' do
       year = if params[:year] == "_else_" then nil else params[:year] end
-      groups = AlbumGroup.all(year:year, dummy:false).map{|x|x.select_attr(:id,:name,:start_at).merge({type:"group"})}
+      groups = AlbumGroup.all(year:year, dummy:false).map{|x|x.select_attr(:id,:name,:start_at,:item_count).merge({type:"group"})}
       items = AlbumGroup.all(year:year, dummy:true).items.map{|x|x.select_attr(:id,:name,:date).merge({type:"item"})}
 
       {list:groups+items} 

@@ -19,7 +19,7 @@ class MainApp < Sinatra::Base
       item.select_attr(:id,:name)
     end
     get '/years' do
-      {list: AlbumGroup.all(fields:[:year], unique: true, order: [:year.desc]).map{|x|x.year}}
+      {list: AlbumGroup.aggregate(:item_count.sum, fields:[:year], unique: true, order: [:year.desc])}
     end
   end
   get '/album' do

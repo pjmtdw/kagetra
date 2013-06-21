@@ -21,7 +21,7 @@ class ContestClass
   property :class_rank, Enum[:a,:b,:c,:d,:e,:f,:g] # 実際の級のランク
   property :index, Integer, unique_index: :u2 # 順番
   property :num_person, Integer # その級の参加人数(個人戦)
-  property :round_name, Json # 順位決定戦の名前(個人戦), {"4":"順決勝","5":"決勝"} のような形式
+  property :round_name, Json, default: {} # 順位決定戦の名前(個人戦), {"4":"順決勝","5":"決勝"} のような形式
   has n, :single_user_classes, 'ContestSingleUserClass'
   has n, :single_users,'ContestUser',through: :single_user_classes,via: :contest_user # 参加者(個人戦)
   has n, :single_games,'ContestGame' # 試合結果(個人戦)

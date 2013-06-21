@@ -16,7 +16,12 @@
     %ul.large-block-grid-7.small-block-grid-4
       <% _.each(data.list,function(x){ %>
       %li
-        %div.gbase.year(data-year='{{x?x:"_else_"}}') {{ x?x+'年':'その他' }}
+        .gbase.year(data-year='{{x[0]?x[0]:"_else_"}}')
+          .row
+            .large-12.columns
+              .left {{ x[0]?x[0]+'年':'不明' }}
+              .right {{ x[1] }}
+
       <% }) %>
 
 %script#templ-album-year(type='text/template')
@@ -26,14 +31,14 @@
       <% _.each(data.list,function(x){ %>
       %li
         <% if(x.type == "group"){ %>
-        %div.gbase.group(data-group-id='{{x.id}}')
-          %div.clearfix
-            %div.date.left {{ x.start_at }}
-            %div.count.right {{ x.item_count }}
+        .gbase.group(data-group-id='{{x.id}}')
+          .clearfix
+            .date.left {{ x.start_at }}
+            .count.right {{ x.item_count }}
           %div {{ x.name }}
         <% }else{ %>
-        %div.gbase.item(data-item-id='{{x.id}}')
-          %div.date {{ x.date }}
+        .gbase.item(data-item-id='{{x.id}}')
+          .date {{ x.date }}
           %div {{ x.name }}
         <% } %>
       <% }) %>
@@ -44,7 +49,7 @@
     %ul.large-block-grid-4.small-block-grid-2
       <% _.each(data.items,function(x){ %>
       %li
-        %div.gbase.thumbnail(data-item-id='{{x.id}}')
+        .gbase.thumbnail(data-item-id='{{x.id}}')
           %img(src='/static/album/thumb/{{ x.id }}')
 
       <% }) %>

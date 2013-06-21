@@ -22,8 +22,8 @@ class Event
   belongs_to :aggregate_attr, 'UserAttributeKey' # 集計属性
   belongs_to :latest_comment, 'EventComment', required: false # 最終コメント
 
-  property :owners, Json # 管理者一覧( User.id の配列 )
-  property :forbidden_attrs, Json # 登録不可属性 ( UserAttributeValue.id の配列 )
+  property :owners, Json, default: [] # 管理者一覧( User.id の配列 )
+  property :forbidden_attrs, Json, default: [] # 登録不可属性 ( UserAttributeValue.id の配列 )
   property :show_choice, Boolean, default: true # ユーザがどれを選択したか表示する
   has n, :choices, 'EventChoice'
   has n, :result_classes, 'ContestClass' # 大会結果の各級の情報

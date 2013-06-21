@@ -62,6 +62,13 @@ define ->
       "click .thead-last-login" : -> @collection.add_comp_sort("login_latest",-1)
       "click .thead-furigana" : -> @collection.add_comp_sort("furigana",1)
       "click .thead-key-name" : "do_sort_attr"
+      "click #clear-select" : "do_clear_select"
+    do_clear_select: ->
+      for m in @collection.models
+        m.set("selected",false)
+      $(".selected").removeClass("selected")
+      $("#selected-count").text(0)
+
     do_sort_attr: (ev)->
       kindex = $(ev.currentTarget).attr("data-key-index")
       @collection.add_comp_sort("attr-key:#{kindex}",1)

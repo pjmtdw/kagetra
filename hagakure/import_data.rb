@@ -5,8 +5,10 @@ NUM_THREADS = 8
 
 require './init'
 require 'parallel'
+require 'diff_match_patch'
 
 $global_lock = Mutex.new
+$dmp = DiffMatchPatch.new
 
 SHURUI = {}
 
@@ -430,13 +432,12 @@ def import_event
         if user.nil? then
           raise Exception.new("user name not found: #{name}")
         end
-        evt.owners << user
+        evt.owners << user.id
       }
-      evt.owners.save
       fukalist.each{|k|
-        evt.forbidden_attrs << k
+        evt.forbidden_attrs << k.id
       }
-      evt.forbidden_attrs.save
+      evt.save
       if not choices.nil? then
         choices.each_with_index{|(kind,name),i|
           evt.choices.create(name:name,positive: kind==:yes, index: i)
@@ -890,13 +891,25 @@ def import_meibo
 end
 
 def import_album_stage1
+  group_index = {}
+
   lines = File.readlines(File.join(CONF_HAGAKURE_BASE,"txts/album_subdirlist.cgi"))
   Parallel.each(lines,in_threads:NUM_THREADS){|line|
     line.chomp!
     line.sjis!
-    (num,name,place,year,mon,day,comment) = line.split(/\t/)
+    (num,name,place,year,mon,day,comment,ids) = line.split(/\t/)
     puts name
-    comment = nil if comment and comment.empty?
+    if ids.to_s.empty?.! then
+      ids.split(/<>/).each_with_index{|x,i|
+        k = x.sub!(',','-')
+        group_index[k] = i 
+      }
+    end
+    comment = if comment.to_s.empty? then
+      nil
+    else
+      comment.body_replace
+    end
     place = nil if place and place.empty?
     (fyear,tyear) = year.split(/<>/)
     (fmon,tmon) = mon.split(/<>/)
@@ -908,8 +921,7 @@ def import_album_stage1
     }
   }
 
-  old_ids = {} # 関連写真用のID一覧
-
+  old_ids = {}
   # 関連写真があるのでまず最初にAlbumItemを作ってから後でupdateする
   Parallel.each(Dir.glob(File.join(CONF_HAGAKURE_BASE,"album","albumlist_*.cgi")), in_threads: NUM_THREADS){|fn|
     lines = File.readlines(fn)
@@ -936,9 +948,12 @@ def import_album_stage1
             }
           end
         end
-        item = ag.items.create()
+
+
         $global_lock.synchronize{
-          key = [dnum,fnum]
+          key = "#{dnum}-#{fnum}"
+          gi = group_index[key]
+          item = ag.items.create(group_index: gi)
           if old_ids.has_key?(key) then
             raise Exception.new("duplicate old_id key for #{key}")
           else
@@ -955,6 +970,10 @@ end
 def import_album_stage2(old_ids)
   Parallel.each(old_ids.values,in_threads:NUM_THREADS){|item_id,prefix|
     puts prefix
+    # DEBUG
+    if not File.exist?(File.join(CONF_HAGAKURE_BASE,"album/#{prefix}.cgi")) then
+      next
+    end
     lines = File.readlines(File.join(CONF_HAGAKURE_BASE,"album/#{prefix}.cgi"))
     item = AlbumItem.get(item_id)
     item.photo = AlbumPhoto.create(album_item:item,path:"#{prefix}.jpg")
@@ -972,6 +991,22 @@ def import_album_stage2(old_ids)
         place = $1
       when %r(<!comment>(.*)<!/comment>)
         comment = $1
+        Kagetra::Utils.dm_debug(prefix){
+          import_comment(item,comment)
+        }
+      when %r(<!ruiji>(.*)<!/ruiji>)
+        (dn,_,fn) = $1.split(/&:&/)
+        o = old_ids["#{dn}-#{fn}"]
+        if o.nil? then
+          puts "WARNING: album item not found. skipped creating relation: #{dn}-#{fn}"
+        else
+          rid = o[0]
+          AlbumRelation.create(source:item,target_id:rid)
+        end
+      when %r(<area shaper=circle coords="(.*?)" alt="(.*?)">)
+        (x,y,r) = $1.split(",").map{|x|x.to_i}
+        n = $2
+        item.tags.create(name:n,coord_x:x,coord_y:y,radius:r)
       end
     }
     day = begin Date.new(year.to_i,mon.to_i,day.to_i) rescue nil end
@@ -981,30 +1016,58 @@ def import_album_stage2(old_ids)
   }
 end
 
-def import_comment(comment)
+def import_comment(item,comment)
+  log = comment_log(comment).reverse
+  if log.size >= 2 then
+    patches = log[0...-1].zip(log[1..-1]).map{|cur,prev|
+      patches = $dmp.patch_make(cur[:comment],prev[:comment])
+      {patch:$dmp.patch_toText(patches), username:cur[:username], date:cur[:date]}
+    }.reverse
+    patches.each_with_index{|x,i|
+      u = nil
+      if x[:username].nil?.! then
+        u = User.first(name:x[:username])
+        if u.nil? then
+          # TODO: 同一人物の表を使う
+          puts "WARNING: no user name #{x[:user]} found when creating album comment log"
+        end
+      end
+      # TODO: x[:date] が nil (最初のパッチ) の日時を設定する
+      item.comment_logs.create(user:u,album_item:item,index:i,patch:x[:patch],created_at:x[:date])
+    }
+  end
+  item.update(comment:log[0][:comment])
+end
+
+def comment_log(comment)
   cs = comment.split(/\t/)
   comment = ""
+  log = [{comment:""}]
   cs.each{|c|
-    if %w(^##<name>(.*?)</name><date>(.*?)</date>(.*)) =~ c then
-      editdate = DateTime.parse($2)
+    username = nil
+    patch = nil
+    editdate = nil
+    if %r(^##<name>(.*?)</name><date>(.*?)</date>(.*)) =~ c then
       username = $1
+      editdate = DateTime.parse($2)
       patch = $3.gsub("<br>","\n")
       comment = mypatch(comment,patch)
     else
       comment = c.gsub("<br>","\n")
     end
+    log << {comment:comment,username:username,date:editdate}
   }
-  comment
+  log
 end
 
 def mypatch(comment,patch)
-  lines = comment.lines
-  patches = patch.lines
+  lines = comment.lines.map{|x|x.chomp}
+  patches = patch.lines.map{|x|x.chomp}
   output = []
-  [-1..lines.size].each{|i|
+  (-1..lines.size).each{|i|
     j = i + 1
     deletemode = false
-    while p = patch.shift do
+    while p = patches.shift do
       case p
       when /^\-#{j},/
         deletemode = true
@@ -1022,7 +1085,7 @@ def mypatch(comment,patch)
       end
     end
     if i >=0 and not deletemode
-      output << line[i]
+      output << lines[i]
     end
   }
   output.join("\n")
@@ -1043,5 +1106,4 @@ import_event
 import_endtaikai
 import_event_comment
 import_wiki
-old_ids = import_album_stage1
-import_album_stage2(old_ids)
+import_album_stage2(import_album_stage1)

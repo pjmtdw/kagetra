@@ -3,9 +3,11 @@
 # アルバムのグループ
 class AlbumGroup
   include ModelBase
+  property :deleted, ParanoidBoolean
   property :name, String, length: 72
   property :place, String, length: 128 # 場所
   property :comment, Text
+  property :comment_revision, Integer
   belongs_to :owner, 'User', required: false
 
   property :start_at, Date # 開始日
@@ -29,6 +31,7 @@ end
 # アルバムの各写真の情報
 class AlbumItem
   include ModelBase
+  property :deleted, ParanoidBoolean
   property :name, String, length: 72
   property :place, String, length: 128 # 場所
   belongs_to :owner, 'User', required: false
@@ -39,7 +42,8 @@ class AlbumItem
   property :daily_choose, Boolean, default: true # 今日の一枚として選ばれるかどうか
   property :group_id, Integer, unique_index: :u1, required: true
   belongs_to :group, 'AlbumGroup'
-  property :group_index, Integer, unique_index: :u1, required: true # グループの中での表示順
+  property :group_index, Integer, unique_index: :u1, allow_nil: false # グループの中での表示順
+  property :rotate, Integer # 回転 (右向き, 度数法)
 
   has 1, :photo, 'AlbumPhoto'
   has 1, :thumb, 'AlbumThumbnail'
@@ -47,13 +51,15 @@ class AlbumItem
 
   has n, :album_relations, child_key: [:source_id]
   has n, :relations, self, through: :album_relations, via: :target
-  has n, :comment_log, 'AlbumCommentLog' # コメントの編集履歴
+  has n, :comment_logs, 'AlbumCommentLog' # コメントの編集履歴
   before :create do
-    ag = self.album_group
-    self.group_index = ag.items.count
+    if self.group_index.nil? then
+      ag = self.group
+      self.group_index = ag.items.count
+    end
   end
   after :create do
-    ag = self.album_group
+    ag = self.group
     ag.update(item_count: ag.items.count)
   end
 end
@@ -61,7 +67,10 @@ end
 # 関連写真
 class AlbumRelation
   include ModelBase
+  # TODO: (source, target) と (target, sorce) を同じものとみなす
+  property :source_id, Integer, unique_index: :u1, required: true
   belongs_to :source, 'AlbumItem', key: true
+  property :target_id, Integer, unique_index: :u1, required: true
   belongs_to :target, 'AlbumItem', key: true
 end
 
@@ -93,8 +102,11 @@ end
 # コメントの編集履歴(created_atが編集日時)
 class AlbumCommentLog
   include ModelBase
-  belongs_to :user
-  property :patch, Text # 逆向きのdiff ( $ diff new old )
+  property :album_item_id, Integer, unique_index: :u1, required: true
+  belongs_to :album_item
+  property :index, Integer, unique_index: :u1, required: true # パッチの古い順(パッチを当てるときはcreated_atは信用しない)
+  property :patch, Text, required: true # 逆向きのdiff ( $ diff new old )
+  belongs_to :user, required: false # 編集者
 end
 
 # タグ

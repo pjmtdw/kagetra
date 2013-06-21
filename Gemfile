@@ -8,17 +8,16 @@ gem 'sinatra-contrib'
 gem 'haml'
 gem 'sass'
 gem 'rack-coffee'
+gem 'diff_match_patch'
 
 gem 'zurb-foundation'
 gem 'compass'
 
 gem 'sqlite3'
-gem 'data_mapper'
 
+gem 'data_mapper'
 gem 'dm-sqlite-adapter'
 gem 'dm-mysql-adapter'
-
-gem 'dm-types'
 gem 'dm-chunked_query'
 
 # only used in hagakure scripts

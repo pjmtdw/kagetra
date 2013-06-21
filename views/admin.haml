@@ -22,6 +22,16 @@
   .header
   .body
 
+%script#attr-key-values(type='text/template')
+  .row
+    .large-6.columns
+      %select.attr-key-names
+        <% _.each(key_names,function(x){ %>
+        %option(value='{{x[0]}}') {{ x[1] }}
+        <% }) %>
+    .large-6.columns
+      %select.attr-value-names
+
 %script#templ-admin-header(type='text/template')
   .row
     %form#filter-form
@@ -29,14 +39,7 @@
         .large-2.columns
           %input#filter-text(type='text' placeholder='名前 or ふりがな' autofocus)
         .large-3.columns.left
-          .row
-            .large-6.columns
-              %select#attr-key-names
-                <% _.each(key_names,function(x){ %>
-                %option(value='{{x[0]}}') {{ x[1] }}
-                <% }) %>
-            .large-6.columns
-              %select#attr-key-values
+          .attr-key-values
 
 %script#templ-admin-body(type='text/template')
   .row
@@ -91,6 +94,14 @@
         権限を
         %button.small.round#add-permission 付与
         %button.small.round#del-permission 解除
+  %fieldset
+    %legend 属性編集
+    .row
+      .large-4.columns
+        .attr-key-values
+      .large-8.columns
+        属性に
+        %button.small.round#change-attr 変更
 
 
 #admin-edit.reveal-modal

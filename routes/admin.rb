@@ -9,14 +9,17 @@ class MainApp < Sinatra::Base
         .group_by{|x| x[:user_id]}.map{|xs|[xs[0],xs[1].map{|x|x[:value_id]}]}]
       attr_values = Hash[UserAttributeValue.all
         .map{|x| [x.id, {index:x.index, value:x.value}]}]
-      key_names = UserAttributeKey.all.map{|x|[x.id,x.name]}
+      key_names = UserAttributeKey.all(order: [:index.asc]).map{|x|[x.id,x.name]}
       key_values = Hash[UserAttributeKey.all.map{|x|[x.id,x.values.map{|v|v.id}]}]
+
+      values_indexes = Hash[UserAttributeValue.all.map{|x|[x.id,x.attr_key.index]}]
+      p values_indexes
 
       list = User.all.map{|u|
         r = u.select_attr(:id,:name,:furigana)
         l = u.login_latest
         r[:login_latest] = l.updated_at.to_date if l
-        a = user_attrs[u.id]
+        a = user_attrs[u.id].sort_by{|x|values_indexes[x]} if user_attrs[u.id]
         r[:attrs] = a if a
         r
       }
@@ -37,6 +40,13 @@ class MainApp < Sinatra::Base
       else
         change_permission(is_add,sym,users)
       end
+    end
+
+    post '/change_attr' do
+      users = User.all(id: @json["uids"])
+      Kagetra::Utils.dm_debug{
+        users.map{|u|u.attrs.create(value_id:@json["value"].to_i)}
+      }
     end
 
     def change_admin_or_loginable(is_add,sym,users)

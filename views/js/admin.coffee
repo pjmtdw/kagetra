@@ -1,4 +1,19 @@
 define ->
+  AdminAttrView = Backbone.View.extend
+    template: _.template_braces($("#attr-key-values").html())
+    events:
+      "change .attr-key-names" : "do_key_change"
+    do_key_change: ->
+      kid = @$el.find(".attr-key-names").val()
+      kv = @$el.find(".attr-value-names")
+      kv.empty()
+      for i in @collection.key_values[kid]
+        v = @collection.attr_values[i].value
+        kv.append("<option value='#{i}'>#{v}</option>")
+      kv.trigger("change")
+    render: ->
+      @$el.html(@template(key_names:@collection.key_names))
+      @$el.find(".attr-key-names").trigger("change")
   AdminModel = Backbone.Model.extend
     defaults:
       "visible": true
@@ -57,8 +72,7 @@ define ->
       "submit #filter-form": "do_submit"
       "click .select-user" : "do_select_user"
       "click #reveal-edit" : "do_reveal_edit"
-      "change #attr-key-names" : "do_key_change"
-      "change #attr-key-values" : "do_submit"
+      "change .attr-value-names" : "do_submit"
       "click .thead-last-login" : -> @collection.add_comp_sort("login_latest",-1)
       "click .thead-furigana" : -> @collection.add_comp_sort("furigana",1)
       "click .thead-key-name" : "do_sort_attr"
@@ -75,7 +89,8 @@ define ->
 
     apply_filter: ->
       f_name = $("#filter-text").val()
-      f_attr = parseInt($("#attr-key-values").val())
+      f_attr = parseInt(@$el.find(".attr-value-names").val())
+      console.log f_attr
       for m in @collection.models
         # name filter
         name = m.get("name")
@@ -86,13 +101,6 @@ define ->
         v2 = attrs and attrs.indexOf(f_attr) >= 0
         m.set("visible",v1 and v2)
 
-    do_key_change: ->
-      kid = $("#attr-key-names").val()
-      $("#attr-key-values").empty()
-      for i in @collection.key_values[kid]
-        v = @collection.attr_values[i].value
-        $("#attr-key-values").append("<option value='#{i}'>#{v}</option>")
-      $("#attr-key-values").trigger("change")
     do_reveal_edit: ->
       if parseInt($("#selected-count").text()) == 0
         alert("編集対象をチェックして下さい")
@@ -136,16 +144,30 @@ define ->
       @$el.find(".header").html(@template_header(
         key_names: @collection.key_names
       ))
-      $("#attr-key-names").trigger("change")
+      aview = new AdminAttrView(collection:@collection)
+      aview.render()
+      @$el.find(".attr-key-values").append(aview.$el)
 
   AdminEditView = Backbone.View.extend
     el: "#admin-edit"
     events:
       "click #add-permission": (ev) -> @change_permission(ev,"add")
       "click #del-permission": (ev) -> @change_permission(ev,"del")
+      "click #change-attr": "change_attr"
+    get_uids: ->
+      return (x.get("id") for x in @collection.models when x.get("selected"))
+    change_attr: (ev)->
+      uids = @get_uids()
+      $.ajax("/api/admin/change_attr",
+        data: JSON.stringify(
+                uids: uids
+                value: @$el.find(".attr-value-names").val())
+        contentType: "application/json"
+        type: "POST").done( -> alert("更新完了"))
+      
     change_permission: (ev,mode) ->
       obj = $(ev.currentTarget)
-      uids = (x.get("id") for x in @collection.models when x.get("selected"))
+      uids = @get_uids()
       $.ajax("/api/admin/permission",
         data: JSON.stringify(
                 mode: mode
@@ -157,6 +179,9 @@ define ->
     template: _.template($("#templ-admin-edit").html())
     render: ->
       @$el.html(@template(data:@collection.toJSON()))
+      view = new AdminAttrView(collection:@collection)
+      view.render()
+      @$el.find(".attr-key-values").append(view.$el)
     reveal: ->
       @$el.foundation("reveal","open")
       @render()

@@ -19,7 +19,7 @@ define (require,exports,module) ->
   ScheduleCollection = Backbone.Collection.extend
     model: $si.ScheduleModel
     refresh: (year,mon) ->
-      @url = "/api/schedule/cal/#{year}/#{mon}"
+      @url = "/api/schedule/cal/#{year}-#{mon}"
     parse: (data) ->
       @year = data.year
       @mon = data.mon
@@ -70,8 +70,6 @@ define (require,exports,module) ->
     initialize: ->
       _.bindAll(this,"render","do_edit_info_done","do_toggle_edit_info","inc_month")
       @collection = new ScheduleCollection()
-    get_subview: (year,mon,day) ->
-      @subviews[@collection.before_day+day-1]
     do_edit_info_done: ->
       have_to_update = {}
       for v in @subviews
@@ -132,5 +130,5 @@ define (require,exports,module) ->
     window.show_schedule_weekday = window.is_small
     window.schedule_router = new ScheduleRouter()
     window.schedule_view = new ScheduleView()
-    $si.init(parent:window.schedule_view)
+    $si.init()
     Backbone.history.start()

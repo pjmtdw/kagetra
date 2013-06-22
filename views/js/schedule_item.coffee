@@ -20,7 +20,7 @@ define (require, exports, module) ->
   ScheduleModel = Backbone.Model.extend
     url: ->
       [y,m,d] = (@get(x) for x in ['year','mon','day'])
-      "/api/schedule/get/#{y}/#{m}/#{d}"
+      "/api/schedule/get/#{y}-#{m}-#{d}"
     parse: (data)->
       data.current = true unless data.current?
       data
@@ -32,13 +32,14 @@ define (require, exports, module) ->
     template_edit_info: _.template($("#templ-schedule-item-edit-info").html())
     el: "<li>"
     initialize: ->
-      _.bindAll(this,"do_when_click","refresh","render")
+      _.bindAll(this,"refresh","render")
+      @listenTo(@model,"sync",@render)
     refresh: ->
-      @model.fetch().done(@render)
+      @model.fetch()
     do_when_click: ->
       return if @edit_info or not @model.get('current')
       [year,mon,day] = (@model.get(x) for x in ['year','mon','day'])
-      reveal_detail(year,mon,day)
+      reveal_detail(@model,year,mon,day)
     get_date: ->
       if @model.get('current')
         _.gen_date(@model)
@@ -88,9 +89,12 @@ define (require, exports, module) ->
     urlRoot: "/api/schedule/detail/item"
 
   ScheduleDetailCollection = Backbone.Collection.extend
+    url: -> "/api/schedule/detail/#{@year}-#{@mon}-#{@day}"
     model: ScheduleDetailModel
     refresh: (year,mon,day) ->
-      @url = "/api/schedule/detail/#{year}/#{mon}/#{day}"
+      @year = year
+      @mon = mon
+      @day = day
     parse: (data) ->
       @year = data.year
       @mon = data.mon
@@ -108,10 +112,10 @@ define (require, exports, module) ->
     edit_done: ->
       obj = @$el.find('.item-detail-form').serializeObj()
       @model.set(obj)
+      that = this
       refresh_day = ->
-        dv = window.schedule_detail_view
-        [year,mon,day] = (dv.collection[x] for x in ["year","mon","day"])
-        locals.schedule_detail_parent.get_subview(year,mon,day).refresh()
+        window.schedule_detail_view.options.parent_model.fetch()
+
       if @model.isNew()
         @model.save().done(->
           window.schedule_detail_view.refresh()
@@ -199,8 +203,8 @@ define (require, exports, module) ->
         v = new ScheduleDetailItemView(model:m)
         v.render()
         body.append(v.$el)
-  reveal_detail = (year,mon,day)->
-    v = new ScheduleDetailView()
+  reveal_detail = (model,year,mon,day)->
+    v = new ScheduleDetailView(parent_model:model)
     window.schedule_detail_view = v
     t = locals.schedule_detail_target
     _.reveal_view(t,v)
@@ -208,10 +212,6 @@ define (require, exports, module) ->
   {
     ScheduleModel: ScheduleModel
     ScheduleItemView: ScheduleItemView
-    # parent: detail に対応する親view 
-    #         ScheduleDetailView 更新時にparent.get_subview(y,m,d).refresh()を実行する
-    # target: ScheduleDetailView を格納するセレクタ
     init: (arg) ->
-      locals.schedule_detail_target = arg.target || "#container-schedule-detail"
-      locals.schedule_detail_parent = arg.parent
+      locals.schedule_detail_target = if arg and arg.target then arg.target else "#container-schedule-detail"
   }

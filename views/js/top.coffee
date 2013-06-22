@@ -52,8 +52,6 @@ define (require,exports,module) ->
         @$el.append(v.$el)
         [y,m,d] = (m.get(x) for x in ["year","mon","day"])
         @subviews["#{y}-#{m}-#{d}"] = v
-    get_subview: (year,mon,day) ->
-      @subviews["#{year}-#{mon}-#{day}"]
 
   EventListCollection = Backbone.Collection.extend
     model: $ed.EventItemModel
@@ -193,4 +191,4 @@ define (require,exports,module) ->
     window.show_schedule_month = true
     window.schedule_panel_view = new SchedulePanelView()
     window.event_list_view = new EventListView()
-    $si.init(parent:window.schedule_panel_view)
+    $si.init()

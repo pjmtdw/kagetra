@@ -50,7 +50,7 @@ class MainApp < Sinatra::Base
       user = get_user
       update_or_create(params[:id], user, @json)
     end
-    get '/detail/:year/:mon/:day' do
+    get '/detail/:year-:mon-:day' do
       (year,mon,day) = [:year,:mon,:day].map{|x|params[x].to_i}
       date = Date.new(year,mon,day)
       list = ScheduleItem.all(date:date).map{|x|
@@ -79,7 +79,7 @@ class MainApp < Sinatra::Base
       return unless x
       x.select_attr(:name)
     end
-    get '/get/:year/:mon/:day' do
+    get '/get/:year-:mon-:day' do
       (year,mon,day) = [:year,:mon,:day].map{|x|params[x].to_i}
       date = Date.new(year,mon,day)
       {
@@ -115,7 +115,7 @@ class MainApp < Sinatra::Base
       }
       arr
     end
-    get '/cal/:year/:mon' do
+    get '/cal/:year-:mon' do
       year = params[:year].to_i
       mon = params[:mon].to_i
       fday = Date.new(year,mon,1)

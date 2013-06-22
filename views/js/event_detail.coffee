@@ -64,7 +64,5 @@ define ->
     # foundation の section にコメント表示
     section_comment: (target,id,comment_num_obj) ->
       v = new EventCommentView(target:target,comment_num_obj:comment_num_obj)
-      # 親 section が reflow されてるため el を設定し直す必要がある
-      v.setElement($(target).get(0))
       v.refresh(id)
   }

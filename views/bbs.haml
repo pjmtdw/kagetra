@@ -40,12 +40,12 @@
   #bbs-body
 
 %script#templ-thread(type='text/template')
-  .thread(class='{{data.public?"public":"private"}}')
+  .thread(class='{-data.public?"public":"private"-}')
     %div.clearfix
       .left.title
-        {{data.title}}
+        {- data.title -}
       .right.is-public
-        {{data.public?"外部公開":""}}
+        {- data.public?"外部公開":"" -}
     .items
       {{data.items}}
     .response
@@ -55,11 +55,11 @@
   .item
     .name-date
       %span.name
-        <%= name %>
+        <%- name %>
       %span.date
-        @ <%= date %>
-    .body
-      <%= body %>
+        @ <%- date %>
+    .body.pre
+      <%- body %>
 %script#templ-response(type='text/template')
   %form.response-form
     %label レス

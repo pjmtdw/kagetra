@@ -27,7 +27,7 @@
     .large-6.columns
       %select.attr-key-names
         <% _.each(key_names,function(x){ %>
-        %option(value='{{x[0]}}') {{ x[1] }}
+        %option(value='{-x[0]-}') {- x[1] -}
         <% }) %>
     .large-6.columns
       %select.attr-value-names
@@ -45,7 +45,7 @@
   .row
     .large-12.columns
       選択:
-      %span#selected-count {{ _.filter(data,function(x){return x.selected}).length }}
+      %span#selected-count {- _.filter(data,function(x){return x.selected}).length -}
       %button.small.round#reveal-edit
         一括編集
       %button.small.round#clear-select
@@ -58,18 +58,18 @@
         %th.thead.thead-furigana ふりがな
         %th.thead.thead-last-login 最終ログイン
         <% _.each(key_names,function(x,index){ %>
-        %th.thead.thead-key-name(data-key-index='{{ index }}') {{ x[1] }}
+        %th.thead.thead-key-name(data-key-index='{- index -}') {- x[1] -}
         <% }) %>
       %tbody
         <% _.each(data,function(x){ %>
         <% if(x.visible){ %>
         %tr
-          %td.select-user(data-user-id='{{x.id}}' class='{{x.selected?"selected":""}}') &oplus;
-          %td {{ x.name }}
-          %td {{ x.furigana }}
-          %td {{ x.login_latest }}
+          %td.select-user(data-user-id='{-x.id-}' class='{-x.selected?"selected":""-}') &oplus;
+          %td {- x.name -}
+          %td {- x.furigana -}
+          %td {- x.login_latest -}
           <% _.each(x.attrs,function(a){ %>
-          %td {{ attr_values[a].value }}
+          %td {- attr_values[a].value -}
           <% }) %>
         <% } %>
         <% }) %>
@@ -79,7 +79,7 @@
   .panel
     <% _.each(data,function(x){ %>
     <% if(x.selected){ %>
-    <%= x.name %>
+    <%- x.name %>
     <% } %>
     <% }) %>
   %fieldset

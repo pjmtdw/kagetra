@@ -31,8 +31,8 @@
   %table
     <% _.each(data,function(x){ %>
     %tr
-      %td <%= x[0] %>
-      %td <%= x[1] %>
+      %td <%- x[0] %>
+      %td <%- x[1] %>
     <% }) %>
 
 %script#templ-addrbook-body-edit(type='text/template')
@@ -41,14 +41,14 @@
     %table
       <% _.each(data,function(x){ %>
       %tr
-        %td {{ x[0] }}
+        %td {- x[0] -}
         %td
-          %input(type='text' name='{{ x[0] }}' value='{{ x[1] }}')
+          %input(type='text' name='{- x[0] -}' value='{- x[1] -}')
       <% }) %>
 
 %script#templ-addrbook-panel(type='text/template')
   <% _.each(data.list,function(x){ %>
-  %option(value='{{x[0]}}') {{x[1]}}
+  %option(value='{-x[0]-}') {-x[1]-}
   <% }) %>
 
 %script

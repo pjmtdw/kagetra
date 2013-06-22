@@ -28,10 +28,10 @@
   %hr
   .comment-item
     %div.name-date
-      %span.name <%= x.user_name %>
-      %span.date @ <%= x.date %>
+      %span.name <%- x.user_name %>
+      %span.date @ <%- x.date %>
       <% if(x.is_new){ %>
       %span.is-new.label.round new
       <% } %>
-    %div <%= x.body %>
+    %div.pre <%- x.body %>
   <% }) %>

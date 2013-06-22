@@ -16,11 +16,11 @@
     %ul.large-block-grid-7.small-block-grid-4
       <% _.each(data.list,function(x){ %>
       %li
-        .gbase.year(data-year='{{x[0]?x[0]:"_else_"}}')
+        .gbase.year(data-year='{-x[0]?x[0]:"_else_"-}')
           .row
             .large-12.columns
-              .left {{ x[0]?x[0]+'年':'不明' }}
-              .right {{ x[1] }}
+              .left {- x[0]?x[0]+'年':'不明' -}
+              .right {- x[1] -}
 
       <% }) %>
 
@@ -31,31 +31,31 @@
       <% _.each(data.list,function(x){ %>
       %li
         <% if(x.type == "group"){ %>
-        .gbase.group(data-group-id='{{x.id}}')
+        .gbase.group(data-group-id='{-x.id-}')
           .clearfix
-            .date.left {{ x.start_at }}
-            .count.right {{ x.item_count }}
-          %div {{ x.name }}
+            .date.left {- x.start_at -}
+            .count.right {- x.item_count -}
+          %div {- x.name -}
         <% }else{ %>
-        .gbase.item(data-item-id='{{x.id}}')
-          .date {{ x.date }}
-          %div {{ x.name }}
+        .gbase.item(data-item-id='{-x.id-}')
+          .date {- x.date -}
+          %div {- x.name -}
         <% } %>
       <% }) %>
 
 %script#templ-album-group(type='text/template')
   .row
-    {{ data.name }}
+    {- data.name -}
     %ul.large-block-grid-4.small-block-grid-2
       <% _.each(data.items,function(x){ %>
       %li
-        .gbase.thumbnail(data-item-id='{{x.id}}')
-          %img(src='/static/album/thumb/{{ x.id }}')
+        .gbase.thumbnail(data-item-id='{-x.id-}')
+          %img(src='/static/album/thumb/{- x.id -}')
 
       <% }) %>
       
 
 %script#templ-album-item(type='text/template')
   .row
-    {{ data.name }}
-    %img(src='/static/album/photo/{{ data.id }}')
+    {- data.name -}
+    %img(src='/static/album/photo/{- data.id -}')

@@ -38,8 +38,8 @@
         %li.arrow
           %a &lsaquo;
         <% _.each(recent_list,function(x){ %>
-        %li.contest-link(data-id='{{x.id}}')
-          %a {{ x.name }}
+        %li.contest-link(data-id='{-x.id-}')
+          %a {- x.name -}
         <% }) %>
         %li.arrow
           %a &rsaquo;
@@ -47,13 +47,13 @@
       %a.small.button.dropdown(href='#' data-dropdown='contest-group') 過去の大会
       %ul#contest-group.f-dropdown
         <% _.each(group,function(x){ %>
-        %li.contest-link(data-id='{{x.id}}')
-          %a.ellipsis {{ x.date }} {{ x.name }}
+        %li.contest-link(data-id='{-x.id-}')
+          %a.ellipsis {- x.date -} {- x.name -}
         <% }) %>
   .row
     %div.contest-name-date
-      %span.contest-name {{ name }} 
-      %span.contest-date @ {{ date }}
+      %span.contest-name {- name -} 
+      %span.contest-date @ {- date -}
   .row
     .section-container.tabs(data-section="tabs")
       %section
@@ -76,28 +76,28 @@
       %table.chunk-body
         %thead.chunk-header
           %tr 
-            %th.leftmost {{ _.show_header_left(data.header_left) }}
+            %th.leftmost {- _.show_header_left(data.header_left) -}
             <% _.each(data.rounds,function(xs){ %>
             %th.result
               <% _.each(xs,function(x){ %>
-              %div {{ x }}
+              %div {- x -}
               <% }) %>
               <% }) %>
         %tbody
         <% _.each(data.user_results,function(x){ %>
         %tr
           %td.leftmost.user-name
-            %div {{ x.user_name }}
+            %div {- x.user_name -}
             %div
               <% if(x.prize){ %>
-              %div.prize {{ _.show_prize(x.prize) }}
+              %div.prize {- _.show_prize(x.prize) -}
               <% } %>
           <% _.each(x.game_results,function(y){ %>
-          %td.result(class='result-{{y.result}}')
+          %td.result(class='result-{-y.result-}')
             %div
-              {{ _.result_str(y.result) }} {{ y.score_str }} {{ y.opponent_name }}
+              {- _.result_str(y.result) -} {- y.score_str -} {- y.opponent_name -}
             %div
-              {{ _.show_opponent_belongs(data.team_size,y.opponent_belongs) }}
+              {- _.show_opponent_belongs(data.team_size,y.opponent_belongs) -}
           <% }) %>
         <% }) %>
 

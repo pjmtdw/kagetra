@@ -25,12 +25,12 @@ class MainApp < Sinatra::Base
       query.all(order: [:updated_at.desc ]).chunks(BBS_THREADS_PER_PAGE)[page].map{|t|
         items = t.items.map{|i|
           {
-            body: Kagetra::Utils.escape_html_br(i.body),
+            body: i.body,
             name: i.user_name,
             date: i.created_at.strftime("%Y-%m-%d %H:%M:%S")
           }
         }
-        title = Rack::Utils.escape_html(t.title)
+        title = t.title
         {thread_id: t.id, title: title, items: items, public: t.public}
       }
     end

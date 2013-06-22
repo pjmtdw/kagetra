@@ -22,7 +22,7 @@
         %fieldset
           %legend ユーザ設定
           %label 掲示板の外部公開スレに書き込む際の名前
-          %input(type='text' name='bbs_public_name' value='{{ bbs_public_name }}')
+          %input(type='text' name='bbs_public_name' value='{- bbs_public_name -}')
           %input.button.small.round(type='submit' value='送信')
 
 %script#templ-change-pass(type='text/template')

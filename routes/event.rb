@@ -75,7 +75,7 @@ class MainApp < Sinatra::Base
         r = x.select_attr(:user_name)
           .merge({
             date: x.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-            body: Kagetra::Utils.escape_html_br(x.body)
+            body: x.body
           })
         if (x.user.nil? or x.user.id != user.id) and 
           user.show_new_from.nil?.! and

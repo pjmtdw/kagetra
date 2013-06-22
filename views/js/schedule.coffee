@@ -6,13 +6,13 @@ define (require,exports,module) ->
 
   ScheduleRouter = Backbone.Router.extend
     routes:
-      "cal/:year/:mon": "cal",
+      "cal/:year-:mon": "cal",
       "": "start"
     start: ->
       dt = new Date()
       mon = dt.getMonth() + 1
       year = dt.getFullYear()
-      window.schedule_router.navigate("cal/#{year}/#{mon}", {trigger: true, replace: true})
+      window.schedule_router.navigate("cal/#{year}-#{mon}", {trigger: true, replace: true})
     cal: (year,mon) ->
       window.schedule_view.refresh(year,mon)
 
@@ -61,7 +61,7 @@ define (require,exports,module) ->
       x = y * 12 + ( m - 1 ) + dx
       mm = (x % 12) + 1
       yy = Math.floor(x / 12)
-      window.schedule_router.navigate("cal/#{yy}/#{mm}", trigger: true)
+      window.schedule_router.navigate("cal/#{yy}-#{mm}", trigger: true)
     do_toggle_edit_info: ->
       @edit_info ^= true
       @render()

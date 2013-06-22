@@ -16,36 +16,52 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
   data_to_option = (data) ->
     ("<option value='#{a}'>#{b}</option>" for [a,b] in data).join()
 
-  on_shared_pass_submit = ->
-    password = $("#shared-pass input[type=password]").val()
-    [hash,msg] = _.hmac_password(password ,g_shared_salt)
-    $.post '/api/user/auth_shared',
-      hash: hash
-      msg: msg
-    .done (data) ->
-      if data.result == "OK"
-        $("#shared-pass").addClass("hide")
-        $("#login").removeClass("hide")
-        new UserListView({model: new UserListModel()})
-      else
-        alert("パスワードが違います")
+  SharedPasswdView = Backbone.View.extend
+    el: "#container-shared-pass"
+    events:
+      "submit #shared-pass" : "on_shared_pass_submit"
+    initialize: -> @render()
+    render: -> @$el.html($("#templ-shared-pass").html())
 
-  on_login_submit = ->
-    user_id = $("#names").val()
-    password = $("#login input[type=password]").val()
-    first = ->
-      $.get "/api/user/auth_salt/#{user_id}"
-    second = (data) ->
-      [hash, msg] = _.hmac_password(password,data.salt)
-      $.post '/api/user/auth_user',
-        user_id: user_id
+    on_shared_pass_submit: ->
+      password = $("#shared-pass input[type=password]").val()
+      [hash,msg] = _.hmac_password(password ,g_shared_salt)
+      $.post '/api/user/auth_shared',
         hash: hash
         msg: msg
-    $.when(first()).then(second).done (data) ->
-      if data.result == "OK"
-        window.location.href = "/top"
-      else
-        alert("パスワードが違います")
+      .done (data) ->
+        if data.result == "OK"
+          window.shared_passwd_view.remove()
+          new LoginView()
+          new UserListView({model: new UserListModel()})
+        else
+          alert("パスワードが違います")
+      false
+
+  LoginView = Backbone.View.extend
+    el: "#container-login"
+    events:
+      "submit #login": "on_login_submit"
+
+    initialize: -> @render()
+    render: -> @$el.html($("#templ-login").html())
+
+    on_login_submit: ->
+      user_id = $("#names").val()
+      password = $("#login input[type=password]").val()
+      first = ->
+        $.get "/api/user/auth_salt/#{user_id}"
+      second = (data) ->
+        [hash, msg] = _.hmac_password(password,data.salt)
+        $.post '/api/user/auth_user',
+          user_id: user_id
+          hash: hash
+          msg: msg
+      $.when(first()).then(second).done (data) ->
+        if data.result == "OK"
+          window.location.href = "/top"
+        else
+          alert("パスワードが違います")
+      false
   init: ->
-    $("#login").submit(_.wrap_submit(on_login_submit))
-    $("#shared-pass").submit(_.wrap_submit(on_shared_pass_submit))
+    window.shared_passwd_view = new SharedPasswdView()

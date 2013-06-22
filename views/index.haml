@@ -1,37 +1,45 @@
 - content_for :title do
   ログイン
-.row
-  %form#shared-pass.large-6.columns
-    %fieldset
-      %legend ログイン
-      .row
-        .large-8.columns
-          %label 共通パスワード
-          .row.collapse
-            .large-10.small-10.columns
-              %input(type='password' autofocus)
-            .large-2.small-2.columns
-              %input.button.postfix.radius(type='submit' value='GO')
-.row
-  %form#login.large-6.columns.hide
-    %fieldset
-      %legend ログイン
-      .row
-        .large-3.columns
-          %select#initials(autofocus)
-            - Kagetra::Utils.gojuon_row_names.each_with_index do |name,index|
-              %option(value=index)= name
-            %option(value="-1") その他
-        .large-9.columns
-          %select#names
-      .row
-        .large-8.columns
-          %label 個人パスワード
-          .row.collapse
-            .large-10.small-10.columns
-              %input(type='password')
-            .large-2.small-0.columns
-              %input.button.postfix.radius(type='submit' value='GO')
-%script(data-start="login")
+- content_for :js_start do
+  login
+
+#container-shared-pass
+#container-login
+
+%script#templ-shared-pass(type='text/template')
+  .row
+    %form#shared-pass.large-6.columns
+      %fieldset
+        %legend ログイン
+        .row
+          .large-8.columns
+            %label 共通パスワード
+            .row.collapse
+              .large-10.small-10.columns
+                %input(type='password' autofocus)
+              .large-2.small-2.columns
+                %input.button.postfix.radius(type='submit' value='GO')
+%script#templ-login(type='text/template')
+  .row
+    %form#login.large-6.columns
+      %fieldset
+        %legend ログイン
+        .row
+          .large-3.columns
+            %select#initials(autofocus)
+              - Kagetra::Utils.gojuon_row_names.each_with_index do |name,index|
+                %option(value=index)= name
+              %option(value="-1") その他
+          .large-9.columns
+            %select#names
+        .row
+          .large-8.columns
+            %label 個人パスワード
+            .row.collapse
+              .large-10.small-10.columns
+                %input(type='password')
+              .large-2.small-0.columns
+                %input.button.postfix.radius(type='submit' value='GO')
+
 %script
   var g_shared_salt="#{shared_salt}";

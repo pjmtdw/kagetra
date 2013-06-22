@@ -20,7 +20,8 @@ define ["crypto-aes", "crypto-hmac","crypto-pbkdf2","crypto-base64"], ->
       pass = $("#password").val()
       if check_password(pass)
         alert("名簿パスワードは正しいです")
-        window.addrbook_view.render()
+        if not window.addrbook_view.decode_success
+          window.addrbook_view.render()
       else
         alert("名簿パスワードが違います")
       false
@@ -36,6 +37,7 @@ define ["crypto-aes", "crypto-hmac","crypto-pbkdf2","crypto-base64"], ->
       window.addrbook_router.navigate("user/#{v}",{trigger:true})
     render: ->
       $("#panel-users").html(@template(data:@model.toJSON()))
+      $("#panel-users").scrollTop(0,0)
     refresh: (ev)->
       v = $(ev.currentTarget).val()
       @model.set("id",v)
@@ -78,6 +80,7 @@ define ["crypto-aes", "crypto-hmac","crypto-pbkdf2","crypto-base64"], ->
       @listenTo(@model,"sync", @render)
     render: ->
       res = null
+      @decode_success = false
       if @model.get("found")
         text = @model.get("text")
         pass = $("#password").val()
@@ -105,6 +108,7 @@ define ["crypto-aes", "crypto-hmac","crypto-pbkdf2","crypto-base64"], ->
       
       templ = if @model.get("editable") then @template_edit else @template
       @$el.html(templ(data:data))
+      @decode_success = true
     refresh: (id) ->
       @model.clear()
       @model.set("uid",id)

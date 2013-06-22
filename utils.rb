@@ -27,6 +27,15 @@ module DataMapper
   end # Module Model
 end # Module DataMapper
 
+class Hash
+  # {a:1,b:2,c:3}.select_attr(:a,:c) =>{a:1,c:3}
+  def select_attr(*symbols)
+    self.select{|k,v|
+      symbols.include?(k)
+    }
+  end
+end
+
 module Kagetra
   class HourMin
     def initialize(hour,min)
@@ -88,6 +97,15 @@ module Kagetra
       rescue DataMapper::SaveFailureError => e
         puts "#{e.resource.errors.inspect} #{if arg then 'at '+arg end}"
         raise e
+      end
+    end
+    def self.dm_response
+      begin
+        yield
+      rescue DataMapper::SaveFailureError => e
+        {_error_: e.resource.errors.full_messages().join("\n")}
+      rescue Exception => e
+        {_error_: e.message }
       end
     end
     def self.unicode_first(s)

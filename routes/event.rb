@@ -24,13 +24,28 @@ class MainApp < Sinatra::Base
       user = get_user
       ev = Event.first(id:params[:id].to_i)
       r = event_info(ev,user)
-      if params[:mode] == "detail"
-        r.merge!({description: Kagetra::Utils.escape_html_br(ev.description)})
+      if params[:detail] == "true"
+        r.merge!(ev.select_attr(:description,:formal_name,:start_at, :end_at))
         r[:participant] = ev.choices(positive:true).each_with_object({}){|c,obj|
           obj[c.id] = c.user_choices.group_by{|x|x.attr_value}
           .sort_by{|k,v|k.index}.map{|k,v| {k.value => v.map{|x|x.user_name}}}}
       end
       r
+    end
+    put '/item/:id' do
+      user = get_user
+      ev = Event.first(id:params[:id].to_i)
+      Kagetra::Utils.dm_response{
+        ev.update(@json)
+        event_info(ev,user)
+      }
+    end
+    post '/item' do
+      user = get_user
+      Kagetra::Utils.dm_response{
+        ev = Event.create(@json.merge({owners:[user],aggregate_attr:UserAttributeKey.first()}))
+        event_info(ev,user)
+      }
     end
     get '/list' do
       user = get_user

@@ -75,7 +75,7 @@ define (require,exports,module) ->
     initialize: ->
       _.bindAll(this,"render","refresh","contest_link")
       @collection = new ContestResultCollection()
-      this.listenTo(@collection,"sync",@render)
+      @listenTo(@collection,"sync",@render)
     render: ->
       col = @collection
       @$el.html(@template(

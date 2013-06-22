@@ -1,43 +1,43 @@
 %script#templ-schedule-item(type='text/template')
   .info-item
     %span.day
-      <%= day %>
+      <%- day %>
     %span.info
-      <%= ! _.isEmpty(info) ? info.names.join(" / ") : "" %>
+      <%- ! _.isEmpty(info) ? info.names.join(" / ") : "" %>
     .event
       <% _.each(event,function(o){ %>
       .title.ellipsis
-        <%= o.name %>
+        <%- o.name %>
       <% }) %>
     .item
       <% _.each(item,function(o){ %>
       .title.ellipsis
-        <%= o.name %>
+        <%- o.name %>
       <% }) %>
 %script#templ-schedule-item-edit-info(type='text/template')
   .info-item-edit
     %span.day
-      <%= day %>
+      <%- day %>
     %input.holiday(type='checkbox')
     %span 休日
     %textarea.info
-      <%= info ? info.names.join("\n") : "" %>
+      <%- info ? info.names.join("\n") : "" %>
 %script#templ-schedule-detail(type='text/template')
   <% if(data.is_holiday){ %>
   .is-holiday.label.round.alert.left 祝日
   <% } %>
   .year-month-day.left
-    %span.year <%= data.year %>
+    %span.year <%- data.year %>
     年
-    %span.mon <%= data.mon %>
+    %span.mon <%- data.mon %>
     月
-    %span.day <%= data.day %>
+    %span.day <%- data.day %>
     日 (
-    %span.wday <%= data.wday %>
+    %span.wday <%- data.wday %>
     )
   <% if(data.day_infos){ %>
   .day-infos.left
-    <%= data.day_infos.join(", ") %>
+    <%- data.day_infos.join(", ") %>
   <% } %>
   .right
     %button#add-new-item.small.round
@@ -55,7 +55,7 @@
         詳細
       %span.comment.button.small
         コメント
-        %span.comment-count (<%= data.comment_count %>)
+        %span.comment-count (<%- data.comment_count %>)
 
 %script#templ-schedule-detail-item(type='text/template')
   %hr
@@ -111,7 +111,7 @@
               %input(type='checkbox' name='emph_end_at' data-checkbox-checked='{{ data.emph_end_at?"true":"false" }}') 強調
       .row
         .large-12.small-12.columns
-          %textarea(cols='100' rows='8' name='description' placeholder='説明') {{ data.description }}
+          %textarea(cols='100' rows='8' name='description' placeholder='備考') {{ data.description }}
     .right
       %button.edit-done.small.round
         編集完了

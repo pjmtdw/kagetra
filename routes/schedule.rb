@@ -32,18 +32,15 @@ class MainApp < Sinatra::Base
         )
       }
     end
-    def make_detail_item(x,raw)
-      r = x.select_attr(:id,:start_at,:end_at)
-      ats = [:name,:place,:description]
-      sym = if raw then :select_attr else :select_attr_escape end
-      r = r.merge(x.send(sym,*ats))
+    def make_detail_item(x)
+      r = x.select_attr(:id,:start_at,:end_at,:name,:place,:description)
       x.emphasis.each{|e|
         r["emph_#{e}".to_sym] = "on"
       }
       r
     end
     get '/detail/item/:id' do
-      make_detail_item(ScheduleItem.get(params[:id]),params[:raw]=="true")
+      make_detail_item(ScheduleItem.get(params[:id]))
     end
     post '/detail/item' do
       user = get_user
@@ -57,7 +54,7 @@ class MainApp < Sinatra::Base
       (year,mon,day) = [:year,:mon,:day].map{|x|params[x].to_i}
       date = Date.new(year,mon,day)
       list = ScheduleItem.all(date:date).map{|x|
-        make_detail_item(x,false)
+        make_detail_item(x)
       }
       events = Event.all(date:date).map{|x|
         x.select_attr(:id,:name,:place,:comment_count,:start_at,:end_at)

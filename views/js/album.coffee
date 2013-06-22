@@ -35,7 +35,7 @@ define ->
 
     initialize: ->
       @model = new AlbumTopModel()
-      this.listenTo(@model,"sync",@render) # View.remove() したときにちゃんと stopListening されるように @model.bind() じゃなくて .listenTo() の方を使う
+      @listenTo(@model,"sync",@render) # View.remove() したときにちゃんと stopListening されるように @model.bind() じゃなくて .listenTo() の方を使う
 
     render: ->
       @$el.html(@template(data:@model.toJSON()))
@@ -61,7 +61,7 @@ define ->
     template: _.template_braces($("#templ-album-year").html())
     initialize: ->
       @model = new AlbumYearModel()
-      this.listenTo(@model,"sync",@render)
+      @listenTo(@model,"sync",@render)
     render: ->
       @model.set("list",_.sortBy(@model.get("list"),(x)->x.start_at or x.date).reverse())
       @$el.html(@template(data:@model.toJSON()))
@@ -79,7 +79,7 @@ define ->
       window.album_router.navigate("item/#{id}", trigger:true)
     initialize: ->
       @model = new AlbumGroupModel()
-      this.listenTo(@model,"sync",@render)
+      @listenTo(@model,"sync",@render)
     render: ->
       @$el.html(@template(data:@model.toJSON()))
       @$el.appendTo("#album-group")
@@ -90,7 +90,7 @@ define ->
     template: _.template_braces($("#templ-album-item").html())
     initialize: ->
       @model = new AlbumItemModel()
-      this.listenTo(@model,"sync",@render)
+      @listenTo(@model,"sync",@render)
     render: ->
       @$el.html(@template(data:@model.toJSON()))
       @$el.appendTo("#album-item")

@@ -19,9 +19,7 @@ module ModelBase
         symbols.each{|s|
           raise Exception.new("'#{s}' is not a property of '#{self.class}'") unless attrs.has_key?(s)
         }
-        attrs.select{|k,v|
-          symbols.include?(k) and v.nil?.!
-        }
+        attrs.select_attr(*symbols)
       end
       def select_attr_escape(*symbols)
         a = self.select_attr(*symbols)

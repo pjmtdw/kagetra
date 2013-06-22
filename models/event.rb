@@ -29,6 +29,7 @@ class Event
   has n, :result_classes, 'ContestClass' # 大会結果の各級の情報
   has n, :result_users, 'ContestUser' # 大会結果の出場者
   has n, :comments, 'EventComment' # コメント
+  # TODO: validate owners and forbidden_attrs is array of integer
 end
 
 # 行事のグループ

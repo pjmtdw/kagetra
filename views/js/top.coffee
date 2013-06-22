@@ -76,16 +76,32 @@ define (require,exports,module) ->
               else
                 dd
       @comparator = (x,y) -> fx=f(x);fy=f(y);if fx>fy then sign else if fx<fy then -sign else 0
+  show_event_edit = (model)->
+      t = "#container-event-edit"
+      v = new EventEditView(target:t,model:model)
+      _.reveal_view(t,v)
+      if not model.isNew()
+        v.model.fetch(data:{detail:true})
+      else
+        v.render()
   EventItemView = Backbone.View.extend
     el: '<li>'
     template: _.template($('#templ-event-item').html())
     events:
       "click .show-detail": "show_detail"
       "click .show-comment": "show_comment"
+      "click .show-edit": -> show_event_edit(@model)
+    initialize: ->
+      @listenTo(@model,"sync",@render)
     render: ->
       json = @model.toJSON()
-      json.deadline = show_deadline(@model.get('deadline_day'))
+      json.deadline = show_deadline(json.deadline_day)
       @$el.html(@template(data:json))
+
+      cm = new EventChoiceModel(choices:json.choices,choice:json.choice,eid:json.id)
+      cv = new EventChoiceView(model:cm,event_name:json.name,parent:this)
+      cv.render()
+      @$el.find(".event-choice").append(cv.$el)
     show_detail: ->
       $ed.reveal_detail("#container-event-detail",@model)
     show_comment: ->
@@ -96,6 +112,12 @@ define (require,exports,module) ->
     template: _.template($('#templ-event-list').html())
     events:
       "click #event-order .choice": "reorder"
+      "click #add-event": "show_event_edit"
+      "click #add-contest": "show_contest_edit"
+    show_event_edit: ->
+      show_event_edit(new $ed.EventItemModel(type:"party"))
+    show_contest_edit: ->
+      show_event_edit(new $ed.EventItemModel(type:"contest"))
     reorder: (ev) ->
       target = $(ev.currentTarget)
       order = target.attr("data-order")
@@ -104,7 +126,7 @@ define (require,exports,module) ->
     initialize: ->
       _.bindAll(this,"render","reorder")
       @collection = new EventListCollection()
-      this.listenTo(@collection,"sort", @render)
+      @listenTo(@collection,"sort", @render)
       @collection.set_comparator('date')
       @collection.fetch()
     render: ->
@@ -115,10 +137,6 @@ define (require,exports,module) ->
         v = new EventItemView(model:m)
         v.render()
         @$el.find(".event-body").append(v.$el)
-        cm = new EventChoiceModel(choices:m.get('choices'),choice:m.get('choice'),eid:m.get('id'))
-        cv = new EventChoiceView(model:cm,event_name:m.get('name'),parent:v)
-        cv.render()
-        v.$el.find(".event-choice").append(cv.$el)
         @subviews.push(v)
 
   EventChoiceModel = Backbone.Model.extend
@@ -130,11 +148,9 @@ define (require,exports,module) ->
     template_alert: _.template($("#templ-sticky-alert").html())
     events:
       "click .choice" : "do_when_click"
-    initialize: (arg)->
-      this.event_name = arg.event_name
-      this.parent = arg.parent
+    initialize: ->
       _.bindAll(this,"render")
-      this.listenTo(@model,"change",@render)
+      @listenTo(@model,"change",@render)
     do_when_click: (ev)->
       ct = $(ev.currentTarget)
       id = ct.attr('data-id')
@@ -144,8 +160,8 @@ define (require,exports,module) ->
         c = $("#sticky-alert-container")
         if c.find("#sticky-alert").length == 0
           c.append(that.template_alert())
-        c.find(".content").append($("<div/>",{html:"登録完了: " + that.event_name + " &rArr;" + ct.text()}))
-        that.parent.$el.find(".participant-count").text(data.count)
+        c.find(".content").append($("<div/>",{html:"登録完了: #{that.options.event_name} &rArr; #{ct.text()}"}))
+        that.options.parent.$el.find(".participant-count").text(data.count)
       )
     render: ->
       choices = @model.get("choices")
@@ -154,6 +170,23 @@ define (require,exports,module) ->
       }
       @$el.html(@template(data))
       @$el.find("dd[data-id='#{@model.get('choice')}']").addClass("active")
+  EventEditView = Backbone.View.extend
+    template: _.template_braces($("#templ-event-edit").html())
+    events:
+      "submit #event-edit-form" : "do_submit"
+    do_submit: ->
+      obj = $("#event-edit-form").serializeObj()
+      m = @model
+      is_new = m.isNew()
+      _.save_model_alert(@model,obj).done(->
+        if is_new
+          window.event_list_view.collection.add(m))
+      false
+    initialize: ->
+      @listenTo(@model,"sync",@render)
+    render: ->
+      @$el.html(@template(data:@model.toJSON()))
+      @$el.appendTo(@options.target)
 
   init: ->
     window.show_schedule_weekday = true

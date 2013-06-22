@@ -128,8 +128,8 @@ define ->
       @render_body()
       false
     initialize: ->
-      this.listenTo(@collection,"sync",@.render_all)
-      this.listenTo(@collection,"sort",@.render_body)
+      @listenTo(@collection,"sync",@.render_all)
+      @listenTo(@collection,"sort",@.render_body)
       @collection.fetch()
     render_all: ->
       @render_header()

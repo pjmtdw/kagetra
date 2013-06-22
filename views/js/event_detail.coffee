@@ -33,7 +33,7 @@ define ->
     initialize: ->
       _.bindAll(this,"render","refresh")
       @collection = new EventCommentCollection()
-      this.listenTo(@collection,"sync",@render)
+      @listenTo(@collection,"sync",@render)
     render: ->
       @$el.html(@template(event_name:@collection.event_name,data:@collection.toJSON()))
       @$el.appendTo(@options.target)
@@ -54,7 +54,7 @@ define ->
                   model_or_id
       v = new EventDetailView(target:target,model:model)
       _.reveal_view(target,v)
-      model.fetch(data:{mode:'detail'})
+      model.fetch(data:{detail:true})
 
     # comment_num_obj はコメント追加したときにコメント数を表示するオブジェクト
     reveal_comment: (target,id,comment_num_obj) ->

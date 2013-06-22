@@ -241,7 +241,7 @@ def import_schedule
             start_at: start_at,
             end_at: end_at,
             place: place,
-            description: desc,
+            description: if desc then desc.body_replace end,
             created_at: created_at
           )
           item.update!(updated_at: created_at)
@@ -1100,10 +1100,10 @@ end
 #import_login_log
 #import_meibo
 #import_bbs
-#import_schedule
+import_schedule
 #import_shurui
 #import_event
 #import_endtaikai
 #import_event_comment
 #import_wiki
-import_album_stage2(import_album_stage1)
+#import_album_stage2(import_album_stage1)

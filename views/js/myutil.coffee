@@ -11,8 +11,12 @@ define (require, exports, module) ->
       hmac.update(msg)
       hash = hmac.finalize().toString(CryptoJS.enc.Base64)
       [hash, msg]
+    # {{ hoge }} hoge をそのまま表示
+    # {- hoge -} hoge を escape して表示
     template_braces: (x) ->
-      _.template(x,false,interpolate: /\{\{(.+?)\}\}/g)
+      _.template(x,false,{
+        interpolate: /\{\{(.+?)\}\}/g,
+        escape: /\{\-(.+?)\-\}/g})
     gen_date: (args...) ->
       ymd = ["year","mon","day"]
       [year,mon,day] =
@@ -33,12 +37,38 @@ define (require, exports, module) ->
         catch e
           console.log e.message
         return false
-    # ensure that view is removed
+    # ensure that view is removed when reveal is closed
     reveal_view: (target,view) ->
       $(target).on("closed", ->
         view.remove()
         $(target).off("closed"))
       $(target).foundation("reveal","open")
+    # save backbone model (only changed attributes)
+    save_model_alert: (model,obj) ->
+      defer = $.Deferred()
+      _.save_model(model,obj).done(->
+        alert("更新成功")
+        defer.resolve()
+      ).fail((error) ->
+        alert("更新失敗: " + error)
+        defer.reject(error))
+      defer.promise()
+    save_model: (model,obj)->
+      m = model.clone()
+      m.set(obj)
+      attrs = m.changedAttributes()
+      m.clear()
+      m.set('id',model.id)
+      defer = $.Deferred()
+      m.save(attrs).done((data) ->
+        if data._error_
+          defer.reject(data._error_)
+        else
+          model.set(m.toJSON())
+          model.trigger("sync")
+          defer.resolve()
+      )
+      defer.promise()
       
   $.fn.toggleBtnText = ->
     a = "data-toggle-text"

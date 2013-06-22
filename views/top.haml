@@ -26,14 +26,14 @@
       %a 最終書込
   - if user.admin
     .row
-      %button.small.round#add-comment 大会追加
+      %button.small.round#add-contest 大会追加
       %button.small.round#add-event 行事追加
   %ul.event-body.large-block-grid-2.small-block-grid-1
 
 %script#templ-event-item(type='text/template')
   .panel.event-item
     .row
-      .large-12.columns.event-name <%= data.name %>
+      .large-12.columns.event-name <%- data.name %>
     .row
       .large-7.columns
         開催日: <%= _.show_date(data.date) %>
@@ -44,9 +44,11 @@
     .row
       .large-4.columns
         登録数:
-        %span.participant-count <%= data.participant_count %>
+        %span.participant-count <%- data.participant_count %>
         名
       .large-8.columns.buttons
+        - if user.admin
+          %button.button-custom.show-edit 編集
         %button.button-custom.show-detail
           詳細
         %span.button-custom.show-comment
@@ -55,7 +57,7 @@
 %script#templ-event-choice(type='text/template')
   <% _.each(data,function(d){ %>
   %dd.choice(data-id='{{d.id}}' class='positive-{{d.positive}}')
-    %a {{ d.name }}
+    %a {- d.name -}
   <% }) %>
 
 %script#templ-sticky-alert(type='text/template')
@@ -63,8 +65,42 @@
     .content
     %a.close &times;
 
+%script#templ-event-edit(type='text/template')
+  %form#event-edit-form
+    %input.button.small(type='submit' value='更新')
+    .row
+      .large-4.columns
+        %label
+          恒例大会
+          %button.tiny.round +
+        .row
+          .large-9.columns
+            %select
+          .large-3.columns
+            .button.tiny.round 情報
+      .large-4.columns
+        %label 大会名
+        %input(name='name' type='text' value='{{ data.name }}')
+      .large-4.columns
+        %label 正式名称
+        %input(name='formal_name' type='text' value='{{ data.formal_name }}')
+    .row
+      .large-4.columns
+        %label 開催日
+        %input(name='date' type='text' placeholder='YYYY-MM-DD' value='{{ data.date }}')
+      .large-2.columns
+        %label 開始時刻
+        %input(name='start_at' type='text' placeholder='hh:mm' value='{{ data.start_at }}')
+      .large-2.columns
+        %label 終了時刻
+        %input(name='end_at' type='text' placeholder='hh:mm' value='{{ data.end_at }}')
+      .large-4.columns
+        %label 締切日
+        %input(name='deadline' type='text' placeholder='YYYY-MM-DD' value='{{ data.deadline }}')
+
 #container-event-detail.reveal-modal
 #container-event-comment.reveal-modal
+#container-event-edit.reveal-modal
 
 = haml :schedule_item
 = haml :event_detail

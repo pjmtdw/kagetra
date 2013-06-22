@@ -1,25 +1,25 @@
 %script#templ-event-detail(type='text/template')
-  %div 大会名: <%= data.name %>
-  %div 日付: <%= data.date %>
-  %div 〆切: <%= data.deadline %>
+  %div 大会名: <%- data.name %>
+  %div 日付: <%- data.date %>
+  %div 〆切: <%- data.deadline %>
   %div 備考:
-  .panel <%= data.description %>
+  .panel.pre <%- data.description %>
   %div
     <% _.each(_.filter(data.choices,function(c){return c.positive}),function(c){ %>
     <% p = data.participant && data.participant[c.id] || [] %>
     %div
-      <%= c.name %> (<%= _.flatten(_.map(p,function(x){return _.values(x)})).length %>) :
+      <%- c.name %> (<%- _.flatten(_.map(p,function(x){return _.values(x)})).length %>) :
       .panel
         <% _.each(p,function(q){ %>
         %div.participants
-          %span.label.round <%= _.keys(q)[0] %>
-          <%= _.values(q)[0].join(", ") %>
+          %span.label.round <%- _.keys(q)[0] %>
+          <%- _.values(q)[0].join(", ") %>
         
         <% }) %>
     <% }) %>
 
 %script#templ-event-comment(type='text/template')
-  <%= event_name %>
+  <%- event_name %>
   %button.toggle-comment.round.small(data-toggle-text='キャンセル') コメントする
   %form.comment-form.hide
     %textarea(name='body' rows=15 autofocus)

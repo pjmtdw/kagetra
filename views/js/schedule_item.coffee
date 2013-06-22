@@ -9,12 +9,12 @@ define (require, exports, module) ->
         "[ <span class='hourmin #{c1}'>#{data.start_at ? ''}</span> &sim; <span class='hourmin #{c2}'>#{data.end_at ? ''}</span> ] "
       pl = if data.place
         c = if data.emph_place then "emphasis" else ""
-        " @ <span class='place #{c}'>#{data.place ? ''}</span>"
+        " @ <span class='place #{c}'>#{_.escape(data.place ? '')}</span>"
       ds = if data.description
-        "<div class='description panel left'>#{data.description}</div>"
+        "<div class='description panel left pre'>#{_.escape(data.description)}</div>"
       tt = if data.name
         c = if data.emph_name then "emphasis" else ""
-        "<span class='title #{c}'>#{data.name}</span>"
+        "<span class='title #{c}'>#{_.escape(data.name)}</span>"
       ss = (hm ? '') + (tt ? '') + (pl ? '')
       "<div>#{ss}</div>" + (ds ? '')
   ScheduleModel = Backbone.Model.extend
@@ -129,7 +129,7 @@ define (require, exports, module) ->
       else
         @edit_mode ^= true
         if @edit_mode
-          @model.fetch(data:{raw:"true"}).done(@render_edit)
+          @model.fetch().done(@render_edit)
         else
           @model.fetch().done(@render)
     initialize: ->

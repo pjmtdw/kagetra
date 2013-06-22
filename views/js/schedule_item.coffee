@@ -1,4 +1,6 @@
-define ->
+define (require, exports, module) ->
+  $ed = require("event_detail")
+  locals = {}
   _.mixin
     show_item_detail: (data)->
       hm = if data.start_at or data.end_at
@@ -35,9 +37,8 @@ define ->
       @model.fetch().done(@render)
     do_when_click: ->
       return if @edit_info or not @model.get('current')
-      window.schedule_detail_view.$el.foundation("reveal","open")
       [year,mon,day] = (@model.get(x) for x in ['year','mon','day'])
-      window.schedule_detail_view.refresh(year,mon,day)
+      reveal_detail(year,mon,day)
     get_date: ->
       if @model.get('current')
         _.gen_date(@model)
@@ -110,7 +111,7 @@ define ->
       refresh_day = ->
         dv = window.schedule_detail_view
         [year,mon,day] = (dv.collection[x] for x in ["year","mon","day"])
-        dv.parent.get_subview(year,mon,day).refresh()
+        locals.schedule_detail_parent.get_subview(year,mon,day).refresh()
       if @model.isNew()
         @model.save().done(->
           window.schedule_detail_view.refresh()
@@ -146,10 +147,9 @@ define ->
       "click .detail" : "show_detail"
       "click .comment" : "show_comment"
     show_detail: ->
-      dv = window.event_detail_view
-      dv.reveal(@data.id)
+      $ed.reveal_detail("#container-event-detail",@data.id)
     show_comment: ->
-      window.event_comment_view.reveal(@data.id)
+      $ed.reveal_comment("#container-event-comment",@data.id)
     template: _.template($("#templ-schedule-detail-event").html())
     initialize: (arg) -> @data = arg.data
 
@@ -157,7 +157,6 @@ define ->
       @$el.html(@template(data:@data))
 
   ScheduleDetailView = Backbone.View.extend
-    el: '#container-schedule-detail'
     template: _.template($("#templ-schedule-detail").html())
     events:
       "click #add-new-item": "do_add_new"
@@ -167,9 +166,8 @@ define ->
       $("#container-new-item").empty()
       v.render_edit()
       $("#container-new-item").append(v.$el)
-     initialize: (opts)->
+     initialize: ->
       _.bindAll(this,"render","do_add_new")
-      @parent = opts.parent
       @collection = new ScheduleDetailCollection()
     refresh: (year,mon,day) ->
       if year?
@@ -191,6 +189,7 @@ define ->
         day: day
         wday: _.weekday_ja()[date.getDay()]
       ))
+      @$el.appendTo(locals.schedule_detail_target)
       body =@$el.find('.body')
       for m in @collection.events
         v = new ScheduleDetailEventView(data:m)
@@ -200,8 +199,19 @@ define ->
         v = new ScheduleDetailItemView(model:m)
         v.render()
         body.append(v.$el)
+  reveal_detail = (year,mon,day)->
+    v = new ScheduleDetailView()
+    window.schedule_detail_view = v
+    t = locals.schedule_detail_target
+    _.reveal_view(t,v)
+    v.refresh(year,mon,day)
   {
-    ScheduleDetailView: ScheduleDetailView
     ScheduleModel: ScheduleModel
     ScheduleItemView: ScheduleItemView
+    # parent: detail に対応する親view 
+    #         ScheduleDetailView 更新時にparent.get_subview(y,m,d).refresh()を実行する
+    # target: ScheduleDetailView を格納するセレクタ
+    init: (arg) ->
+      locals.schedule_detail_target = arg.target || "#container-schedule-detail"
+      locals.schedule_detail_parent = arg.parent
   }

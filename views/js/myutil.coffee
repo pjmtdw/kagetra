@@ -33,6 +33,13 @@ define (require, exports, module) ->
         catch e
           console.log e.message
         return false
+    # ensure that view is removed
+    reveal_view: (target,view) ->
+      $(target).on("closed", ->
+        view.remove()
+        $(target).off("closed"))
+      $(target).foundation("reveal","open")
+      
   $.fn.toggleBtnText = ->
     a = "data-toggle-text"
     t = this.attr(a)
@@ -62,5 +69,4 @@ define (require, exports, module) ->
     this.find("input[type='checkbox']:not(:checked)").each(->
       o[this.name] = null
     )
-    console.log o
     o

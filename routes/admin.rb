@@ -13,7 +13,6 @@ class MainApp < Sinatra::Base
       key_values = Hash[UserAttributeKey.all.map{|x|[x.id,x.values.map{|v|v.id}]}]
 
       values_indexes = Hash[UserAttributeValue.all.map{|x|[x.id,x.attr_key.index]}]
-      p values_indexes
 
       list = User.all.map{|u|
         r = u.select_attr(:id,:name,:furigana)

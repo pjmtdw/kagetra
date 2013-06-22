@@ -95,10 +95,10 @@ define (require,exports,module) ->
         $("#contest-result-body").append(v.$el)
 
       this.$el.foundation('section','reflow')
-      cv = window.comment_view
-      # since comment_view is reflowed, we have to reset element
-      cv.setElement($("#event-comment").get(0))
-      cv.refresh(@collection.id, $("#event-comment-count"))
+      $ed.section_comment(
+        "#event-comment",
+        @collection.id,
+        $("#event-comment-count"))
     refresh: (id) ->
       @collection.id = id
       @collection.fetch()
@@ -106,5 +106,4 @@ define (require,exports,module) ->
   init: ->
     window.result_router = new CotestResultRouter()
     window.result_view = new ContestResultView()
-    window.comment_view = new $ed.EventCommentView()
     Backbone.history.start()

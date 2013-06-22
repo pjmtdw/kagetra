@@ -68,9 +68,9 @@ end
 class AlbumRelation
   include ModelBase
   # TODO: (source, target) と (target, sorce) を同じものとみなす
-  property :source_id, Integer, unique_index: :u1, required: true
+  property :source_id, Integer, unique_index: :u1, required: true, index: true
   belongs_to :source, 'AlbumItem', key: true
-  property :target_id, Integer, unique_index: :u1, required: true
+  property :target_id, Integer, unique_index: :u1, required: true, index: true
   belongs_to :target, 'AlbumItem', key: true
 end
 

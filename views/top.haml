@@ -24,6 +24,10 @@
       %a 追加日
     %dd.choice(data-order='latest_comment_date')
       %a 最終書込
+  - if user.admin
+    .row
+      %button.small.round#add-comment 大会追加
+      %button.small.round#add-event 行事追加
   %ul.event-body.large-block-grid-2.small-block-grid-1
 
 %script#templ-event-item(type='text/template')
@@ -59,9 +63,8 @@
     .content
     %a.close &times;
 
-
 #container-event-detail.reveal-modal
-#event-comment.reveal-modal
+#container-event-comment.reveal-modal
 
 = haml :schedule_item
 = haml :event_detail

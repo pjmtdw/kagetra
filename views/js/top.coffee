@@ -86,15 +86,10 @@ define (require,exports,module) ->
       json = @model.toJSON()
       json.deadline = show_deadline(@model.get('deadline_day'))
       @$el.html(@template(data:json))
-    initialize: ->
-      _.bindAll(this,"show_detail","show_comment")
     show_detail: ->
-      window.event_detail_view.reveal(@model)
+      $ed.reveal_detail("#container-event-detail",@model)
     show_comment: ->
-      window.event_comment_view
-        .reveal(@model.get('id'),@$el.find(".comment-count"))
-
-      
+      $ed.reveal_comment("#container-event-comment",@model.get('id'),@$el.find(".comment-count"))
 
   EventListView = Backbone.View.extend
     el: '#event-list'
@@ -138,7 +133,7 @@ define (require,exports,module) ->
     initialize: (arg)->
       this.event_name = arg.event_name
       this.parent = arg.parent
-      _.bindAll(this,"render","do_when_click")
+      _.bindAll(this,"render")
       this.listenTo(@model,"change",@render)
     do_when_click: (ev)->
       ct = $(ev.currentTarget)
@@ -165,6 +160,4 @@ define (require,exports,module) ->
     window.show_schedule_month = true
     window.schedule_panel_view = new SchedulePanelView()
     window.event_list_view = new EventListView()
-    window.event_detail_view = new $ed.EventDetailView()
-    window.schedule_detail_view = new $si.ScheduleDetailView(parent:window.schedule_panel_view)
-    window.event_comment_view = new $ed.EventCommentView()
+    $si.init(parent:window.schedule_panel_view)

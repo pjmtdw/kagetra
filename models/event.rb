@@ -65,11 +65,9 @@ class EventUserChoice
     if self.user then
       self.user_name = self.user.name
       self.event_choice.event.tap{|ev|
-        if ev then
-          self.attr_value = self.user.attrs.values.first(attr_key: ev.aggregate_attr)
-          # 一つの行事を複数選択することはできない
-          ev.choices.user_choices(user:self.user).destroy
-        end
+        self.attr_value = self.user.attrs.values.first(attr_key: ev.aggregate_attr)
+        # 一つの行事を複数選択することはできない
+        ev.choices.user_choices(user:self.user).destroy
       }
     end
   end

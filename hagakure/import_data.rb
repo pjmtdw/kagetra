@@ -676,8 +676,8 @@ def import_contest_result_kojin(evt,sankas)
         end
       end
       if av.nil? then
-        av = evt.aggregate_attr.values.first(index: 0)
-        puts "WARNING: #{klass.class_name} の属性を推定できませんでした．#{av.value} にしておきます．"
+        av = evt.aggregate_attr.first(index: 0).values.first(index: 0)
+        puts "WARNING: event='#{evt.name}' cannot guess attribute of '#{klass.class_name}', i will set it as '#{av.value}'."
       end
       name = ss[0]
       user = User.first(name: name)
@@ -841,7 +841,7 @@ def import_event_comment
     end
     evt = Event.first(id:taikainum)
     if not evt then
-      puts "WARNING: event with id=#{taikainum} not found. ignoring comment file '#{fn}'"
+      puts "WARNING: event with id='#{taikainum}' not found. ignoring comment file '#{fn}'"
       next
     end
     lines = File.readlines(fn)[1..-1]
@@ -998,12 +998,12 @@ def import_album_stage2(old_ids)
         (dn,_,fn) = $1.split(/&:&/)
         o = old_ids["#{dn}-#{fn}"]
         if o.nil? then
-          puts "WARNING: album item not found. skipped creating relation: #{dn}-#{fn}"
+          puts "WARNING: album item not found. skipped creating relation: '#{dn}-#{fn}'"
         else
           rid = o[0]
           AlbumRelation.create(source:item,target_id:rid)
         end
-      when %r(<area shaper=circle coords="(.*?)" alt="(.*?)">)
+      when %r(<area\s+coords="(.*?)"\s+alt="(.*?)">)
         (x,y,r) = $1.split(",").map{|x|x.to_i}
         n = $2
         item.tags.create(name:n,coord_x:x,coord_y:y,radius:r)
@@ -1029,7 +1029,7 @@ def import_comment(item,comment)
         u = User.first(name:x[:username])
         if u.nil? then
           # TODO: 同一人物の表を使う
-          puts "WARNING: no user name #{x[:user]} found when creating album comment log"
+          puts "WARNING: user name '#{x[:username]}' not found when creating album comment log of '#{item.name}'"
         end
       end
       # TODO: x[:date] が nil (最初のパッチ) の日時を設定する
@@ -1095,15 +1095,15 @@ def import_wiki
   # TODO
 end
 
-import_zokusei
-import_user
-import_login_log
-import_meibo
-import_bbs
-import_schedule
-import_shurui
-import_event
-import_endtaikai
-import_event_comment
-import_wiki
+#import_zokusei
+#import_user
+#import_login_log
+#import_meibo
+#import_bbs
+#import_schedule
+#import_shurui
+#import_event
+#import_endtaikai
+#import_event_comment
+#import_wiki
 import_album_stage2(import_album_stage1)

@@ -2,6 +2,16 @@ define (require, exports, module) ->
   $ed = require("event_detail")
   locals = {}
   _.mixin
+    show_schedule_emphasis: (data)->
+      return "" unless data.emphasis
+      d = _.pick(data,data.emphasis)
+      r = ""
+      if d.place
+        r += "@ <span class='place'>#{_.escape(d.place)}</span>"
+      if d.start_at or d.end_at
+        r += " &isin; <span class='hourmin'>#{d.start_at ? ''}</span> &sim; <span class='hourmin'>#{d.end_at ? ''}</span>"
+      r
+        
     show_item_detail: (data)->
       hm = if data.start_at or data.end_at
         c1 = if data.emph_start_at then "emphasis" else ""
@@ -108,25 +118,32 @@ define (require, exports, module) ->
     template_edit: _.template_braces($("#templ-schedule-detail-item-edit").html())
     events:
       "click .edit":"toggle_edit"
+      "click .delete":"delete_item"
       "click .edit-cancel":"toggle_edit"
       "click .edit-done":"edit_done"
+    refresh_day: ->
+      window.schedule_detail_view.options.parent_model.fetch()
+    delete_item: ->
+      if confirm('削除してよろしいですか？')
+        that = this
+        @model.destroy().done(->
+          window.schedule_detail_view.refresh()
+          that.refresh_day())
     edit_done: ->
       obj = @$el.find('.item-detail-form').serializeObj()
       @model.set(obj)
       that = this
-      refresh_day = ->
-        window.schedule_detail_view.options.parent_model.fetch()
 
+      that = this
       if @model.isNew()
         @model.save().done(->
           window.schedule_detail_view.refresh()
-          refresh_day()
+          that.refresh_day()
         )
       else
-        that = this
         @model.save().done(->
           that.toggle_edit()
-          refresh_day()
+          that.refresh_day()
         )
     toggle_edit: ->
       if @model.isNew()

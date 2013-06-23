@@ -1,6 +1,23 @@
 $holiday-color: #FDD;
 $saturday-color: #DDF;
 $weekday-color: #FFD;
+
+$hourmin-color: #300;
+$place-color: #030;
+$title-color: #003;
+
+@mixin schedule-item{
+  .hourmin{
+    color: $hourmin-color;
+  }
+  .title{
+    color: $title-color;
+  }
+  .place{
+    color: $place-color;
+  }
+}
+
 .info-item {
   line-height: 125%;
   font-size: 90%;
@@ -35,6 +52,14 @@ $weekday-color: #FFD;
       background-color: darken($weekday-color, 15%);
     }
   }
+  .schedule-item{
+    @include schedule-item;
+  }
+  .day-info{
+    font-style: italic;
+  }
+  .event-item{
+  }
 }
 .info-item-edit{
   @extend .info-item;
@@ -63,15 +88,7 @@ $weekday-color: #FFD;
     margin-top: 8px;
   }
   .detail-item,.schedule-detail-event{
-    .hourmin{
-      color: #300;
-    }
-    .title{
-      color: #003;
-    }
-    .place{
-      color: #030;
-    }
+    @include schedule-item;
     .emphasis{
       font-weight: bold;
       text-decoration: underline;

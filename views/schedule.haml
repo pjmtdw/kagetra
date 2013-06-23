@@ -13,10 +13,10 @@
     .large-4.columns.year-month.large-offset-4
       %button#prev-month.small.round.success &laquo;
       %span.year
-        <%- year %>
+        <%= year %>
       年
       %span.mon
-        <%- mon %>
+        <%= mon %>
       月
       %button#next-month.small.round.success &raquo;
     .large-4.columns
@@ -36,9 +36,9 @@
 
 %script#templ-cal-edit-header(type='text/template')
   %span.year
-    <%- year %> 年
+    <%= year %> 年
   %span.mon
-    <%- mon %> 月
+    <%= mon %> 月
   %button#edit-info-done.small.round 編集完了
   %button.toggle-edit-info.small.round キャンセル
 

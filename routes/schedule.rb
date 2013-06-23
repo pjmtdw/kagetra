@@ -1,10 +1,16 @@
 class MainApp < Sinatra::Base
   namespace '/api/schedule' do
     post '/copy/:id' do
+      user = get_user
       item = ScheduleItem.get(params[:id].to_i)
       params[:list].each{|d|
         date = Date.parse(d)
-        ScheduleItem.create(item.attributes.merge(id:nil,date:date))
+        ScheduleItem.create(item.attributes.merge(
+          id:nil,
+          created_at:nil,
+          updated_at:nil,
+          owner:user,
+          date:date))
       }
 
     end
@@ -57,6 +63,11 @@ class MainApp < Sinatra::Base
     put '/detail/item/:id' do
       user = get_user
       update_or_create(params[:id], user, @json)
+    end
+    delete '/detail/item/:id' do
+      Kagetra::Utils.dm_debug{
+        ScheduleItem.get(params[:id].to_i).destroy
+      }
     end
     get '/detail/:year-:mon-:day' do
       (year,mon,day) = [:year,:mon,:day].map{|x|params[x].to_i}

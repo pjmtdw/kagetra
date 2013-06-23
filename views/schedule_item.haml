@@ -2,22 +2,23 @@
   .info-item(data-date='{{date}}')
     %span.day
       {{ day }}
-    %span.info
+    %span.day-info
       {- ! _.isEmpty(info) ? info.names.join(" / ") : "" -}
     .event
       <% _.each(event,function(o){ %>
-      .event-item.title.ellipsis
+      .event-item
         {- o.name -}
       <% }) %>
     .item
       <% _.each(item,function(o){ %>
-      .schedule-item.title.ellipsis(data-schedule-id='{{o.id}}')
-        {- o.name -}
+      .schedule-item(data-schedule-id='{{o.id}}')
+        %span.title {- o.name -}
+        {{ _.show_schedule_emphasis(o) }}
       <% }) %>
 %script#templ-schedule-item-edit-info(type='text/template')
   .info-item-edit
     %span.day
-      <%- day %>
+      <%= day %>
     %input.holiday(type='checkbox')
     %span 休日
     %textarea.info
@@ -65,6 +66,8 @@
     .right
       %button.edit.small.round
         編集
+      %button.delete.small.round.alert
+        削除
 
 %script#templ-schedule-detail-item-edit(type='text/template')
   %hr

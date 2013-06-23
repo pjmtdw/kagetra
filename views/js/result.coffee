@@ -78,12 +78,7 @@ define (require,exports,module) ->
       @listenTo(@collection,"sync",@render)
     render: ->
       col = @collection
-      @$el.html(@template(
-        recent_list:col.recent_list
-        group:col.group
-        name:col.name
-        date:col.date
-      ))
+      @$el.html(@template(_.pick(@collection,"recent_list","group","name","date")))
       @$el.find("li[data-id='#{col.id}']").addClass("current")
       cur_class = null
       col.each (m)->

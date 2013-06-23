@@ -12,6 +12,9 @@ class MainApp < Sinatra::Base
         end
       end
       r[:deadline_day] = (r[:deadline]-today).to_i if r[:deadline]
+      if r[:deadline_day] and r[:deadline_day].between?(0,G_DEADLINE_ALERT) then
+        r[:deadline_alert] = true
+      end
       r[:choices] = ev.choices(order:[:index.asc]).map{|x|x.select_attr(:positive,:name,:id)}
       r[:choice] = if user_choices then user_choices[ev.id] 
                    else

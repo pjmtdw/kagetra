@@ -38,3 +38,5 @@ require './utils'
 G_ADDRBOOK_CONFIRM_STR = 'kagetra_addrbook' # 名簿でパスワードが正しいかの確認用
 
 G_ADDRBOOK_KEYS = ['名前','ふりがな','E-Mail','生年月日','所属','出身高校','電話番号','郵便番号1','住所1','郵便番号2','住所2','メモ1','メモ2']
+
+G_DEADLINE_ALERT = 7 # 締切が迫っていますを表示する日数

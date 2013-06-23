@@ -7,28 +7,46 @@
 = haml :top_bar, locals: {user:user}
 
 .row
-  .large-6.small-6.columns
+  .large-6.columns
+    .row
+      .large-8.columns
+        -# TODO: メッセージ
+  .large-6.columns
     %ul#schedule-panel.large-block-grid-3.small-block-grid-3
 
 .row
   #event-list
 
 %script#templ-event-list(type='text/template')
-  %dl#event-order.sub-nav
-    %dt 順序:
-    %dd.choice(data-order='date')
-      %a 開催日
-    %dd.choice(data-order='deadline_day')
-      %a 締切日
-    %dd.choice(data-order='created_at')
-      %a 追加日
-    %dd.choice(data-order='latest_comment_date')
-      %a 最終書込
-  - if user.admin
-    .row
-      %button.small.round#add-contest 大会追加
-      %button.small.round#add-event 行事追加
+  .row
+    .large-5.columns
+      .panel
+        .deadline-message
+    .large-3.columns
+      -# TODO: 今日の一枚
+    .large-4.columns
+      - if user.admin
+        %div.right
+          %button.small.round#add-contest 大会追加
+          %button.small.round#add-event 行事追加
+      %dl#event-order.sub-nav.right
+        %dt 順序:
+        %dd.choice(data-order='date')
+          %a 開催日
+        %dd.choice(data-order='deadline_day')
+          %a 締切日
+        %dd.choice(data-order='created_at')
+          %a 追加日
+        %dd.choice(data-order='latest_comment_date')
+          %a 最終書込
   %ul.event-body.large-block-grid-2.small-block-grid-1
+
+%script#templ-event-abbrev(type='text/template')
+  .row
+    .large-6.columns
+      <%- data.name %>
+    .large-6.columns
+      .event-choice
 
 %script#templ-event-item(type='text/template')
   .panel.event-item
@@ -37,14 +55,14 @@
     .row
       .large-7.columns
         開催日: <%= _.show_date(data.date) %>
-      .large-5.columns.deadline 締切: <%= data.deadline %> 
+      .large-5.columns.deadline 締切: <%= data.deadline_str %> 
     .row
       .large-12.columns
         .event-choice
     .row
       .large-4.columns
         登録数:
-        %span.participant-count <%- data.participant_count %>
+        %span.participant-count <%= data.participant_count %>
         名
       .large-8.columns.buttons
         - if user.admin

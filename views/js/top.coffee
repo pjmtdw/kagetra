@@ -82,28 +82,40 @@ define (require,exports,module) ->
         v.model.fetch(data:{detail:true})
       else
         v.render()
-  EventItemView = Backbone.View.extend
-    el: '<li>'
-    template: _.template($('#templ-event-item').html())
+  EventItemBaseView = Backbone.View.extend
     events:
       "click .show-detail": "show_detail"
       "click .show-comment": "show_comment"
-      "click .show-edit": -> show_event_edit(@model)
     initialize: ->
       @listenTo(@model,"sync",@render)
-    render: ->
-      json = @model.toJSON()
-      json.deadline = show_deadline(json.deadline_day)
-      @$el.html(@template(data:json))
-
-      cm = new EventChoiceModel(choices:json.choices,choice:json.choice,eid:json.id)
-      cv = new EventChoiceView(model:cm,event_name:json.name,parent:this)
-      cv.render()
-      @$el.find(".event-choice").append(cv.$el)
     show_detail: ->
       $ed.reveal_detail("#container-event-detail",@model)
     show_comment: ->
       $ed.reveal_comment("#container-event-comment",@model.get('id'),@$el.find(".comment-count"))
+    render: ->
+      json = @model.toJSON()
+      json.deadline_str = show_deadline(json.deadline_day)
+      @$el.html(@template(data:json))
+      cm =
+        if @options.choice_model
+          @options.choice_model
+        else
+          new EventChoiceModel(choices:json.choices,choice:json.choice,eid:json.id)
+      cv = new EventChoiceView(model:cm,event_name:json.name,parent:this)
+      cv.render()
+      @$el.find(".event-choice").append(cv.$el)
+      @choice_model = cm
+
+  EventItemView = EventItemBaseView.extend
+    el: '<li>'
+    template: _.template($('#templ-event-item').html())
+    events: ->
+      _.extend(EventItemBaseView.prototype.events,
+      "click .show-edit": -> show_event_edit(@model)
+      )
+
+  EventAbbrevView = EventItemBaseView.extend
+    template: _.template($('#templ-event-abbrev').html())
 
   EventListView = Backbone.View.extend
     el: '#event-list'
@@ -136,6 +148,10 @@ define (require,exports,module) ->
         v.render()
         @$el.find(".event-body").append(v.$el)
         @subviews.push(v)
+        if m.get('deadline_alert')
+          av = new EventAbbrevView(model:m,choice_model:v.choice_model)
+          av.render()
+          @$el.find(".deadline-message").append(av.$el)
 
   EventChoiceModel = Backbone.Model.extend
     url: -> "/api/event/choose/#{@get('eid')}/#{@get('choice')}"

@@ -35,8 +35,8 @@ define (require,exports,module) ->
       if not s?
         "名前"
       else
-        a = $("<div>",text:s.team_name)
-        b = $("<div>",class:"team-prize",text:s.team_prize)
+        a = $("<div>",text:_.escape(s.team_name))
+        b = $("<div>",class:"team-prize",text:_.escape(s.team_prize))
         a[0].outerHTML + b[0].outerHTML
         
   

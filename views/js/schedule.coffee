@@ -51,9 +51,84 @@ define (require,exports,module) ->
       "click #prev-month": -> @inc_month(-1)
       "click #next-month": -> @inc_month(1)
       "click .toggle-edit-info": "do_toggle_edit_info"
+      "click .start-multi-edit": "multi_edit_1"
+      "click #multi-edit-apply": "multi_edit_apply"
+      "click #multi-edit-cancel": "multi_edit_done"
+   
+    multi_edit_apply: ->
+      id = @multi_edit_item.attr("data-schedule-id")
+      that = this
+      $.post("/api/schedule/copy/#{id}",{list:@schedule_item_new}).done(-> that.multi_edit_done())
+
+    multi_edit_done: ->
+      @multi_edit_mode = 0
+      @schedule_item_new = []
+      @undelegate_multi_edit_events()
+      @collection.fetch()
+
+    # 一括編集前の共通処理
+    multi_edit_common: ->
+      # subviewsをclickに反応させないようにする
+      for v in @subviews
+        v.undelegateEvents()
+      @$el.find(".container-btn").hide()
+      @$el.find(".event-item").hide()
+      @$el.find(".container-multi-edit").html($("#templ-multi-edit").html())
+
+    # 一括編集のイベントを全てキャンセル
+    undelegate_multi_edit_events: ->
+      for stage,v of @multi_edit_events
+        for k,func of v
+          delete @events[k]
+      @delegateEvents()
+    # 一括編集用のイベント
+    multi_edit_events:
+      "stage_1":
+        "click .schedule-item": (ev)->
+          @multi_edit_item = $(ev.currentTarget).clone()
+          @multi_edit_item.addClass("schedule-item-new success")
+          @$el.find(".schedule-item").removeClass("button small")
+          @multi_edit_2()
+      "stage_2":
+        "click .info-item": (ev)->
+          ev.stopPropagation()
+          obj = $(ev.currentTarget)
+          dt = obj.attr('data-date')
+          return if _.contains(@schedule_item_new,dt)
+          obj.append(@multi_edit_item.clone())
+          @schedule_item_new.push(dt)
+        "click .schedule-item-new": (ev)->
+          ev.stopPropagation()
+          obj = $(ev.currentTarget)
+          dt = obj.parents('.info-item').attr('data-date')
+          obj.remove()
+          @schedule_item_new =
+            _.reject(@schedule_item_new,(x)->x==dt)
+
+    multi_edit_1: ->
+      @multi_edit_mode = 1
+      @schedule_item_new = []
+      @multi_edit_common()
+      @$el.find(".schedule-item").addClass("button small")
+      @events = _.extend(@events,@multi_edit_events.stage_1)
+      # @events を変更したあとは @delegateEvents() を呼ぶ
+      @delegateEvents()
+
+    multi_edit_2: ->
+      @multi_edit_mode = 2
+      @multi_edit_common()
+      @undelegate_multi_edit_events()
+      for x in @schedule_item_new
+        dt = new Date(x)
+        if dt.getFullYear() == @collection.year and dt.getMonth() + 1 == @collection.mon
+          $(".info-item[data-date='#{x}']").append(@multi_edit_item.clone())
+          
+      @events = _.extend(@events,@multi_edit_events.stage_2)
+      @delegateEvents()
+
     refresh: (year,mon) ->
       @collection.refresh(year,mon)
-      @collection.fetch().done(@render)
+      @collection.fetch()
 
     inc_month: (dx) ->
       m = @collection.mon
@@ -67,9 +142,10 @@ define (require,exports,module) ->
       @render()
     template: _.template($("#templ-cal-header").html()+$("#templ-cal").html())
     template_edit: _.template($("#templ-cal-edit-header").html()+$("#templ-cal").html())
+
     initialize: ->
-      _.bindAll(this,"render","do_edit_info_done","do_toggle_edit_info","inc_month")
       @collection = new ScheduleCollection()
+      @listenTo(@collection,"sync",@render)
     do_edit_info_done: ->
       have_to_update = {}
       for v in @subviews
@@ -87,10 +163,11 @@ define (require,exports,module) ->
             holiday: holiday_new
           }
       if not _.isEmpty(have_to_update)
-        @save(have_to_update)
+        @save_holiday(have_to_update)
       else
         @do_toggle_edit_info()
-    save: (have_to_update)->
+
+    save_holiday: (have_to_update)->
       res = Backbone.sync('update',this,
         method:'post',
         url:'/api/schedule/update_holiday',
@@ -98,7 +175,7 @@ define (require,exports,module) ->
         data:JSON.stringify(have_to_update))
       that = this
       res.done( ->
-        that.collection.fetch().done(that.do_toggle_edit_info)
+        that.collection.fetch().done(-> that.do_toggle_edit_info())
       )
 
     render: ->
@@ -126,6 +203,9 @@ define (require,exports,module) ->
         if not window.is_small or m.get('current')
           $("#cal-body").append(v.$el)
         @subviews.push(v)
+      switch @multi_edit_mode
+        when 1 then @multi_edit_1()
+        when 2 then @multi_edit_2()
   init: ->
     window.show_schedule_weekday = window.is_small
     window.schedule_router = new ScheduleRouter()

@@ -70,8 +70,7 @@
           %th.thead.thead-key-name(data-key-index='{{index}}') {- x[1] -}
           <% }) %>
       %tbody
-        <% _.each(data,function(x,i){ %>
-        <% if(x.visible){ %>
+        <% _.each(_.filter(data,function(x){return x.visible}),function(x,i){ %>
         %tr(data-uid='{{x.id}}')
           %td {{ i+1 }}
           %td.select-user(class='{{x.selected?"selected":""}}') &oplus;
@@ -82,7 +81,6 @@
           <% av = attr_values[a] %>
           %td.user-attr(data-key-id='{{av.key_id}}' data-value-id='{{a}}') {- av.value -}
           <% }) %>
-        <% } %>
         <% }) %>
 
 %script#templ-admin-edit(type='text/template')

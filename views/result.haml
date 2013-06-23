@@ -76,7 +76,7 @@
       %table.chunk-body
         %thead.chunk-header
           %tr 
-            %th.leftmost {- _.show_header_left(data.header_left) -}
+            %th.leftmost {{ _.show_header_left(data.header_left) }}
             <% _.each(data.rounds,function(xs){ %>
             %th.result
               <% _.each(xs,function(x){ %>

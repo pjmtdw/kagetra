@@ -1,18 +1,18 @@
 %script#templ-schedule-item(type='text/template')
-  .info-item
+  .info-item(data-date='{{date}}')
     %span.day
-      <%- day %>
+      {{ day }}
     %span.info
-      <%- ! _.isEmpty(info) ? info.names.join(" / ") : "" %>
+      {- ! _.isEmpty(info) ? info.names.join(" / ") : "" -}
     .event
       <% _.each(event,function(o){ %>
-      .title.ellipsis
-        <%- o.name %>
+      .event-item.title.ellipsis
+        {- o.name -}
       <% }) %>
     .item
       <% _.each(item,function(o){ %>
-      .title.ellipsis
-        <%- o.name %>
+      .schedule-item.title.ellipsis(data-schedule-id='{{o.id}}')
+        {- o.name -}
       <% }) %>
 %script#templ-schedule-item-edit-info(type='text/template')
   .info-item-edit

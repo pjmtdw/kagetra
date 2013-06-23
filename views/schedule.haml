@@ -19,9 +19,20 @@
         <%- mon %>
       月
       %button#next-month.small.round.success &raquo;
-    .large-3.columns
-      %button.toggle-edit-info.small.round 祝日編集
-      %button.toggle-edit-info.small.round 一括追加
+    .large-4.columns
+      .container-btn
+        %button.toggle-edit-info.small.round 祝日編集
+        %button.start-multi-edit.small.round 一括追加
+      .container-multi-edit
+
+%script#templ-multi-edit(type='text/template')
+  %a(href="#" data-dropdown="multi_edit_usage") 使い方
+  %ul(id="multi_edit_usage" class="f-dropdown" data-dropdown-content)
+    %div (1) コピー元の予定を選択(前の月でも可)
+    %div (2) 予定をコピーしたい日をクリック
+    %div (3) 反映ボタンを押す
+  %button#multi-edit-apply.small.round 反映
+  %button#multi-edit-cancel.small.round キャンセル
 
 %script#templ-cal-edit-header(type='text/template')
   %span.year

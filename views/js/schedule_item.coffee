@@ -28,7 +28,7 @@ define (require, exports, module) ->
   ScheduleItemView = Backbone.View.extend
     events:
       "click":"do_when_click"
-    template: _.template($("#templ-schedule-item").html())
+    template: _.template_braces($("#templ-schedule-item").html())
     template_edit_info: _.template($("#templ-schedule-item-edit-info").html())
     el: "<li>"
     initialize: ->
@@ -58,6 +58,7 @@ define (require, exports, module) ->
             event: @model.get('event')
             info: info
             day: @show_day(date)
+            date: date.toDateString() if date
       ))
       info_item = @$el.find(".info-item")
       if @model.get('current')

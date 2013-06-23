@@ -1,5 +1,13 @@
 class MainApp < Sinatra::Base
   namespace '/api/schedule' do
+    post '/copy/:id' do
+      item = ScheduleItem.get(params[:id].to_i)
+      params[:list].each{|d|
+        date = Date.parse(d)
+        ScheduleItem.create(item.attributes.merge(id:nil,date:date))
+      }
+
+    end
     post '/update_holiday' do
       @json.each{|day,obj|
         ScheduleDateInfo.first_or_create(date:Date.parse(day)).update(
@@ -71,7 +79,7 @@ class MainApp < Sinatra::Base
     end
     def make_item(x)
       return unless x
-      base = x.select_attr(:kind,:name,:place,:start_at,:end_at)
+      base = x.select_attr(:id,:kind,:name,:place,:start_at,:end_at)
       base[:emphasis] = x.emphasis if x.emphasis.empty?.!
       base
     end

@@ -62,9 +62,15 @@ requirejs.config
 
 require ["zep_or_jq","myutil","deferred","backbone"
      "foundation.reveal","foundation.topbar","foundation.dropdown","foundation.section","foundation.alerts","foundation.forms"], ->
+  # Zeptoで使える Simply Deferred にはバグがあって使いものにならないので採用を見送る
+  # https://github.com/sudhirj/simply-deferred/issues/12
+  # なので基本的にjQueryを使用する
   $ = require("zep_or_jq")
   Deferred.installInto(Zepto) if Zepto?
   init_f = ->
+    # alert if ajax failed
+    $(document).ajaxError((evt,xhr,settings,error)->
+      alert("通信エラー(#{xhr.status}): #{xhr.statusText}"))
     # insert dummy element to detect whether it is small screen
     v = $("<div class='show-for-small'></div>")
     v.insertAfter("body")

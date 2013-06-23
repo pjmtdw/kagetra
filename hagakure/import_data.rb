@@ -3,13 +3,27 @@
 
 NUM_THREADS = 8
 
+def main
+  import_zokusei
+  import_user
+  import_login_log
+  import_meibo
+  import_bbs
+  import_schedule
+  import_shurui
+  import_event
+  import_endtaikai
+  import_event_comment
+  import_wiki
+  import_album_stage2(import_album_stage1)
+end
+
 require './init'
 require 'parallel'
 require 'diff_match_patch'
 
-$global_lock = Mutex.new
-$dmp = DiffMatchPatch.new
-
+GLOBAL_LOCK = Mutex.new
+DMP = DiffMatchPatch.new
 SHURUI = {}
 
 class String
@@ -276,13 +290,16 @@ end
 
 def import_shurui
   puts "import_shurui begin"
-  lines = File.readlines(File.join(CONF_HAGAKURE_BASE,"txts","shurui.cgi"))
-  lines.each{|line|
+  fn = File.join(CONF_HAGAKURE_BASE,"txts","shurui.cgi")
+  lines = File.readlines(fn)
+  lines.to_enum.with_index(1){|line,lineno|
     line.chomp!
     line.sjis!
     (num,name,description) = line.split("\t")
-    group = EventGroup.create(id:num, name:name, description:description)
-    SHURUI[num.to_i] = group
+    Kagetra::Utils.dm_debug("#{fn} line #{lineno}"){
+      group = EventGroup.create(id:num, name:name, description:description)
+      SHURUI[num.to_i] = group
+    }
   }
 end
 
@@ -473,7 +490,7 @@ def get_user_or_add(evt,username)
   username.strip!
   begin
     u = User.first(name:username)
-    $global_lock.synchronize{
+    GLOBAL_LOCK.synchronize{
       # first_or_create は thread safe ではないみたい
       ContestUser.first_or_create({name:username,user:u,event:evt}) 
     }
@@ -676,7 +693,7 @@ def import_contest_result_kojin(evt,sankas)
         end
       end
       if av.nil? then
-        av = evt.aggregate_attr.first(index: 0).values.first(index: 0)
+        av = evt.aggregate_attr.values.first(index: 0)
         puts "WARNING: event='#{evt.name}' cannot guess attribute of '#{klass.class_name}', i will set it as '#{av.value}'."
       end
       name = ss[0]
@@ -939,18 +956,18 @@ def import_album_stage1
           if year.to_s.empty? then year = nil end
           # 年が整数値でないものはそういう名前のグループを作る
           if year.nil? or year =~ /^\d+$/ then
-            $global_lock.synchronize{
+            GLOBAL_LOCK.synchronize{
               AlbumGroup.first_or_create({year:year,dummy:true})
             }
           else
-            $global_lock.synchronize{
+            GLOBAL_LOCK.synchronize{
               AlbumGroup.first_or_create({name:year})
             }
           end
         end
 
 
-        $global_lock.synchronize{
+        GLOBAL_LOCK.synchronize{
           key = "#{dnum}-#{fnum}"
           gi = group_index[key]
           item = ag.items.create(group_index: gi)
@@ -1020,8 +1037,8 @@ def import_comment(item,comment)
   log = comment_log(comment).reverse
   if log.size >= 2 then
     patches = log[0...-1].zip(log[1..-1]).map{|cur,prev|
-      patches = $dmp.patch_make(cur[:comment],prev[:comment])
-      {patch:$dmp.patch_toText(patches), username:cur[:username], date:cur[:date]}
+      patches = DMP.patch_make(cur[:comment],prev[:comment])
+      {patch:DMP.patch_toText(patches), username:cur[:username], date:cur[:date]}
     }.reverse
     patches.each_with_index{|x,i|
       u = nil
@@ -1095,15 +1112,4 @@ def import_wiki
   # TODO
 end
 
-#import_zokusei
-#import_user
-#import_login_log
-#import_meibo
-#import_bbs
-import_schedule
-#import_shurui
-#import_event
-#import_endtaikai
-#import_event_comment
-#import_wiki
-#import_album_stage2(import_album_stage1)
+main

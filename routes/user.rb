@@ -67,10 +67,13 @@ class MainApp < Sinatra::Base
       check_password(params,hash) 
     end
     post '/change_password' do
-      user = get_user
-      hash = params[:hash]
-      salt = params[:salt]
-      user.update(password_hash:hash, password_salt: salt)
+      up = {password_hash: params[:hash], password_salt: params[:salt]}
+      if params[:uids]
+        User.all(id:params[:uids].map{|x|x.to_i}).update(up)
+      else
+        user = get_user
+        user.update(up)
+      end
       {result:"OK"}
     end
   end

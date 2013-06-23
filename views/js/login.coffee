@@ -23,7 +23,7 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
     initialize: -> @render()
     render: -> @$el.html($("#templ-shared-pass").html())
 
-    on_shared_pass_submit: ->
+    on_shared_pass_submit: _.wrap_submit ->
       password = $("#shared-pass input[type=password]").val()
       [hash,msg] = _.hmac_password(password ,g_shared_salt)
       $.post '/api/user/auth_shared',
@@ -36,7 +36,6 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
           new UserListView({model: new UserListModel()})
         else
           alert("パスワードが違います")
-      false
 
   LoginView = Backbone.View.extend
     el: "#container-login"
@@ -46,7 +45,7 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
     initialize: -> @render()
     render: -> @$el.html($("#templ-login").html())
 
-    on_login_submit: ->
+    on_login_submit: _.wrap_submit ->
       user_id = $("#names").val()
       password = $("#login input[type=password]").val()
       first = ->
@@ -62,6 +61,5 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
           window.location.href = "/top"
         else
           alert("パスワードが違います")
-      false
   init: ->
     window.shared_passwd_view = new SharedPasswdView()

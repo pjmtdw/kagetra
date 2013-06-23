@@ -8,7 +8,7 @@ class MainApp < Sinatra::Base
         .select('SELECT user_id, value_id FROM user_attributes')
         .group_by{|x| x[:user_id]}.map{|xs|[xs[0],xs[1].map{|x|x[:value_id]}]}]
       attr_values = Hash[UserAttributeValue.all
-        .map{|x| [x.id, {index:x.index, value:x.value}]}]
+        .map{|x| [x.id, {key_id:x.attr_key.id, index:x.index, value:x.value}]}]
       key_names = UserAttributeKey.all(order: [:index.asc]).map{|x|[x.id,x.name]}
       key_values = Hash[UserAttributeKey.all.map{|x|[x.id,x.values.map{|v|v.id}]}]
 
@@ -47,6 +47,21 @@ class MainApp < Sinatra::Base
         users.map{|u|u.attrs.create(value_id:@json["value"].to_i)}
       }
     end
+    post '/apply_edit' do
+      User.transaction{
+        @json.each{|x|
+          u = User.get(x["uid"].to_i)
+          case x["type"]
+          when "attr"
+            u.attrs.create(value_id:x["new_val"].to_i)
+          when "furigana"
+            u.update(furigana:x["new_val"])
+          when "name"
+            u.update(name:x["new_val"])
+          end
+        }
+      }
+    end
 
     def change_admin_or_loginable(is_add,sym,users)
       users.update(sym => is_add)
@@ -65,6 +80,7 @@ class MainApp < Sinatra::Base
   end
   get '/admin' do
     user = get_user
+    @new_salt = Kagetra::Utils.gen_salt
     haml :admin,{locals: {user: user}}
   end
 end

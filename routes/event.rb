@@ -59,14 +59,12 @@ class MainApp < Sinatra::Base
       }
     end
     post '/choose/:eid/:cid' do
-      begin
+      Kagetra::Utils.dm_debug{
         user = get_user
         evt = Event.first(id:params[:eid].to_i)
         evt.choices.first(id:params[:cid].to_i).user_choices.create(user:user)
         {count: evt.participant_count}
-      rescue DataMapper::SaveFailureError => e
-        p e.resource.errors
-      end
+      }
     end
     get '/comment/list/:id' do
       user = get_user

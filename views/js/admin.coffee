@@ -1,4 +1,4 @@
-define ->
+define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
   AdminAttrView = Backbone.View.extend
     template: _.template_braces($("#attr-key-values").html())
     events:
@@ -77,6 +77,103 @@ define ->
       "click .thead-furigana" : -> @collection.add_comp_sort("furigana",1)
       "click .thead-key-name" : "do_sort_attr"
       "click #clear-select" : "do_clear_select"
+      "click .furigana" : "start_edit_furigana"
+      "click .name" : "start_edit_name"
+      "click .user-attr" : "start_edit_attr"
+      "submit .edit-item" : "submit_edit_item"
+      "click #undo-last-edit" : "undo_last_edit"
+      "click #apply-edit" : "apply_edit"
+    apply_edit: ->
+      if confirm("#{@edit_log.length} 点の変更を反映してもいいですか？")
+        elog = JSON.stringify(@edit_log)
+        aj = $.ajax("/api/admin/apply_edit",
+          data: elog
+          contentType: "application/json"
+          type: "POST")
+        aj.done( ->
+          alert("反映完了")
+          @edit_log = []
+          $("#edit-log-count").text(@edit_log.length)
+        )
+    undo_last_edit: ->
+      @edit_log.pop()
+      $("#edit-log-count").text(@edit_log.length)
+
+    submit_edit_item: (ev)->
+      obj = $(ev.currentTarget)
+      input = obj.find("input[type='text']")
+      if input.length == 0
+        input = obj.find("select")
+      if input.length == 0
+        return false
+      new_val = input.val()
+      old_val = input.attr("data-old-value")
+      type = obj.attr("data-type")
+      if new_val != old_val
+        @edit_log.push(
+          type: type
+          uid: obj.attr("data-uid")
+          old_val: old_val
+          new_val: new_val
+        )
+        $("#edit-log-count").text(@edit_log.length)
+      new_text = if type == "attr" then @collection.attr_values[new_val].value else new_val
+      obj.parent().text(new_text)
+      false
+    start_edit_attr: (ev) ->
+      obj = $(ev.currentTarget)
+      return if obj.find("form").length > 0
+      kid = obj.attr("data-key-id")
+      vid = obj.attr("data-value-id")
+      uid = obj.parent().attr("data-uid")
+      form = $("<form>", {
+        class: 'edit-item'
+        "data-type": "attr"
+        "data-uid":  uid
+      })
+      select = $("<select>",{
+        "data-old-value": vid
+      })
+      for v in @collection.key_values[kid]
+        opt = $("<option>",{
+          value: v
+          text: @collection.attr_values[v].value
+          selected: v == parseInt(vid)
+        })
+        select.append(opt)
+      form.append(select)
+      obj.empty()
+      obj.append(form)
+      select.focus()
+      select.one("change",->select.trigger("blur"))
+      select.one("blur",->form.submit())
+      
+    start_edit_text: (obj,type) ->
+      return if obj.find("form").length > 0
+      txt = obj.text()
+      uid = obj.parent().attr("data-uid")
+      input = $("<input>",{
+        type: 'text'
+        value: txt
+        "data-old-value": txt
+      })
+      form = $("<form>", {
+        class: 'edit-item'
+        "data-type": type
+        "data-uid":  uid
+      })
+      form.append(input)
+      obj.empty()
+      obj.append(form)
+      input.focus()
+      input.one("blur",->form.submit())
+    start_edit_name: (ev) ->
+      obj = $(ev.currentTarget)
+      @start_edit_text(obj,"name")
+
+    start_edit_furigana: (ev) ->
+      obj = $(ev.currentTarget)
+      @start_edit_text(obj,"furigana")
     do_clear_select: ->
       for m in @collection.models
         m.set("selected",false)
@@ -108,16 +205,16 @@ define ->
         window.admin_edit_view.reveal()
     do_select_user: (ev)->
       obj = $(ev.currentTarget)
-      uid = parseInt(obj.attr("data-user-id"))
+      uid = parseInt(obj.parent().attr("data-uid"))
       select = not obj.hasClass("selected")
       obj.toggleClass("selected")
       count = 0
+      if uid == -1
+        $(".select-user").toggleClass("selected",select)
+
       for m in @collection.models
         if uid == -1
           m.set("selected",select) if m.get("visible")
-          cid = m.get("id")
-          $(".select-user[data-user-id='#{cid}']")
-            .toggleClass("selected",select)
         else
           m.set("selected",select) if uid == m.get("id")
 
@@ -131,12 +228,15 @@ define ->
       @listenTo(@collection,"sync",@.render_all)
       @listenTo(@collection,"sort",@.render_body)
       @collection.fetch()
+      @edit_log = []
     render_all: ->
       @render_header()
       @render_body()
     render_body: ->
+      r = @collection.toJSON()
+      r.edit_log_count = @edit_log.length
       @$el.find(".body").html(@template_body(
-        data:@collection.toJSON()
+        data:r
         attr_values: @collection.attr_values
         key_names: @collection.key_names
       ))
@@ -154,6 +254,7 @@ define ->
       "click #add-permission": (ev) -> @change_permission(ev,"add")
       "click #del-permission": (ev) -> @change_permission(ev,"del")
       "click #change-attr": "change_attr"
+      "submit #change-passwd": "change_passwd"
     get_uids: ->
       return (x.get("id") for x in @collection.models when x.get("selected"))
     change_attr: (ev)->
@@ -164,6 +265,22 @@ define ->
                 value: @$el.find(".attr-value-names").val())
         contentType: "application/json"
         type: "POST").done( -> alert("更新完了"))
+    change_passwd: (ev)->
+      uids = @get_uids()
+      el = @$el
+      if el.find(".pass-new").val().length == 0
+        alert("新パスワードが空白です")
+        return false
+      if el.find(".pass-new").val() != el.find(".pass-retype").val()
+        alert("再確認のパスワードが一致しません")
+        return false
+      hash = _.pbkdf2_password(el.find(".pass-new").val(),g_new_salt)
+      p = $.post '/api/user/change_password',
+        hash: hash
+        salt: g_new_salt
+        uids: uids
+      p.done(-> alert("パスワードを変更しました"))
+      false
       
     change_permission: (ev,mode) ->
       obj = $(ev.currentTarget)

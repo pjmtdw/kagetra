@@ -39,9 +39,8 @@ define (require, exports, module) ->
         return false
     # ensure that view is removed when reveal is closed
     reveal_view: (target,view) ->
-      $(target).on("closed", ->
-        view.remove()
-        $(target).off("closed"))
+      $(target).one("closed", ->
+        view.remove())
       $(target).foundation("reveal","open")
     # save backbone model (only changed attributes)
     save_model_alert: (model,obj) ->

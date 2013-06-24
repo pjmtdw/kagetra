@@ -8,9 +8,14 @@
 
 .row
   .large-6.columns
-    .row
-      .large-8.columns
-        -# TODO: メッセージ
+    .panel.top-message
+      .event-new
+        %span 最終ログイン:#{user.show_new_from.strftime("%Y-%m-%d %H:%M")} 今月ログイン:#{user.log_mon_count}
+      .bbs-new
+      .event-comment-new
+      .schedule-alert
+      .event-participant-new
+
   .large-6.columns
     %ul#schedule-panel.large-block-grid-3.small-block-grid-3
 
@@ -20,8 +25,7 @@
 %script#templ-event-list(type='text/template')
   .row
     .large-5.columns
-      .panel
-        .deadline-message
+      .panel.deadline-message
     .large-3.columns
       -# TODO: 今日の一枚
     .large-4.columns

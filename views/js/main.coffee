@@ -78,6 +78,6 @@ require ["zep_or_jq","myutil","deferred","backbone"
     v.remove()
 
     $(document).foundation()
-  mod_name = $("script[data-start]").attr("data-start")
+  mod_name = $("script[data-start]").data("start")
   if mod_name
     require [mod_name], (mod) -> $( -> init_f();mod.init() )

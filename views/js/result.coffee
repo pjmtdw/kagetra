@@ -70,7 +70,7 @@ define (require,exports,module) ->
     events:
       "click .contest-link": "contest_link"
     contest_link: (ev) ->
-      id = $(ev.currentTarget).attr('data-id')
+      id = $(ev.currentTarget).data('id')
       window.result_router.navigate("contest/#{id}",trigger:true)
     initialize: ->
       _.bindAll(this,"render","refresh","contest_link")

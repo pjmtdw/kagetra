@@ -107,12 +107,12 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
       if input.length == 0
         return false
       new_val = input.val()
-      old_val = input.attr("data-old-value")
-      type = obj.attr("data-type")
+      old_val = input.data("old-value")
+      type = obj.data("type")
       if new_val != old_val
         @edit_log.push(
           type: type
-          uid: obj.attr("data-uid")
+          uid: obj.data("uid")
           old_val: old_val
           new_val: new_val
         )
@@ -123,9 +123,9 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
     start_edit_attr: (ev) ->
       obj = $(ev.currentTarget)
       return if obj.find("form").length > 0
-      kid = obj.attr("data-key-id")
-      vid = obj.attr("data-value-id")
-      uid = obj.parent().attr("data-uid")
+      kid = obj.data("key-id")
+      vid = obj.data("value-id")
+      uid = obj.parent().data("uid")
       form = $("<form>", {
         class: 'edit-item'
         "data-type": "attr"
@@ -151,7 +151,7 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
     start_edit_text: (obj,type) ->
       return if obj.find("form").length > 0
       txt = obj.text()
-      uid = obj.parent().attr("data-uid")
+      uid = obj.parent().data("uid")
       input = $("<input>",{
         type: 'text'
         value: txt
@@ -181,7 +181,7 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
       $("#selected-count").text(0)
 
     do_sort_attr: (ev)->
-      kindex = $(ev.currentTarget).attr("data-key-index")
+      kindex = $(ev.currentTarget).data("key-index")
       @collection.add_comp_sort("attr-key:#{kindex}",1)
 
     apply_filter: ->
@@ -205,7 +205,7 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
         window.admin_edit_view.reveal()
     do_select_user: (ev)->
       obj = $(ev.currentTarget)
-      uid = parseInt(obj.parent().attr("data-uid"))
+      uid = parseInt(obj.parent().data("uid"))
       select = not obj.hasClass("selected")
       obj.toggleClass("selected")
       count = 0

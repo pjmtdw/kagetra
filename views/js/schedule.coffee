@@ -56,7 +56,7 @@ define (require,exports,module) ->
       "click #multi-edit-cancel": "multi_edit_done"
    
     multi_edit_apply: ->
-      id = @multi_edit_item.attr("data-schedule-id")
+      id = @multi_edit_item.data("schedule-id")
       that = this
       $.post("/api/schedule/copy/#{id}",{list:@schedule_item_new}).done(-> that.multi_edit_done())
 
@@ -93,14 +93,14 @@ define (require,exports,module) ->
         "click .info-item": (ev)->
           ev.stopPropagation()
           obj = $(ev.currentTarget)
-          dt = obj.attr('data-date')
+          dt = obj.data('date')
           return if _.contains(@schedule_item_new,dt)
           obj.append(@multi_edit_item.clone())
           @schedule_item_new.push(dt)
         "click .schedule-item-new": (ev)->
           ev.stopPropagation()
           obj = $(ev.currentTarget)
-          dt = obj.parents('.info-item').attr('data-date')
+          dt = obj.parents('.info-item').data('date')
           obj.remove()
           @schedule_item_new =
             _.reject(@schedule_item_new,(x)->x==dt)

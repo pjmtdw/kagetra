@@ -15,26 +15,7 @@ class MainApp < Sinatra::Base
       trial_hash = params[:hash]
       correct_hash = Kagetra::Utils.hmac_password(hash,msg)
       res = if trial_hash == correct_hash then
-        User.transaction{
-          latest = UserLoginLatest.first_or_new(user: user)
-
-          user.change_token!
-          user.show_new_from = latest.updated_at
-          user.save
-
-          latest.set_env(request)
-          latest.touch
-          latest.save
-
-          log = user.login_log.new
-          log.set_env(request)
-          log.save
-
-          dt = Date.today
-          monthly = user.login_monthly.first_or_new(year:dt.year,month:dt.month)
-          monthly.count += 1
-          monthly.save
-        }
+        user.update_login(request)
         session[:user_id] = uid
         session[:user_token] = user.token
         "OK"

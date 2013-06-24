@@ -130,7 +130,7 @@ define (require,exports,module) ->
       show_event_edit(new $ed.EventItemModel(type:"contest"))
     reorder: (ev) ->
       target = $(ev.currentTarget)
-      order = target.attr("data-order")
+      order = target.data("order")
       @collection.set_comparator(order)
       @collection.sort()
     initialize: ->
@@ -167,7 +167,7 @@ define (require,exports,module) ->
       @listenTo(@model,"change",@render)
     do_when_click: (ev)->
       ct = $(ev.currentTarget)
-      id = ct.attr('data-id')
+      id = ct.data('id')
       @model.set('choice',id)
       that = this
       @model.save().done((data)->

@@ -24,8 +24,37 @@ class User
   before :save do
     self.furigana_row = Kagetra::Utils.gojuon_row_num(self.furigana)
   end
+  # ログイン処理
+  def update_login(request)
+    User.transaction{
+      latest = UserLoginLatest.first_or_new(user: self)
+
+      self.change_token!
+      self.show_new_from = latest.updated_at
+      self.save
+
+      latest.set_env(request)
+      latest.touch
+      latest.save
+
+      log = self.login_log.new
+      log.set_env(request)
+      log.save
+
+      dt = Date.today
+      monthly = self.login_monthly.first_or_new(year:dt.year,month:dt.month)
+      monthly.count += 1
+      monthly.save
+    }
+  end
   def change_token! 
     self.token = SecureRandom.base64(24)
+  end
+  # 今月のログイン数
+  def log_mon_count
+    dt = Date.today
+    monthly = self.login_monthly.first(year:dt.year,month:dt.month)
+    monthly.count
   end
 end
 

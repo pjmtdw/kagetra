@@ -30,7 +30,7 @@ define ->
     events:
       "click .gbase.year": "do_list_year"
     do_list_year: (ev)->
-      year = $(ev.currentTarget).attr("data-year")
+      year = $(ev.currentTarget).data("year")
       window.album_router.navigate("year/#{year}", trigger:true)
 
     initialize: ->
@@ -52,10 +52,10 @@ define ->
       "click .gbase.group": "goto_group"
       "click .gbase.item": "goto_item"
     goto_group: (ev)->
-      id = $(ev.currentTarget).attr("data-group-id")
+      id = $(ev.currentTarget).data("group-id")
       window.album_router.navigate("group/#{id}", trigger:true)
     goto_item: (ev)->
-      id = $(ev.currentTarget).attr("data-item-id")
+      id = $(ev.currentTarget).data("item-id")
       window.album_router.navigate("item/#{id}", trigger:true)
 
     template: _.template_braces($("#templ-album-year").html())
@@ -75,7 +75,7 @@ define ->
     events:
       "click .gbase.thumbnail":"goto_item"
     goto_item:(ev)->
-      id = $(ev.currentTarget).attr("data-item-id")
+      id = $(ev.currentTarget).data("item-id")
       window.album_router.navigate("item/#{id}", trigger:true)
     initialize: ->
       @model = new AlbumGroupModel()

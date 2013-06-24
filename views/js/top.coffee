@@ -143,15 +143,19 @@ define (require,exports,module) ->
       @$el.html(@template())
       @$el.find(".choice[data-order='#{@collection.order}']").addClass("active")
       @subviews = []
+      has_deadline_alert = false
       for m in @collection.models
         v = new EventItemView(model:m)
         v.render()
         @$el.find(".event-body").append(v.$el)
         @subviews.push(v)
         if m.get('deadline_alert')
+          has_deadline_alert = true
           av = new EventAbbrevView(model:m,choice_model:v.choice_model)
           av.render()
           @$el.find(".deadline-message").append(av.$el)
+      if has_deadline_alert
+        @$el.find(".deadline-message").show()
 
   EventChoiceModel = Backbone.Model.extend
     url: -> "/api/event/choose/#{@get('eid')}/#{@get('choice')}"

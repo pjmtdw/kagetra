@@ -10,7 +10,7 @@
   .large-6.columns
     .panel.top-message
       .event-new
-        %span 最終ログイン:#{user.show_new_from.strftime("%Y-%m-%d %H:%M")} 今月ログイン:#{user.log_mon_count}
+        %span 最終ログイン:#{user.last_login_str}, 今月ログイン:#{user.log_mon_count}
       .bbs-new
       .event-comment-new
       .schedule-alert
@@ -19,16 +19,14 @@
   .large-6.columns
     %ul#schedule-panel.large-block-grid-3.small-block-grid-3
 
-.row
-  #event-list
+#event-list
 
 %script#templ-event-list(type='text/template')
   .row
-    .large-5.columns
-      .panel.deadline-message
-    .large-3.columns
-      -# TODO: 今日の一枚
-    .large-4.columns
+    .large-6.columns
+      .panel.deadline-message.hide
+        .header 締切が迫っています
+    .large-6.columns
       - if user.admin
         %div.right
           %button.small.round#add-contest 大会追加
@@ -43,13 +41,19 @@
           %a 追加日
         %dd.choice(data-order='latest_comment_date')
           %a 最終書込
-  %ul.event-body.large-block-grid-2.small-block-grid-1
+  .row
+    .large-12.columns
+      %ul.event-body.large-block-grid-2.small-block-grid-1
 
 %script#templ-event-abbrev(type='text/template')
-  .row
-    .large-6.columns
-      <%- data.name %>
-    .large-6.columns
+  .row.collapse.event-item
+    .large-4.columns
+      %a.show-detail(href="#")
+        <%- data.name %>
+    .large-3.columns
+      .deadline
+        <%= data.deadline_str %>
+    .large-5.columns
       .event-choice
 
 %script#templ-event-item(type='text/template')
@@ -60,7 +64,7 @@
       .large-7.columns
         開催日: <%= _.show_date(data.date) %>
       .large-5.columns.deadline 締切: <%= data.deadline_str %> 
-    .row
+    .row.deadline-row
       .large-12.columns
         .event-choice
     .row

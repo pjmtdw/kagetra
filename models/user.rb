@@ -56,6 +56,18 @@ class User
     monthly = self.login_monthly.first(year:dt.year,month:dt.month)
     monthly.count
   end
+  def last_login_str
+    pre = self.show_new_from
+    cur = DateTime.now
+    days = (cur-pre).to_f
+    if days < 2/24.0
+      "#{(days*1440).to_i}分前"
+    elsif days < 2.0
+      "#{(days*24).to_i}時間前"
+    else
+      "#{days.to_i}日前"
+    end
+  end
 end
 
 # 最後のログイン(updated_atが実際のログインの日時)

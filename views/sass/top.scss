@@ -1,6 +1,10 @@
 @import "foundation/components/global";
 @import "foundation/components/buttons";
 .event-item{
+  .row{
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
   .buttons{
     text-align: right;
     button,.button-custom{
@@ -20,8 +24,7 @@
   }
   .event-choice{
     .sub-nav{
-      margin-top: 6px;
-      margin-bottom: 6px;
+      margin-bottom: 0;
       .choice{
         &.positive-true.active a{
           background-color: #63F;
@@ -65,6 +68,17 @@
       font-weight: bold;
       font-size: 120%;
     }
+  }
+}
+.deadline-message{
+  .event-choice{
+    margin-left: 3px;
+  }
+  .sub-nav{
+    margin-bottom: 0;
+  }
+  .event-item{
+    padding-top: 10px;
   }
 }
 #sticky-alert {

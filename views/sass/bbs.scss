@@ -1,7 +1,7 @@
 @import "compass/css3/border-radius";
 .thread {
   margin-bottom: 7px;
-  padding: 5px;
+  padding: 10px;
   @include border-radius(6px);
   .title {
     font-weight: bold;
@@ -19,18 +19,4 @@
 .public{
   border: 4px solid blue;
   background-color: #FFF;
-}
-.item {
-  border-top: 1px dotted gray;
-  padding: 3px;
-  line-height: 125%;
-  .name-date{
-    margin: 5px 0;
-    .name {
-      color: #040;
-    }
-    .date {
-      color: brown;
-    }
-  }
 }

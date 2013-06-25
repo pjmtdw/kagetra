@@ -3,7 +3,7 @@
 - content_for :js_start do
   bbs
 - content_for :css do
-  bbs
+  bbs, comment
 = haml :top_bar, locals: {user: user}
 .row
   %div.large-6.columns
@@ -39,30 +39,4 @@
 .row
   #bbs-body
 
-%script#templ-thread(type='text/template')
-  .thread(class='{-data.public?"public":"private"-}')
-    %div.clearfix
-      .left.title
-        {- data.title -}
-      .right.is-public
-        {- data.public?"外部公開":"" -}
-    .items
-      {{data.items}}
-    .response
-      %button.response-toggle.small.round(data-toggle-text="キャンセル") レスする
-      .response-container
-%script#templ-item(type='text/template')
-  .item
-    .name-date
-      %span.name
-        <%- name %>
-      %span.date
-        @ <%- date %>
-    .body.pre
-      <%- body %>
-%script#templ-response(type='text/template')
-  %form.response-form
-    %label レス
-    %textarea.response-body(rows=20)
-    %input.button.small.round(type='submit' value='送信')
-
+= haml :comment

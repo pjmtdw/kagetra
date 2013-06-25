@@ -24,14 +24,13 @@ class MainApp < Sinatra::Base
       end
       query.all(order: [:updated_at.desc ]).chunks(BBS_THREADS_PER_PAGE)[page].map{|t|
         items = t.items.map{|i|
+          i.select_attr(:body,:user_name).merge(
           {
-            body: i.body,
-            name: i.user_name,
             date: i.created_at.strftime("%Y-%m-%d %H:%M:%S")
-          }
+          })
         }
         title = t.title
-        {thread_id: t.id, title: title, items: items, public: t.public}
+        {id: t.id, title: title, items: items, public: t.public}
       }
     end
     post '/thread/new' do
@@ -48,11 +47,11 @@ class MainApp < Sinatra::Base
         }
       }
     end
-    post '/response/new' do
+    post '/item' do
       user = get_user
-      body = params["body"]
-      thread_id = params["thread_id"]
-      thread = BbsThread.first(id: thread_id)
+      body = @json["body"]
+      thread_id = @json["thread_id"]
+      thread = BbsThread.get(thread_id.to_i)
       thread.touch
       item = thread.items.create(body: body, user: user, user_name: user.name)
     end

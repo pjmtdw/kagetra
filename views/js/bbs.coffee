@@ -1,4 +1,5 @@
-define ->
+define (require,exports,module) ->
+  $co = require("comment")
   BbsRouter = Backbone.Router.extend
     routes:
       "page/:id": "page"
@@ -13,52 +14,10 @@ define ->
         data.qs = qs
       window.bbs_view.refresh(data)
 
-  BbsItemModel = Backbone.Model.extend {}
-
-  BbsItemView = Backbone.View.extend
-    template: _.template($("#templ-item").html())
-    initialize: ->
-      @render()
-    render: ->
-      @$el.html(@template(@model.toJSON()))
-
   BbsThreadModel = Backbone.Model.extend {}
-
   BbsThreadCollection = Backbone.Collection.extend
     model: BbsThreadModel
     url: "/api/bbs/threads"
-
-  BbsThreadView = Backbone.View.extend
-    template: _.template_braces($("#templ-thread").html())
-    template_response: _.template($("#templ-response").html())
-    events:
-      'submit .response-form': 'do_response'
-      'click .response-toggle': 'toggle_response'
-    toggle_response: ->
-      container = @$el.find(".response-container")
-      @$el.find(".response-toggle").toggleBtnText()
-
-      if container.is(":empty")
-        container.html @template_response()
-      else
-        container.empty()
-    do_response: _.wrap_submit ->
-      data =
-        thread_id: @model.get("thread_id")
-        body: @$el.find(".response-body").val()
-      $.post("/api/bbs/response/new",data).done(refresh_all)
-    initialize: ->
-      _.bindAll(this,"do_response","toggle_response")
-      @render()
-    render: ->
-      title = @model.get("title")
-      items = for item in @model.get("items")
-        m = new BbsThreadModel(item)
-        v = new BbsItemView(model: m)
-        v.$el.html()
-      h = @template(data:{title: title, items: items, public: @model.get("public")})
-      @$el.html(h)
-
   BbsView = Backbone.View.extend
     el: "#bbs-body"
     initialize: ->
@@ -70,7 +29,7 @@ define ->
       e = @$el
       e.empty()
       @collection.each (m)->
-        v = new BbsThreadView(model: m)
+        v = new $co.BbsThreadView(model: m,refresh_all:refresh_all)
         e.append(v.$el)
   goto_page = (page) ->
     page = 1 if page < 1

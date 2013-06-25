@@ -18,20 +18,5 @@
         <% }) %>
     <% }) %>
 
-%script#templ-event-comment(type='text/template')
-  <%- event_name %>
-  %button.toggle-comment.round.small(data-toggle-text='キャンセル') コメントする
-  %form.comment-form.hide
-    %textarea(name='body' rows=15 autofocus)
-    %input.button.small.round(type='submit' value='送信')
-  <% _.each(data,function(x){ %>
-  %hr
-  .comment-item
-    %div.name-date
-      %span.name <%- x.user_name %>
-      %span.date @ <%- x.date %>
-      <% if(x.is_new){ %>
-      %span.is-new.label.round new
-      <% } %>
-    %div.pre <%- x.body %>
-  <% }) %>
+
+= haml :comment

@@ -78,11 +78,7 @@ class MainApp < Sinatra::Base
             date: x.created_at.strftime('%Y-%m-%d %H:%M:%S'),
             body: x.body
           })
-        if (x.user.nil? or x.user.id != user.id) and 
-          user.show_new_from.nil?.! and
-          x.created_at >= user.show_new_from then
-          r[:is_new] = true
-        end
+        r[:is_new] = x.is_new(user)
         r
       }
       {
@@ -91,13 +87,11 @@ class MainApp < Sinatra::Base
       }
     end
     post '/comment/item' do
-      begin
+      Kagetra::Utils.dm_response{
         user = get_user
-        evt = Event.first(id:params[:event_id].to_i)
-        c = evt.comments.create(user:user,body:params[:body])
-      rescue DataMapper::SaveFailureError => e
-        p e.resource.errors
-      end
+        evt = Event.first(id:@json["event_id"].to_i)
+        c = evt.comments.create(user:user,body:@json["body"])
+      }
     end
   end
 end

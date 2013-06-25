@@ -1,6 +1,7 @@
 define (require,exports,module) ->
-  $si = require("schedule_item")
   $ed = require("event_detail")
+  $si = require("schedule_item")
+  $co = require("comment")
   _.mixin
     show_new_comment: (count,has_new)->
       c = if has_new
@@ -91,7 +92,7 @@ define (require,exports,module) ->
     show_detail: ->
       $ed.reveal_detail("#container-event-detail",@model)
     show_comment: ->
-      $ed.reveal_comment("#container-event-comment",@model.get('id'),@$el.find(".comment-count"))
+      $co.reveal_comment("#container-event-comment",@model.get('id'),@$el.find(".comment-count"))
     render: ->
       json = @model.toJSON()
       json.deadline_str = show_deadline(json.deadline_day)

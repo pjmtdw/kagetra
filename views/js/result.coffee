@@ -3,6 +3,7 @@ define (require,exports,module) ->
   # since both scripts contains whole content of schedule_item.js.
   # TODO: do not require schedule_item here and load it dynamically.
   $ed = require("event_detail")
+  $co = require("comment")
 
   _.mixin
     result_str: (s) ->
@@ -90,7 +91,7 @@ define (require,exports,module) ->
         $("#contest-result-body").append(v.$el)
 
       this.$el.foundation('section','reflow')
-      $ed.section_comment(
+      $co.section_comment(
         "#event-comment",
         @collection.id,
         $("#event-comment-count"))

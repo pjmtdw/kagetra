@@ -1,0 +1,38 @@
+%script#templ-response(type='text/template')
+  %form.response-form
+    %label レス
+    %textarea.response-body(name='body' rows=20)
+    %input.button.small.round(type='submit' value='送信')
+      
+%script#templ-comment-item(type='text/template')
+  .comment-item
+    .clearfix
+      .name-date.left
+        %span.name
+          <%- data.user_name %>
+        %span.date
+          @ <%= data.date %>
+        <% if(data.is_new){ %>
+        %span.is-new.label.round new
+        <% } %>
+      .right
+        %button.tiny.round.start_edit 編集
+        %button.tiny.round.alert.delete 削除
+    .body.pre <%- data.body %>
+
+%script#templ-event-comment(type='text/template')
+  %button.response-toggle.small.round(data-toggle-text="キャンセル") レスする
+  .response-container
+  .comment-body
+
+%script#templ-bbs-thread(type='text/template')
+  .thread(class='{-data.public?"public":"private"-}')
+    .clearfix
+      .left.title
+        {- data.title -}
+      .right.is-public
+        {- data.public?"外部公開":"" -}
+    .comment-body
+    %button.response-toggle.small.round(data-toggle-text="キャンセル") レスする
+    .response-container
+

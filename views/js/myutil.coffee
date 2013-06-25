@@ -31,11 +31,13 @@ define (require, exports, module) ->
     weekday_ja: ->
       ["日","月","火","水","木","金","土"]
     wrap_submit: (f) ->
-      ->
+      # submit失敗したときにエラーメッセージを表示しfalseを返す
+      (arg...)->
         try
-          _.bind(f,this)()
+          _.bind(f,this)(arg...)
         catch e
           console.log e.message
+          console.trace?()
         return false
     # ensure that view is removed when reveal is closed
     reveal_view: (target,view) ->
@@ -55,9 +57,11 @@ define (require, exports, module) ->
     save_model: (model,obj)->
       m = model.clone()
       m.set(obj)
-      attrs = m.changedAttributes()
-      m.clear()
-      m.set('id',model.id)
+      attrs = {}
+      if not m.isNew()
+        attrs = m.changedAttributes()
+        m.clear()
+        m.set('id',model.id)
       defer = $.Deferred()
       m.save(attrs).done((data) ->
         if data._error_

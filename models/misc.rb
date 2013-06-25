@@ -64,7 +64,11 @@ module CommentBase
           self.user_name = self.user.name
         end
       end
-      # TODO: trim remote_host, remote_addr, user_agent if it is too long
+      def is_new(user)
+        (self.user.nil? or self.user.id != user.id) and 
+        user.show_new_from.nil?.! and
+        self.created_at >= user.show_new_from
+      end
     end
   end
 end

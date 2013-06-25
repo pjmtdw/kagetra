@@ -1,5 +1,6 @@
 define (require, exports, module) ->
   $ed = require("event_detail")
+  $co = require("comment")
   locals = {}
   _.mixin
     show_schedule_emphasis: (data)->
@@ -171,7 +172,7 @@ define (require, exports, module) ->
     show_detail: ->
       $ed.reveal_detail("#container-event-detail",@data.id)
     show_comment: ->
-      $ed.reveal_comment("#container-event-comment",@data.id)
+      $co.reveal_comment("#container-event-comment",@data.id)
     template: _.template($("#templ-schedule-detail-event").html())
     initialize: (arg) -> @data = arg.data
 

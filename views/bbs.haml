@@ -20,17 +20,19 @@
   %form#new-thread-form.large-12.columns
     %fieldset
       %legend スレッド作成
+      %input.button.small.round(type='submit' value='送信')
       .row
-        .large-10.columns
+        .large-12.columns
           %label タイトル
-          %input#new-thread-title(type='text' autofocus)
-        .large-2.column
-          %input#new-thread-public(type='checkbox') 外部公開
+          .row
+            .large-10.columns
+              %input(name='title' type='text' autofocus)
+            .large-2.columns
+              %input(name='public' type='checkbox') 外部公開
       .row
         .large-12.columns
           %label 内容
-          %textarea#new-thread-body(rows=30)
-          %input.button.small.round(type='submit' value='送信')
+          %textarea(name='body' rows=30)
 
 .row
   %div.large-6.columns

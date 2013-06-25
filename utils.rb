@@ -13,15 +13,11 @@ module DataMapper
     #   If false, only attributes are passed into the create method
     # @return[Object] DataMapper object 
     def update_or_create(conditions = {}, attributes = {}, merger = true)
-      begin
-	if (row = first(conditions))
-          row.update(attributes)
-	  row
-	else
-	  create(merger ? (conditions.merge(attributes)) : attributes )
-	end
-      rescue Exception => e
-        throw e
+      if (row = first(conditions))
+        row.update(attributes)
+        row
+      else
+        create(merger ? (conditions.merge(attributes)) : attributes )
       end
     end
   end # Module Model

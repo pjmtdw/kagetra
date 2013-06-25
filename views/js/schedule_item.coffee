@@ -132,20 +132,16 @@ define (require, exports, module) ->
           that.refresh_day())
     edit_done: ->
       obj = @$el.find('.item-detail-form').serializeObj()
-      @model.set(obj)
       that = this
-
-      that = this
-      if @model.isNew()
-        @model.save().done(->
+      when_done = if @model.isNew()
+        ->
           window.schedule_detail_view.refresh()
           that.refresh_day()
-        )
       else
-        @model.save().done(->
+        ->
           that.toggle_edit()
           that.refresh_day()
-        )
+      _.save_model_alert(@model,obj).done(when_done)
     toggle_edit: ->
       if @model.isNew()
         @$el.remove()

@@ -3,6 +3,7 @@ class MainApp < Sinatra::Base
   BBS_THREADS_PER_PAGE = 10
   namespace '/api/bbs' do
     get '/threads' do
+      user = get_user
       page = params["page"].to_i - 1
       qs = params["qs"]
       query = BbsThread.all
@@ -26,20 +27,21 @@ class MainApp < Sinatra::Base
         items = t.items.map{|i|
           i.select_attr(:body,:user_name).merge(
           {
-            date: i.created_at.strftime("%Y-%m-%d %H:%M:%S")
+            date: i.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            is_new: i.is_new(user)
           })
         }
         title = t.title
         {id: t.id, title: title, items: items, public: t.public}
       }
     end
-    post '/thread/new' do
-      Kagetra::Utils.dm_debug{
+    post '/thread' do
+      Kagetra::Utils.dm_response{
         BbsItem.transaction{
           user = get_user
-          title = params["title"]
-          body = params["body"]
-          public = params["public"].empty?.!
+          title = @json["title"]
+          body = @json["body"]
+          public = @json["public"].to_s.empty?.!
           thread = BbsThread.create(title: title, public: public)
           item = thread.items.create(body: body, user: user, user_name: user.name)
           thread.first_item = item
@@ -48,12 +50,16 @@ class MainApp < Sinatra::Base
       }
     end
     post '/item' do
-      user = get_user
-      body = @json["body"]
-      thread_id = @json["thread_id"]
-      thread = BbsThread.get(thread_id.to_i)
-      thread.touch
-      item = thread.items.create(body: body, user: user, user_name: user.name)
+      Kagetra::Utils.dm_response{
+        BbsThread.transaction{
+          user = get_user
+          body = @json["body"]
+          thread_id = @json["thread_id"]
+          thread = BbsThread.get(thread_id.to_i)
+          item = thread.items.create(body: body, user: user, user_name: user.name)
+          thread.touch
+        }
+      }
     end
   end
   get '/bbs' do

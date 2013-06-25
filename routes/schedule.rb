@@ -31,20 +31,13 @@ class MainApp < Sinatra::Base
           s.to_sym
         end
       }.compact
-      Kagetra::Utils.dm_debug{
-        ScheduleItem.update_or_create(
-          {id: id},
-          {
-            owner: user,
-            name: json["name"],
-            place: json["place"],
-            emphasis: emph,
-            description: json["description"],
-            start_at: json["start_at"],
-            end_at: json["end_at"]
-          }.merge(if date then {date: date} else {} end)
-        )
-      }
+      ScheduleItem.update_or_create(
+        {id: id},
+        {
+          owner: user,
+          emphasis: emph,
+      }.merge(if date then {date: date} else {} end).merge(json.select_attr("name","place","description","start_at","end_at"))
+      )
     end
     def make_detail_item(x)
       r = x.select_attr(:id,:start_at,:end_at,:name,:place,:description)
@@ -57,15 +50,19 @@ class MainApp < Sinatra::Base
       make_detail_item(ScheduleItem.get(params[:id]))
     end
     post '/detail/item' do
-      user = get_user
-      update_or_create(nil, user, @json)
+      Kagetra::Utils.dm_response{
+        user = get_user
+        update_or_create(nil, user, @json)
+      }
     end
     put '/detail/item/:id' do
-      user = get_user
-      update_or_create(params[:id], user, @json)
+      Kagetra::Utils.dm_response{
+        user = get_user
+        update_or_create(params[:id], user, @json)
+      }
     end
     delete '/detail/item/:id' do
-      Kagetra::Utils.dm_debug{
+      Kagetra::Utils.dm_response{
         ScheduleItem.get(params[:id].to_i).destroy
       }
     end

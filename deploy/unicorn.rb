@@ -11,7 +11,7 @@ pid "#{@cur}/pid/unicorn.pid"
 stderr_path "#{@cur}/log/unicorn.err.log"
 stdout_path "#{@cur}/log/unicorn.out.log"
 
-@session_secret = SecureRandom.hex(64)
+@session_secret = SecureRandom.base64(48)
 before_fork do | server, worker |
   # share session_secret between worker processes
   ENV["RACK_SESSION_SECRET"] = @session_secret

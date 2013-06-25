@@ -1,8 +1,7 @@
 %script#templ-response(type='text/template')
   %form.response-form
-    %label レス
-    %textarea.response-body(name='body' rows=20)
     %input.button.small.round(type='submit' value='送信')
+    %textarea.response-body(name='body' rows=20 placeholder='レス内容')
       
 %script#templ-comment-item(type='text/template')
   .comment-item

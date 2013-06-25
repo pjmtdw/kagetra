@@ -7,7 +7,9 @@ define (require,exports,module) ->
     start: ->
       window.bbs_router.navigate("page/1", {trigger: true, replace: true})
     page: (page) ->
-      window.bbs_page = parseInt(page)
+      page = parseInt(page)
+      window.bbs_page = page
+
       qs = $("#query-string").val()
       data = {page: page}
       if qs
@@ -24,13 +26,13 @@ define (require,exports,module) ->
       @collection = new BbsThreadCollection()
       _.bindAll(this,"render")
     refresh: (data) ->
+      @collection.reset([])
       @collection.fetch(data:data).done(@render)
     render: ->
-      e = @$el
-      e.empty()
-      @collection.each (m)->
+      @$el.empty()
+      for m in @collection.models
         v = new $co.BbsThreadView(model: m,refresh_all:refresh_all)
-        e.append(v.$el)
+        @$el.append(v.$el)
   goto_page = (page) ->
     page = 1 if page < 1
     window.bbs_router.navigate("page/" + page, trigger: true)
@@ -38,15 +40,17 @@ define (require,exports,module) ->
     window.bbs_router.navigate("", trigger: true)
   do_search = refresh_all
   create_new_thread = ->
-    data =
-      title: $("#new-thread-title").val()
-      body: $("#new-thread-body").val()
-      public: if $("#new-thread-public").is(":checked") then "on" else ""
-    $.post("/api/bbs/thread/new",data).done(
-        $("#new-thread-row").hide()
-        $("#new-thread-toggle").toggleBtnText()
-        refresh_all
-        )
+    M = Backbone.Model.extend {
+      url:'/api/bbs/thread'
+    }
+    m = new M()
+    obj = $('#new-thread-form').serializeObj()
+    _.save_model_alert(m,obj).done( ->
+      $("#new-thread-form")[0].reset()
+      $("#new-thread-row").hide()
+      $("#new-thread-toggle").toggleBtnText()
+      refresh_all()
+    )
 
   init: ->
     window.bbs_router = new BbsRouter()

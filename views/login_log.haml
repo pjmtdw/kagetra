@@ -1,0 +1,9 @@
+- content_for :title do
+  ログイン履歴
+- content_for :js_start do
+  login_log
+- content_for :css do
+  login_log
+= haml :top_bar, locals: {user: user}
+
+-# ユーザの最近のログイン履歴およびログインランキング

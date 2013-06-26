@@ -13,6 +13,7 @@ require_relative 'event'
 require_relative 'result'
 require_relative 'addrbook'
 require_relative 'album'
+require_relative 'wiki'
 
 DataMapper.finalize
 DataMapper.auto_upgrade!

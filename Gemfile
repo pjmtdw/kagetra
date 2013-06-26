@@ -7,21 +7,22 @@ gem 'sinatra'
 gem 'sinatra-contrib'
 gem 'haml'
 gem 'sass'
-gem 'rack-coffee'
+
 gem 'diff_match_patch'
 
 gem 'zurb-foundation'
 gem 'compass'
-
-gem 'sqlite3'
+gem 'redcarpet'
 
 gem 'data_mapper'
-gem 'dm-sqlite-adapter'
 gem 'dm-mysql-adapter'
 gem 'dm-chunked_query'
 
 # only used in hagakure scripts
 gem 'parallel'
+gem 'rake'
+gem 'sqlite3' # importing mytoma wiki
 
 # only used for developing
+gem 'rack-coffee'
 gem 'tux'

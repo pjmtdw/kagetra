@@ -1,13 +1,27 @@
 define ->
   CommentItemView = Backbone.View.extend
     template: _.template($("#templ-comment-item").html())
+    template_edit: _.template($("#templ-edit-response").html())
     events:
-      "click .start_edit" : "start_edit"
-      "cilck .delete" : "do_delete"
+      "click .toggle-edit" : "toggle_edit"
+      "click .delete" : "do_delete"
+      "submit .response-edit-form" : "do_response"
+    do_response: _.wrap_submit ->
+      obj = @$el.find(".response-edit-form").serializeObj()
+      that = this
+      _.save_model_alert(@model,obj)
     do_delete: ->
       if confirm("本当に削除してよろしいですか？")
-        @model.destory()
+        # TODO: refresh page
+        @model.destroy().done(-> alert("削除完了しました"))
+    toggle_edit: ->
+      if @$el.find(".body").find(".response-edit-form").length == 0
+        @$el.find(".toggle-edit").toggleBtnText(false)
+        @$el.find(".body").html(@template_edit(data:@model.toJSON()))
+      else
+        @render()
     initialize: ->
+      @listenTo(@model,"sync",@render)
       @render()
     render: ->
       @$el.html(@template(data:@model.toJSON()))

@@ -97,19 +97,23 @@ define (require,exports,module) ->
       json = @model.toJSON()
       json.deadline_str = show_deadline(json.deadline_day)
       @$el.html(@template(data:json))
-      cm =
-        if @options.choice_model
-          @options.choice_model
-        else
-          new EventChoiceModel(choices:json.choices,choice:json.choice,eid:json.id)
-      cv = new EventChoiceView(model:cm,event_name:json.name,parent:this)
-      cv.render()
-      @$el.find(".event-choice").append(cv.$el)
+      if not json.forbidden
+        cm =
+          if @options.choice_model
+            @options.choice_model
+          else
+            new EventChoiceModel(choices:json.choices,id:json.choice)
+        cv = new EventChoiceView(model:cm,event_name:json.name,parent:this)
+        cv.render()
+        @$el.find(".event-choice").append(cv.$el)
+      else
+        @$el.find(".event-choice").append($("<span>",class:"forbidden",text:"貴方は登録不可です"))
+      
       @choice_model = cm
 
   EventItemView = EventItemBaseView.extend
     el: '<li>'
-    template: _.template($('#templ-event-item').html())
+    template: _.template_braces($('#templ-event-item').html())
     events: ->
       _.extend(EventItemBaseView.prototype.events,
       "click .show-edit": -> show_event_edit(@model)
@@ -150,7 +154,7 @@ define (require,exports,module) ->
         v.render()
         @$el.find(".event-body").append(v.$el)
         @subviews.push(v)
-        if m.get('deadline_alert')
+        if m.get('deadline_alert') and not m.get('forbidden')
           has_deadline_alert = true
           av = new EventAbbrevView(model:m,choice_model:v.choice_model)
           av.render()
@@ -159,7 +163,7 @@ define (require,exports,module) ->
         @$el.find(".deadline-message").show()
 
   EventChoiceModel = Backbone.Model.extend
-    url: -> "/api/event/choose/#{@get('eid')}/#{@get('choice')}"
+    urlRoot: "/api/event/choose/"
 
   EventChoiceView = Backbone.View.extend
     el: "<dd class='sub-nav'>"
@@ -173,7 +177,7 @@ define (require,exports,module) ->
     do_when_click: (ev)->
       ct = $(ev.currentTarget)
       id = ct.data('id')
-      @model.set('choice',id)
+      @model.set('id',id)
       that = this
       @model.save().done((data)->
         c = $("#sticky-alert-container")
@@ -188,7 +192,7 @@ define (require,exports,module) ->
         x for x in choices
       }
       @$el.html(@template(data))
-      @$el.find("dd[data-id='#{@model.get('choice')}']").addClass("active")
+      @$el.find("dd[data-id='#{@model.get('id')}']").addClass("active")
   EventEditView = Backbone.View.extend
     template: _.template_braces($("#templ-event-edit").html())
     events:

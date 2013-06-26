@@ -1,30 +1,40 @@
-#!/usr/bin/env ruby
+#!/usr/bin/env rake
 # -*- coding: utf-8 -*-
 
 NUM_THREADS = 8
 
-def main
-  import_zokusei
-  import_user
-  import_login_log
-  import_meibo
-  import_bbs
-  import_schedule
-  import_shurui
-  import_event
-  import_endtaikai
-  import_event_comment
-  import_wiki
-  import_album_stage2(import_album_stage1)
-end
+# rake -j 16 -m とかで並列実行できるように rake で書く
+
+tasks = [:zokusei, :user, :login_log, :meibo,
+  :bbs, :schedule, :shurui, :event, 
+  :endtaikai, :event_comment, :wiki, :album]
+
+multitask :default => tasks
+
+tasks.each{|t|
+  multitask t do
+    send("import_#{t}".to_sym)
+  end
+}
+
+multitask :user => :zokusei
+
+[:login_log,:meibo,:bbs,:schedule,:event,:endtaikai,:event_comment,:wiki,:album].each{|t|
+  multitask t => :user
+}
+[:event,:endtaikai].each{|t|
+  multitask t => :shurui
+}
+
+multitask :event_comment => [:event, :endtaikai]
 
 require './init'
 require 'parallel'
 require 'diff_match_patch'
+require 'sqlite3'
 
 GLOBAL_LOCK = Mutex.new
 DMP = DiffMatchPatch.new
-SHURUI = {}
 
 class String
   def sjis!
@@ -298,7 +308,6 @@ def import_shurui
     (num,name,description) = line.split("\t")
     Kagetra::Utils.dm_debug("#{fn} line #{lineno}"){
       group = EventGroup.create(id:num, name:name, description:description)
-      SHURUI[num.to_i] = group
     }
   }
 end
@@ -340,14 +349,11 @@ end
 def import_event
   puts "import_event begin"
   lines = File.readlines(File.join(CONF_HAGAKURE_BASE,"txts","taikailist.cgi"))[1..-1]
-  if SHURUI.empty? then
-    raise Exception.new("import_shurui not executed")
-  end
   Parallel.each(lines,in_threads:NUM_THREADS){|line|
     line.chomp!
     line.sjis!
     (taikainum,kaisaidate,iskonpa,kanrisha,koureitaikai) = line.split("\t")
-    shurui = if koureitaikai.to_s.empty?.! then SHURUI[koureitaikai.to_i] end
+    shurui = if koureitaikai.to_s.empty?.! then EventGroup.get(koureitaikai.to_i) end
     (kyear,kmon,kday,khour,kmin,kweekday) = kaisaidate.split('/')
     if kyear == "なし" then
       kaisaidate = nil
@@ -763,9 +769,6 @@ end
 def import_endtaikai
   puts "import_endtaikai begin"
   lines = File.readlines(File.join(CONF_HAGAKURE_BASE,"txts","endtaikailist.cgi"))
-  if SHURUI.empty? then
-    raise Exception.new("import_shurui not executed")
-  end
   Parallel.each(lines,in_threads:NUM_THREADS){|line|
     line.chomp!
     line.sjis!
@@ -787,7 +790,7 @@ def import_endtaikai
       end
       kaisaidate = Date.new(kyear.to_i,kmon.to_i,kday.to_i)
     end
-    shurui = if koureitaikai.to_s.empty?.! then SHURUI[koureitaikai.to_i] end
+    shurui = if koureitaikai.to_s.empty?.! then EventGroup.get(koureitaikai.to_i) end
     (tourokudate,kanrisha) = kanrisha.split(/<>/)
     if tourokudate.nil? then
       tourokudate = "1975/01/01"
@@ -1050,7 +1053,7 @@ def import_comment(item,comment)
         end
       end
       # TODO: x[:date] が nil (最初のパッチ) の日時を設定する
-      item.comment_logs.create(user:u,album_item:item,index:i,patch:x[:patch],created_at:x[:date])
+      item.comment_logs.create(user:u,album_item:item,revision:i,patch:x[:patch],created_at:x[:date])
     }
   end
   item.update(comment:log[0][:comment])
@@ -1108,8 +1111,24 @@ def mypatch(comment,patch)
   output.join("\n")
 end
 
-def import_wiki
-  # TODO
+def import_album
+  import_album_stage2(import_album_stage1)
 end
 
-main
+def import_wiki
+  Kagetra::Utils.dm_debug{
+    db = SQLite3::Database.open CONF_MYTOMA_WIKI_FILE
+    db.execute("select id,text,revision,keyword,exhibited,deleted from wiki_wikipage"){|id,text,revision,keyword,exhibited,deleted|
+      WikiItem.create(id:id,deleted:deleted==1,public:exhibited==1,title:keyword,body:text,revision:revision)
+    }
+    db.execute("select id,object_id,revision,datetime,patch,user_id from wiki_markuppatch"){|id,object_id,revision,datetime,patch,user_id|
+      WikiItemLog.create(wiki_item_id:object_id,revision:revision,created_at:DateTime.parse(datetime),user_id:user_id,patch:patch)
+    }
+    db.execute("select page_id,uploaded_datetime,user_id,file,description,deleted from wiki_attachedfile"){|page_id,uploaded_datetime,user_id,file,description,deleted|
+      base = File.basename(file).sub(/_\d+$/,"").gsub("-","/")
+      orig_name = Base64.strict_decode64(base)
+      WikiAttachedFile.create(wiki_item_id:page_id,created_at:DateTime.parse(uploaded_datetime),owner_id:user_id,path:file,orig_name:orig_name,description:description)
+    }
+  }
+end
+

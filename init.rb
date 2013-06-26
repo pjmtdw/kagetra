@@ -15,6 +15,7 @@ require 'haml'
 require 'json'
 require 'base64'
 require 'nkf'
+require 'redcarpet'
 
 require 'data_mapper'
 require 'dm-chunked_query'

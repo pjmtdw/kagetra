@@ -2,7 +2,7 @@
 # 大会/行事
 class Event
   include ModelBase
-  property :deleted, ParanoidBoolean
+  property :deleted, ParanoidBoolean, lazy: false
   property :name, String, length: 48, required: true # 名称
   property :formal_name, String, length: 96, lazy:true # 正式名称
   property :official, Boolean, default: true # 公認大会

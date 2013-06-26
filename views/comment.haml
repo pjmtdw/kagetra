@@ -3,6 +3,11 @@
     %input.button.small.round(type='submit' value='送信')
     %textarea.response-body(name='body' rows=20 placeholder='レス内容')
       
+%script#templ-edit-response(type='text/template')
+  %form.response-edit-form
+    %input.button.small.round(type='submit' value='送信')
+    %textarea.response-edit-body(name='body' rows=20 placeholder='レス内容') <%= data.body %>
+
 %script#templ-comment-item(type='text/template')
   .comment-item
     .clearfix
@@ -15,7 +20,7 @@
         %span.is-new.label.round new
         <% } %>
       .right
-        %button.tiny.round.start_edit 編集
+        %button.tiny.round.toggle-edit(data-toggle-text="キャンセル") 編集
         %button.tiny.round.alert.delete 削除
     .body.pre <%- data.body %>
 

@@ -21,6 +21,8 @@ class MainApp < Sinatra::Base
                      t = user.event_user_choices.event_choices.first(event:ev)
                      t && t.id
                    end
+      forbidden = (ev.forbidden_attrs & user.attrs.value.map{|v|v.id}).empty?.!
+      r[:forbidden] = true if forbidden
       r
     end
     get '/item/:id' do
@@ -61,22 +63,21 @@ class MainApp < Sinatra::Base
         event_info(ev,user,user_choices)
       }
     end
-    post '/choose/:eid/:cid' do
+    put '/choose/:cid' do
       Kagetra::Utils.dm_debug{
         user = get_user
-        evt = Event.first(id:params[:eid].to_i)
-        evt.choices.first(id:params[:cid].to_i).user_choices.create(user:user)
-        {count: evt.participant_count}
+        c = EventChoice.first(id:params[:cid].to_i)
+        c.user_choices.create(user:user)
+        {count: c.event.participant_count}
       }
     end
     get '/comment/list/:id' do
       user = get_user
       evt = Event.first(id:params[:id].to_i)
       list = evt.comments(order: [:created_at.desc]).map{|x|
-        r = x.select_attr(:user_name)
+        r = x.select_attr(:id,:user_name,:body)
           .merge({
             date: x.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-            body: x.body
           })
         r[:is_new] = x.is_new(user)
         r
@@ -89,8 +90,19 @@ class MainApp < Sinatra::Base
     post '/comment/item' do
       Kagetra::Utils.dm_response{
         user = get_user
-        evt = Event.first(id:@json["event_id"].to_i)
+        evt = Event.get(@json["event_id"].to_i)
         c = evt.comments.create(user:user,body:@json["body"])
+      }
+    end
+    put '/comment/item/:id' do
+      Kagetra::Utils.dm_response{
+        user = get_user
+        EventComment.get(params[:id].to_i).update(body:@json["body"])
+      }
+    end
+    delete '/comment/item/:id' do
+      Kagetra::Utils.dm_debug{
+        EventComment.get(params[:id]).destroy()
       }
     end
   end

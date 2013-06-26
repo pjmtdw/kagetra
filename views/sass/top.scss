@@ -1,5 +1,6 @@
 @import "foundation/components/global";
 @import "foundation/components/buttons";
+$forbidden-color: gray;
 .event-item{
   .row{
     padding-top: 4px;
@@ -57,6 +58,17 @@
   .event-weekday{
     color: maroon;
     font-weight: bold;
+  }
+  .forbidden{
+    color: $forbidden-color;
+  }
+  .deadline.forbidden{
+    color: $forbidden-color;
+    span{
+      color:$forbidden-color;
+      font-weight: normal;
+      font-size: 100%;
+    }
   }
   .deadline{
     text-align: right;

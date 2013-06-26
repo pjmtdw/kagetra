@@ -72,12 +72,23 @@ define (require, exports, module) ->
           defer.resolve()
       )
       defer.promise()
-      
-  $.fn.toggleBtnText = ->
-    a = "data-toggle-text"
-    t = this.attr(a)
-    this.attr(a,this.text())
-    this.text(t)
+  
+  # b == true なら最初の状態, b == false なら裏状態
+  # 指定されないならtoggle
+  $.fn.toggleBtnText = (b)->
+    curstate = (@data("toggle-state") != "toggled")
+    if b?
+      nextstate = b
+    else
+      nextstate ^= true
+    if curstate == nextstate
+      return
+    if not curstate
+      @data("toggle-state","toggled")
+    t = @data("toggle-text")
+    @data("toggle-text",@text())
+    @text(t)
+
 
   # data-checkbox-checked="true" -> checked
   # underscore.jsのtemplateとしてHamlを使うと %input(type='checkbox' {{ checked?"checked":"" }})

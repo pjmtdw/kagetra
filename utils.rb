@@ -101,6 +101,8 @@ module Kagetra
       rescue DataMapper::SaveFailureError => e
         {_error_: e.resource.errors.full_messages().join("\n")}
       rescue Exception => e
+        puts e.message
+        puts e.backtrace
         {_error_: e.message }
       end
     end

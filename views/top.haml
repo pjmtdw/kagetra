@@ -59,18 +59,18 @@
 %script#templ-event-item(type='text/template')
   .panel.event-item
     .row
-      .large-12.columns.event-name <%- data.name %>
+      .large-12.columns.event-name {- data.name -}
     .row
       .large-7.columns
-        開催日: <%= _.show_date(data.date) %>
-      .large-5.columns.deadline 締切: <%= data.deadline_str %> 
+        開催日: {{ _.show_date(data.date) }}
+      .large-5.columns.deadline(class='{{data.forbidden?"forbidden":""}}') 締切: {{ data.deadline_str }}
     .row.deadline-row
       .large-12.columns
         .event-choice
     .row
       .large-4.columns
         登録数:
-        %span.participant-count <%= data.participant_count %>
+        %span.participant-count {{ data.participant_count }}
         名
       .large-8.columns.buttons
         - if user.admin
@@ -78,7 +78,7 @@
         %button.button-custom.show-detail
           詳細
         %span.button-custom.show-comment
-          コメント <%= _.show_new_comment(data.comment_count,data.has_new_comment) %>
+          コメント {{ _.show_new_comment(data.comment_count,data.has_new_comment) }}
 
 %script#templ-event-choice(type='text/template')
   <% _.each(data,function(d){ %>

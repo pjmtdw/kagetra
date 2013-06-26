@@ -54,7 +54,9 @@ module CommentBase
     base.class_eval do
       include UserEnv
       p = DataMapper::Property 
-      property :deleted, p::ParanoidBoolean
+      # ParanoidBooleanにはバグがあって lazy: true にしてしまうと関連モデルを直接取得したときの belong_to が nil になる
+      # https://github.com/datamapper/dm-types/issues/52
+      property :deleted, p::ParanoidBoolean, lazy: false
       property :body, p::Text, required: true # 内容
       property :user_name, p::String, length: 24, allow_nil: false # 書き込んだ人の名前
       belongs_to :user, required: false # 内部的なユーザID
@@ -112,9 +114,3 @@ class MyConf
   property :value, Json
 end
 
-class Test
-  include ModelBase
-  belongs_to :user
-  belongs_to :my_conf
-  validates_uniqueness_of :my_conf_id, scope: [:user_id]
-end

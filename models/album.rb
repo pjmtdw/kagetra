@@ -3,7 +3,7 @@
 # アルバムのグループ
 class AlbumGroup
   include ModelBase
-  property :deleted, ParanoidBoolean
+  property :deleted, ParanoidBoolean, lazy: false
   property :name, String, length: 72
   property :place, String, length: 128 # 場所
   property :comment, Text
@@ -31,7 +31,7 @@ end
 # アルバムの各写真の情報
 class AlbumItem
   include ModelBase
-  property :deleted, ParanoidBoolean
+  property :deleted, ParanoidBoolean, lazy: false
   property :name, String, length: 72
   property :place, String, length: 128 # 場所
   belongs_to :owner, 'User', required: false

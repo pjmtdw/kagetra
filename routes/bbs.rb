@@ -25,7 +25,7 @@ class MainApp < Sinatra::Base
       end
       query.all(order: [:updated_at.desc ]).chunks(BBS_THREADS_PER_PAGE)[page].map{|t|
         items = t.items.map{|i|
-          i.select_attr(:body,:user_name).merge(
+          i.select_attr(:id,:body,:user_name).merge(
           {
             date: i.created_at.strftime("%Y-%m-%d %H:%M:%S"),
             is_new: i.is_new(user)
@@ -58,6 +58,27 @@ class MainApp < Sinatra::Base
           thread = BbsThread.get(thread_id.to_i)
           item = thread.items.create(body: body, user: user, user_name: user.name)
           thread.touch
+        }
+      }
+    end
+    put '/item/:id' do
+      Kagetra::Utils.dm_response{
+        item = BbsItem.get(params[:id].to_i)
+        item.update(body:@json["body"])
+      }
+    end
+    delete '/item/:id' do
+      Kagetra::Utils.dm_debug{
+        BbsThread.transaction{
+          item = BbsItem.get(params[:id])
+          thread = item.bbs_thread
+          if thread.first_item.id == item.id then
+            # 関係するものを全部削除してからじゃないとダメ
+            thread.items.destroy
+            thread.destroy
+          else
+            item.destroy
+          end
         }
       }
     end

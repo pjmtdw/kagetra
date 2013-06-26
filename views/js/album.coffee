@@ -28,7 +28,7 @@ define ->
   AlbumTopView = Backbone.View.extend
     template: _.template_braces($("#templ-album-top").html())
     events:
-      "click .gbase.year": "do_list_year"
+      "click .gbase.years": "do_list_year"
     do_list_year: (ev)->
       year = $(ev.currentTarget).data("year")
       window.album_router.navigate("year/#{year}", trigger:true)

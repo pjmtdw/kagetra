@@ -39,8 +39,20 @@ class MainApp < Sinatra::Base
     end
     put '/item/:id' do
       user = get_user
-      ev = Event.first(id:params[:id].to_i)
       Kagetra::Utils.dm_response{
+        ev = Event.get(params[:id].to_i)
+        emph = ev.emphasis
+        [:name,:place,:start_at,:end_at].each{|s|
+          key = "emph_#{s}"
+          if @json.has_key?(key) then
+            if @json[key].empty?.! then
+              emph << s
+            else
+              emph.reject!{|x|x==s}
+            end
+          end
+        }
+        @json["emphasis"] = emph.compact
         ev.update(@json)
         event_info(ev,user)
       }

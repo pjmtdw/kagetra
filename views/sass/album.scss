@@ -4,12 +4,14 @@
   cursor: pointer;
   .date{
     color: maroon;
+    text-shadow: 1px 1px 1px gray;
   }
   .count{
-    color: #030;
+    color: #4028A4;
+    text-shadow: 1px 1px 1px gray;
   }
-  &.group,&.year{
-    background-color: #DDF;
+  &.group,&.years{
+    background-color: #FFE8D8;
     &:hover{
       background-color: #DFF;
     }

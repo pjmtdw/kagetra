@@ -1,6 +1,6 @@
 @import "foundation/components/global";
 @import "foundation/components/buttons";
-$forbidden-color: gray;
+$forbidden-color: gray !important;
 .event-item{
   .row{
     padding-top: 4px;

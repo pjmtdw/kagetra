@@ -16,11 +16,11 @@
     %ul.large-block-grid-7.small-block-grid-4
       <% _.each(data.list,function(x){ %>
       %li
-        .gbase.year(data-year='{-x[0]?x[0]:"_else_"-}')
+        .gbase.years(data-year='{-x[0]?x[0]:"_else_"-}')
           .row
             .large-12.columns
-              .left {- x[0]?x[0]+'年':'不明' -}
-              .right {- x[1] -}
+              .year.left {- x[0]?x[0]+'年':'不明' -}
+              .count.right {- x[1] -}
 
       <% }) %>
 

@@ -74,10 +74,10 @@
         名
       .large-8.columns.buttons
         - if user.admin
-          %button.button-custom.show-edit 編集
-        %button.button-custom.show-detail
+          %button.button-teal.show-edit 編集
+        %button.button-teal.show-detail
           詳細
-        %span.button-custom.show-comment
+        %span.button-teal.show-comment
           コメント {{ _.show_new_comment(data.comment_count,data.has_new_comment) }}
 
 %script#templ-event-choice(type='text/template')

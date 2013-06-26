@@ -154,7 +154,7 @@ define (require,exports,module) ->
         v.render()
         @$el.find(".event-body").append(v.$el)
         @subviews.push(v)
-        if m.get('deadline_alert') and not m.get('forbidden')
+        if m.get('deadline_alert') and not m.get('forbidden') and not m.get('choice')
           has_deadline_alert = true
           av = new EventAbbrevView(model:m,choice_model:v.choice_model)
           av.render()

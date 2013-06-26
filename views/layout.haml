@@ -9,6 +9,13 @@
     - this_css = yield_content(:css)
     - this_css.strip.split(/\s*,\s/).each do |x|
       %link(rel="stylesheet" href="/css/#{x}.css")
+    %style(type="text/css")
+      - curmonth = "%02d"%Date.today.month
+      body{
+      background-image: url(/img/bg/#{curmonth}.jpg), url(/img/bg/#{curmonth}_rev.jpg);
+      background-repeat: repeat-y, repeat-y;
+      background-position: left top, right top;
+      }
   %body
     %a(name="anchor-top")
     = yield

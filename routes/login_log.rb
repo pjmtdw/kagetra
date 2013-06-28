@@ -3,6 +3,8 @@ class MainApp < Sinatra::Base
   end
   get '/login_log' do
     user = get_user
+    logger.warn "HOGE"
+    raise Exception.new("FUGA")
     haml :login_log,{locals: {user: user}}
   end
 end

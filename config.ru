@@ -21,5 +21,27 @@ configure :development do
     root: 'views',
     urls: '/js',
     cache_compile: true
+
 end
+
+logger  = Logger.new("./deploy/log/#{MainApp.environment}.log",11)
+def logger.write(msg)
+  self << msg
+end
+def logger.puts(msg)
+  self.write(msg+"\n")
+end
+use Rack::CommonLogger, logger
+
+class AppLog
+  def initialize(app,logger)
+    @app, @logger = app, logger
+  end
+  def call(env)
+    env["mainapp.logger"] = @logger
+    @app.call(env)
+  end
+end
+use AppLog, logger
+
 run MainApp

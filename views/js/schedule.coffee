@@ -8,11 +8,13 @@ define (require,exports,module) ->
     routes:
       "cal/:year-:mon": "cal",
       "": "start"
+    initialize: ->
+      _.bindAll(@,"start")
     start: ->
       dt = new Date()
       mon = dt.getMonth() + 1
       year = dt.getFullYear()
-      window.schedule_router.navigate("cal/#{year}-#{mon}", {trigger: true, replace: true})
+      @navigate("cal/#{year}-#{mon}", {trigger: true, replace: true})
     cal: (year,mon) ->
       window.schedule_view.refresh(year,mon)
 

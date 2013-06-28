@@ -4,8 +4,10 @@ define (require,exports,module) ->
     routes:
       "page/:id": "page"
       "": "start"
+    initialize: ->
+      _.bindAll(this,"start")
     start: ->
-      window.bbs_router.navigate("page/1", {trigger: true, replace: true})
+      @navigate("page/1", {trigger: true, replace: true})
     page: (page) ->
       page = parseInt(page)
       window.bbs_page = page

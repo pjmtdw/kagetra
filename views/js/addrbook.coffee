@@ -4,7 +4,10 @@ define ["crypto-aes", "crypto-hmac","crypto-pbkdf2","crypto-base64"], ->
   AddrBookRouter = Backbone.Router.extend
     routes:
       "user/:id": "user"
-      "": -> window.addrbook_router.navigate("user/#{g_myid}",{trigger:true,replace:true})
+      "": "start"
+    initialize: ->
+      _.bindAll(@,"start")
+    start: -> @navigate("user/#{g_myid}",{trigger:true,replace:true})
     user: (uid) ->
       window.addrbook_view.refresh(uid)
   AddrBookPanelModel = Backbone.Model.extend

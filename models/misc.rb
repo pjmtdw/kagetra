@@ -21,10 +21,6 @@ module ModelBase
         }
         attrs.select_attr(*symbols)
       end
-      def select_attr_escape(*symbols)
-        a = self.select_attr(*symbols)
-        Hash[a.map{|k,v| [k, Kagetra::Utils.escape_html_br(v)]}]
-      end
     end
   end
 end

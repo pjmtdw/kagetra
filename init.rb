@@ -10,6 +10,7 @@ if development? then
   require 'sass/plugin/rack'
   require 'sinatra/reloader'
 end
+require 'logger'
 require 'haml'
 
 require 'json'

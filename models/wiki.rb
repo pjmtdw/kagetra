@@ -1,7 +1,7 @@
 class WikiItem
   include ModelBase
   property :deleted, ParanoidBoolean, lazy: false
-  property :title, String, length: 48, required: true
+  property :title, String, length: 64, required: true, index: true
   property :public, Boolean, default: false # 外部公開されているか
   property :body, Text, required: true
   property :revision, Integer

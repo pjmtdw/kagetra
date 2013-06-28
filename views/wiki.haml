@@ -5,3 +5,8 @@
 - content_for :css do
   wiki
 = haml :top_bar, locals: {user: user}
+
+#wiki-item
+
+%script#templ-wiki-item(type='text/template')
+  <%= data.html %>

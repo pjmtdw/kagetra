@@ -11,11 +11,11 @@
     %button#search-toggle.small.round 検索
 #search-row.row.hide
   %form#search-form.large-6.columns
-    .row
+    .row.collapse
       .large-10.small-10.columns
-        %input#query-string(type='text' autofocus)
+        %input#query-string(type='text' placeholder='検索文字列' autofocus)
       .large-2.small-2.columns
-        %input(type='submit' value='検索')
+        %input.button.small.postfix.radius(type='submit' value='検索')
 #new-thread-row.row.hide
   %form#new-thread-form.large-12.columns
     %fieldset
@@ -36,8 +36,8 @@
 
 .row
   %div.large-6.columns
-    %button#prev-thread.small.round 前へ
-    %button#next-thread.small.round 次へ
+    %button#prev-thread.small.round.success 前へ
+    %button#next-thread.small.round.success 次へ
 .row
   #bbs-body
 

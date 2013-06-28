@@ -5,6 +5,10 @@ class MainApp < Sinatra::Base
     shared_salt = shared.value["salt"]
     haml :index, locals: {shared_salt: shared_salt}
   end
+  get '/robots.txt' do
+    content_type 'text/plain'
+    "User-agent: *\nDisallow: /"
+  end
   get '/top' do
     user = get_user
     haml :top, locals: {user: user}

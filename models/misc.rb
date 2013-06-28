@@ -50,6 +50,8 @@ module UserEnv
 end
 
 module CommentBase
+  # このモジュールをincludeするクラスは belongs_to :thread を持たなければならない
+  # TODO: include時に belongs_to :thread の引数を指定できない？
   def self.included(base)
     base.class_eval do
       include UserEnv
@@ -66,11 +68,40 @@ module CommentBase
           self.user_name = self.user.name
         end
       end
+      after :create do
+        # コメント数の更新
+        th = self.thread
+        th.update(comment_count: th.comments.count,
+                  last_comment_user: self.user,
+                  last_comment_date: self.created_at)
+      end
       def is_new(user)
         (self.user.nil? or self.user.id != user.id) and 
         user.show_new_from.nil?.! and
         self.created_at >= user.show_new_from
       end
+    end
+  end
+end
+
+module ThreadBase
+  # このモジュールをincludeするクラスは has n, :comments を持たなければならない
+  # TODO: include時に has n, :comments の引数を指定できない？
+  def self.included(base)
+    base.class_eval do
+      p = DataMapper::Property 
+      belongs_to :last_comment_user, 'User', required: false # スレッドに最後に書き込んだユーザ
+      property :last_comment_date, p::DateTime, index: true # スレッドに最後に書き込んだ日時
+      property :comment_count, Integer, default: 0 # コメント数 (毎回aggregateするのは遅いのでキャッシュ)
+    end
+    def self.new_threads(user)
+      search_from = user.show_new_from
+      c0 = self.all(
+        :last_comment_date.gte => user.show_new_from,
+        order: [:last_comment_date.desc])
+      c1 = self.all(:last_comment_user_id => nil)
+      c2 = self.all(:last_comment_user_id.not => user.id)
+      c0 & (c1 | c2)
     end
   end
 end

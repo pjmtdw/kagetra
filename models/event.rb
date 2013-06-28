@@ -2,6 +2,7 @@
 # 大会/行事
 class Event
   include ModelBase
+  include ThreadBase
   property :deleted, ParanoidBoolean, lazy: false
   property :name, String, length: 48, required: true # 名称
   property :formal_name, String, length: 96, lazy:true # 正式名称
@@ -15,12 +16,10 @@ class Event
   property :end_at, HourMin #終了時刻
   property :place, String, length: 255, lazy: true # 場所
 
-  property :comment_count, Integer, default: 0 # コメント数 (毎回aggregateするのは遅いのでキャッシュ)
   property :participant_count, Integer, default: 0 # 参加者数 (毎回aggregateするのは遅いのでキャッシュ)
 
   belongs_to :event_group, required: false
   belongs_to :aggregate_attr, 'UserAttributeKey' # 集計属性
-  belongs_to :latest_comment, 'EventComment', required: false # 最終コメント
 
   property :owners, Json, default: [] # 管理者一覧( User.id の配列 )
   property :forbidden_attrs, Json, default: [] # 登録不可属性 ( UserAttributeValue.id の配列 )
@@ -28,7 +27,7 @@ class Event
   has n, :choices, 'EventChoice'
   has n, :result_classes, 'ContestClass' # 大会結果の各級の情報
   has n, :result_users, 'ContestUser' # 大会結果の出場者
-  has n, :comments, 'EventComment' # コメント
+  has n, :comments, 'EventComment', child_key: [:thread_id] # コメント
   # TODO: validate owners and forbidden_attrs is array of integer
 end
 
@@ -86,10 +85,5 @@ end
 class EventComment
   include ModelBase
   include CommentBase
-  belongs_to :event
-  after :save do
-    # コメント数の更新
-    ev = self.event
-    ev.update(comment_count: ev.comments.count, latest_comment: self)
-  end
+  belongs_to :thread, 'Event'
 end

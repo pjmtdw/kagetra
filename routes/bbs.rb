@@ -14,8 +14,8 @@ class MainApp < Sinatra::Base
           qb = BbsThread.all(id: -1)
           [
             :title,
-            BbsThread.items.user_name,
-            BbsThread.items.body
+            BbsThread.comments.user_name,
+            BbsThread.comments.body
           ].each{|sym|
             # TODO: クエリのエスケープ
             qb |= BbsThread.all(sym.like => "%#{q}%")
@@ -23,8 +23,8 @@ class MainApp < Sinatra::Base
           query &= qb
         }
       end
-      query.all(order: [:updated_at.desc ]).chunks(BBS_THREADS_PER_PAGE)[page].map{|t|
-        items = t.items.map{|i|
+      query.all(order: [:last_comment_date.desc ]).chunks(BBS_THREADS_PER_PAGE)[page].map{|t|
+        items = t.comments.map{|i|
           i.select_attr(:id,:body,:user_name).merge(
           {
             date: i.created_at.strftime("%Y-%m-%d %H:%M:%S"),
@@ -43,9 +43,7 @@ class MainApp < Sinatra::Base
           body = @json["body"]
           public = @json["public"].to_s.empty?.!
           thread = BbsThread.create(title: title, public: public)
-          item = thread.items.create(body: body, user: user, user_name: user.name)
-          thread.first_item = item
-          thread.save
+          item = thread.comments.create(body: body, user: user, user_name: user.name)
         }
       }
     end
@@ -56,7 +54,7 @@ class MainApp < Sinatra::Base
           body = @json["body"]
           thread_id = @json["thread_id"]
           thread = BbsThread.get(thread_id.to_i)
-          item = thread.items.create(body: body, user: user, user_name: user.name)
+          item = thread.comments.create(body: body, user: user, user_name: user.name)
           thread.touch
         }
       }
@@ -71,10 +69,10 @@ class MainApp < Sinatra::Base
       Kagetra::Utils.dm_debug{
         BbsThread.transaction{
           item = BbsItem.get(params[:id])
-          thread = item.bbs_thread
+          thread = item.thread
           if thread.first_item.id == item.id then
             # 関係するものを全部削除してからじゃないとダメ
-            thread.items.destroy
+            thread.comments.destroy
             thread.destroy
           else
             item.destroy

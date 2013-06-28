@@ -1,9 +1,14 @@
 class MainApp < Sinatra::Base
   helpers Sinatra::ContentFor
   enable :sessions
+  enable :logging, :dump_errors, :raise_errors
   # ENV['RACK_SESSION_SECRET'] is set by unicorn.rb
   set :session_secret, 
     ((if defined?(CONF_SESSION_SECRET) then CONF_SESSION_SECRET end) or ENV["RACK_SESSION_SECRET"] or SecureRandom.base64(48)) 
+  
+  # for Internet Explorer 8, 9 (and maybe also 10?) protection session hijacking refuses the session.
+  # https://github.com/rkh/rack-protection/issues/11
+  set :protection, except: :session_hijacking
 
   configure :development do
     register Sinatra::Reloader
@@ -11,8 +16,11 @@ class MainApp < Sinatra::Base
       content_type "application/javascript"
       js = "views/#{m}.js"
       pass if not File.exist?(js) # pass to Rack::Coffee
-      File.read(js)
+      send_file(js)
     end
+    $stdout.reopen("./deploy/log/develop.log","w")
+    $stdout.sync = true
+    $stderr.reopen($stdout)
   end
   register Sinatra::Namespace
 

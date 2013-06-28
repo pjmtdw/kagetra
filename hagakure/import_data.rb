@@ -1,32 +1,34 @@
-#!/usr/bin/env rake
+#!/usr/bin/env ruby
 # -*- coding: utf-8 -*-
 
 NUM_THREADS = 8
 
-# rake -j 16 -m とかで並列実行できるように rake で書く
 
+if false then
+# rake -j 16 -m とかで並列実行できるように rake で書く
 tasks = [:zokusei, :user, :login_log, :meibo,
   :bbs, :schedule, :shurui, :event, 
   :endtaikai, :event_comment, :wiki, :album]
 
-multitask :default => tasks
+task :default => tasks
 
 tasks.each{|t|
-  multitask t do
+  task t do
     send("import_#{t}".to_sym)
   end
 }
 
-multitask :user => :zokusei
+task :user => :zokusei
 
 [:login_log,:meibo,:bbs,:schedule,:event,:endtaikai,:event_comment,:wiki,:album].each{|t|
-  multitask t => :user
+  task t => :user
 }
 [:event,:endtaikai].each{|t|
-  multitask t => :shurui
+  task t => :shurui
 }
 
-multitask :event_comment => [:event, :endtaikai]
+task :event_comment => [:event, :endtaikai]
+end
 
 require './init'
 require 'parallel'
@@ -187,7 +189,7 @@ def import_bbs
             check_duplicate.call(num)
             is_public = ["1","on"].include?(is_public)
             thread = BbsThread.create(deleted: deleted, created_at: date, title: title, public: is_public)
-            item = thread.items.create(item_props.merge(id: num, body: body))
+            item = thread.comments.create(item_props.merge(id: num, body: body))
             thread.first_item = item
             thread.save
             # use update! to avoid automatic setting by dm-timestamps
@@ -197,7 +199,7 @@ def import_bbs
           else
             check_duplicate.call(num)
             body = others.join("\t").body_replace
-            item = thread.items.create(item_props.merge(id: num, body: body, bbs_thread: thread))
+            item = thread.comments.create(item_props.merge(id: num, body: body, thread: thread))
             item.update!(updated_at: date)
           end
         rescue DataMapper::SaveFailureError => e
@@ -750,12 +752,12 @@ def import_contest_result_kojin(evt,sankas)
         answercounter = 0
         klass_name = $1
         num_person = $2
-        num_person = if num_person == "" then nil else num_person.to_i end
+        num_person = if num_person.to_s.empty? then nil else num_person.to_i end
         kl = Kagetra::Utils.class_from_name(klass_name)
         begin
           klass = evt.result_classes.create(index:order,class_rank:kl,class_name:klass_name,num_person:num_person)
         rescue Exception => e
-          p "order:#{order}, class_rank:#{kl}, klass_name:#{klass_name}, num_person: #{num_person}"
+          puts "ERROR in: #{evt.inspect} order:#{order}, class_rank:#{kl}, klass_name:#{klass_name}, num_person: #{num_person}"
           throw e
         end
         order += 1
@@ -887,7 +889,7 @@ end
 
 def import_meibo
   reverse_changed = Hash[CONF_USERNAME_CHANGED.map{|k,v|[v,k]}]
-  ((meta,_),*rest) = CSV.read(CONF_MEIBO_CSV).zip(0..Float::INFINITY)
+  ((meta,_),*rest) = CSV.read(CONF_MEIBO_CSV,encoding:'UTF-8').zip(0..Float::INFINITY)
   MyConf.update_or_create({name: "addrbook_confirm_enc"},{value: {text:Kagetra::Utils.openssl_enc(G_ADDRBOOK_CONFIRM_STR,CONF_MEIBO_PASSWD)}})
 
   Parallel.each(rest,in_threads:NUM_THREADS){|line,lineno|
@@ -1132,3 +1134,4 @@ def import_wiki
   }
 end
 
+import_album

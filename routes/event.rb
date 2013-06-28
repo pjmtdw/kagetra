@@ -4,11 +4,11 @@ class MainApp < Sinatra::Base
     def event_info(ev,user,user_choices=nil)
       today = Date.today
       r = ev.select_attr(:name,:date,:deadline,:created_at,:id,:participant_count,:comment_count)
-      if ev.latest_comment.nil?.! then
-        comment_date = ev.latest_comment.created_at
-        r[:latest_comment_date] = comment_date
+      if ev.last_comment_date.nil?.! then
+        r[:latest_comment_date] = ev.last_comment_date
         if user.show_new_from.nil?.! then
-          r[:has_new_comment] = true if comment_date > user.show_new_from and ev.latest_comment.user.id != user.id
+          r[:has_new_comment] = true if ev.last_comment_date > user.show_new_from and
+            (ev.last_comment_user.nil? or ev.last_comment_user != user.id)
         end
       end
       r[:deadline_day] = (r[:deadline]-today).to_i if r[:deadline]

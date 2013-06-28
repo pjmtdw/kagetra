@@ -7,7 +7,6 @@ class AlbumGroup
   property :name, String, length: 72
   property :place, String, length: 128 # 場所
   property :comment, Text
-  property :comment_revision, Integer
   belongs_to :owner, 'User', required: false
 
   property :start_at, Date # 開始日
@@ -36,6 +35,7 @@ class AlbumItem
   property :place, String, length: 128 # 場所
   belongs_to :owner, 'User', required: false
   property :comment, Text
+  property :comment_revision, Integer
 
   property :date , Date # 撮影日
   property :hourmin , HourMin # 撮影時刻
@@ -104,7 +104,7 @@ class AlbumCommentLog
   include ModelBase
   property :album_item_id, Integer, unique_index: :u1, required: true
   belongs_to :album_item
-  property :index, Integer, unique_index: :u1, required: true # パッチの古い順(パッチを当てるときはcreated_atは信用しない)
+  property :revision, Integer, unique_index: :u1, required: true # パッチの古い順(パッチを当てるときはcreated_atは信用しない)
   property :patch, Text, required: true # 逆向きのdiff ( $ diff new old )
   belongs_to :user, required: false # 編集者
 end

@@ -2,6 +2,20 @@ define (require, exports, module) ->
   _ = require("underscore")
   $ = require("zep_or_jq")
   _.mixin
+    router_base: (prefix,arg) ->
+      Backbone.Router.extend
+        remove_all: ->
+          for k in arg
+            window["#{prefix}_#{k}_view"]?.remove()
+        set_id_fetch: (k,klass,id) ->
+          v = new klass()
+          window["#{prefix}_#{k}_view"] = v
+          m = v.model
+          if id?
+            m.set("id",id).fetch()
+          else
+            m.fetch()
+
     pbkdf2_password: (pass, salt) ->
       CryptoJS.PBKDF2(pass,salt, {keySize: 256/32, iterations: 100}).toString(CryptoJS.enc.Base64)
     hmac_password: (pass,salt) ->

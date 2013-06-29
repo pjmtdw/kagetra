@@ -58,6 +58,7 @@ define (require,exports,module) ->
   goto_page = (page) ->
     page = 1 if page < 1
     window.bbs_router.navigate("page/" + page, trigger: true)
+    window.scrollTo(0,0)
   refresh_all = ->
     window.bbs_router.navigate("", trigger: true)
   do_search = refresh_all

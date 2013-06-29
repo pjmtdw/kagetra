@@ -28,7 +28,7 @@
 }
 [data-magellan-destination]{
   position: relative;
-  top: -50px; // リンクで飛んだとき実際の位置より少し上に飛ばす
+  top: -50px; // リンクで飛んだとき実際の位置より少し上に飛ばす． TODO: IEではうまく動かない
 }
 #bbs-body{
   margin-top: 8px;

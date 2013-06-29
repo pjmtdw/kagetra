@@ -1,26 +1,14 @@
-define ->
-  AlbumRouter = Backbone.Router.extend
-    removeall: ->
-      for s in ["top","year","group","item"]
-        window["album_#{s}_view"]?.remove()
-    set_id_fetch: (prefix,klass,id) ->
-      @removeall()
-      v = new klass()
-      window["album_#{prefix}_view"] = v
-      v.model.set("id",id).fetch()
+define (require,exports,module)->
+  class AlbumRouter extends _.router_base("album",["top","year","group","item"])
     routes:
       "year/:year" : "year"
       "group/:id" : "group"
       "item/:id" : "item"
       "" : "start"
-    year: (year) -> @set_id_fetch("year",AlbumYearView,year)
-    group: (id) -> @set_id_fetch("group",AlbumGroupView,id)
-    item: (id) -> @set_id_fetch("item",AlbumItemView,id)
-    start: ->
-      @removeall()
-      v = new AlbumTopView()
-      window.album_top_view = v
-      v.model.fetch()
+    year: (year) -> @remove_all();@set_id_fetch("year",AlbumYearView,year)
+    group: (id) -> @remove_all();@set_id_fetch("group",AlbumGroupView,id)
+    item: (id) -> @remove_all();@set_id_fetch("item",AlbumItemView,id)
+    start: -> @remove_all();@set_id_fetch("top",AlbumTopView)
 
   AlbumTopModel = Backbone.Model.extend
     url: "/api/album/years"

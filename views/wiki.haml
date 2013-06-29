@@ -8,7 +8,27 @@
 
 #wiki-item
 
+#wiki-attached
+
 %script#templ-wiki-item(type='text/template')
   .row
     .large-12.columns
       <%= data.html %>
+
+%script#templ-wiki-attached(type='text/template')
+  .row
+    .large-12.columns
+      %ul.pagination
+        <% for(i=0;i<data.pages;i++){ %>
+        %li(class='{{i+1==data.cur_page?"current":""}}')
+          %a.page(data-page='{{i+1}}') {{i+1}}
+        <% } %>
+      %table
+        <% _.each(data.list,function(x){ %>
+        %tr
+          %td.filename
+            %a(href='/static/wiki/attached/{{x.id}}') {- x.orig_name -}
+          %td.date
+            {{x.date}}
+          %td {{x.description}}
+        <% }) %>

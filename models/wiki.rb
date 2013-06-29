@@ -24,4 +24,5 @@ class WikiAttachedFile
   property :path, FilePath
   property :orig_name, String, length: 128 # 元の名前
   property :description, String, length: 128 # 説明
+  property :file_size, Integer
 end

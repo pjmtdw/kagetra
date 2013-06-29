@@ -26,13 +26,15 @@ class MainApp < Sinatra::Base
     user = get_user
     haml :album,{locals: {user: user}}
   end
-  get '/static/album/thumb/:id' do
-    p = AlbumItem.get(params[:id].to_i).thumb
-    send_file(File.join(CONF_HAGAKURE_BASE,"album",p.path))
+  namespace '/static/album' do
+    get '/thumb/:id' do
+      p = AlbumItem.get(params[:id].to_i).thumb
+      send_file(File.join(CONF_HAGAKURE_BASE,"album",p.path))
 
-  end
-  get '/static/album/photo/:id' do
-    p = AlbumItem.get(params[:id].to_i).photo
-    send_file(File.join(CONF_HAGAKURE_BASE,"album",p.path))
+    end
+    get '/photo/:id' do
+      p = AlbumItem.get(params[:id].to_i).photo
+      send_file(File.join(CONF_HAGAKURE_BASE,"album",p.path))
+    end
   end
 end

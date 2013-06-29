@@ -1,4 +1,5 @@
 class MainApp < Sinatra::Base 
+  ATTACHED_LIST_PER_PAGE = 50
   MARKDOWN = Redcarpet::Markdown.new(
     Redcarpet::Render::HTML.new(hard_wrap:true),tables:true,fenced_code_blocks:true)
   namespace '/api/wiki' do
@@ -50,9 +51,24 @@ class MainApp < Sinatra::Base
       txt = WikiItem.get(params[:id].to_i).body
       {html: render_wiki(txt,false)}
     end
+    get '/attached_list/:id' do
+      page = (params[:page] || 1).to_i
+      chunks = WikiAttachedFile.all(wiki_item_id:params[:id].to_i,order:[:created_at.desc]).chunks(ATTACHED_LIST_PER_PAGE) 
+      pages = chunks.size
+      list = chunks[page-1].map{|x|
+        x.select_attr(:id,:orig_name,:description).merge({
+          date:x.created_at.to_date.strftime('%Y-%m-%d')
+        })
+      }
+      {list: list, pages: pages, cur_page: page}
+    end
   end
   get '/wiki' do
     user = get_user
     haml :wiki,{locals: {user: user}}
+  end
+  get '/static/wiki/attached/:id' do
+    attached = WikiAttachedFile.get(params[:id].to_i)
+    send_file("../mytoma/storage/wiki/#{attached.path}",filename:attached.orig_name)
   end
 end

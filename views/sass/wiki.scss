@@ -1,0 +1,36 @@
+#wiki-item{
+  .row{
+    background-color: rgba(255,255,255,0.5);
+  }
+  a{
+    cursor: pointer;
+    color: rgb(6,69,173);
+  }
+  code{
+    display: inline-block;
+    border: 1px dashed rgb(47,111,171);
+    padding: 1em;
+    background-color: rgb(249,249,249);
+    font-weight: normal;
+    color: #000;
+    margin-left: 1em;
+  }
+  h1{
+    font-size: 150%;
+  }
+  h2{
+    font-size: 140%;
+  }
+  h3{
+    font-size: 130%;
+  }
+  h4{
+    font-size: 120%;
+  }
+  h5{
+    font-size: 110%;
+  }
+  p{
+    margin-bottom: .5em;
+  }
+}

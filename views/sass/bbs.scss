@@ -1,11 +1,46 @@
 @import "compass/css3/border-radius";
+[data-magellan-expedition]{
+  .arrival{
+    max-width: 170px;
+    margin-left: 10px;
+    border: 1px dotted gray;
+    padding: 5px;
+    background-color: #EEE;
+    @include border-radius(6px);
+    a{
+      color: gray;
+    }
+    &.active{
+      background-color: rgb(255, 230, 218);
+      border: 1px solid gray;
+      a{
+        font-weight: bold;
+        color: #003;
+      }
+    }
+  }
+  .sub-nav{
+    margin-left: 8px;
+  }
+  button{
+    margin-bottom: 2px;
+  }
+}
+[data-magellan-destination]{
+  position: relative;
+  top: -50px; // リンクで飛んだとき実際の位置より少し上に飛ばす
+}
+#bbs-body{
+  margin-top: 8px;
+}
 .thread {
-  margin-bottom: 7px;
+  margin: 6px 0;
   padding: 10px;
   @include border-radius(6px);
   .title {
     font-weight: bold;
-    margin: 5px 0;
+    margin-bottom: 7px;
+    margin-top: 8px;
   }
   .is-public{
     font-weight: bold;

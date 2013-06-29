@@ -69,7 +69,7 @@ for Ubuntu ->
   $ ln -s /etc/nginx/sites-available/kagetra /etc/nginx/sites-enabled/
 (5) Start unicorn and nginx
   $ service start nginx
-  $ bundle exec unicorn -E deployment -c deploy/unicorn.rb -D
+  $ bundle exec unicorn -E production -c deploy/unicorn.rb -D
 
 [For Development]
 - Start interactive console for Sinatra

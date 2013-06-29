@@ -1,4 +1,6 @@
+@import "compass/css3/border-radius";
 .gbase{
+  @include border-radius(6px);
   border: 1px dotted gray;
   padding: 3px;
   cursor: pointer;

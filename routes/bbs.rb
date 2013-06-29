@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
-  BBS_THREADS_PER_PAGE = 10
+  BBS_THREADS_PER_PAGE = 5
   namespace '/api/bbs' do
     get '/threads' do
       user = get_user

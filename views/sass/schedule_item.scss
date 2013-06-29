@@ -1,3 +1,4 @@
+@import "compass/css3/border-radius";
 $holiday-color: #FDD;
 $saturday-color: #DDF;
 $weekday-color: #FFD;
@@ -19,6 +20,7 @@ $title-color: #003;
 }
 
 .info-item {
+  @include border-radius(6px);
   line-height: 125%;
   font-size: 90%;
   border: 1px dotted gray;

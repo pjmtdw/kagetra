@@ -14,6 +14,7 @@ requirejs.config
     "foundation.section": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/foundation/foundation.section.min"
     "foundation.alerts": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/foundation/foundation.alerts.min"
     "foundation.forms": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/foundation/foundation.forms.min"
+    "foundation.magellan": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/foundation/foundation.magellan.min"
     modernizr: "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/vendor/custom.modernizr.min"
     json2: "http://cdnjs.cloudflare.com/ajax/libs/json2/20121008/json2"
     deferred: "libs/deferred.min"
@@ -24,44 +25,29 @@ requirejs.config
     "crypto-aes": "libs/CryptoJS/rollups/aes"
     "crypto-core": "libs/CryptoJS/components/core"
   shim:
-    myutil:
-      deps: ["underscore","zep_or_jq"]
-    schedule_item:
-      deps: ["backbone"]
-    jquery:
-      exports: "$"
-    underscore:
-      exports: "_"
-    crypto:
-      exports: "CryptoJS"
+    myutil: deps: ["underscore","zep_or_jq"]
+    schedule_item: deps: ["backbone"]
+    jquery: exports: "$"
+    underscore: exports: "_"
+    crypto: exports: "CryptoJS"
     backbone:
       deps: ["zep_or_jq","underscore","json2"]
       exports: "Backbone"
-    foundation:
-      deps: ["zep_or_jq","modernizr"]
-    "foundation.topbar":
-      deps: ["foundation"]
-    "foundation.reveal":
-      deps: ["foundation"]
-    "foundation.dropdown":
-      deps: ["foundation"]
-    "foundation.section":
-      deps: ["foundation"]
-    "foundation.alerts":
-      deps: ["foundation"]
-    "foundation.forms":
-      deps: ["foundation"]
-    "crypto-hmac":
-      deps: ["crypto"]
-    "crypto-base64":
-      deps: ["crypto"]
-    "crypto-pbkdf2":
-      deps: ["crypto"]
-    "crypto-aes":
-      deps: ["crypto"]
+    foundation: deps: ["zep_or_jq","modernizr"]
+    "foundation.topbar": deps: ["foundation"]
+    "foundation.reveal": deps: ["foundation"]
+    "foundation.dropdown": deps: ["foundation"]
+    "foundation.section": deps: ["foundation"]
+    "foundation.alerts": deps: ["foundation"]
+    "foundation.forms": deps: ["foundation"]
+    "foundation.magellan": deps: ["foundation"]
+    "crypto-hmac": deps: ["crypto"]
+    "crypto-base64": deps: ["crypto"]
+    "crypto-pbkdf2": deps: ["crypto"]
+    "crypto-aes": deps: ["crypto"]
 
 require ["zep_or_jq","myutil","deferred","backbone"
-     "foundation.reveal","foundation.topbar","foundation.dropdown","foundation.section","foundation.alerts","foundation.forms"], ->
+     "foundation.reveal","foundation.topbar","foundation.dropdown","foundation.section","foundation.alerts","foundation.forms","foundation.magellan"], ->
   # Zeptoで使える Simply Deferred にはバグがあって使いものにならないので採用を見送る
   # https://github.com/sudhirj/simply-deferred/issues/12
   # なので基本的にjQueryを使用する

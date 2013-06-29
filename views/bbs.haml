@@ -35,10 +35,19 @@
           %textarea(name='body' rows=30)
 
 .row
-  %div.large-6.columns
-    %button#prev-thread.small.round.success 前へ
-    %button#next-thread.small.round.success 次へ
+  %div(data-magellan-expedition="fixed")
+    .left
+      %button#prev-thread.tiny.success &laquo;
+      %button#next-thread.tiny.success &raquo;
+    #bbs-nav
+
 .row
   #bbs-body
+
+%script#templ-bbs-nav(type='text/template')
+  <% _.each(data,function(x){ %>
+  .arrival.left.ellipsis(data-magellan-arrival="{{x.id}}")
+    %a(href="/bbs#page/{{window.bbs_page}}@{{x.id}}") {- x.title -}
+  <% }) %>
 
 = haml :comment

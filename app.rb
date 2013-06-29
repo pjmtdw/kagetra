@@ -29,12 +29,18 @@ class MainApp < Sinatra::Base
 
   configure :development do
     register Sinatra::Reloader
+
     get %r{/(.+)\.js$} do |m|
       content_type "application/javascript"
-      js = "views/#{m}.js"
+      js = if m.start_with?("foundation") then
+        "#{Gem.loaded_specs['zurb-foundation'].full_gem_path}/js/foundation/#{m}.js"
+      else
+        "views/#{m}.js"
+      end
       pass if not File.exist?(js) # pass to Rack::Coffee
       send_file(js)
     end
+
   end
 
   register Sinatra::Namespace

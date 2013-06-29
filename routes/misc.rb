@@ -13,4 +13,7 @@ class MainApp < Sinatra::Base
     user = get_user
     haml :top, locals: {user: user}
   end
+  get '/foundation.magellan.js' do
+    send_file "./.vendor/bundle/ruby/1.9.1/gems/zurb-foundation-4.1.6/js/foundation/foundation.magellan.js"
+  end
 end

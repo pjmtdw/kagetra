@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 class User
   include ModelBase
-  property :name,          String, length: 24, required: true, lazy: true
-  property :furigana,      String, length: 36, required: true, lazy: true
+  property :name,          TrimString, length: 24, required: true, lazy: true
+  property :furigana,      TrimString, length: 36, required: true, lazy: true
   property :furigana_row,  Integer, index: true, allow_nil: false, lazy:true # 振り仮名の最初の一文字が五十音順のどの行か
-  property :password_hash, String, length: 44, lazy: true
-  property :password_salt, String, length: 32, lazy: true
-  property :token,         String, length: 32, lazy: true # 認証用トークン
+  property :password_hash, TrimString, length: 44, lazy: true
+  property :password_salt, TrimString, length: 32, lazy: true
+  property :token,         TrimString, length: 32, lazy: true # 認証用トークン
   property :admin,          Boolean, default: false # 管理者
   property :loginable,      Boolean, default: true # ログインできるか
-  property :permission, Flag[:event_edit]
-  property :bbs_public_name, String, length: 24, lazy: true
+  property :permission, Flag[:sub_admin]
+  property :bbs_public_name, TrimString, length: 24, lazy: true
   property :show_new_from, DateTime # 掲示板, コメントなどの新着メッセージはこれ以降の日時のものを表示
 
   has n, :attrs, 'UserAttribute'
@@ -58,6 +58,9 @@ class User
   end
   def last_login_str
     pre = self.show_new_from
+    if pre.nil? then
+      return "初ログイン"
+    end
     cur = DateTime.now
     days = (cur-pre).to_f
     if days < 2/24.0
@@ -111,7 +114,7 @@ end
 # ユーザ属性の名前
 class UserAttributeKey
   include ModelBase
-  property :name, String, length: 36, required:true
+  property :name, TrimString, length: 36, required:true
   property :index, Integer, required: true, unique: true # 順番
   has n, :values, 'UserAttributeValue', child_key: [:attr_key_id]
 end
@@ -121,7 +124,7 @@ class UserAttributeValue
   include ModelBase
   property :attr_key_id, Integer, unique_index: :u1, required: true
   belongs_to :attr_key, 'UserAttributeKey'
-  property :value, String, length: 48, required: true
+  property :value, TrimString, length: 48, required: true
   property :index, Integer, unique_index: :u1, required: true
   property :default, Boolean, default: false # ユーザ作成時のデフォルトの値
 end

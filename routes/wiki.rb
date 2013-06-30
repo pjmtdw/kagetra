@@ -56,7 +56,7 @@ class MainApp < Sinatra::Base
       chunks = WikiAttachedFile.all(wiki_item_id:params[:id].to_i,order:[:created_at.desc]).chunks(ATTACHED_LIST_PER_PAGE) 
       pages = chunks.size
       list = chunks[page-1].map{|x|
-        x.select_attr(:id,:orig_name,:description).merge({
+        x.select_attr(:id,:orig_name,:description,:size).merge({
           date:x.created_at.to_date.strftime('%Y-%m-%d')
         })
       }

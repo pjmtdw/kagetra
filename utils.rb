@@ -1,28 +1,5 @@
 # -*- coding: utf-8 -*-
 
-# copied from http://blog.tquadrado.com/2010/datamapper-update_or_create/
-module DataMapper
-  module Model
-    # update_or_create method: finds and updates, or creates;
-    #   -upon create, returns the object
-    #   -upon update, returns the object (by default, returned True)
-    # @param[Hash] Conditions hash for the search query.
-    # @param[Hash] Attributes hash with the property value for the update or creation of a new row.
-    # @param[Boolean] Merger is a boolean that determines if the conditions are merged with the attributes upon create.
-    #   If true, merges conditions to attributes and passes the merge to the create method;
-    #   If false, only attributes are passed into the create method
-    # @return[Object] DataMapper object 
-    def update_or_create(conditions = {}, attributes = {}, merger = true)
-      if (row = first(conditions))
-        row.update(attributes)
-        row
-      else
-        create(merger ? (conditions.merge(attributes)) : attributes )
-      end
-    end
-  end # Module Model
-end # Module DataMapper
-
 class Hash
   # {a:1,b:2,c:3}.select_attr(:a,:c) =>{a:1,c:3}
   def select_attr(*symbols)
@@ -93,17 +70,6 @@ module Kagetra
       rescue DataMapper::SaveFailureError => e
         puts "#{e.resource.errors.inspect} #{if arg then 'at '+arg end}"
         raise e
-      end
-    end
-    def self.dm_response
-      begin
-        yield
-      rescue DataMapper::SaveFailureError => e
-        {_error_: e.resource.errors.full_messages().join("\n")}
-      rescue Exception => e
-        puts e.message
-        puts e.backtrace
-        {_error_: e.message }
       end
     end
     def self.unicode_first(s)

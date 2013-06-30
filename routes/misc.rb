@@ -3,7 +3,19 @@ class MainApp < Sinatra::Base
     shared = MyConf.first(name: "shared_password")
     halt 403, "Shared Password Unavailable." unless shared
     shared_salt = shared.value["salt"]
-    haml :index, locals: {shared_salt: shared_salt}
+
+    per = get_permanent
+    (login_uid,login_uname) =
+      if per.nil? then nil 
+      else 
+        uid = per["uid"]
+        [uid,User.get(uid.to_i).name]
+      end
+    haml :login, locals: {
+      shared_salt: shared_salt,
+      login_uid: login_uid,
+      login_uname: login_uname
+    }
   end
   get '/robots.txt' do
     content_type 'text/plain'
@@ -13,7 +25,8 @@ class MainApp < Sinatra::Base
     user = get_user
     haml :top, locals: {user: user}
   end
-  get '/foundation.magellan.js' do
-    send_file "./.vendor/bundle/ruby/1.9.1/gems/zurb-foundation-4.1.6/js/foundation/foundation.magellan.js"
+  get '/relogin' do
+    delete_permanent
+    redirect '/'
   end
 end

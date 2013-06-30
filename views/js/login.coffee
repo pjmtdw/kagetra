@@ -2,19 +2,22 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
   UserListModel = Backbone.Model.extend
     urlRoot: "/api/user/list"
 
-  UserListView = Backbone.View.extend
-    el: "#login"
-    initialize: -> @render()
-    events:
-      "change #initials": "render"
-    render: ->
-      @model.set id:$("#initials").val()
-      @model.fetch
-        success: (data) ->
-          $("#names").html data_to_option(data.toJSON().list)
-
   data_to_option = (data) ->
     ("<option value='#{a}'>#{b}</option>" for [a,b] in data).join()
+
+  UserListView = Backbone.View.extend
+    initialize: ->
+      @model = new UserListModel()
+      @$el.html($("#templ-user-list").html())
+      @listenTo(@model,"sync",@render)
+    events:
+      "change #initials": "sync_initials"
+    sync_initials: ->
+      @model.set("id",$("#initials").val())
+      @model.fetch()
+    render: ->
+      $("#user-names").html(data_to_option(@model.get("list")))
+
 
   SharedPasswdView = Backbone.View.extend
     el: "#container-shared-pass"
@@ -33,7 +36,6 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
         if data.result == "OK"
           window.shared_passwd_view.remove()
           new LoginView()
-          new UserListView({model: new UserListModel()})
         else
           alert("パスワードが違います")
 
@@ -43,10 +45,22 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
       "submit #login": "on_login_submit"
 
     initialize: -> @render()
-    render: -> @$el.html($("#templ-login").html())
+    render: ->
+      console.log "hoge"
+      @$el.html($("#templ-login").html())
+      if @options.single_mode
+        $("#user-list").html($("#templ-user-name").html())
+      else
+        v = new UserListView()
+        $("#user-list").append(v.$el)
+        $("#initials").trigger("change")
 
     on_login_submit: _.wrap_submit ->
-      user_id = $("#names").val()
+      user_id =
+        if @options.single_mode
+          $("#login-uid").val()
+        else
+          $("#user-names").val()
       password = $("#login input[type=password]").val()
       first = ->
         $.get "/api/user/auth_salt/#{user_id}"
@@ -62,4 +76,8 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
         else
           alert("パスワードが違います")
   init: ->
-    window.shared_passwd_view = new SharedPasswdView()
+    if $("#templ-user-name").length == 0
+      window.shared_passwd_view = new SharedPasswdView()
+    else
+      window.login_view = new LoginView(single_mode:true)
+

@@ -36,7 +36,7 @@ class MainApp < Sinatra::Base
       }
     end
     post '/thread' do
-      Kagetra::Utils.dm_response{
+      dm_response{
         BbsItem.transaction{
           user = get_user
           title = @json["title"]
@@ -48,7 +48,7 @@ class MainApp < Sinatra::Base
       }
     end
     post '/item' do
-      Kagetra::Utils.dm_response{
+      dm_response{
         BbsThread.transaction{
           user = get_user
           body = @json["body"]
@@ -60,7 +60,7 @@ class MainApp < Sinatra::Base
       }
     end
     put '/item/:id' do
-      Kagetra::Utils.dm_response{
+      dm_response{
         item = BbsItem.get(params[:id].to_i)
         item.update(body:@json["body"])
       }

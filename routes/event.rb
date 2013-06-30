@@ -39,27 +39,14 @@ class MainApp < Sinatra::Base
     end
     put '/item/:id' do
       user = get_user
-      Kagetra::Utils.dm_response{
-        ev = Event.get(params[:id].to_i)
-        emph = ev.emphasis
-        [:name,:place,:start_at,:end_at].each{|s|
-          key = "emph_#{s}"
-          if @json.has_key?(key) then
-            if @json[key].empty?.! then
-              emph << s
-            else
-              emph.reject!{|x|x==s}
-            end
-          end
-        }
-        @json["emphasis"] = emph.compact
+      dm_response{
         ev.update(@json)
         event_info(ev,user)
       }
     end
     post '/item' do
       user = get_user
-      Kagetra::Utils.dm_response{
+      dm_response{
         ev = Event.create(@json.merge({owners:[user],aggregate_attr:UserAttributeKey.first()}))
         event_info(ev,user)
       }
@@ -100,14 +87,14 @@ class MainApp < Sinatra::Base
       }
     end
     post '/comment/item' do
-      Kagetra::Utils.dm_response{
+      dm_response{
         user = get_user
         evt = Event.get(@json["event_id"].to_i)
         c = evt.comments.create(user:user,body:@json["body"])
       }
     end
     put '/comment/item/:id' do
-      Kagetra::Utils.dm_response{
+      dm_response{
         user = get_user
         EventComment.get(params[:id].to_i).update(body:@json["body"])
       }

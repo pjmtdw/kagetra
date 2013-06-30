@@ -1,20 +1,22 @@
 path '.vendor/bundle'
 source 'https://rubygems.org/'
 
-gem 'unicorn'
+gem 'unicorn' # http server
 
-gem 'sinatra'
+gem 'sinatra' # web framework
 gem 'sinatra-contrib'
-gem 'haml'
-gem 'sass'
+gem 'haml' # meta html
+gem 'sass' # meta css
 
-gem 'diff_match_patch'
+gem 'diff_match_patch' # diff & patch
 
-gem 'zurb-foundation'
-gem 'compass'
-gem 'redcarpet'
+gem 'zurb-foundation' # design framework
+gem 'compass' # css authoring framework
+gem 'redcarpet' # markdown to (x)html converter
 
-gem 'data_mapper'
+gem 'rmagick' # ImageMagick interface
+
+gem 'data_mapper' # ORM
 gem 'dm-mysql-adapter'
 gem 'dm-chunked_query'
 
@@ -25,4 +27,4 @@ gem 'sqlite3' # importing mytoma wiki
 
 # only used for developing
 gem 'rack-coffee'
-gem 'tux'
+gem 'tux' # CLI for sinatra

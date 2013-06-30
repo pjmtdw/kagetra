@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 
 NUM_THREADS = 8
-
-
 if false then
 # rake -j 16 -m とかで並列実行できるように rake で書く
 tasks = [:zokusei, :user, :login_log, :meibo,
@@ -998,8 +996,23 @@ def import_album_stage2(old_ids)
     end
     lines = File.readlines(File.join(CONF_HAGAKURE_BASE,"album/#{prefix}.cgi"))
     item = AlbumItem.get(item_id)
-    item.photo = AlbumPhoto.create(album_item:item,path:"#{prefix}.jpg")
-    item.thumb = AlbumThumbnail.create(album_item:item,path:"#{prefix}_SMALL.jpg")
+
+    create = ->(item,klass,path){
+      abs_path = File.join(CONF_HAGAKURE_BASE,"album",path)
+      (format,width,height) = nil
+      if File.exist?(abs_path) then
+        begin
+          img = Magick::Image::read(abs_path).first
+          format = img.format
+          width = img.columns
+          height = img.rows
+        rescue Exception => e
+        end
+      end
+      klass.create(album_item:item,path:path,format:format,width:width,height:height)
+    }
+    item.photo = create.call(item,AlbumPhoto,"#{prefix}.jpg")
+    item.thumb = create.call(item,AlbumThumbnail,"#{prefix}_SMALL.jpg")
     (title,year,mon,day,place,comment,width,height,importance,subdir,keyword,user) = nil
     lines.each{|line|
       line.chomp!
@@ -1025,7 +1038,7 @@ def import_album_stage2(old_ids)
           rid = o[0]
           AlbumRelation.create(source:item,target_id:rid)
         end
-      when %r(<area\s+coords="(.*?)"\s+alt="(.*?)">)
+      when %r(<area.*?coords="(.*?)".*?alt="(.*?)">)
         (x,y,r) = $1.split(",").map{|x|x.to_i}
         n = $2
         item.tags.create(name:n,coord_x:x,coord_y:y,radius:r)
@@ -1129,7 +1142,9 @@ def import_wiki
     db.execute("select page_id,uploaded_datetime,user_id,file,description,deleted from wiki_attachedfile"){|page_id,uploaded_datetime,user_id,file,description,deleted|
       base = File.basename(file).sub(/_\d+$/,"").gsub("-","/")
       orig_name = Base64.strict_decode64(base)
-      WikiAttachedFile.create(wiki_item_id:page_id,created_at:DateTime.parse(uploaded_datetime),owner_id:user_id,path:file,orig_name:orig_name,description:description)
+      abs_path = "../mytoma/storage/wiki/#{file}"
+      size = if File.exist?(abs_path) then File.size(abs_path) else 0 end
+      WikiAttachedFile.create(wiki_item_id:page_id,created_at:DateTime.parse(uploaded_datetime),owner_id:user_id,path:file,orig_name:orig_name,description:description,deleted:deleted,size:size)
     }
   }
 end

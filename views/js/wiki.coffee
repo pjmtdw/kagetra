@@ -1,4 +1,12 @@
 define (require,exports,module) ->
+  _.mixin
+    show_size: (x) ->
+      if x < 1024
+        "#{x} bytes"
+      else if x < 1048576
+        "#{Math.floor(x/1024)} KB"
+      else
+        "#{Math.floor(x/1048576)} MB"
   class WikiRouter extends _.router_base("wiki",["item","attached_list"])
     routes:
       "page/:id" : "page"

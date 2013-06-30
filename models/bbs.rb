@@ -5,7 +5,7 @@ class BbsThread
   include ModelBase
   include ThreadBase
   property :deleted,       ParanoidBoolean, lazy: false # 自動的に付けられる削除済みフラグ
-  property :title,         String, length: 48, required: true
+  property :title,         TrimString, length: 48, required: true
   property :public,        Boolean, default: false  # 公開されているか
   belongs_to :first_item, 'BbsItem', required: false # スレッドの最初の書き込み
   has n, :comments, 'BbsItem', child_key: [:thread_id] 

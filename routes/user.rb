@@ -18,6 +18,7 @@ class MainApp < Sinatra::Base
         user.update_login(request)
         session[:user_id] = uid
         session[:user_token] = user.token
+        set_permanent({uid:uid})
         "OK"
       else
         "FAIL"

@@ -23,14 +23,25 @@ class MainApp < Sinatra::Base
       }
     end
     def update_or_create(id, user, json)
-      date = if not id then
+      date = if id.nil? then
         Date.new(json["year"],json["mon"],json["day"])
       end
-      emph = ["name","place","start_at","end_at"].map{|s|
-        if json["emph_"+s].to_s.empty?.! then
-          s.to_sym
+      emph = if id.nil? then
+               []
+             else
+               ScheduleItem.get(id).emphasis
+             end
+      [:name,:place,:start_at,:end_at].each{|s|
+        key = "emph_#{s}"
+        if json.has_key?(key) then
+          if json[key].to_s.empty?.! then
+            emph << s
+          else
+            emph.reject!{|x|x==s}
+          end
         end
-      }.compact
+      }
+      json["emphasis"] = emph.compact
       ScheduleItem.update_or_create(
         {id: id},
         {
@@ -50,19 +61,19 @@ class MainApp < Sinatra::Base
       make_detail_item(ScheduleItem.get(params[:id]))
     end
     post '/detail/item' do
-      Kagetra::Utils.dm_response{
+      dm_response{
         user = get_user
         update_or_create(nil, user, @json)
       }
     end
     put '/detail/item/:id' do
-      Kagetra::Utils.dm_response{
+      dm_response{
         user = get_user
         update_or_create(params[:id], user, @json)
       }
     end
     delete '/detail/item/:id' do
-      Kagetra::Utils.dm_response{
+      dm_response{
         ScheduleItem.get(params[:id].to_i).destroy
       }
     end

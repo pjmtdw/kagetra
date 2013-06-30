@@ -1,9 +1,9 @@
 class WikiItem
   include ModelBase
   property :deleted, ParanoidBoolean, lazy: false
-  property :title, String, length: 64, required: true, index: true
+  property :title, TrimString, length: 64, required: true, index: true
   property :public, Boolean, default: false # 外部公開されているか
-  property :body, Text, required: true
+  property :body, TrimText, required: true
   property :revision, Integer
 end
 class WikiItemLog
@@ -22,7 +22,7 @@ class WikiAttachedFile
   belongs_to :owner, 'User'
   belongs_to :wiki_item
   property :path, FilePath
-  property :orig_name, String, length: 128 # 元の名前
-  property :description, String, length: 128 # 説明
-  property :file_size, Integer
+  property :orig_name, TrimString, length: 128 # 元の名前
+  property :description, TrimText # 説明
+  property :size, Integer, required: true
 end

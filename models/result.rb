@@ -3,7 +3,7 @@
 # 大会出場者(後に改名する人がいる可能性があるのと，Userにない人を追加できるようにするため)
 class ContestUser
   include ModelBase
-  property :name, String, length: 24, required: true
+  property :name, TrimString, length: 24, required: true
   property :user_id, Integer, unique_index: :u1, required: false
   belongs_to :user
   property :event_id, Integer, unique_index: :u1, required: true
@@ -17,7 +17,7 @@ class ContestClass
   include ModelBase
   property :event_id, Integer, unique_index: [:u1,:u2], required: true
   belongs_to :event
-  property :class_name, String, length: 16, required: true, unique_index: :u1 # 級の名前
+  property :class_name, TrimString, length: 16, required: true, unique_index: :u1 # 級の名前
   property :class_rank, Enum[:a,:b,:c,:d,:e,:f,:g] # 実際の級のランク
   property :index, Integer, unique_index: :u2 # 順番
   property :num_person, Integer # その級の参加人数(個人戦)
@@ -36,7 +36,7 @@ class ContestPrize
   belongs_to :contest_class
   property :contest_user_id, Integer, unique_index: :u1, required: true
   belongs_to :contest_user
-  property :prize, String, length: 32, required: true # 実際の名前 (優勝, 全勝賞など)
+  property :prize, TrimString, length: 32, required: true # 実際の名前 (優勝, 全勝賞など)
   property :promotion, Enum[:rank_up, :dash] # 昇級, ダッシュ
   property :point, Integer # A級のポイント
   property :point_local, Integer # 会内ポイント
@@ -54,11 +54,11 @@ class ContestGame
   property :contest_user_id, Integer, unique_index: [:u1,:u2], required: true
   belongs_to :contest_user
   property :result, Enum[:now,:win,:lose,:default_win], required: true # 勝敗 => 対戦中, 勝ち, 負け, 不戦勝,
-  property :score_str, String, length: 8 # 枚数(文字) "棄" とか "3+1" とかあるので文字列として用意しておく
+  property :score_str, TrimString, length: 8 # 枚数(文字) "棄" とか "3+1" とかあるので文字列として用意しておく
   property :score_int, Integer, index: true # 枚数(数字)
-  property :opponent_name, String, length: 24 # 対戦相手の名前
-  property :opponent_belongs, String, length: 36 # 対戦相手の所属, 個人戦のみ使用 (ただし団体戦の大会でも対戦相手の所属がバラバラな場合はここに書く))
-  property :comment, Text # コメント
+  property :opponent_name, TrimString, length: 24 # 対戦相手の名前
+  property :opponent_belongs, TrimString, length: 36 # 対戦相手の所属, 個人戦のみ使用 (ただし団体戦の大会でも対戦相手の所属がバラバラな場合はここに書く))
+  property :comment, TrimText # コメント
 
   is_single = ->(x){ x.type == :single }
   is_team = ->(x){ x.type == :team }
@@ -112,8 +112,8 @@ class ContestTeam
   # belongs_to does not support unique_index so we do this ugly hack.
   property :contest_class_id, Integer, unique_index: :u1, required: true
   belongs_to :contest_class
-  property :name, String, length: 48, unique_index: :u1, required: true # チーム名
-  property :prize, String, length: 24 # チーム入賞
+  property :name, TrimString, length: 48, unique_index: :u1, required: true # チーム名
+  property :prize, TrimString, length: 24 # チーム入賞
   property :rank, Integer # チーム入賞から推定した順位
   property :promotion, Enum[:rank_up,:rank_down] # 昇級, 陥落
   has n, :members, 'ContestTeamMember'
@@ -125,10 +125,10 @@ class ContestTeamOpponent
   include ModelBase
   property :contest_team_id, Integer, unique_index: :u1, required: true
   belongs_to :contest_team
-  property :name, String, length: 48 # 対戦相手のチーム名
+  property :name, TrimString, length: 48 # 対戦相手のチーム名
   property :round, Integer, unique_index: :u1, required: true # n回戦
-  property :round_name, String, length: 36 # 決勝, 順位決定戦など
-  property :comment, Text
+  property :round_name, TrimString, length: 36 # 決勝, 順位決定戦など
+  property :comment, TrimText
   property :kind, Enum[:team, :single] # 団体戦, 個人戦 (大会としては団体戦だけど各自が別々のチーム相手に対戦)
   has n, :games, 'ContestGame' # 試合結果(団体戦)
 end

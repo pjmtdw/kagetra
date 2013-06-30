@@ -29,9 +29,9 @@ module UserEnv
   def self.included(base)
     base.class_eval do
       p = DataMapper::Property
-      property :remote_host, p::String, length: 72, lazy: true 
-      property :remote_addr, p::String, length: 48, lazy: true
-      property :user_agent, p::String, length: 255, lazy: true
+      property :remote_host, p::TrimString, length: 72, lazy: true 
+      property :remote_addr, p::TrimString, length: 48, lazy: true
+      property :user_agent, p::TrimString, length: 255, lazy: true
     end
     def set_env(req)
       # TODO: DRY way to get the length of property ?
@@ -55,8 +55,8 @@ module CommentBase
       # ParanoidBooleanにはバグがあって lazy: true にしてしまうと関連モデルを直接取得したときの belong_to が nil になる
       # https://github.com/datamapper/dm-types/issues/52
       property :deleted, p::ParanoidBoolean, lazy: false
-      property :body, p::Text, required: true # 内容
-      property :user_name, p::String, length: 24, allow_nil: false # 書き込んだ人の名前
+      property :body, p::TrimText, required: true # 内容
+      property :user_name, p::TrimString, length: 24, allow_nil: false # 書き込んだ人の名前
       belongs_to :user, required: false # 内部的なユーザID
 
       before :save do
@@ -103,6 +103,26 @@ module ThreadBase
 end
 
 module DataMapper
+  module Model
+    # copied from http://blog.tquadrado.com/2010/datamapper-update_or_create/
+    # update_or_create method: finds and updates, or creates;
+    #   -upon create, returns the object
+    #   -upon update, returns the object (by default, returned True)
+    # @param[Hash] Conditions hash for the search query.
+    # @param[Hash] Attributes hash with the property value for the update or creation of a new row.
+    # @param[Boolean] Merger is a boolean that determines if the conditions are merged with the attributes upon create.
+    #   If true, merges conditions to attributes and passes the merge to the create method;
+    #   If false, only attributes are passed into the create method
+    # @return[Object] DataMapper object 
+    def update_or_create(conditions = {}, attributes = {}, merger = true)
+      if (row = first(conditions))
+        row.update(attributes)
+        row
+      else
+        create(merger ? (conditions.merge(attributes)) : attributes )
+      end
+    end
+  end
   class Property
     class HourMin < DataMapper::Property::String
       def custom?
@@ -133,11 +153,31 @@ module DataMapper
       end
     end
   end
+  class Property
+    class TrimString < DataMapper::Property::String
+      def custom?
+        true
+      end
+      def dump(value)
+        return nil if value.nil?
+        r = value.to_s.strip
+        if r.empty? then nil else r end
+      end
+    end
+    class TrimText < DataMapper::Property::Text
+      def custom?
+        true
+      end
+      def dump(value)
+        value.to_s.strip
+      end
+    end
+  end
 end
 
 class MyConf
   include ModelBase
-  property :name,  String, length: 64, unique: true
+  property :name, TrimString, length: 64, unique: true
   property :value, Json
 end
 

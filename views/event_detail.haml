@@ -1,22 +1,42 @@
 %script#templ-event-detail(type='text/template')
-  %div 大会名: <%- data.name %>
-  %div 日付: <%- data.date %>
-  %div 〆切: <%- data.deadline %>
-  %div 備考:
-  .panel.pre <%- data.description %>
-  %div
-    <% _.each(_.filter(data.choices,function(c){return c.positive}),function(c){ %>
-    <% p = data.participant && data.participant[c.id] || [] %>
-    %div
-      <%- c.name %> (<%- _.flatten(_.map(p,function(x){return _.values(x)})).length %>) :
-      .panel
-        <% _.each(p,function(q){ %>
-        %div.participants
-          %span.label.round <%- _.keys(q)[0] %>
-          <%- _.values(q)[0].join(", ") %>
-        
-        <% }) %>
+  %ul.large-block-grid-4.small-block-grid-2
+    %li
+      %fieldset.panel
+        %legend 大会/行事名
+        %div <%- data.name %>
+        <% if(data.formal_name){ %>
+        %div (<%- data.formal_name %>)
+        <% } %>
+    %li
+      %fieldset.panel
+        %legend 種別
+        <%= _.show_kind_detail(data) %>
+    %li
+      %fieldset.panel
+        %legend 日時
+        %div
+          <% tilde = (data.start_at || data.end_at)?"&sim;":"" %>
+          <%= data.date %> <%= data.start_at %> <%= tilde %> <%= data.end_at %>
+    %li
+      %fieldset.panel
+        %legend 締切日
+        %div <%= data.deadline %>
+  %fieldset.panel
+    %legend 備考
+    .pre <%- data.description %>
+  -# data.participant[-1] が存在するならそれは選択肢が表示不可のもの
+  <% choices = (data.participant && data.participant[-1])?[{name:"登録者",positive:true,id:-1}]:data.choices %>
+  <% _.each(_.filter(choices,function(c){return c.positive}),function(c){ %>
+  <% p = data.participant && data.participant[c.id] || [] %>
+  %fieldset.panel
+    %legend <%- c.name %> (<%- _.flatten(_.map(p,function(x){return _.values(x)})).length %>)
+    <% _.each(p,function(q){ %>
+    %div.participants
+      %span.label.round <%- _.keys(q)[0] %>
+      <%- _.values(q)[0].join(", ") %>
+     
     <% }) %>
+  <% }) %>
 
 
 = haml :comment

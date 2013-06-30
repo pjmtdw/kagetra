@@ -2,36 +2,39 @@
 # -*- coding: utf-8 -*-
 
 NUM_THREADS = 8
-if false then
-# rake -j 16 -m とかで並列実行できるように rake で書く
-tasks = [:zokusei, :user, :login_log, :meibo,
-  :bbs, :schedule, :shurui, :event, 
-  :endtaikai, :event_comment, :wiki, :album]
-
-task :default => tasks
-
-tasks.each{|t|
-  task t do
-    send("import_#{t}".to_sym)
-  end
-}
-
-task :user => :zokusei
-
-[:login_log,:meibo,:bbs,:schedule,:event,:endtaikai,:event_comment,:wiki,:album].each{|t|
-  task t => :user
-}
-[:event,:endtaikai].each{|t|
-  task t => :shurui
-}
-
-task :event_comment => [:event, :endtaikai]
-end
 
 require './init'
 require 'parallel'
 require 'diff_match_patch'
 require 'sqlite3'
+
+def make_tasks
+  # rake -j 16 -m とかで並列実行できるように rake で書く
+  tasks = [:zokusei, :user, :login_log, :meibo,
+    :bbs, :schedule, :shurui, :event, 
+    :endtaikai, :event_comment, :wiki, :album]
+
+  task :default => tasks
+
+  tasks.each{|t|
+    task t do
+      send("import_#{t}".to_sym)
+    end
+  }
+
+  task :user => :zokusei
+
+  [:login_log,:meibo,:bbs,:schedule,:event,:endtaikai,:event_comment,:wiki,:album].each{|t|
+    task t => :user
+  }
+  [:event,:endtaikai].each{|t|
+    task t => :shurui
+  }
+
+  task :event_comment => [:event, :endtaikai]
+end
+
+make_tasks
 
 GLOBAL_LOCK = Mutex.new
 DMP = DiffMatchPatch.new
@@ -433,6 +436,7 @@ def import_event
       end
     }
     begin
+      start_at = if khour == 0 && kmin == 0 then nil else Kagetra::HourMin.new(khour,kmin) end
       evt = Event.create(
         id: taikainum,
         name:taikainame,
@@ -446,9 +450,9 @@ def import_event
         created_at: DateTime.parse(tourokudate),
         place: place,
         event_group: shurui,
-        show_choice: show_choice,
+        hide_choice: ! show_choice,
         aggregate_attr: agg_attr,
-        start_at: Kagetra::HourMin.new(khour,kmin)
+        start_at: start_at
       )
       kanrishas.each{|k|
         user = User.first(name:k)
@@ -1148,5 +1152,3 @@ def import_wiki
     }
   }
 end
-
-import_album

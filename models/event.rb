@@ -7,7 +7,7 @@ class Event
   property :name, TrimString, length: 48, required: true # 名称
   property :formal_name, TrimString, length: 96, lazy:true # 正式名称
   property :official, Boolean, default: true # 公認大会
-  property :kind, Enum[:contest, :practice, :party, :etc], default: :etc # 大会, 練習, コンパ, その他
+  property :kind, Enum[:contest, :party, :etc], default: :etc # 大会, コンパ／合宿／アフター等, アンケート／その他
   property :team_size, Integer, default: 1 # 1 => 個人戦, 3 => 3人団体戦, 5 => 5人団体戦
   property :description, TrimText # 備考
   property :deadline, Date # 締切
@@ -23,7 +23,7 @@ class Event
 
   property :owners, Json, default: [] # 管理者一覧( User.id の配列 )
   property :forbidden_attrs, Json, default: [] # 登録不可属性 ( UserAttributeValue.id の配列 )
-  property :show_choice, Boolean, default: true # ユーザがどれを選択したか表示する
+  property :hide_choice, Boolean, default: false # ユーザがどれを選択したかを管理者以外には分からなくする
   has n, :choices, 'EventChoice'
   has n, :result_classes, 'ContestClass' # 大会結果の各級の情報
   has n, :result_users, 'ContestUser' # 大会結果の出場者
@@ -44,7 +44,7 @@ class EventChoice
   include ModelBase
   property :name, TrimString, length: 24, required: false
   property :positive, Boolean, required: true # 参加する, はい などの前向きな回答
-  property :show_result, Boolean, default: true # 回答した人の一覧を表示する
+  property :hide_result, Boolean, default: false # 回答した人の一覧を表示しない
   property :index, Integer, required: true # 順番
   belongs_to :event
   # 注意: EventUserChiceにはuserがnilのものも存在するので user_choices.count と users.count は一致しない

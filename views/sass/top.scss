@@ -45,8 +45,10 @@ $forbidden-color: gray !important;
       }
     }
   }
-  .event-name{
+  .event-name-row{
     border-bottom: 1px dotted silver;
+  }
+  .event-name{
     font-weight: bold;
     margin-bottom: 7px;
   }
@@ -79,6 +81,23 @@ $forbidden-color: gray !important;
       color: green;
       font-weight: bold;
       font-size: 120%;
+    }
+  }
+
+  .event-symbol{
+    font-size: 130%;
+    margin-right: .2em;
+    text-shadow: .1em .1em .3em silver;
+    &.spades{
+    }
+    &.clubs{
+      color: green;
+    }
+    &.diams{
+      color: yellow;
+    }
+    &.hearts{
+      color: red;
     }
   }
 }
@@ -114,3 +133,4 @@ $forbidden-color: gray !important;
     }
   }
 }
+

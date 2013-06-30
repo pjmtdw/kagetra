@@ -58,8 +58,10 @@
 
 %script#templ-event-item(type='text/template')
   .panel.event-item
-    .row
-      .large-12.columns.event-name {- data.name -}
+    .row.event-name-row
+      .large-12.columns
+        %span {{ _.show_kind_symbol(data.kind,data.official) }}
+        %span.event-name {- data.name -}
     .row
       .large-7.columns
         開催日: {{ _.show_date(data.date) }}

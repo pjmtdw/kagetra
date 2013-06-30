@@ -84,7 +84,6 @@ end
 module AlbumBase
   def self.included(base)
     base.class_eval do
-      include DataMapper::Resource
       p = DataMapper::Property
       property :path, p::FilePath, required: true, unique: true
       property :width, p::Integer

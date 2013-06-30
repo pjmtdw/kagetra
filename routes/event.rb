@@ -3,7 +3,7 @@ class MainApp < Sinatra::Base
   namespace '/api/event' do
     def event_info(ev,user,user_choices=nil)
       today = Date.today
-      r = ev.select_attr(:name,:date,:deadline,:created_at,:id,:participant_count,:comment_count)
+      r = ev.select_attr(:name,:date,:kind,:official,:deadline,:created_at,:id,:participant_count,:comment_count,:team_size)
       if ev.last_comment_date.nil?.! then
         r[:latest_comment_date] = ev.last_comment_date
         if user.show_new_from.nil?.! then
@@ -31,9 +31,33 @@ class MainApp < Sinatra::Base
       r = event_info(ev,user)
       if params[:detail] == "true"
         r.merge!(ev.select_attr(:description,:formal_name,:start_at, :end_at))
-        r[:participant] = ev.choices(positive:true).each_with_object({}){|c,obj|
-          obj[c.id] = c.user_choices.group_by{|x|x.attr_value}
-          .sort_by{|k,v|k.index}.map{|k,v| {k.value => v.map{|x|x.user_name}}}}
+        sort_and_map = ->(h){
+          h.sort_by{|k,v|k.index}
+          .map{|k,v|{k.value => v.map{|x|x[:user_name]}}}
+        }
+        filter_user_choices = ->(uc,hide_result){
+          uc.map{|x|
+            {
+              attr_value: x.attr_value,
+              user_name: if hide_result then "@" else x.user_name end
+            }
+          }
+        }
+        choices = ev.choices(positive:true)
+        r[:participant] = 
+          if ev.hide_choice then
+            res = Hash.new{[]}
+            choices.each{|c|
+              filter_user_choices.call(c.user_choices,c.hide_result).each{|uc|
+                res[uc[:attr_value]] <<= uc
+              }
+            }
+            {-1 => sort_and_map.call(res)}
+          else
+            choices.each_with_object({}){|c,obj|
+              obj[c.id] = sort_and_map.call(filter_user_choices.call(c.user_choices,c.hide_result).group_by{|x|x[:attr_value]})
+            }
+          end
       end
       r
     end

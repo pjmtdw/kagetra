@@ -9,6 +9,26 @@ define (require,exports,module) ->
       else
         ""
       "( <span class='comment-count'>#{count}</span>#{c} )"
+    show_kind_symbol: (kind,official) ->
+      s = switch kind
+            when "contest"
+              if official then "spades" else "clubs"
+            when "party"
+              "hearts"
+            else
+              "diams"
+      "<span class='event-symbol #{s}'>&#{s};</span>"
+    show_kind_detail: (data) ->
+      switch data.kind
+        when "contest"
+          s1 = if data.official then "公認" else "非公認"
+          s2 = if data.team_size == 1 then "個人戦" else "#{data.team_size}人団体戦"
+          s1 + " " + s2
+        when "party"
+          "コンパ/アフター等"
+        when "etc"
+          "アンケート/その他"
+
     show_date: (s) ->
       return "なし" unless s
       today = new Date()

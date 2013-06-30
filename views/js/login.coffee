@@ -46,7 +46,6 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
 
     initialize: -> @render()
     render: ->
-      console.log "hoge"
       @$el.html($("#templ-login").html())
       if @options.single_mode
         $("#user-list").html($("#templ-user-name").html())

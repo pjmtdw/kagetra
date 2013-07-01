@@ -17,13 +17,16 @@ requirejs.config
     "foundation.magellan": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/foundation/foundation.magellan.min"
     modernizr: "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/vendor/custom.modernizr.min"
     json2: "http://cdnjs.cloudflare.com/ajax/libs/json2/20121008/json2"
+    chosen: "http://cdnjs.cloudflare.com/ajax/libs/chosen/0.9.15/chosen.jquery.min"
     deferred: "libs/deferred.min"
     crypto: "libs/CryptoJS/crypto"
+    require: "libs/require"
     "crypto-pbkdf2": "libs/CryptoJS/rollups/pbkdf2"
     "crypto-hmac": "libs/CryptoJS/rollups/hmac-sha256"
     "crypto-base64": "libs/CryptoJS/components/enc-base64-min"
     "crypto-aes": "libs/CryptoJS/rollups/aes"
     "crypto-core": "libs/CryptoJS/components/core"
+
   shim:
     myutil: deps: ["underscore","zep_or_jq"]
     schedule_item: deps: ["backbone"]

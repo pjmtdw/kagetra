@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
   namespace '/api/event' do
-    def event_info(ev,user,user_choices=nil)
+    def event_info(ev,user,user_choices=nil,user_attr_values=nil)
       today = Date.today
       r = ev.select_attr(:name,:date,:kind,:official,:deadline,:created_at,:id,:participant_count,:comment_count,:team_size)
       if ev.last_comment_date.nil?.! then
@@ -21,9 +21,48 @@ class MainApp < Sinatra::Base
                      t = user.event_user_choices.event_choices.first(event:ev)
                      t && t.id
                    end
-      forbidden = (ev.forbidden_attrs & user.attrs.value.map{|v|v.id}).empty?.!
+      user_attr_values ||= user.attrs.value.map{|v|v.id}
+      forbidden = (ev.forbidden_attrs & user_attr_values).empty?.!
       r[:forbidden] = true if forbidden
       r
+    end
+    def get_participant(ev,edit_mode)
+      participant_names = {}
+      participant_attrs = ev.aggregate_attr.values.map{|x|[x.id,x.value]}
+      sort_and_map = ->(h){
+        h.sort_by{|k,v|k.index}
+        .map{|k,v|
+          {k.id => v.map{|x|x.id}}}}
+      add_participant_names = ->(ucs,hide_result){
+        if hide_result and not edit mode then return end
+        participant_names.merge!(Hash[ucs.map{|u|[u.id,u.user_name]}])
+      }
+      cond = if edit_mode then {} else {positive:true} end
+      choices = ev.choices(cond)
+      res = if ev.hide_choice and not edit_mode then
+              res = Hash.new{[]}
+              choices.each{|c|
+                ucs = c.user_choices
+                add_participant_names.call(ucs,c.hide_result)
+                ucs.each{|uc|
+                  res[uc.attr_value] <<= uc
+                }
+              }
+              {-1 => sort_and_map.call(res)}
+            else
+              choices.each_with_object({}){|c,obj|
+                ucs = c.user_choices
+                add_participant_names.call(ucs,c.hide_result)
+                obj[c.id] = sort_and_map.call(
+                  ucs.group_by{|x|x.attr_value}
+                )
+              }
+            end
+      {
+        participant: res,
+        participant_names: participant_names,
+        participant_attrs: participant_attrs
+      }
     end
     get '/item/:id' do
       user = get_user
@@ -31,33 +70,11 @@ class MainApp < Sinatra::Base
       r = event_info(ev,user)
       if params[:detail] == "true"
         r.merge!(ev.select_attr(:description,:formal_name,:start_at, :end_at))
-        sort_and_map = ->(h){
-          h.sort_by{|k,v|k.index}
-          .map{|k,v|{k.value => v.map{|x|x[:user_name]}}}
-        }
-        filter_user_choices = ->(uc,hide_result){
-          uc.map{|x|
-            {
-              attr_value: x.attr_value,
-              user_name: if hide_result then "@" else x.user_name end
-            }
-          }
-        }
-        choices = ev.choices(positive:true)
-        r[:participant] = 
-          if ev.hide_choice then
-            res = Hash.new{[]}
-            choices.each{|c|
-              filter_user_choices.call(c.user_choices,c.hide_result).each{|uc|
-                res[uc[:attr_value]] <<= uc
-              }
-            }
-            {-1 => sort_and_map.call(res)}
-          else
-            choices.each_with_object({}){|c,obj|
-              obj[c.id] = sort_and_map.call(filter_user_choices.call(c.user_choices,c.hide_result).group_by{|x|x[:attr_value]})
-            }
-          end
+        r.merge!(get_participant(ev,params[:edit] == "true"))
+        if params[:edit] == "true"
+          r[:all_attrs] = UserAttributeKey.all(order:[:index.asc]).map{|x|[x.name,x.values.map{|y|[y.id,y.value]}]}
+          r[:forbidden_attrs] = ev.forbidden_attrs
+        end
       end
       r
     end
@@ -81,9 +98,10 @@ class MainApp < Sinatra::Base
 
       # 各eventごとに取得するのは遅いのでまとめて取得しておく
       user_choices = user.event_user_choices.event_choice(event:events).to_enum.with_object({}){|x,h|h[x.event_id]=x.id}
+      user_attr_values = user.attrs.value.map{|v|v.id}
 
       events.map{|ev|
-        event_info(ev,user,user_choices)
+        event_info(ev,user,user_choices,user_attr_values)
       }
     end
     put '/choose/:cid' do

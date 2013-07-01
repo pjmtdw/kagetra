@@ -34,8 +34,6 @@ def make_tasks
   task :event_comment => [:event, :endtaikai]
 end
 
-make_tasks
-
 GLOBAL_LOCK = Mutex.new
 DMP = DiffMatchPatch.new
 
@@ -318,8 +316,7 @@ end
 def iskonpa2etype(iskonpa)
   case iskonpa
   when "-1" then :contest
-  when "0" then  :etc
-  when "1" then  :practice
+  when "0","1" then  :etc
   when "2" then  :party
   else raise Exception.new("invalid type: #{iskonpa}")
   end
@@ -362,7 +359,6 @@ def import_event
       kaisaidate = nil
     else
       kaisaidate = Date.new(kyear.to_i,kmon.to_i,kday.to_i)
-      kstart_at = Kagetra::HourMin.new(khour.to_i,kmin.to_i)
     end
     (tourokudate,kanrisha) = kanrisha.split('<>')
     etype = iskonpa2etype(iskonpa)
@@ -436,7 +432,7 @@ def import_event
       end
     }
     begin
-      start_at = if khour == 0 && kmin == 0 then nil else Kagetra::HourMin.new(khour,kmin) end
+      start_at = if khour.to_i == 0 && kmin.to_i == 0 then nil else Kagetra::HourMin.new(khour,kmin) end
       evt = Event.create(
         id: taikainum,
         name:taikainame,
@@ -994,62 +990,65 @@ end
 def import_album_stage2(old_ids)
   Parallel.each(old_ids.values,in_threads:NUM_THREADS){|item_id,prefix|
     puts prefix
-    # DEBUG
-    if not File.exist?(File.join(CONF_HAGAKURE_BASE,"album/#{prefix}.cgi")) then
-      next
-    end
-    lines = File.readlines(File.join(CONF_HAGAKURE_BASE,"album/#{prefix}.cgi"))
-    item = AlbumItem.get(item_id)
-
-    create = ->(item,klass,path){
-      abs_path = File.join(CONF_HAGAKURE_BASE,"album",path)
-      (format,width,height) = nil
-      if File.exist?(abs_path) then
-        begin
-          img = Magick::Image::read(abs_path).first
-          format = img.format
-          width = img.columns
-          height = img.rows
-        rescue Exception => e
-        end
-      end
-      klass.create(album_item:item,path:path,format:format,width:width,height:height)
-    }
-    item.photo = create.call(item,AlbumPhoto,"#{prefix}.jpg")
-    item.thumb = create.call(item,AlbumThumbnail,"#{prefix}_SMALL.jpg")
-    (title,year,mon,day,place,comment,width,height,importance,subdir,keyword,user) = nil
-    lines.each{|line|
-      line.chomp!
-      line.sjis!
-      case line
-      when %r(<title>(.*)</title>)
-        title = $1
-      when %r(<!year>(.*)<!/year>.*<!mon>(.*)<!/mon>.*<!day>(.*)<!/day>)
-        (year,mon,day) = [$1,$2,$3]
-      when %r(<!place>(.*)<!/place>)
-        place = $1
-      when %r(<!comment>(.*)<!/comment>)
-        comment = $1
-        Kagetra::Utils.dm_debug(prefix){
-          import_comment(item,comment)
-        }
-      when %r(<!ruiji>(.*)<!/ruiji>)
-        (dn,_,fn) = $1.split(/&:&/)
-        o = old_ids["#{dn}-#{fn}"]
-        if o.nil? then
-          puts "WARNING: album item not found. skipped creating relation: '#{dn}-#{fn}'"
-        else
-          rid = o[0]
-          AlbumRelation.create(source:item,target_id:rid)
-        end
-      when %r(<area.*?coords="(.*?)".*?alt="(.*?)">)
-        (x,y,r) = $1.split(",").map{|x|x.to_i}
-        n = $2
-        item.tags.create(name:n,coord_x:x,coord_y:y,radius:r)
-      end
-    }
-    day = begin Date.new(year.to_i,mon.to_i,day.to_i) rescue nil end
     Kagetra::Utils.dm_debug(prefix){
+      if not File.exist?(File.join(CONF_HAGAKURE_BASE,"album/#{prefix}.cgi")) then
+        next
+      end
+      lines = File.readlines(File.join(CONF_HAGAKURE_BASE,"album/#{prefix}.cgi"))
+      item = AlbumItem.get(item_id)
+
+      create = ->(item,klass,path){
+        abs_path = File.join(CONF_HAGAKURE_BASE,"album",path)
+        (format,width,height) = nil
+        if File.exist?(abs_path) then
+          begin
+            img = Magick::Image::read(abs_path).first
+            format = img.format
+            width = img.columns
+            height = img.rows
+          rescue Exception => e
+          end
+        end
+        klass.create(album_item:item,path:path,format:format,width:width,height:height)
+      }
+      item.photo = create.call(item,AlbumPhoto,"#{prefix}.jpg")
+      item.thumb = create.call(item,AlbumThumbnail,"#{prefix}_SMALL.jpg")
+      (title,year,mon,day,place,comment,width,height,importance,subdir,keyword,user) = nil
+      lines.each{|line|
+        line.chomp!
+        line.sjis!
+        case line
+        when %r(<title>(.*)</title>)
+          title = $1
+        when %r(<!year>(.*)<!/year>.*<!mon>(.*)<!/mon>.*<!day>(.*)<!/day>)
+          (year,mon,day) = [$1,$2,$3]
+        when %r(<!place>(.*)<!/place>)
+          place = $1
+        when %r(<!comment>(.*)<!/comment>)
+          comment = $1
+          Kagetra::Utils.dm_debug(prefix){
+            import_comment(item,comment)
+          }
+        when %r(<!ruiji>(.*)<!/ruiji>)
+          (dn,_,fn) = $1.split(/&:&/)
+          o = old_ids["#{dn}-#{fn}"]
+          if o.nil? then
+            puts "WARNING: album item not found. skipped creating relation: '#{dn}-#{fn}'"
+          else
+            rid = o[0]
+            AlbumRelation.create(source:item,target_id:rid)
+          end
+        when %r(<area.*?coords="(.*?)".*?alt="(.*?)">)
+          (x,y,r) = $1.split(",").map{|x|x.to_i}
+          n = $2
+          if n.to_s.empty? then
+            puts "WARNING: empty tag, ignoring '#{prefix}'"
+          else
+            item.tags.create(name:n,coord_x:x,coord_y:y,radius:r)
+          end
+        end
+      }
+      day = begin Date.new(year.to_i,mon.to_i,day.to_i) rescue nil end
       item.update(name:title,place:place,date:day)
     }
   }
@@ -1152,3 +1151,7 @@ def import_wiki
     }
   }
 end
+
+#make_tasks
+
+import_album

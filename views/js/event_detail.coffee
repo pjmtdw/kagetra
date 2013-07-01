@@ -1,12 +1,25 @@
 define ->
+  _.mixin
+    show_kind_detail: (data) ->
+      if data.kind == "contest"
+        s1 = if data.official then "公認" else "非公認"
+        s2 = _.object(JSON.parse(g_team_sizes_str))[data.team_size]
+        s1 + " " + s2
+      else
+        window.g_event_kinds ||= _.object(JSON.parse(g_event_kinds_str))
+        window.g_event_kinds[data.kind]
+
   EventItemModel = Backbone.Model.extend
     urlRoot: "/api/event/item"
   EventDetailView = Backbone.View.extend
     template: _.template($("#templ-event-detail").html())
+    template_p: _.template($("#templ-event-participant").html())
     initialize: ->
       @.listenTo(@model,"sync",@render)
     render: ->
-      @$el.html(@template(data:@model.toJSON()))
+      data = @model.toJSON()
+      @$el.html(@template(data:data))
+      @$el.find(".participants").html(@template_p(data:data))
       @$el.appendTo(@options.target)
     reveal: (model_or_id) ->
 

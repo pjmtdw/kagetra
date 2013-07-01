@@ -2,7 +2,20 @@ define (require,exports,module) ->
   $ed = require("event_detail")
   $si = require("schedule_item")
   $co = require("comment")
+  $ch = require("chosen")
   _.mixin
+    show_all_attrs: (all_attrs,forbidden_attrs) ->
+      r = ""
+      for [k,v] in all_attrs
+        g = $('<optgroup>',label:k)
+        for [p,q] in v
+          opt = $('<option>',value:p,text:"#{k}:#{q}")
+          if _.contains(forbidden_attrs,p)
+            opt.attr("selected","selected")
+          g.append(opt)
+
+        r += g[0].outerHTML
+      r
     show_new_comment: (count,has_new)->
       c = if has_new
         " <span class='new-comment'>new</span>"
@@ -18,17 +31,6 @@ define (require,exports,module) ->
             else
               "diams"
       "<span class='event-symbol #{s}'>&#{s};</span>"
-    show_kind_detail: (data) ->
-      switch data.kind
-        when "contest"
-          s1 = if data.official then "公認" else "非公認"
-          s2 = if data.team_size == 1 then "個人戦" else "#{data.team_size}人団体戦"
-          s1 + " " + s2
-        when "party"
-          "コンパ/アフター等"
-        when "etc"
-          "アンケート/その他"
-
     show_date: (s) ->
       return "なし" unless s
       today = new Date()
@@ -99,10 +101,6 @@ define (require,exports,module) ->
       t = "#container-event-edit"
       v = new EventEditView(target:t,model:model)
       _.reveal_view(t,v)
-      if not model.isNew()
-        v.model.fetch(data:{detail:true})
-      else
-        v.render()
   EventItemBaseView = Backbone.View.extend
     events:
       "click .show-detail": "show_detail"
@@ -214,7 +212,33 @@ define (require,exports,module) ->
       @$el.html(@template(data))
       @$el.find("dd[data-id='#{@model.get('id')}']").addClass("active")
   EventEditView = Backbone.View.extend
-    template: _.template_braces($("#templ-event-edit").html())
+    initialize: ->
+      @render()
+    render: ->
+      @$el.html($("#templ-event-edit").html())
+      ev = new EventEditInfoView(model:@model)
+      ep = new EventEditParticipantView(model:@model)
+      @$el.find("#event-edit-info").append(ev.$el)
+      @$el.find("#event-edit-participant").append(ep.$el)
+      @$el.appendTo(@options.target)
+      when_done = ->
+        @$el.foundation("section","reflow")
+
+      if not @model.isNew()
+        @model.fetch(data:{detail:true,edit:true}).done(_.bind(when_done,this))
+      else
+        ev.render()
+        when_done()
+  EventEditParticipantView = Backbone.View.extend
+    template: _.template($("#templ-event-participant").html())
+    initialize: ->
+      @listenTo(@model,"sync",@render)
+    render: ->
+      @$el.html(@template(data:@model.toJSON()))
+
+
+  EventEditInfoView = Backbone.View.extend
+    template: _.template_braces($("#templ-event-edit-info").html())
     events:
       "submit #event-edit-form" : "do_submit"
     do_submit: ->
@@ -229,7 +253,10 @@ define (require,exports,module) ->
       @listenTo(@model,"sync",@render)
     render: ->
       @$el.html(@template(data:@model.toJSON()))
-      @$el.appendTo(@options.target)
+      # we have to set width explicitly to use chosen inside zurb foundation's section
+      @$el.find("[name='forbidden_attrs']").chosen(
+        width: "100%"
+      )
 
   init: ->
     window.show_schedule_weekday = true

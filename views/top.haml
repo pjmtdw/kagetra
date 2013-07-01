@@ -3,7 +3,8 @@
 - content_for :js_start do
   top
 - content_for :css do
-  top, schedule_item, event_detail, comment
+  top, schedule_item, event_detail, comment, 
+  http://cdnjs.cloudflare.com/ajax/libs/chosen/0.9.15/chosen.css
 = haml :top_bar, locals: {user:user}
 
 .row
@@ -11,10 +12,10 @@
     .panel.top-message
       .event-new
         %span 最終ログイン: #{user.last_login_str}, 今月ログイン: #{user.log_mon_count}
-      .bbs-new
-      .event-comment-new
-      .schedule-alert
-      .event-participant-new
+      #bbs-new
+      #event-comment-new
+      #schedule-alert
+      #event-participant-new
 
   .large-6.columns
     %ul#schedule-panel.large-block-grid-3.small-block-grid-3
@@ -72,8 +73,7 @@
     .row
       .large-4.columns
         登録数:
-        %span.participant-count {{ data.participant_count }}
-        名
+        %span.participant-count {{ data.participant_count }} 名
       .large-8.columns.buttons
         - if user.admin
           %button.button-teal.show-edit 編集
@@ -94,10 +94,25 @@
     %a.close &times;
 
 %script#templ-event-edit(type='text/template')
+  .row
+    .section-container.tabs(data-section="tabs")
+      %section
+        %p.title(data-section-title)
+          %a 大会情報
+        .content(data-section-content)
+          #event-edit-info
+      %section
+        %p.title(data-section-title)
+          %a 参加者
+        .content(data-section-content)
+          #event-edit-participant
+
+%script#templ-event-edit-info(type='text/template')
   %form#event-edit-form
     %input.button.small(type='submit' value='更新')
     .row
       .large-4.columns
+        <% if(data.kind == "contest"){ %>
         %label
           恒例大会
           %button.tiny.round +
@@ -106,12 +121,41 @@
             %select
           .large-3.columns
             .button.tiny.round 情報
+        <% }else{ %>
+        %label
+          種別
+        %select
+          <% event_kinds = JSON.parse(g_event_kinds_str) %>
+          <% _.each(event_kinds, function(x){ %>
+          %option(value='{{x[0]}}') {{x[1]}}
+          <% }) %>
+        <% } %>
       .large-4.columns
-        %label 大会名
+        %label 大会/行事名
         %input(name='name' type='text' value='{- data.name -}')
+      .large-4.columns
+        %label 管理者(半角コンマ区切り)
+        %input(type='owners' type='text')
+    <% if(data.kind == "contest"){ %>
+    .row
+      .large-2.columns
+        %label 公認/非公認
+        %select(name='official')
+          %option(value='1') 公認
+          %option(value='0') 非公認
+      .large-2.columns.left
+        %label 個人戦/団体戦
+        %select(name='team_size')
+          <% _.each(JSON.parse(g_team_sizes_str),function(x){ %>
+          %option(value='{{x[0]}}') {{x[1]}}
+          <% }) %>
       .large-4.columns
         %label 正式名称
         %input(name='formal_name' type='text' value='{- data.formal_name -}')
+      .large-4.columns
+        %label 参加不能属性
+        %select(name='forbidden_attrs' multiple) {{ _.show_all_attrs(data.all_attrs,data.forbidden_attrs)}}
+    <% } %>
     .row
       .large-4.columns
         %label 開催日
@@ -125,6 +169,18 @@
       .large-4.columns
         %label 締切日
         %input(name='deadline' type='text' placeholder='YYYY-MM-DD' value='{- data.deadline -}')
+    .row
+      .large-2.columns
+        %label 集計属性
+        %select
+      .large-9.columns
+        %label 選択肢
+      .large-3.columns
+        %input(type='checkbox') どれを選択したかを隠す
+    .row
+      .large-12.columns
+        %label 備考
+        %textarea(name='description' rows=15)
 
 #container-event-detail.reveal-modal
 #container-event-comment.reveal-modal

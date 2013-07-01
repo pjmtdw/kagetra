@@ -11,7 +11,11 @@ class MainApp < Sinatra::Base
     get '/group/:gid' do
       group = AlbumGroup.get(params[:gid].to_i)
       r = group.select_attr(:name)
-      r[:items] = group.items.map{|x| x.select_attr(:id,:name)}
+      r[:items] = group.items.map{|x|
+        x.select_attr(:id,:name).merge({
+          thumb: x.thumb
+        })
+      }
       r
     end
     get '/item/:id' do

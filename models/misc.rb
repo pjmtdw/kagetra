@@ -15,11 +15,9 @@ module ModelBase
       end
 
       def select_attr(*symbols)
-        attrs = self.attributes
-        symbols.each{|s|
-          raise Exception.new("'#{s}' is not a property of '#{self.class}'") unless attrs.has_key?(s)
-        }
-        attrs.select_attr(*symbols)
+        Hash[symbols.map{|s|
+          [s,self.send(s)]
+        }]
       end
     end
   end

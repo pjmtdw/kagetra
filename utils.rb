@@ -3,9 +3,7 @@
 class Hash
   # {a:1,b:2,c:3}.select_attr(:a,:c) =>{a:1,c:3}
   def select_attr(*symbols)
-    self.select{|k,v|
-      symbols.include?(k)
-    }
+    Hash[symbols.map{|s|[s,self[s]]}]
   end
 end
 

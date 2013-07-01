@@ -24,6 +24,9 @@
   %fieldset.panel
     %legend 備考
     .pre <%- data.description %>
+  .participants
+
+%script#templ-event-participant(type='text/template')
   -# data.participant[-1] が存在するならそれは選択肢が表示不可のもの
   <% choices = (data.participant && data.participant[-1])?[{name:"登録者",positive:true,id:-1}]:data.choices %>
   <% _.each(_.filter(choices,function(c){return c.positive}),function(c){ %>
@@ -32,11 +35,14 @@
     %legend <%- c.name %> (<%- _.flatten(_.map(p,function(x){return _.values(x)})).length %>)
     <% _.each(p,function(q){ %>
     %div.participants
-      %span.label.round <%- _.keys(q)[0] %>
-      <%- _.values(q)[0].join(", ") %>
-     
+      %span.label.round <%- _.object(data.participant_attrs)[_.keys(q)[0]] %>
+      <%- _.map(_.values(q)[0],function(x){return data.participant_names[x]}).join(", ") %>
     <% }) %>
   <% }) %>
 
-
 = haml :comment
+
+%script
+  -# Rubyの連想配列は順番が保持されるけどJavaScriptは保持されないので配列に変換
+  var g_event_kinds_str='#{G_EVENT_KINDS.to_a.to_json}' 
+  var g_team_sizes_str='#{G_TEAM_SIZES.to_a.to_json}'

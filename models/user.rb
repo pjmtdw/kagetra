@@ -25,12 +25,18 @@ class User
     self.furigana_row = Kagetra::Utils.gojuon_row_num(self.furigana)
   end
   # ログイン処理
+  MIN_LOGIN_SPAN = 30 # minutes
   def update_login(request)
     User.transaction{
       latest = UserLoginLatest.first_or_new(user: self)
-
+      now = DateTime.now
+      if self.show_new_from.nil? or (now - self.show_new_from)*1440 >= MIN_LOGIN_SPAN then
+        monthly = self.login_monthly.first_or_new(year:now.year,month:now.month)
+        monthly.count += 1
+        monthly.save
+        self.show_new_from = latest.updated_at
+      end
       self.change_token!
-      self.show_new_from = latest.updated_at
       self.save
 
       latest.set_env(request)
@@ -41,10 +47,6 @@ class User
       log.set_env(request)
       log.save
 
-      dt = Date.today
-      monthly = self.login_monthly.first_or_new(year:dt.year,month:dt.month)
-      monthly.count += 1
-      monthly.save
     }
   end
   def change_token! 

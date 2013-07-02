@@ -72,7 +72,7 @@ class MainApp < Sinatra::Base
         r.merge!(ev.select_attr(:description,:formal_name,:start_at, :end_at))
         r.merge!(get_participant(ev,params[:edit] == "true"))
         if params[:edit] == "true"
-          r[:all_attrs] = UserAttributeKey.all(order:[:index.asc]).map{|x|[x.name,x.values.map{|y|[y.id,y.value]}]}
+          r[:all_attrs] = UserAttributeKey.all(order:[:index.asc]).map{|x|[[x.id,x.name],x.values.map{|y|[y.id,y.value]}]}
           r[:forbidden_attrs] = ev.forbidden_attrs
         end
       end
@@ -81,6 +81,7 @@ class MainApp < Sinatra::Base
     put '/item/:id' do
       user = get_user
       dm_response{
+        ev = Event.get(params[:id].to_i)
         ev.update(@json)
         event_info(ev,user)
       }

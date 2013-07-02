@@ -18,7 +18,7 @@ $forbidden-color: gray !important;
     color: #63F;
   }
   .new-comment{
-    color: #F80;
+    color: rgb(153,0,255);
   }
   .comment-count{
     text-shadow: 0.1em 0.1em 0.2em silver;
@@ -89,12 +89,13 @@ $forbidden-color: gray !important;
     margin-right: .2em;
     text-shadow: .1em .1em .3em silver;
     &.spades{
+      color: black;
     }
     &.clubs{
       color: green;
     }
     &.diams{
-      color: yellow;
+      color: rgb(24,170,164);
     }
     &.hearts{
       color: red;
@@ -133,4 +134,23 @@ $forbidden-color: gray !important;
     }
   }
 }
-
+#event-edit-form{
+  .choice-item{
+    background-color: #FFD;
+    border: 1px dotted gray;
+    margin-right: 6px;
+    padding: 4px;
+    .choice-name{
+      cursor: pointer;
+    }
+    &[data-positive="false"]{
+      background-color: #EEE;
+    }
+    .choice-delete{
+      margin-left: 5px;
+      color: gray;
+      text-shadow: 1px 1px 1px gray;
+      cursor: pointer;
+    }
+  }
+}

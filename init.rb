@@ -44,6 +44,6 @@ G_ADDRBOOK_KEYS = ['名前','ふりがな','E-Mail','生年月日','所属','出
 
 G_DEADLINE_ALERT = 7 # 締切が迫っていますを表示する日数
 
-G_EVENT_KINDS = {party:"コンパ/アフター等",etc:"アンケート/その他"}
+G_EVENT_KINDS = {party:"コンパ/合宿/アフター等",etc:"アンケート/購入/その他"}
 
 G_TEAM_SIZES = {"1"=>"個人戦","3"=>"三人団体戦","5"=>"五人団体戦"}

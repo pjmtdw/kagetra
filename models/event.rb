@@ -7,7 +7,7 @@ class Event
   property :name, TrimString, length: 48, required: true # 名称
   property :formal_name, TrimString, length: 96, lazy:true # 正式名称
   property :official, Boolean, default: true # 公認大会
-  property :kind, Enum[:contest, :party, :etc], default: :etc # 大会, コンパ／合宿／アフター等, アンケート／その他
+  property :kind, Enum[:contest, :party, :etc], default: :etc # 大会, コンパ/合宿/アフター等, アンケート/購入/その他
   property :team_size, Integer, default: 1 # 1 => 個人戦, 3 => 3人団体戦, 5 => 5人団体戦
   property :description, TrimText # 備考
   property :deadline, Date # 締切

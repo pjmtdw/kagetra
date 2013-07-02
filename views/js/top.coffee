@@ -6,10 +6,10 @@ define (require,exports,module) ->
   _.mixin
     show_all_attrs: (all_attrs,forbidden_attrs) ->
       r = ""
-      for [k,v] in all_attrs
-        g = $('<optgroup>',label:k)
+      for [[kid,kname],v] in all_attrs
+        g = $('<optgroup>',label:kname)
         for [p,q] in v
-          opt = $('<option>',value:p,text:"#{k}:#{q}")
+          opt = $('<option>',value:p,text:"#{kname}:#{q}")
           if _.contains(forbidden_attrs,p)
             opt.attr("selected","selected")
           g.append(opt)
@@ -212,6 +212,23 @@ define (require,exports,module) ->
       @$el.html(@template(data))
       @$el.find("dd[data-id='#{@model.get('id')}']").addClass("active")
   EventEditView = Backbone.View.extend
+    template_choice: _.template_braces($("#templ-choice-item").html())
+    events:
+      "click .choice-name" : "edit_choice"
+      "click .choice-delete" : "delete_choice"
+      "click #add-choice" : "add_choice"
+    edit_choice: (ev) ->
+      t = $(ev.currentTarget).text()
+      if r = prompt("選択肢名:",t)
+        $(ev.currentTarget).text(r)
+
+    add_choice: _.wrap_submit (ev) ->
+      if r = prompt("選択肢名:")
+        o = $("<div>",html:@template_choice(x:{positive:true,name:r}))
+        $("#choice-list").find("[data-positive='false']").before(o)
+
+    delete_choice: (ev) ->
+      $(ev.currentTarget).parent(".choice-item").remove()
     initialize: ->
       @render()
     render: ->

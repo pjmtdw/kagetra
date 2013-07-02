@@ -24,7 +24,7 @@ configure :development do
 
 end
 
-logger  = Logger.new("./deploy/log/#{MainApp.environment}.log",11)
+logger  = Logger.new("./deploy/log/#{MainApp.environment}.log",CONF_LOG_SIZE)
 def logger.write(msg)
   self << msg
 end

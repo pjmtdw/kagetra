@@ -14,8 +14,8 @@
 @import "foundation/components/split-buttons"; // *requires components/buttons
 @import "foundation/components/top-bar";  // *requires components/grid
 
-.button-teal {
-  @include button($button-sml, teal, false, false, false, false);
+.button-light {
+  @include button($button-sml, rgb(235,207,171), false, false, false, false);
   @include single-transition;
   @include inset-shadow(true);
 }

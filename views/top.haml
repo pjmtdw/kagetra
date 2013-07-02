@@ -73,13 +73,14 @@
     .row
       .large-4.columns
         登録数:
-        %span.participant-count {{ data.participant_count }} 名
+        %span.participant-count {{ data.participant_count }}
+        名
       .large-8.columns.buttons
         - if user.admin
-          %button.button-teal.show-edit 編集
-        %button.button-teal.show-detail
+          %button.button-light.show-edit 編集
+        %button.button-light.show-detail
           詳細
-        %span.button-teal.show-comment
+        %span.button-light.show-comment
           コメント {{ _.show_new_comment(data.comment_count,data.has_new_comment) }}
 
 %script#templ-event-choice(type='text/template')
@@ -98,7 +99,7 @@
     .section-container.tabs(data-section="tabs")
       %section
         %p.title(data-section-title)
-          %a 大会情報
+          %a 情報
         .content(data-section-content)
           #event-edit-info
       %section
@@ -109,7 +110,7 @@
 
 %script#templ-event-edit-info(type='text/template')
   %form#event-edit-form
-    %input.button.small(type='submit' value='更新')
+    %input.button.small(type='submit' value='送信')
     .row
       .large-4.columns
         <% if(data.kind == "contest"){ %>
@@ -124,10 +125,10 @@
         <% }else{ %>
         %label
           種別
-        %select
+        %select(name="kind")
           <% event_kinds = JSON.parse(g_event_kinds_str) %>
           <% _.each(event_kinds, function(x){ %>
-          %option(value='{{x[0]}}') {{x[1]}}
+          {{_.make_option(x[0]==data.kind,{value:x[0],text:x[1]})}}
           <% }) %>
         <% } %>
       .large-4.columns
@@ -173,14 +174,32 @@
       .large-2.columns
         %label 集計属性
         %select
-      .large-9.columns
+          <% _.each(data.all_attrs,function(x){ %>
+          %option(value='{{x[0][0]}}') {{x[0][1]}}
+          <% }) %>
+      .large-7.columns
         %label 選択肢
+        #choice-list
+          <% temp = _.template_braces($("#templ-choice-item").html()) %>
+          <% _.each(data.choices,function(x){ %>
+          {{ temp({x:x}) }}
+          <% }) %>
+        %button#add-choice.left.tiny.success 追加
       .large-3.columns
-        %input(type='checkbox') どれを選択したかを隠す
+        %input(type='checkbox' name='hide_choice')
+        %span(title='誰がどの選択肢を選んだかユーザには分からないようにする') どれを選択したかを隠す
     .row
       .large-12.columns
         %label 備考
         %textarea(name='description' rows=15)
+
+%script#templ-choice-item(type='text/template')
+  .left.choice-item(data-choice-id='{{x.id}}' data-positive='{{x.positive}}')
+    %span.choice-name {- x.name -}
+    <% if(x.positive){ %>
+    %span.choice-delete &times;
+    <% } %> 
+
 
 #container-event-detail.reveal-modal
 #container-event-comment.reveal-modal

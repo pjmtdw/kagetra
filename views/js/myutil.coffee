@@ -58,6 +58,17 @@ define (require, exports, module) ->
       $(target).one("closed", ->
         view.remove())
       $(target).foundation("reveal","open")
+    
+    make_checkbox: (checked,opts) ->
+      # underscore.jsのtemplateとしてHamlを使うと %input(type='checkbox' {{ checked?"checked":"" }}) みたいなことができない
+      o = _.extend({type:'checkbox'},opts)
+      o["checked"] = "checked" if checked
+      $("<input>",o)[0].outerHTML
+    make_option: (selected,opts) ->
+      opts = _.extend({selected:"selected"},opts) if selected
+
+      $("<option>",opts)[0].outerHTML
+
     # save backbone model (only changed attributes)
     save_model_alert: (model,obj) ->
       defer = $.Deferred()
@@ -102,15 +113,6 @@ define (require, exports, module) ->
     t = @data("toggle-text")
     @data("toggle-text",@text())
     @text(t)
-
-
-  # data-checkbox-checked="true" -> checked
-  # underscore.jsのtemplateとしてHamlを使うと %input(type='checkbox' {{ checked?"checked":"" }})
-  # みたいなことができないので %input(type='checkbox' data-checkbox-checked='true') したあとこの関数を呼ぶ
-  $.fn.checkboxApply = ->
-    a = "data-checkbox-checked"
-    for [s,t] in [["true",true],["false",false]]
-      this.find("input[#{a}='#{s}']").prop("checked",t)
 
   # formのinput要素を{name: value}形式にする
   $.fn.serializeObj = ->

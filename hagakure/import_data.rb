@@ -1154,4 +1154,5 @@ end
 
 #make_tasks
 
-import_album
+import_zokusei
+import_user

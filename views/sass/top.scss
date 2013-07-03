@@ -95,7 +95,7 @@ $forbidden-color: gray !important;
       color: green;
     }
     &.diams{
-      color: rgb(24,170,164);
+      color: rgb(24,124,180);
     }
     &.hearts{
       color: red;
@@ -152,5 +152,16 @@ $forbidden-color: gray !important;
       text-shadow: 1px 1px 1px gray;
       cursor: pointer;
     }
+  }
+}
+
+.daily-album-photo{
+  margin: 5px;
+  padding: 5px;
+  border: 1px solid silver;
+  background-color: rgb(220,255,211);
+  text-align: center;
+  img{
+    margin: 3px;
   }
 }

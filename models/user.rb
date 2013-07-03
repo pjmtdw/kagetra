@@ -21,6 +21,12 @@ class User
   has n, :login_log, 'UserLoginLog'
   has n, :login_monthly, 'UserLoginMonthly'
 
+  after :create do
+    UserAttributeValue.all(default:true).each{|v|
+      self.attrs.create(value:v)
+    }
+  end
+
   before :save do
     self.furigana_row = Kagetra::Utils.gojuon_row_num(self.furigana)
   end
@@ -129,4 +135,14 @@ class UserAttributeValue
   property :value, TrimString, length: 48, required: true
   property :index, Integer, unique_index: :u1, required: true
   property :default, Boolean, default: false # ユーザ作成時のデフォルトの値
+  before :create do
+    if self.attr_key.values(default:true).count == 0 then
+      self.default = true
+    end
+  end
+  before :destroy do
+    if self.default then
+      self.attr_key.values(:id.not => self.id).first.update(default:true)
+    end
+  end
 end

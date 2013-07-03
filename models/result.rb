@@ -5,7 +5,7 @@ class ContestUser
   include ModelBase
   property :name, TrimString, length: 24, required: true
   property :user_id, Integer, unique_index: :u1, required: false
-  belongs_to :user
+  belongs_to :user, required: false
   property :event_id, Integer, unique_index: :u1, required: true
   belongs_to :event
   has 1, :prize, 'ContestPrize'

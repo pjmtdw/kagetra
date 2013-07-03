@@ -151,5 +151,22 @@ module Kagetra
       when /^(\d+)位$/ then $1.to_i
       end
     end
+
+    # ブロック部分を実行できるのは一プロセスのみ．ロックしている間他のプロセスは素通りする
+    # 全然関係ないプロセスが $0 を flock することはないことが前提
+    def self.single_exec
+      File.open($0){|f|
+        return unless f.flock(File::LOCK_EX | File::LOCK_NB)
+        begin
+          yield
+        ensure
+          f.flock(File::LOCK_UN | File::LOCK_NB)
+        end
+      }
+    end
+
+    EMAIL_ADDRESS_REGEX = %r(([*+!.&#\$|\'\\%\/0-9a-z^_`{}=?~:-]+)@(([0-9a-z-]+\.)+[0-9a-z]{2,}))i
+    TELEPHONE_NUMBER_REGEX = %r([0０]([0-9０-９]{9,10}|[0-9０-９]{1,3}([ー\-][0-9０-９]{2,4}){2}))
   end
+
 end

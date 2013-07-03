@@ -64,8 +64,8 @@ define (require, exports, module) ->
       o = _.extend({type:'checkbox'},opts)
       o["checked"] = "checked" if checked
       $("<input>",o)[0].outerHTML
-    make_option: (selected,opts) ->
-      opts = _.extend({selected:"selected"},opts) if selected
+    make_option: (select_val,opts) ->
+      opts = _.extend({selected:"selected"},opts) if (select_val == opts.value)
 
       $("<option>",opts)[0].outerHTML
 

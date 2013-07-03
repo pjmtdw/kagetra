@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
   namespace '/api/event' do
-    def event_info(ev,user,user_choices=nil,user_attr_values=nil)
+    def event_info(ev,user,opts = {})
+
       today = Date.today
-      r = ev.select_attr(:name,:date,:kind,:official,:deadline,:created_at,:id,:participant_count,:comment_count,:team_size)
+      r = ev.select_attr(:place,:name,:date,:kind,:official,:deadline,:created_at,:id,:participant_count,:comment_count,:team_size)
       if ev.last_comment_date.nil?.! then
         r[:latest_comment_date] = ev.last_comment_date
         if user.show_new_from.nil?.! then
@@ -16,14 +17,22 @@ class MainApp < Sinatra::Base
         r[:deadline_alert] = true
       end
       r[:choices] = ev.choices(order:[:index.asc]).map{|x|x.select_attr(:positive,:name,:id)}
-      r[:choice] = if user_choices then user_choices[ev.id] 
+      r[:choice] = if opts.has_key?(:user_choices) then opts[:user_choices][ev.id] 
                    else
                      t = user.event_user_choices.event_choices.first(event:ev)
                      t && t.id
                    end
-      user_attr_values ||= user.attrs.value.map{|v|v.id}
-      forbidden = (ev.forbidden_attrs & user_attr_values).empty?.!
+      opts[:user_attr_values] ||= user.attrs.value.map{|v|v.id}
+      forbidden = (ev.forbidden_attrs & opts[:user_attr_values]).empty?.!
       r[:forbidden] = true if forbidden
+      if opts[:detail] 
+        r.merge!(ev.select_attr(:description,:formal_name,:start_at, :end_at))
+        r.merge!(get_participant(ev,opts[:edit]))
+        if opts[:edit]
+          r[:all_attrs] = UserAttributeKey.all(order:[:index.asc]).map{|x|[[x.id,x.name],x.values.map{|y|[y.id,y.value]}]}
+          r.merge!(ev.select_attr(:forbidden_attrs,:hide_choice,:aggregate_attr_id))
+        end
+      end
       r
     end
     def get_participant(ev,edit_mode)
@@ -67,23 +76,33 @@ class MainApp < Sinatra::Base
     get '/item/:id' do
       user = get_user
       ev = Event.first(id:params[:id].to_i)
-      r = event_info(ev,user)
-      if params[:detail] == "true"
-        r.merge!(ev.select_attr(:description,:formal_name,:start_at, :end_at))
-        r.merge!(get_participant(ev,params[:edit] == "true"))
-        if params[:edit] == "true"
-          r[:all_attrs] = UserAttributeKey.all(order:[:index.asc]).map{|x|[[x.id,x.name],x.values.map{|y|[y.id,y.value]}]}
-          r[:forbidden_attrs] = ev.forbidden_attrs
-        end
-      end
-      r
+      event_info(ev,user,{detail:params[:detail]=="true",edit:params[:edit]=="true"})
     end
     put '/item/:id' do
       user = get_user
       dm_response{
-        ev = Event.get(params[:id].to_i)
-        ev.update(@json)
-        event_info(ev,user)
+        Event.transaction{
+          ev = Event.get(params[:id].to_i)
+          @json["hide_choice"] = @json["hide_choice"].to_s.empty?.!
+          if @json.has_key?("choices") then
+            choice_ids = ev.choices.map{|c|c.id}
+            @json["choices"].each_with_index{|o,i|
+              cond = o.select_attr("name","positive").merge({index:i})
+              if o["id"] < 0 then
+                ev.choices.create(cond)
+              else
+                ev.choices.get(o["id"]).update(cond)
+                choice_ids.delete(o["id"])
+              end
+            }
+            if choice_ids.empty?.! then
+              ev.choices.all(id:choice_ids).destroy
+            end
+            @json.delete("choices")
+          end
+          ev.update(@json)
+          event_info(ev,user)
+        }
       }
     end
     post '/item' do
@@ -102,7 +121,7 @@ class MainApp < Sinatra::Base
       user_attr_values = user.attrs.value.map{|v|v.id}
 
       events.map{|ev|
-        event_info(ev,user,user_choices,user_attr_values)
+        event_info(ev,user,{user_choices:user_choices,user_attr_values:user_attr_values})
       }
     end
     put '/choose/:cid' do

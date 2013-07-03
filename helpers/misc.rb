@@ -19,7 +19,7 @@ module MiscHelpers
       logger.warn e.message
       $stderr.puts e.message
 
-      bt = e.backtrace[0...12].join("\n")
+      bt = e.backtrace[0...G_BACKTRACE_LENGTH].join("\n")
       logger.puts bt
       $stderr.puts bt
       {_error_: e.message }
@@ -44,5 +44,41 @@ module MiscHelpers
   end
   def delete_permanent
     response.delete_cookie(PERMANENT_COOKIE_NAME)
+  end
+  # 今日の一枚を選択
+  def choose_daily_album_photo
+    # sqrtの重み付け
+    # 以下の方法はメモリを多少多めに利用するが
+    # AlbumGroupの数は多くても数千，重みの最大は精々10程度で平均3ぐらいなので多分大丈夫
+    ag = AlbumGroup.all(:daily_choose_count.gt => 0).map{|ag|
+      w = Math.sqrt(ag.daily_choose_count).to_i
+      [ag] * w
+    }.flatten.sample
+    a = ag.items.to_a.sample
+    t = a.thumb
+    MyConf.update_or_create({name:DAILY_ALBUM_PHOTO_KEY},{value:{id:a.id,width:t.width,height:t.height}})
+  end
+
+  # 古いログイン履歴を削除
+  def clean_login_log
+    day_from = Date.today - G_LOGIN_LOG_DAYS
+    UserLoginLog.all(:created_at.lt => day_from).destroy
+  end
+  DAILY_JOB_KEY_PREFIX = "daily_job_"
+  DAILY_ALBUM_PHOTO_KEY = "daily_album_photo"
+  def exec_daily_job
+    Kagetra::Utils.single_exec{
+      key = DAILY_JOB_KEY_PREFIX + Date.today.to_s
+      conf = MyConf.first(name:key)
+      return if conf.nil?.!
+      MyConf.transaction{
+        # put daily tasks here
+        choose_daily_album_photo
+        clean_login_log
+
+        MyConf.all(:name.like => DAILY_JOB_KEY_PREFIX + "%", :name.not => key).destroy
+        MyConf.create(name:key,value:{done:"true"})
+      }
+    }
   end
 end

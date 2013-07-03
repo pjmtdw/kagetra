@@ -14,6 +14,7 @@ gem 'zurb-foundation' # design framework
 gem 'compass' # css authoring framework
 gem 'redcarpet' # markdown to (x)html converter
 
+# you have to `apt-get install libmagickwand-dev` to install rmagick
 gem 'rmagick' # ImageMagick interface
 
 gem 'data_mapper' # ORM

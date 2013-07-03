@@ -16,6 +16,7 @@ class MainApp < Sinatra::Base
       correct_hash = Kagetra::Utils.hmac_password(hash,msg)
       res = if trial_hash == correct_hash then
         user.update_login(request)
+        exec_daily_job
         session[:user_id] = uid
         session[:user_token] = user.token
         set_permanent({uid:uid})

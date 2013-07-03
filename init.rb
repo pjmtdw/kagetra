@@ -47,3 +47,7 @@ G_DEADLINE_ALERT = 7 # 締切が迫っていますを表示する日数
 G_EVENT_KINDS = {party:"コンパ/合宿/アフター等",etc:"アンケート/購入/その他"}
 
 G_TEAM_SIZES = {"1"=>"個人戦","3"=>"三人団体戦","5"=>"五人団体戦"}
+
+G_BACKTRACE_LENGTH = 16 # ログに表示するbacktraceの最大行数
+
+G_LOGIN_LOG_DAYS = 10 # ログイン履歴を残す日数

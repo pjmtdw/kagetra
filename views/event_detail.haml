@@ -1,30 +1,39 @@
 %script#templ-event-detail(type='text/template')
-  %ul.large-block-grid-4.small-block-grid-2
-    %li
+  .row
+    .large-8.columns
       %fieldset.panel
         %legend 大会/行事名
-        %div <%- data.name %>
+        %span <%- data.name %>
         <% if(data.formal_name){ %>
-        %div (<%- data.formal_name %>)
+        %span (<%- data.formal_name %>)
         <% } %>
-    %li
+    .large-4.columns
       %fieldset.panel
         %legend 種別
         <%= _.show_kind_detail(data) %>
-    %li
+  .row
+    .large-7.columns
+      %fieldset.panel
+        %legend 場所
+        <%- data.place %>
+    .large-3.columns
       %fieldset.panel
         %legend 日時
         %div
           <% tilde = (data.start_at || data.end_at)?"&sim;":"" %>
           <%= data.date %> <%= data.start_at %> <%= tilde %> <%= data.end_at %>
-    %li
+    .large-2.columns
       %fieldset.panel
         %legend 締切日
         %div <%= data.deadline %>
-  %fieldset.panel
-    %legend 備考
-    .pre <%- data.description %>
-  .participants
+  .row
+    .large-12.columns
+      %fieldset.panel
+        %legend 備考
+        .pre <%- data.description %>
+  .row
+    .large-12.columns
+      .participants
 
 %script#templ-event-participant(type='text/template')
   -# data.participant[-1] が存在するならそれは選択肢が表示不可のもの

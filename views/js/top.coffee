@@ -224,8 +224,8 @@ define (require,exports,module) ->
 
     add_choice: _.wrap_submit (ev) ->
       if r = prompt("選択肢名:")
-        o = $("<div>",html:@template_choice(x:{positive:true,name:r}))
-        $("#choice-list").find("[data-positive='false']").before(o)
+        o = $("<div>",html:@template_choice(x:{positive:true,name:r,id:-1}))
+        $("#edit-choice-list").find("[data-positive='false']").first().before(o)
 
     delete_choice: (ev) ->
       $(ev.currentTarget).parent(".choice-item").remove()
@@ -253,6 +253,17 @@ define (require,exports,module) ->
     render: ->
       @$el.html(@template(data:@model.toJSON()))
 
+  get_edit_choice_list = ->
+    r = []
+    $("#edit-choice-list .choice-item").each((index,elem)->
+      o = $(elem)
+      id = parseInt(o.data("choice-id"))
+      positive = o.data("positive")
+      name = o.find(".choice-name").text()
+      r.push({id:id,positive:positive,name:name})
+    )
+    r
+
 
   EventEditInfoView = Backbone.View.extend
     template: _.template_braces($("#templ-event-edit-info").html())
@@ -260,11 +271,14 @@ define (require,exports,module) ->
       "submit #event-edit-form" : "do_submit"
     do_submit: ->
       obj = $("#event-edit-form").serializeObj()
+      obj["choices"] = get_edit_choice_list()
       m = @model
       is_new = m.isNew()
       _.save_model_alert(@model,obj).done(->
+        $("#container-event-edit").foundation("reveal","close")
         if is_new
           window.event_list_view.collection.add(m))
+
       false
     initialize: ->
       @listenTo(@model,"sync",@render)

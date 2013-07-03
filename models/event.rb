@@ -47,7 +47,7 @@ class EventChoice
   property :hide_result, Boolean, default: false # 回答した人の一覧を表示しない
   property :index, Integer, required: true # 順番
   belongs_to :event
-  # 注意: EventUserChiceにはuserがnilのものも存在するので user_choices.count と users.count は一致しない
+  # 注意: EventUserChoiceにはuserがnilのものも存在するので user_choices.count と users.count は一致しない
   has n, :user_choices,'EventUserChoice'
   has n, :users, through: :user_choices , via: :user
 end

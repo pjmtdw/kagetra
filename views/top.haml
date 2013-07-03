@@ -28,8 +28,16 @@
       .panel.deadline-message.hide
         .header 締切が迫っています
     .large-6.columns
+      - if daily_photo.nil?.!
+        %div.right.daily-album-photo
+          %div 今日の一枚
+          %div
+            %a(href="/album#item/#{daily_photo['id']}")
+              %img(src="/static/album/thumb/#{daily_photo['id']}" width="#{daily_photo['width']}" height="#{daily_photo['height']}")
+  .row
+    .large-12.columns
       - if user.admin
-        %div.right
+        %div.left
           %button.small.round#add-contest 大会追加
           %button.small.round#add-event 行事追加
       %dl#event-order.sub-nav.right
@@ -128,13 +136,13 @@
         %select(name="kind")
           <% event_kinds = JSON.parse(g_event_kinds_str) %>
           <% _.each(event_kinds, function(x){ %>
-          {{_.make_option(x[0]==data.kind,{value:x[0],text:x[1]})}}
+          {{_.make_option(data.kind,{value:x[0],text:x[1]})}}
           <% }) %>
         <% } %>
-      .large-4.columns
+      .large-5.columns
         %label 大会/行事名
         %input(name='name' type='text' value='{- data.name -}')
-      .large-4.columns
+      .large-3.columns
         %label 管理者(半角コンマ区切り)
         %input(type='owners' type='text')
     <% if(data.kind == "contest"){ %>
@@ -158,40 +166,45 @@
         %select(name='forbidden_attrs' multiple) {{ _.show_all_attrs(data.all_attrs,data.forbidden_attrs)}}
     <% } %>
     .row
+      .large-6.columns
+        %label 場所
+        %input(name='place' type='text' value='{- data.place -}')
       .large-4.columns
-        %label 開催日
-        %input(name='date' type='text' placeholder='YYYY-MM-DD' value='{- data.date -}')
+        .row
+          .large-6.columns
+            %label 開催日
+            %input(name='date' type='text' placeholder='YYYY-MM-DD' value='{- data.date -}')
+          .large-3.columns
+            %label 開始時刻
+            %input(name='start_at' type='text' placeholder='hh:mm' value='{- data.start_at -}')
+          .large-3.columns
+            %label 終了時刻
+            %input(name='end_at' type='text' placeholder='hh:mm' value='{- data.end_at -}')
       .large-2.columns
-        %label 開始時刻
-        %input(name='start_at' type='text' placeholder='hh:mm' value='{- data.start_at -}')
-      .large-2.columns
-        %label 終了時刻
-        %input(name='end_at' type='text' placeholder='hh:mm' value='{- data.end_at -}')
-      .large-4.columns
         %label 締切日
         %input(name='deadline' type='text' placeholder='YYYY-MM-DD' value='{- data.deadline -}')
     .row
       .large-2.columns
         %label 集計属性
-        %select
+        %select(name='aggregate_attr_id')
           <% _.each(data.all_attrs,function(x){ %>
-          %option(value='{{x[0][0]}}') {{x[0][1]}}
+          {{_.make_option(data.aggregate_attr_id,{value:x[0][0],text:x[0][1]})}}
           <% }) %>
       .large-7.columns
         %label 選択肢
-        #choice-list
+        #edit-choice-list
           <% temp = _.template_braces($("#templ-choice-item").html()) %>
           <% _.each(data.choices,function(x){ %>
           {{ temp({x:x}) }}
           <% }) %>
         %button#add-choice.left.tiny.success 追加
       .large-3.columns
-        %input(type='checkbox' name='hide_choice')
+        {{ _.make_checkbox(data.hide_choice,{name:'hide_choice'}) }}
         %span(title='誰がどの選択肢を選んだかユーザには分からないようにする') どれを選択したかを隠す
     .row
       .large-12.columns
         %label 備考
-        %textarea(name='description' rows=15)
+        %textarea(name='description' rows=15) {{data.description}}
 
 %script#templ-choice-item(type='text/template')
   .left.choice-item(data-choice-id='{{x.id}}' data-positive='{{x.positive}}')

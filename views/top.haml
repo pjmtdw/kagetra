@@ -118,7 +118,7 @@
 
 %script#templ-event-edit-info(type='text/template')
   %form#event-edit-form
-    %input.button.small(type='submit' value='送信')
+    %input.button.small(type='submit' value='更新')
     .row
       .large-4.columns
         <% if(data.kind == "contest"){ %>
@@ -144,7 +144,7 @@
         %input(name='name' type='text' value='{- data.name -}')
       .large-3.columns
         %label 管理者(半角コンマ区切り)
-        %input(type='owners' type='text')
+        %input(name='owners_str' type='text' value='{- data.owners_str -}')
     <% if(data.kind == "contest"){ %>
     .row
       .large-2.columns

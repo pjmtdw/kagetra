@@ -1,8 +1,34 @@
 # -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
   namespace '/api/event' do
-    def event_info(ev,user,opts = {})
+    get '/item/contest' do
+      user = get_user
+      {
+        team_size: 1,
+        official: true,
+        choices:[
+          {name: "出場する", positive: true, id: -1},
+          {name: "出場しない", positive: false, id: -1}],
+        owners_str: user.name,
+        all_attrs: get_all_attrs
+      }
+    end
+    get '/item/party' do
+      user = get_user
+      {
+        choices:[
+          {name: "参加する", positive: true, id: -1},
+          {name: "参加しない", positive: false, id: -1}],
+        owners_str: user.name,
+        all_attrs: get_all_attrs
+      }
+    end
 
+    def get_all_attrs
+      UserAttributeKey.all(order:[:index.asc]).map{|x|[[x.id,x.name],x.values.map{|y|[y.id,y.value]}]}
+    end
+
+    def event_info(ev,user,opts = {})
       today = Date.today
       r = ev.select_attr(:place,:name,:date,:kind,:official,:deadline,:created_at,:id,:participant_count,:comment_count,:team_size)
       if ev.last_comment_date.nil?.! then
@@ -29,7 +55,8 @@ class MainApp < Sinatra::Base
         r.merge!(ev.select_attr(:description,:formal_name,:start_at, :end_at))
         r.merge!(get_participant(ev,opts[:edit]))
         if opts[:edit]
-          r[:all_attrs] = UserAttributeKey.all(order:[:index.asc]).map{|x|[[x.id,x.name],x.values.map{|y|[y.id,y.value]}]}
+          r[:all_attrs] = get_all_attrs
+          r[:owners_str] = ev.owners.map{|u|User.get(u).name}.join(" , ")
           r.merge!(ev.select_attr(:forbidden_attrs,:hide_choice,:aggregate_attr_id))
         end
       end
@@ -78,15 +105,35 @@ class MainApp < Sinatra::Base
       ev = Event.first(id:params[:id].to_i)
       event_info(ev,user,{detail:params[:detail]=="true",edit:params[:edit]=="true"})
     end
-    put '/item/:id' do
+
+    def update_or_create_item
       user = get_user
+      @json.delete("all_attrs")
       dm_response{
         Event.transaction{
-          ev = Event.get(params[:id].to_i)
           @json["hide_choice"] = @json["hide_choice"].to_s.empty?.!
-          if @json.has_key?("choices") then
+          choices = if @json.has_key?("choices") then
+            @json.delete("choices")
+          end
+          if @json.has_key?("owners_str") then
+            owners = @json["owners_str"].split(/\s*,\s*/).map{|s|
+              u = User.first(name:s)
+              if u.nil? then
+                raise Exception.new("invalid owner name: #{s}")
+              end
+              u.id
+            }
+            @json.delete("owners_str")
+            @json["owners"] = owners
+          end
+          if @json.has_key?("forbidden_attrs")
+            # 一つしかない場合は Array じゃなくて String で送られてくる
+            @json["forbidden_attrs"] = [@json["forbidden_attrs"]].flatten.map{|x|x.to_i}
+          end
+          ev = Event.update_or_create({id:params[:id]},@json)
+          if choices.nil?.! then
             choice_ids = ev.choices.map{|c|c.id}
-            @json["choices"].each_with_index{|o,i|
+            choices.each_with_index{|o,i|
               cond = o.select_attr("name","positive").merge({index:i})
               if o["id"] < 0 then
                 ev.choices.create(cond)
@@ -98,19 +145,17 @@ class MainApp < Sinatra::Base
             if choice_ids.empty?.! then
               ev.choices.all(id:choice_ids).destroy
             end
-            @json.delete("choices")
           end
-          ev.update(@json)
           event_info(ev,user)
         }
       }
     end
+
+    put '/item/:id' do
+      update_or_create_item
+    end
     post '/item' do
-      user = get_user
-      dm_response{
-        ev = Event.create(@json.merge({owners:[user],aggregate_attr:UserAttributeKey.first()}))
-        event_info(ev,user)
-      }
+      update_or_create_item
     end
     get '/list' do
       user = get_user

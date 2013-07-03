@@ -28,7 +28,20 @@ class Event
   has n, :result_classes, 'ContestClass' # 大会結果の各級の情報
   has n, :result_users, 'ContestUser' # 大会結果の出場者
   has n, :comments, 'EventComment', child_key: [:thread_id] # コメント
-  # TODO: validate owners and forbidden_attrs is array of integer
+  validates_with_block(:owners){
+    if self.owners.all?{|o| o.is_a?(Integer) and User.get(o) } then
+      true
+    else
+      [false, "invalid owners: #{self.owners.inspect}"]
+    end
+  }
+  validates_with_block(:forbidden_attrs){
+    if self.forbidden_attrs.all?{|o| o.is_a?(Integer) and UserAttributeValue.get(o) } then
+      true
+    else
+      [false, "invalid forbidden_attrs: #{self.forbidden_attrs.inspect}"]
+    end
+  }
 end
 
 # 行事のグループ

@@ -10,6 +10,8 @@ views/js/*.js
 deploy/log/
 deploy/sock/
 deploy/pid/
+scripts/wikipedia_name/tmp/
 
 Gemfile.lock
 conf.rb
+

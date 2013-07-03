@@ -148,9 +148,9 @@ define (require,exports,module) ->
       "click #add-event": "show_event_edit"
       "click #add-contest": "show_contest_edit"
     show_event_edit: ->
-      show_event_edit(new $ed.EventItemModel(type:"party"))
+      show_event_edit(new $ed.EventItemModel(kind:"party",id:"party"))
     show_contest_edit: ->
-      show_event_edit(new $ed.EventItemModel(type:"contest"))
+      show_event_edit(new $ed.EventItemModel(kind:"contest",id:"contest"))
     reorder: (ev) ->
       target = $(ev.currentTarget)
       order = target.data("order")
@@ -238,11 +238,12 @@ define (require,exports,module) ->
       @$el.find("#event-edit-info").append(ev.$el)
       @$el.find("#event-edit-participant").append(ep.$el)
       @$el.appendTo(@options.target)
+      that = this
       when_done = ->
-        @$el.foundation("section","reflow")
+        that.$el.foundation("section","reflow")
 
       if not @model.isNew()
-        @model.fetch(data:{detail:true,edit:true}).done(_.bind(when_done,this))
+        @model.fetch(data:{detail:true,edit:true}).done(when_done)
       else
         ev.render()
         when_done()
@@ -273,6 +274,8 @@ define (require,exports,module) ->
       obj = $("#event-edit-form").serializeObj()
       obj["choices"] = get_edit_choice_list()
       m = @model
+      if m.get("id") == "contest" || m.get("id") == "party"
+        m.unset("id")
       is_new = m.isNew()
       _.save_model_alert(@model,obj).done(->
         $("#container-event-edit").foundation("reveal","close")

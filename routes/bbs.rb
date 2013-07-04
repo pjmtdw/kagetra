@@ -24,11 +24,12 @@ class MainApp < Sinatra::Base
         }
       end
       query.all(order: [:last_comment_date.desc ]).chunks(BBS_THREADS_PER_PAGE)[page].map{|t|
-        items = t.comments.map{|i|
-          i.select_attr(:id,:body,:user_name).merge(
+        items = t.comments.map{|c|
+          c.select_attr(:id,:body,:user_name).merge(
           {
-            date: i.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-            is_new: @user && i.is_new(@user)
+            date: c.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            is_new: c.is_new(@user),
+            editable: c.editable(@user)
           })
         }
         title = t.title
@@ -70,13 +71,15 @@ class MainApp < Sinatra::Base
     put '/item/:id' do
       dm_response{
         item = BbsItem.get(params[:id].to_i)
+        halt(403,"you cannot edit this item") unless item.editable(@user)
         item.update(body:@json["body"])
       }
     end
     delete '/item/:id' do
       Kagetra::Utils.dm_debug{
+        item = BbsItem.get(params[:id])
+        halt(403,"you cannot delete this item") unless item.editable(@user)
         BbsThread.transaction{
-          item = BbsItem.get(params[:id])
           thread = item.thread
           if thread.first_item.id == item.id then
             # 関係するものを全部削除してからじゃないとダメ

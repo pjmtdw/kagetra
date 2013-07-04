@@ -1,6 +1,7 @@
 !!! 5
 %html
   %head
+    %base(href="#{if @public_mode then '/public/' else '/' end}")
     %meta(name="robots" content="noindex,nofollow,noarchive")
     %meta(name="viewport" content="width=device-width, initial-scale=1.0")
     %title #{CONF_APP_NAME} - #{yield_content(:title)}
@@ -18,6 +19,12 @@
       background-repeat: repeat-y, repeat-y;
       background-position: left top, right top;
       }
+      - if @public_mode then
+        - public_top_bar_color = "green"
+        = ".top-bar { background: #{public_top_bar_color} !important;}";
+        = ".top-bar-section li a {background: #{public_top_bar_color} !important;}";
+        = ".top-bar-section {background: #{public_top_bar_color} !important;}";
+        = ".top-bar-section h1 {background: #{public_top_bar_color} !impartant;}";
   %body
     %a(name="anchor-top")
     = yield

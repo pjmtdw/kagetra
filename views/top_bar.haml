@@ -21,15 +21,15 @@
           %ul.dropdown
             - if @user.admin then
               %li
-                %a(href="/admin") 管理画面
+                %a(href="admin") 管理画面
             %li
-              %a(href="/user_conf") ユーザ設定
+              %a(href="user_conf") ユーザ設定
             %li
-              %a(href="/login_log") ログイン履歴
+              %a(href="login_log") ログイン履歴
             %li
               %a(href="https://github.com/pjmtdw/kagetra/issues") 要望・バグ報告
             %li
-              %a(href="/user/logout") ログアウト
+              %a(href="user/logout") ログアウト
     %ul.right.hide-for-small
       %li
         %a(href) #{user_name}

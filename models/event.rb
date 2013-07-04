@@ -55,7 +55,7 @@ end
 # 行事の選択肢
 class EventChoice
   include ModelBase
-  property :name, TrimString, length: 24, required: false
+  property :name, TrimString, length: 24, required: true
   property :positive, Boolean, required: true # 参加する, はい などの前向きな回答
   property :hide_result, Boolean, default: false # 回答した人の一覧を表示しない
   property :index, Integer, required: true # 順番

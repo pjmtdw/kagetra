@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
   def filter_public(splat)
     path = "/" + splat
@@ -10,7 +11,7 @@ class MainApp < Sinatra::Base
     call env.merge("PATH_INFO" => path)
   end
 
-  # only get and post is allowed in /public/
+  # /public/ では GET と POST しか許可しない ( PUT や DELETE はできない )
   get '/public/*' do |splat|
     filter_public(splat)
   end
@@ -20,7 +21,8 @@ class MainApp < Sinatra::Base
   before do
     return if @public_mode
     path = request.path_info
-    return if ["/public/","/api/user/auth/"].any?{|s|path.start_with?(s)} or path == "/"
+    # 以下のURLはログインしなくてもアクセスできる
+    return if ["/public/","/api/user/auth/"].any?{|s|path.start_with?(s)} or ["/","/robots.txt","/relogin"].include?(path)
     @user = get_user
     if @user.nil? then
       halt 403, "login required"
@@ -34,7 +36,14 @@ class MainApp < Sinatra::Base
       end
     end
     after do
-      response.body = response.body.to_json
+      r = response.body.to_json
+      if @public_mode then
+        # Eメールアドレス収集ボットに対処
+        r.gsub!(Kagetra::Utils::EMAIL_ADDRESS_REGEX){
+          $1 + " あっと " + $2.gsub("."," どっと ")
+        }
+      end
+      response.body = r
     end
   end
   get '/' do

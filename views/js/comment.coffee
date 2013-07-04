@@ -48,7 +48,7 @@ define ->
       _.save_model_alert(model,data)
 
   BbsItemModel = Backbone.Model.extend
-    urlRoot: _.switch_public("/api/bbs/item")
+    urlRoot: "api/bbs/item"
 
   # use 'class .. extends ..' only when you have to call super methods
   # since the compiled *.js code will be slightly larger

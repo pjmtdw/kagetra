@@ -32,8 +32,8 @@
         %div.right.daily-album-photo
           %div 今日の一枚
           %div
-            %a(href="/album#item/#{daily_photo['id']}")
-              %img(src="/static/album/thumb/#{daily_photo['id']}" width="#{daily_photo['width']}" height="#{daily_photo['height']}")
+            %a(href="album#item/#{daily_photo['id']}")
+              %img(src="static/album/thumb/#{daily_photo['id']}" width="#{daily_photo['width']}" height="#{daily_photo['height']}")
   .row
     .large-12.columns
       - if @user.admin

@@ -70,9 +70,13 @@ module CommentBase
                   last_comment_date: self.created_at)
       end
       def is_new(user)
+        user.nil?.! and
         (self.user.nil? or self.user.id != user.id) and 
         user.show_new_from.nil?.! and
         self.created_at >= user.show_new_from
+      end
+      def editable(user)
+        user.nil?.! and (user.admin || (self.user_id && self.user_id == user.id))
       end
     end
   end
@@ -167,7 +171,9 @@ module DataMapper
         true
       end
       def dump(value)
-        value.to_s.strip
+        return nil if value.nil?
+        r = value.to_s.strip
+        if r.empty? then nil else r end
       end
     end
   end

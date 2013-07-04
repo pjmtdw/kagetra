@@ -178,7 +178,8 @@ class MainApp < Sinatra::Base
           .merge({
             date: x.created_at.strftime('%Y-%m-%d %H:%M:%S'),
           })
-        r[:is_new] = x.is_new(@user)
+        r[:is_new] = x.is_new(@user),
+        r[:editable] = x.editable(@user)
         r
       }
       {
@@ -194,12 +195,16 @@ class MainApp < Sinatra::Base
     end
     put '/comment/item/:id' do
       dm_response{
-        EventComment.get(params[:id].to_i).update(body:@json["body"])
+        item = EventComment.get(params[:id].to_i)
+        halt(403,"you cannot edit this item") unless item.editable(@user)
+        item.update(body:@json["body"])
       }
     end
     delete '/comment/item/:id' do
       Kagetra::Utils.dm_debug{
-        EventComment.get(params[:id]).destroy()
+        item = EventComment.get(params[:id])
+        halt(403,"you cannot delete this item") unless item.editable(@user)
+        item.destroy()
       }
     end
   end

@@ -22,7 +22,7 @@ define (require,exports,module) ->
   BbsThreadModel = Backbone.Model.extend {}
   BbsThreadCollection = Backbone.Collection.extend
     model: BbsThreadModel
-    url: -> _.switch_public("/api/bbs/threads")
+    url: "api/bbs/threads"
   BbsView = Backbone.View.extend
     el: "#bbs-body"
     template_nav: _.template_braces($("#templ-bbs-nav").html())
@@ -64,7 +64,7 @@ define (require,exports,module) ->
   do_search = refresh_all
   create_new_thread = ->
     M = Backbone.Model.extend {
-      url: -> _.switch_public('/api/bbs/thread')
+      url: 'api/bbs/thread'
     }
     m = new M()
     obj = $('#new-thread-form').serializeObj()

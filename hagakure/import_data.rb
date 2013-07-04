@@ -370,6 +370,7 @@ def import_event
     (taikainame,seisikimeishou,choices,kounin,teamnum,bikou,place) = parse_common(tbuf)
     puts taikainame
     (bikou_opt,simekiri,agg_attr,show_choice,fukalist,userchoice) = nil
+    hide_result = {yes:false,no:false}
     tbuf.each_with_index{|curl,lineno|
       nextline = tbuf[lineno+1]
       case curl
@@ -408,8 +409,9 @@ def import_event
         show_choice = true
         userchoice = [[:yes,member_yes],[:no,member_no]].map{|typ,m|
           case m[0]
-          when 1 then show = true
-          when 2 then show_choice = false
+          when "0" then hide_result[typ] = true
+          when "1" then hide_result[typ] = false
+          when "2" then show_choice = false
           end
           ttss = m[1..-1].scan(/<!--(\d+)-->(.*?)(?=<!--\d+-->|$)/)
           next unless ttss
@@ -463,12 +465,16 @@ def import_event
       evt.save
       if not choices.nil? then
         choices.each_with_index{|(kind,name),i|
-          evt.choices.create(name:name,positive: kind==:yes, index: i)
+          if name.to_s.empty? then
+            name = if positive then "参加する" else "参加しない" end
+          end
+          hr = hide_result[kind]
+          evt.choices.create(name:name,positive: kind==:yes, index: i, hide_result: hmr)
         }
       else
           # create default
-          evt.choices.create(positive:true, index: 0)
-          evt.choices.create(positive:false, index: 1)
+          evt.choices.create(name:"参加する", positive:true, index: 0, hide_result: false)
+          evt.choices.create(name:"参加しない, positive:false, index: 1, hide_result:true)
       end
       userchoice.each{|uc|
         puts "adding: user #{uc[:name]} to #{evt.name}"
@@ -826,6 +832,9 @@ def import_endtaikai
       if choices then 
         choices.each_with_index{|(typ,name),i|
           positive = (typ == :yes)
+          if name.to_s.empty? then
+            name = if positive then "参加する" else "参加しない" end
+          end
           evt.choices.create(name:name,positive:positive,index:i)
        }
       end
@@ -1152,8 +1161,4 @@ def import_wiki
   }
 end
 
-#make_tasks
-
-import_shurui
-import_event
-import_endtaikai
+make_tasks

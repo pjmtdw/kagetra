@@ -45,6 +45,11 @@ define (require,exports,module) ->
     events:
       "click .page": "change_page"
       "submit #attached-form" : "send_file"
+      "click  #toggle-attached" : "toggle_attached"
+    toggle_attached: ->
+      console.log "hoo"
+      $("#toggle-attached").hide()
+      $("#attached-form").show()
     change_page: (ev)->
       obj = $(ev.currentTarget)
       page = obj.data("page")

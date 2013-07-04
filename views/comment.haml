@@ -26,8 +26,10 @@
         %span.is-new.label.round new
         <% } %>
       .right
-        %button.tiny.round.toggle-edit(data-toggle-text="キャンセル") 編集
-        %button.tiny.round.alert.delete 削除
+        <% if(data.editable){ %>
+        %button.tiny.toggle-edit(data-toggle-text="キャンセル") 編集
+        %button.tiny.alert.delete 削除
+        <% } %>
     .body.pre <%- data.body %>
 
 %script#templ-event-comment(type='text/template')

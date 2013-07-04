@@ -18,9 +18,10 @@
 %script#templ-wiki-attached(type='text/template')
   .row
     .large-12.columns
-      %form#attached-form(action='/wiki/attached/{{data.item_id}}' method='post' enctype='multipart/form-data')
+      %button#toggle-attached.small.round ファイル添付
+      %form#attached-form.hide(action='wiki/attached/{{data.item_id}}' method='post' enctype='multipart/form-data')
         %fieldset
-          %legend 添付ファイル
+          %legend ファイル添付
           %label ファイル
           %input(type='file' name='file')
           %label 説明
@@ -39,7 +40,7 @@
         <% _.each(data.list,function(x){ %>
         %tr
           %td.filename
-            %a(href='/static/wiki/attached/{{x.id}}') {- x.orig_name -}
+            %a(href='static/wiki/attached/{{x.id}}') {- x.orig_name -}
           %td.size
             {{_.show_size(x.size)}}
           %td.date

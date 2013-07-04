@@ -8,6 +8,10 @@ class ContestUser
   belongs_to :user, required: false
   property :event_id, Integer, unique_index: :u1, required: true
   belongs_to :event
+
+  property :win, Integer # 勝ち数(毎回aggregateするのは遅いのでキャッシュ)
+  property :lose, Integer # 負け数(毎回aggregateするのは遅いのでキャッシュ)
+
   has 1, :prize, 'ContestPrize'
   has n, :games, 'ContestGame'
 end
@@ -83,6 +87,13 @@ class ContestGame
   validates_absence_of :contest_class_id, if: is_team
   validates_absence_of :round, if: is_team
 
+  after :save do
+    u = self.contest_user
+    updates = Hash[[:win,:lose].map{|sym|
+      [sym,u.games(result:sym).count]
+    }]
+    u.update(updates)
+  end
 end
 
 # 誰がどの級に出場したか(個人戦)

@@ -181,7 +181,6 @@ class MainApp < Sinatra::Base
 
   end
   get '/result' do
-    user = get_user
-    haml :result, locals:{user: user}
+    haml :result
   end
 end

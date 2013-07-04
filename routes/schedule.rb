@@ -1,7 +1,6 @@
 class MainApp < Sinatra::Base
   namespace '/api/schedule' do
     post '/copy/:id' do
-      user = get_user
       item = ScheduleItem.get(params[:id].to_i)
       params[:list].each{|d|
         date = Date.parse(d)
@@ -9,7 +8,7 @@ class MainApp < Sinatra::Base
           id:nil,
           created_at:nil,
           updated_at:nil,
-          owner:user,
+          owner:@user,
           date:date))
       }
 
@@ -62,14 +61,12 @@ class MainApp < Sinatra::Base
     end
     post '/detail/item' do
       dm_response{
-        user = get_user
-        update_or_create(nil, user, @json)
+        update_or_create(nil, @user, @json)
       }
     end
     put '/detail/item/:id' do
       dm_response{
-        user = get_user
-        update_or_create(params[:id], user, @json)
+        update_or_create(params[:id], @user, @json)
       }
     end
     delete '/detail/item/:id' do
@@ -180,7 +177,6 @@ class MainApp < Sinatra::Base
     end
   end
   get '/schedule' do
-    user = get_user
-    haml :schedule, locals:{user: user}
+    haml :schedule
   end
 end

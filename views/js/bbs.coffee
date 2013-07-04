@@ -22,7 +22,7 @@ define (require,exports,module) ->
   BbsThreadModel = Backbone.Model.extend {}
   BbsThreadCollection = Backbone.Collection.extend
     model: BbsThreadModel
-    url: "/api/bbs/threads"
+    url: -> _.switch_public("/api/bbs/threads")
   BbsView = Backbone.View.extend
     el: "#bbs-body"
     template_nav: _.template_braces($("#templ-bbs-nav").html())
@@ -64,16 +64,26 @@ define (require,exports,module) ->
   do_search = refresh_all
   create_new_thread = ->
     M = Backbone.Model.extend {
-      url:'/api/bbs/thread'
+      url: -> _.switch_public('/api/bbs/thread')
     }
     m = new M()
     obj = $('#new-thread-form').serializeObj()
     _.save_model_alert(m,obj).done( ->
       $("#new-thread-form")[0].reset()
+      refresh_thread_new_name()
       $("#new-thread-row").hide()
       $("#new-thread-toggle").toggleBtnText()
       refresh_all()
     )
+
+  refresh_thread_new_name = ->
+    c = $("#new-thread-form [name='public']").is(":checked")
+    v = if c
+          g_user_bbs_public_name ? ( g_user_name ? "" )
+        else
+          g_user_name ? ""
+    $("#new-thread-form [name='user_name']").val(v)
+    
 
   init: ->
     window.bbs_router = new BbsRouter()
@@ -87,6 +97,9 @@ define (require,exports,module) ->
           refresh_all()
         row.toggle()
         )
+    $("#search-form").submit(_.wrap_submit(do_search))
+
+    # TODO: use Backbone.View
     ntg = $("#new-thread-toggle")
     ntg.click(->
       row = $("#new-thread-row")
@@ -95,8 +108,11 @@ define (require,exports,module) ->
         row.hide()
       else
         row.show()
-
     )
     $("#new-thread-form").submit(_.wrap_submit(create_new_thread))
-    $("#search-form").submit(_.wrap_submit(do_search))
+    refresh_thread_new_name()
+    $("#new-thread-form [name='public']").click(->
+      refresh_thread_new_name()
+    )
+
     Backbone.history.start()

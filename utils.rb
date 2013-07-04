@@ -49,6 +49,16 @@ module Kagetra
       aes.update(data) + aes.final
     end
 
+    def self.check_password(params,hash)
+      # TODO: msg must be something hard to be counterfeited
+      #   e.g. random string generated and stored to server, ip address
+      msg = params[:msg]
+      trial_hash = params[:hash]
+      correct_hash = Kagetra::Utils.hmac_password(hash,msg)
+      res = if trial_hash == correct_hash then "OK" else "FAIL" end
+      {result: res}
+    end
+
     # in UNICODE order
     GOJUON_ROWS = [
       {name: "あ行", range: ["ぁ", "お"]},

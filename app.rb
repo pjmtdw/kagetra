@@ -1,4 +1,5 @@
 class MainApp < Sinatra::Base
+  register Sinatra::Namespace
   helpers Sinatra::ContentFor
   enable :sessions, :logging
   # ENV['RACK_SESSION_SECRET'] is set by unicorn.rb
@@ -9,7 +10,6 @@ class MainApp < Sinatra::Base
   # for Internet Explorer 8, 9 (and maybe also 10?) protection session hijacking refuses the session.
   # https://github.com/rkh/rack-protection/issues/11
   set :protection, except: :session_hijacking
-  
 
   def logger
     env['mainapp.logger'] || env['rack.logger']
@@ -39,18 +39,5 @@ class MainApp < Sinatra::Base
       send_file(js)
     end
 
-  end
-
-  register Sinatra::Namespace
-  namespace '/api' do
-    before do
-      content_type :json
-      if request.content_type == "application/json" then
-        @json = JSON.parse(request.body.read)
-      end
-    end
-    after do
-      response.body = response.body.to_json
-    end
   end
 end

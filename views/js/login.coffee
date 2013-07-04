@@ -1,6 +1,6 @@
 define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
   UserListModel = Backbone.Model.extend
-    urlRoot: "/api/user/list"
+    urlRoot: "/api/user/auth/list"
 
   data_to_option = (data) ->
     ("<option value='#{a}'>#{b}</option>" for [a,b] in data).join()
@@ -29,7 +29,7 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
     on_shared_pass_submit: _.wrap_submit ->
       password = $("#shared-pass input[type=password]").val()
       [hash,msg] = _.hmac_password(password ,g_shared_salt)
-      $.post '/api/user/auth_shared',
+      $.post '/api/user/auth/shared',
         hash: hash
         msg: msg
       .done (data) ->
@@ -62,10 +62,10 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
           $("#user-names").val()
       password = $("#login input[type=password]").val()
       first = ->
-        $.get "/api/user/auth_salt/#{user_id}"
+        $.get "/api/user/auth/salt/#{user_id}"
       second = (data) ->
         [hash, msg] = _.hmac_password(password,data.salt)
-        $.post '/api/user/auth_user',
+        $.post '/api/user/auth/user',
           user_id: user_id
           hash: hash
           msg: msg

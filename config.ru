@@ -31,6 +31,15 @@ end
 def logger.puts(msg)
   self.write(msg+"\n")
 end
+
+def logger.flush
+end
+
+configure :production do
+  $stderr = logger
+  $stdout = logger
+end
+
 use Rack::CommonLogger, logger
 
 class AppLog

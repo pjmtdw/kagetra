@@ -79,8 +79,7 @@ class MainApp < Sinatra::Base
     end
   end
   get '/admin' do
-    user = get_user
     @new_salt = Kagetra::Utils.gen_salt
-    haml :admin,{locals: {user: user}}
+    haml :admin
   end
 end

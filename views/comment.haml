@@ -1,12 +1,18 @@
 %script#templ-response(type='text/template')
   %form.response-form
     %input.button.small.round(type='submit' value='送信')
+    .row
+      .large-12.columns
+        %input(name='user_name' type='text' placeholder='名前' value='{-data.default_user_name-}' )
     %textarea.response-body(name='body' rows=20 placeholder='レス内容')
       
 %script#templ-edit-response(type='text/template')
   %form.response-edit-form
     %input.button.small.round(type='submit' value='送信')
-    %textarea.response-edit-body(name='body' rows=20 placeholder='レス内容') <%= data.body %>
+    .row
+      .large-12.columns
+        %input(name='user_name' type='text' placeholder='名前' value='{-data.user_name-}')
+        %textarea.response-edit-body(name='body' rows=20 placeholder='レス内容') {{ data.body }}
 
 %script#templ-comment-item(type='text/template')
   .comment-item
@@ -40,3 +46,11 @@
     %button.response-toggle.small.round(data-toggle-text="キャンセル") レスする
     .response-container
 
+- if not @public_mode
+  %script
+    var g_user_name='#{@user.name}'
+    -if @user.bbs_public_name
+      var g_user_bbs_public_name='#{@user.bbs_public_name}'
+- else
+  %script
+    var g_user_name='#{get_permanent("bbs_name")}'

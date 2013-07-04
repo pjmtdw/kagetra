@@ -17,7 +17,7 @@ class BbsItem
   include CommentBase
   belongs_to :thread, 'BbsThread'
   before :save do
-    if self.thread.public and self.user and self.user.bbs_public_name.to_s.empty?.! then
+    if self.user_name.empty? and self.thread.public and self.user and self.user.bbs_public_name.to_s.empty?.! then
       self.user_name = self.user.bbs_public_name
     end
   end

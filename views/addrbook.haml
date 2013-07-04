@@ -5,7 +5,7 @@
   addrbook
 - content_for :css do
   addrbook
-= haml :top_bar, locals: {user: user}
+= haml :top_bar
 
 .row
   .large-3.columns
@@ -55,4 +55,4 @@
   var g_confirm_enc="#{confirm_enc}";
   var g_confirm_str="#{::G_ADDRBOOK_CONFIRM_STR}";
   var g_keys_str='#{::G_ADDRBOOK_KEYS.to_json}';
-  var g_myid='#{user.id}';
+  var g_myid='#{@user.id}';

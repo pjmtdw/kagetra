@@ -1,49 +1,35 @@
 %nav.top-bar(data-options="custom_back_text:false")
+  - user_name = if @public_mode then "公開版" else @user.name end
   %section.top-bar-section
     %ul.title-area
       %li.name
         %h1.show-for-small
           %a(href)
-            = user.name
+            = user_name
         %li.toggle-topbar.menu-icon
           %a(href)
             %span Menu
-    %ul.left
-      %li
-        %a(href="/top") TOP
-    %ul.left
-      %li
-        %a(href="/bbs") 掲示板
-    %ul.left
-      %li
-        %a(href="/result") 大会結果
-    %ul.left
-      %li
-        %a(href="/schedule") 予定表
-    %ul.left
-      %li
-        %a(href="/wiki") Wiki
-    %ul.left
-      %li
-        %a(href="/album") アルバム
-    %ul.left
-      %li
-        %a(href="/addrbook") 名簿
-    %ul.left
-      %li.has-dropdown
-        %a(href="#") その他
-        %ul.dropdown
-          - if user.admin then
+    - ::G_TOP_BAR_ROUTE.each do |x|
+      - if not @public_mode or x[:public]
+        %ul.left
+          %li
+            %a(href="#{x[:route]}") #{x[:name]}
+    - if not @public_mode then
+      %ul.left
+        %li.has-dropdown
+          %a(href="#") その他
+          %ul.dropdown
+            - if @user.admin then
+              %li
+                %a(href="/admin") 管理画面
             %li
-              %a(href="/admin") 管理画面
-          %li
-            %a(href="/user_conf") ユーザ設定
-          %li
-            %a(href="/login_log") ログイン履歴
-          %li
-            %a(href="https://github.com/pjmtdw/kagetra/issues") 要望・バグ報告
-          %li
-            %a(href="/user/logout") ログアウト
-    %ul.right
+              %a(href="/user_conf") ユーザ設定
+            %li
+              %a(href="/login_log") ログイン履歴
+            %li
+              %a(href="https://github.com/pjmtdw/kagetra/issues") 要望・バグ報告
+            %li
+              %a(href="/user/logout") ログアウト
+    %ul.right.hide-for-small
       %li
-        %a(href) #{user.name}
+        %a(href) #{user_name}

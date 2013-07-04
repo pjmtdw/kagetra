@@ -1,7 +1,7 @@
 define ->
   CommentItemView = Backbone.View.extend
     template: _.template($("#templ-comment-item").html())
-    template_edit: _.template($("#templ-edit-response").html())
+    template_edit: _.template_braces($("#templ-edit-response").html())
     events:
       "click .toggle-edit" : "toggle_edit"
       "click .delete" : "do_delete"
@@ -27,16 +27,20 @@ define ->
       @$el.html(@template(data:@model.toJSON()))
   
   CommentThreadView = Backbone.View.extend
-    template_response: _.template($("#templ-response").html())
+    template_response: _.template_braces($("#templ-response").html())
     events:
       'click .response-toggle': 'toggle_response'
-      'submit .response-form': 'do_response' #absolute
+      'submit .response-form': 'do_response' # abstract
     toggle_response: ->
       container = @$el.find(".response-container")
       @$el.find(".response-toggle").toggleBtnText()
 
       if container.is(":empty")
-        container.html @template_response()
+        dun = if @model.get("public")
+                g_user_bbs_public_name ? ( g_user_name ? "" )
+              else
+                g_user_name ? ""
+        container.html @template_response(data:{default_user_name:dun})
       else
         container.empty()
     response_common: (model)->
@@ -44,7 +48,7 @@ define ->
       _.save_model_alert(model,data)
 
   BbsItemModel = Backbone.Model.extend
-    urlRoot: "/api/bbs/item"
+    urlRoot: _.switch_public("/api/bbs/item")
 
   # use 'class .. extends ..' only when you have to call super methods
   # since the compiled *.js code will be slightly larger

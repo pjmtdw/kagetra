@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base 
   ATTACHED_LIST_PER_PAGE = 50
   MARKDOWN = Redcarpet::Markdown.new(
@@ -51,6 +52,7 @@ class MainApp < Sinatra::Base
       txt = WikiItem.get(params[:id].to_i).body
       {html: render_wiki(txt,false)}
     end
+
     get '/attached_list/:id' do
       page = (params[:page] || 1).to_i
       chunks = WikiAttachedFile.all(wiki_item_id:params[:id].to_i,order:[:created_at.desc]).chunks(ATTACHED_LIST_PER_PAGE) 
@@ -60,15 +62,35 @@ class MainApp < Sinatra::Base
           date:x.created_at.to_date.strftime('%Y-%m-%d')
         })
       }
-      {list: list, pages: pages, cur_page: page}
+      {item_id:params[:id].to_i,list: list, pages: pages, cur_page: page}
     end
   end
   get '/wiki' do
-    user = get_user
-    haml :wiki,{locals: {user: user}}
+    haml :wiki
   end
   get '/static/wiki/attached/:id' do
     attached = WikiAttachedFile.get(params[:id].to_i)
     send_file("../mytoma/storage/wiki/#{attached.path}",filename:attached.orig_name)
+  end
+  post '/wiki/attached/:id' do
+    halt 403 if @public_mode
+    tempfile = params[:file][:tempfile]
+    filename = params[:file][:filename]
+    date = Date.today
+    target_dir = File.join(G_STORAGE_DIR,"attached",date.year.to_s,date.month.to_s)
+    FileUtils.mkdir_p(target_dir)
+    target_file = Tempfile.new(["attached","dat"],target_dir)
+    message = begin
+      WikiAttachedFile.transaction{
+        item = WikiItem.get(params[:id].to_i)
+        FileUtils.cp(tempfile.path,target_file)
+        item.attacheds.create(owner:@user,path:target_file,orig_name:filename,description:params[:description],size:File.size(target_file))
+      }
+      "送信成功しました"
+    rescue
+      FileUtils.rm(target_file)
+      "送信失敗しました"
+    end
+    "#{message} [<a href='/wiki#page/#{params[:id]}'>戻る</a>]"
   end
 end

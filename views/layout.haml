@@ -13,7 +13,6 @@
       %link(rel="stylesheet" href="#{path}")
     %style(type="text/css")
       - curmonth = "%02d"%Date.today.month
-      - curmonth = "09"
       body{
       background-image: url(/img/bg/#{curmonth}.jpg), url(/img/bg/#{curmonth}_rev.jpg);
       background-repeat: repeat-y, repeat-y;
@@ -24,4 +23,4 @@
     = yield
     .row
       %a.right(href="javascript:window.scrollTo(0,0);") &uArr; 一番上へ
-    %script(src="js/libs/require.js" data-main="js/main" data-start="#{yield_content(:js_start)}")
+    %script(src="/js/libs/require.js" data-main="/js/main" data-start="#{yield_content(:js_start)}")

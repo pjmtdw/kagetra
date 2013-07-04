@@ -5,6 +5,7 @@ class WikiItem
   property :public, Boolean, default: false # 外部公開されているか
   property :body, TrimText, required: true
   property :revision, Integer
+  has n, :attacheds, 'WikiAttachedFile'
 end
 class WikiItemLog
   include ModelBase

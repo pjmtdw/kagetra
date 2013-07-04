@@ -11,7 +11,7 @@ define ["crypto-aes", "crypto-hmac","crypto-pbkdf2","crypto-base64"], ->
     user: (uid) ->
       window.addrbook_view.refresh(uid)
   AddrBookPanelModel = Backbone.Model.extend
-    urlRoot: "/api/user/list"
+    urlRoot: "/api/user/auth/list"
   AddrBookPanelView = Backbone.View.extend
     el: "#addrbook-panel"
     template: _.template_braces($("#templ-addrbook-panel").html())

@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*-
 module MiscHelpers
   def get_user
-    user = User.first(id: session[:user_id], token: session[:user_token])
-    if user.nil? then
-      halt 403,'Login Required.'
-    end
-    user
+    User.first(id: session[:user_id], token: session[:user_token])
   end
   def dm_response
     begin
@@ -27,23 +23,42 @@ module MiscHelpers
   end
 
   PERMANENT_COOKIE_NAME="kagetra.permanent"
-  def get_permanent
-    str = request.cookies[PERMANENT_COOKIE_NAME]
-    if str.to_s.empty? then
-      return nil
-    end
-    return JSON.parse(Base64.strict_decode64(str))
+  def get_permanent(key)
+    data = get_permanent_all
+    if data then data[key] end
   end
 
-  def set_permanent(data)
+  def get_permanent_all
+    str = request.cookies[PERMANENT_COOKIE_NAME]
+    if str.to_s.empty? then
+      {}
+    else
+      return JSON.parse(Base64.strict_decode64(str))
+    end
+  end
+
+  def set_permanent(key,value)
+    data = get_permanent_all
+    data.merge!(key => value)
+    set_permanent_all(data)
+  end
+
+  def set_permanent_all(data)
     str = Base64.strict_encode64(data.to_json)
     response.set_cookie(PERMANENT_COOKIE_NAME,
                         value: str,
                         path: "/",
                         expires: (Date.today + 90).to_time)
   end
-  def delete_permanent
-    response.delete_cookie(PERMANENT_COOKIE_NAME)
+
+  def delete_permanent(key)
+    data = get_permanent_all
+    data.delete(key)
+    if data.empty?
+      response.delete_cookie(PERMANENT_COOKIE_NAME)
+    else
+      set_permanent_all(data)
+    end
   end
   # 今日の一枚を選択
   def choose_daily_album_photo

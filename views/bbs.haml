@@ -4,7 +4,7 @@
   bbs
 - content_for :css do
   bbs, comment
-= haml :top_bar, locals: {user: user}
+= haml :top_bar
 .row
   %div.large-6.columns
     %button#new-thread-toggle.small.round(data-toggle-text="キャンセル") スレッド作成
@@ -22,13 +22,16 @@
       %legend スレッド作成
       %input.button.small.round(type='submit' value='送信')
       .row
+        .large-10.columns
+          %label 名前
+          %input(name='user_name' type='text')
+        - if not @public_mode
+          .large-2.columns
+            %input(name='public' type='checkbox') 外部公開
+      .row
         .large-12.columns
           %label タイトル
-          .row
-            .large-10.columns
-              %input(name='title' type='text' autofocus)
-            .large-2.columns
-              %input(name='public' type='checkbox') 外部公開
+          %input(name='title' type='text' autofocus)
       .row
         .large-12.columns
           %label 内容

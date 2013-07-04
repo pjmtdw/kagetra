@@ -5,13 +5,13 @@
 - content_for :css do
   top, schedule_item, event_detail, comment, 
   http://cdnjs.cloudflare.com/ajax/libs/chosen/0.9.15/chosen.css
-= haml :top_bar, locals: {user:user}
+= haml :top_bar
 
 .row
   .large-6.columns
     .panel.top-message
       .event-new
-        %span 最終ログイン: #{user.last_login_str}, 今月ログイン: #{user.log_mon_count}
+        %span 最終ログイン: #{@user.last_login_str}, 今月ログイン: #{@user.log_mon_count}
       #bbs-new
       #event-comment-new
       #schedule-alert
@@ -36,7 +36,7 @@
               %img(src="/static/album/thumb/#{daily_photo['id']}" width="#{daily_photo['width']}" height="#{daily_photo['height']}")
   .row
     .large-12.columns
-      - if user.admin
+      - if @user.admin
         %div.left
           %button.small.round#add-contest 大会追加
           %button.small.round#add-event 行事追加
@@ -84,7 +84,7 @@
         %span.participant-count {{ data.participant_count }}
         名
       .large-8.columns.buttons
-        - if user.admin
+        - if @user.admin
           %button.button-light.show-edit 編集
         %button.button-light.show-detail
           詳細

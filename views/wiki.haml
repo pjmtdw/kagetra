@@ -4,7 +4,7 @@
   wiki
 - content_for :css do
   wiki
-= haml :top_bar, locals: {user: user}
+= haml :top_bar
 
 #wiki-item
 
@@ -16,6 +16,18 @@
       <%= data.html %>
 
 %script#templ-wiki-attached(type='text/template')
+  .row
+    .large-12.columns
+      %form#attached-form(action='/wiki/attached/{{data.item_id}}' method='post' enctype='multipart/form-data')
+        %fieldset
+          %legend 添付ファイル
+          %label ファイル
+          %input(type='file' name='file')
+          %label 説明
+          %input(type='text' name='description')
+          %input(type='submit' value='送信')
+
+
   .row
     .large-12.columns
       %ul.pagination

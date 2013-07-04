@@ -44,6 +44,7 @@ define (require,exports,module) ->
     template: _.template_braces($("#templ-wiki-attached").html())
     events:
       "click .page": "change_page"
+      "submit #attached-form" : "send_file"
     change_page: (ev)->
       obj = $(ev.currentTarget)
       page = obj.data("page")

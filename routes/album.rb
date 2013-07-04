@@ -27,8 +27,7 @@ class MainApp < Sinatra::Base
     end
   end
   get '/album' do
-    user = get_user
-    haml :album,{locals: {user: user}}
+    haml :album
   end
   namespace '/static/album' do
     get '/thumb/:id' do

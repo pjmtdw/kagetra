@@ -3,10 +3,10 @@ class MainApp < Sinatra::Base
   BBS_THREADS_PER_PAGE = 5
   namespace '/api/bbs' do
     get '/threads' do
-      user = get_user
       page = params["page"].to_i - 1
       qs = params["qs"]
-      query = BbsThread.all
+      cond = if @public_mode then {public:true} else {} end
+      query = BbsThread.all(cond)
       if qs then
         qs.strip.split(/\s+/).each{|q|
           # 一件もヒットしないダミーのクエリ
@@ -28,34 +28,42 @@ class MainApp < Sinatra::Base
           i.select_attr(:id,:body,:user_name).merge(
           {
             date: i.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-            is_new: i.is_new(user)
+            is_new: @user && i.is_new(@user)
           })
         }
         title = t.title
         {id: t.id, title: title, items: items, public: t.public}
       }
     end
+    def create_item(thread)
+      thread.comments.create(
+        body: @json["body"],
+        user: @user,
+        user_name: @json["user_name"])
+      if @public_mode then
+        set_permanent("bbs_name",@json["user_name"])
+      end
+    end
     post '/thread' do
       dm_response{
         BbsItem.transaction{
-          user = get_user
           title = @json["title"]
-          body = @json["body"]
-          public = @json["public"].to_s.empty?.!
+          public = @public_mode || @json["public"].to_s.empty?.!
           thread = BbsThread.create(title: title, public: public)
-          item = thread.comments.create(body: body, user: user, user_name: user.name)
+          create_item(thread)
         }
       }
     end
     post '/item' do
       dm_response{
         BbsThread.transaction{
-          user = get_user
-          body = @json["body"]
           thread_id = @json["thread_id"]
           thread = BbsThread.get(thread_id.to_i)
-          item = thread.comments.create(body: body, user: user, user_name: user.name)
-          thread.touch
+          if @public_mode and not thread.public
+            halt 403,"cannot write to private thread"
+          end
+          thread.touch # もう必要ないかも
+          create_item(thread)
         }
       }
     end
@@ -82,7 +90,6 @@ class MainApp < Sinatra::Base
     end
   end
   get '/bbs' do
-    user = get_user
-    haml :bbs,{locals: {user: user}}
+    haml :bbs
   end
 end

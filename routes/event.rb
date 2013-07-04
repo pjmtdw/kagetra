@@ -2,24 +2,22 @@
 class MainApp < Sinatra::Base
   namespace '/api/event' do
     get '/item/contest' do
-      user = get_user
       {
         team_size: 1,
         official: true,
         choices:[
           {name: "出場する", positive: true, id: -1},
           {name: "出場しない", positive: false, id: -1}],
-        owners_str: user.name,
+        owners_str: @user.name,
         all_attrs: get_all_attrs
       }
     end
     get '/item/party' do
-      user = get_user
       {
         choices:[
           {name: "参加する", positive: true, id: -1},
           {name: "参加しない", positive: false, id: -1}],
-        owners_str: user.name,
+        owners_str: @user.name,
         all_attrs: get_all_attrs
       }
     end
@@ -101,13 +99,11 @@ class MainApp < Sinatra::Base
       }
     end
     get '/item/:id' do
-      user = get_user
       ev = Event.first(id:params[:id].to_i)
-      event_info(ev,user,{detail:params[:detail]=="true",edit:params[:edit]=="true"})
+      event_info(ev,@user,{detail:params[:detail]=="true",edit:params[:edit]=="true"})
     end
 
     def update_or_create_item
-      user = get_user
       @json.delete("all_attrs")
       dm_response{
         Event.transaction{
@@ -146,7 +142,7 @@ class MainApp < Sinatra::Base
               ev.choices.all(id:choice_ids).destroy
             end
           end
-          event_info(ev,user)
+          event_info(ev,@user)
         }
       }
     end
@@ -158,34 +154,31 @@ class MainApp < Sinatra::Base
       update_or_create_item
     end
     get '/list' do
-      user = get_user
       events = (Event.all(:date.gte => Date.today) + Event.all(date: nil))
 
       # 各eventごとに取得するのは遅いのでまとめて取得しておく
-      user_choices = user.event_user_choices.event_choice(event:events).to_enum.with_object({}){|x,h|h[x.event_id]=x.id}
-      user_attr_values = user.attrs.value.map{|v|v.id}
+      user_choices = @user.event_user_choices.event_choice(event:events).to_enum.with_object({}){|x,h|h[x.event_id]=x.id}
+      user_attr_values = @user.attrs.value.map{|v|v.id}
 
       events.map{|ev|
-        event_info(ev,user,{user_choices:user_choices,user_attr_values:user_attr_values})
+        event_info(ev,@user,{user_choices:user_choices,user_attr_values:user_attr_values})
       }
     end
     put '/choose/:cid' do
       Kagetra::Utils.dm_debug{
-        user = get_user
         c = EventChoice.first(id:params[:cid].to_i)
-        c.user_choices.create(user:user)
+        c.user_choices.create(user:@user)
         {count: c.event.participant_count}
       }
     end
     get '/comment/list/:id' do
-      user = get_user
       evt = Event.first(id:params[:id].to_i)
       list = evt.comments(order: [:created_at.desc]).map{|x|
         r = x.select_attr(:id,:user_name,:body)
           .merge({
             date: x.created_at.strftime('%Y-%m-%d %H:%M:%S'),
           })
-        r[:is_new] = x.is_new(user)
+        r[:is_new] = x.is_new(@user)
         r
       }
       {
@@ -195,14 +188,12 @@ class MainApp < Sinatra::Base
     end
     post '/comment/item' do
       dm_response{
-        user = get_user
         evt = Event.get(@json["event_id"].to_i)
-        c = evt.comments.create(user:user,body:@json["body"])
+        c = evt.comments.create(user:@user,body:@json["body"])
       }
     end
     put '/comment/item/:id' do
       dm_response{
-        user = get_user
         EventComment.get(params[:id].to_i).update(body:@json["body"])
       }
     end

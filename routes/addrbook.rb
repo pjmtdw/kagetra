@@ -6,11 +6,10 @@ class MainApp < Sinatra::Base
       AddrBook.update_or_create({user_id:params[:uid]},{text:@json["text"]})
     end
     get '/item/:uid' do
-      user = get_user
       uid = params[:uid].to_i
       ab = AddrBook.first(user_id:uid)
       r = if ab.nil? then
-        u2 = if uid == user.id then user else User.get(uid) end
+        u2 = if uid == @user.id then @user else User.get(uid) end
         {
           found:false,
           uid: u2.id,
@@ -23,16 +22,15 @@ class MainApp < Sinatra::Base
       else
         ab.select_attr(:text).merge({found:true,uid:uid})
       end
-      if uid == user.id then
+      if uid == @user.id then
         r[:editable] = true
       end
       r
     end
   end
   get '/addrbook' do
-    user = get_user
     # パスワードが正しいかどうかの確認用
     confirm_enc = MyConf.first(name: "addrbook_confirm_enc").value["text"]
-    haml :addrbook,{locals: {user: user, confirm_enc: confirm_enc}}
+    haml :addrbook,{locals: {confirm_enc: confirm_enc}}
   end
 end

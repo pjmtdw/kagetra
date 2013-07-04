@@ -2,6 +2,11 @@ define (require, exports, module) ->
   _ = require("underscore")
   $ = require("zep_or_jq")
   _.mixin
+    switch_public: (s) ->
+      if window.location.pathname.indexOf("/public/") == 0
+        "/public#{s}"
+      else
+        s
     router_base: (prefix,arg) ->
       Backbone.Router.extend
         remove_all: ->

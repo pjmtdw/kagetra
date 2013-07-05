@@ -14,12 +14,19 @@
 
 %script#templ-wiki-item(type='text/template')
   .row
-    .large-12.columns
+    .large-9.columns
+      .viewlog
+        .left.wiki-title {- data.title -}
+        <% _.each(viewlog,function(x){ if(x[0]!=data.id){ %>
+        %a.left(href='wiki#page/{{x[0]}}') {- x[1] -}
+        <% }}) %>
+    .large-3.columns
       %button#edit-new.small.round 新規作成
       %button#edit-start.small.round 編集
+      %button#edit-start.small.round ログ
   .row
     .large-12.columns
-      <%= data.html %>
+      {{ data.html }}
 
 %script#templ-wiki-preview(type='text/template')
   .row

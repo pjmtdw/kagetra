@@ -22,7 +22,7 @@ class MainApp < Sinatra::Base
   error do
     err = request.env['sinatra.error']
     logger.warn err.message
-    logger.puts err.backtrace[0...12].join("\t\n")
+    logger.puts err.backtrace.join("\t\n")
   end
 
   configure :development do

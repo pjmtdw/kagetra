@@ -10,14 +10,18 @@ define (require,exports,module) ->
   class WikiRouter extends _.router_base("wiki",["item","attached_list"])
     routes:
       "page/:id" : "page"
+      "all" : "all"
       "" : "start"
     initialize: ->
       _.bindAll(@,"start")
+    all:  ->
+      @remove_all()
+      @set_id_fetch("item",WikiItemView,"all")
     page: (id) ->
       @remove_all()
       @set_id_fetch("item",WikiItemView,id)
       @set_id_fetch("attached_list",WikiAttachedListView,id)
-    start: -> @navigate("page/1", {trigger:true, replace: true})
+    start: -> @navigate("page/all", {trigger:true, replace: true})
   WikiItemModel = Backbone.Model.extend
     urlRoot: "/api/wiki/item"
   WikiEditView = Backbone.View.extend
@@ -65,7 +69,7 @@ define (require,exports,module) ->
       @$el.appendTo(@options.target)
       
   WikiItemView = Backbone.View.extend
-    template: _.template($("#templ-wiki-item").html())
+    template: _.template_braces($("#templ-wiki-item").html())
     events:
       "click .link-new" : "link_new"
       "click .link-page" : "link_page"
@@ -93,9 +97,16 @@ define (require,exports,module) ->
       @model = new WikiItemModel()
       @listenTo(@model,"sync",@render)
     render: ->
-      @$el.html(@template(data:@model.toJSON()))
+      id = @model.get("id")
+
+      # 最近の閲覧履歴を残しておく
+      window.wiki_viewlog = (x for x in window.wiki_viewlog when x[0] not in [id,"all"])
+      window.wiki_viewlog.unshift([id,@model.get("title")])
+      window.wiki_viewlog = window.wiki_viewlog[0..3]
+      if id != "all" then window.wiki_viewlog.push(["all","全一覧"])
+
+      @$el.html(@template(data:@model.toJSON(),viewlog:window.wiki_viewlog))
       @$el.appendTo("#wiki-item")
-  WikiPanelView = Backbone.View.extend {}
   WikiAttachedListModel = Backbone.Model.extend
     urlRoot: "/api/wiki/attached_list"
   WikiAttachedListView = Backbone.View.extend
@@ -105,7 +116,6 @@ define (require,exports,module) ->
       "submit #attached-form" : "send_file"
       "click  #toggle-attached" : "toggle_attached"
     toggle_attached: ->
-      console.log "hoo"
       $("#toggle-attached").hide()
       $("#attached-form").show()
     change_page: (ev)->
@@ -120,7 +130,8 @@ define (require,exports,module) ->
       @$el.appendTo("#wiki-attached")
   init: ->
     window.wiki_router = new WikiRouter()
-    window.wiki_panel_view = new WikiPanelView()
+    # id が 1 のものは StartPage として特別扱い
+    window.wiki_viewlog = [["1","StartPage"]]
     Backbone.history.start()
 
 

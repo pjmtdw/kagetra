@@ -15,7 +15,7 @@ module MiscHelpers
       logger.warn e.message
       $stderr.puts e.message
 
-      bt = e.backtrace[0...G_BACKTRACE_LENGTH].join("\n")
+      bt = e.backtrace.join("\n")
       logger.puts bt
       $stderr.puts bt
       {_error_: e.message }

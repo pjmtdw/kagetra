@@ -1,3 +1,15 @@
+.wiki-title{
+  color: purple;
+  padding: 3px;
+  display: inline;
+  font-weight: bold;
+}
+.viewlog{
+  a{
+    margin: 4px;
+    color: rgb(6,69,173);
+  }
+}
 #wiki-item{
   .row{
     background-color: rgba(255,255,255,0.5);
@@ -37,6 +49,9 @@
   }
   p{
     margin-bottom: .5em;
+  }
+  td,th{
+    min-width: 100px;
   }
 }
 

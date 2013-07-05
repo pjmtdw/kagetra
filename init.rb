@@ -34,10 +34,10 @@ require 'openssl'
 require 'securerandom'
 require 'tempfile'
 
-require './app'
-require './routes/init'
-require './helpers/init'
 require './models/init'
+require './app'
+require './helpers/init'
+require './routes/init'
 require './utils'
 
 G_ADDRBOOK_CONFIRM_STR = 'kagetra_addrbook' # 名簿でパスワードが正しいかの確認用

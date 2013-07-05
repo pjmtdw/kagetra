@@ -36,7 +36,7 @@ define ->
       @$el.find(".response-toggle").toggleBtnText()
 
       if container.is(":empty")
-        dun = if @model.get("public")
+        dun = if @model and @model.get("public")
                 g_user_bbs_public_name ? ( g_user_name ? "" )
               else
                 g_user_name ? ""
@@ -68,6 +68,15 @@ define ->
         v = new CommentItemView(model: m)
         @$el.find(".comment-body").append(v.$el)
 
+  WikiCommentItemModel = Backbone.Model.extend
+    urlRoot: '/api/wiki/comment/item'
+
+  WikiCommentCollection = Backbone.Collection.extend
+    model: WikiCommentItemModel
+    url: -> "/api/wiki/comment/list/#{@id}"
+    parse: (data) ->
+      data.list
+
   EventCommentItemModel = Backbone.Model.extend
     urlRoot: '/api/event/comment/item'
 
@@ -75,17 +84,17 @@ define ->
     model: EventCommentItemModel
     url: -> "/api/event/comment/list/#{@id}"
     parse: (data) ->
-      @event_name = data.event_name
+      @thread_name = data.thread_name
       data.list
 
-  class EventCommentThreadView extends CommentThreadView
+  class ExtCommentThreadView extends CommentThreadView
     template: _.template($("#templ-event-comment").html())
     initialize: ->
       _.bindAll(this,"render","refresh")
-      @collection = new EventCommentCollection()
+      @collection = if @options.mode == "event" then new EventCommentCollection() else new WikiCommentCollection()
       @listenTo(@collection,"sync",@render)
     render: ->
-      @$el.html(@template(event_name:@collection.event_name))
+      @$el.html(@template(thread_name:@collection.thread_name))
       for m in @collection.models
         v = new CommentItemView(model: m)
         @$el.find(".comment-body").append(v.$el)
@@ -94,7 +103,7 @@ define ->
       o = @options.comment_num_obj
       if o? then o.text(@collection.length)
     do_response: _.wrap_submit ->
-      m = new EventCommentItemModel(event_id:@collection.id)
+      m = new @collection.model(thread_id:@collection.id)
       that = this
       @response_common(m).done( -> that.collection.fetch() )
 
@@ -104,12 +113,14 @@ define ->
   {
     BbsThreadView: BbsThreadView
     # comment_num_obj はコメント追加したときにコメント数を表示するjQueryオブジェクト
-    reveal_comment: (target,id,comment_num_obj) ->
-      v = new EventCommentThreadView(target:target,comment_num_obj:comment_num_obj)
+    reveal_comment: (mode,target,id,comment_num_obj) ->
+      v = new ExtCommentThreadView(mode:mode,target:target,comment_num_obj:comment_num_obj)
       _.reveal_view(target,v)
       v.refresh(id)
+      window["#{mode}_comment_thread_view"] = v
     # foundation の section にコメント表示
-    section_comment: (target,id,comment_num_obj) ->
-      v = new EventCommentThreadView(target:target,comment_num_obj:comment_num_obj)
+    section_comment: (mode,target,id,comment_num_obj) ->
+      v = new ExtCommentThreadView(mode:mode,target:target,comment_num_obj:comment_num_obj)
       v.refresh(id)
+      window["#{mode}_comment_thread_view"] = v
   }

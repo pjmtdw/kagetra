@@ -3,29 +3,62 @@
 - content_for :js_start do
   wiki
 - content_for :css do
-  wiki
+  wiki, comment
 = haml :top_bar
 
-#wiki-item
+#wiki-panel
 
-#wiki-edit
+.row
+  .large-12.columns
+    .section-container.auto(data-section)
+      %section
+        %p.title(data-section-title)
+          %a(href="#") ページ
+        .content(data-section-content)
+          %p
+            #wiki-item
+            #wiki-edit
+      %section
+        %p.title(data-section-title)
+          %a(href="#")
+            %span.hide-for-all 履歴
+        .content(data-section-content)
+          %p
+            #wiki-log
+      %section
+        %p.title(data-section-title)
+          %a(href="#")
+            %span.hide-for-all
+              コメント ( 
+              %span#wiki-comment-count
+              )
+        .content(data-section-content)
+          %p
+            #wiki-comment
+      %section
+        %p.title(data-section-title)
+          %a(href="#")
+            %span.hide-for-all
+              添付ファイル
+        .content(data-section-content)
+          %p
+            #wiki-attached
 
-#wiki-attached
-
-%script#templ-wiki-item(type='text/template')
-  .row
-    .large-9.columns
+%script#templ-wiki-panel(type='text/template')
+  .row.wiki-panel
+    .large-10.columns
       .viewlog
         .left.wiki-title {- data.title -}
         <% _.each(viewlog,function(x){ if(x[0]!=data.id){ %>
         %a.left(href='wiki#page/{{x[0]}}') {- x[1] -}
         <% }}) %>
-    .large-3.columns
-      %button#edit-new.small.round 新規作成
-      %button#edit-start.small.round 編集
-      %button#edit-start.small.round ログ
+    .large-2.columns
+      %button#edit-new.small.round.right 新規作成
+
+%script#templ-wiki-item(type='text/template')
   .row
     .large-12.columns
+      %button#edit-start.small.round(style='position:absolute;right:1em') 編集
       {{ data.html }}
 
 %script#templ-wiki-preview(type='text/template')
@@ -81,3 +114,5 @@
         <% }) %>
 
 #container-wiki-preview.reveal-modal
+
+= haml :comment

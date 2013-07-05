@@ -1,5 +1,6 @@
 class WikiItem
   include ModelBase
+  include ThreadBase
   property :deleted, ParanoidBoolean, lazy: false
   property :title, TrimString, length: 64, required: true, unique: true
   property :public, Boolean, default: false # 外部公開されているか
@@ -7,6 +8,7 @@ class WikiItem
   property :revision, Integer, default: 0
   has n, :attacheds, 'WikiAttachedFile'
   has n, :item_logs, 'WikiItemLog'
+  has n, :comments, 'WikiComment', child_key: [:thread_id] # コメント
   # そのrevisionのbodyを取得する
   def get_revision_body(rev)
     cur = self.body
@@ -37,4 +39,11 @@ class WikiAttachedFile
   property :orig_name, TrimString, length: 128 # 元の名前
   property :description, TrimText # 説明
   property :size, Integer, required: true
+end
+
+# Wikiコメント
+class WikiComment
+  include ModelBase
+  include CommentBase
+  belongs_to :thread, 'WikiItem'
 end

@@ -128,6 +128,7 @@ class MainApp < Sinatra::Base
       {item_id:params[:id].to_i,list: list, pages: pages, cur_page: page}
     end
   end
+  comment_routes("/api/wiki",WikiItem,WikiComment)
   get '/wiki' do
     haml :wiki
   end

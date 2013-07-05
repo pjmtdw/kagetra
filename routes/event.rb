@@ -171,41 +171,6 @@ class MainApp < Sinatra::Base
         {count: c.event.participant_count}
       }
     end
-    get '/comment/list/:id' do
-      evt = Event.first(id:params[:id].to_i)
-      list = evt.comments(order: [:created_at.desc]).map{|x|
-        r = x.select_attr(:id,:user_name,:body)
-          .merge({
-            date: x.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-          })
-        r[:is_new] = x.is_new(@user),
-        r[:editable] = x.editable(@user)
-        r
-      }
-      {
-        event_name: evt.name,
-        list: list
-      }
-    end
-    post '/comment/item' do
-      dm_response{
-        evt = Event.get(@json["event_id"].to_i)
-        c = evt.comments.create(user:@user,body:@json["body"])
-      }
-    end
-    put '/comment/item/:id' do
-      dm_response{
-        item = EventComment.get(params[:id].to_i)
-        halt(403,"you cannot edit this item") unless item.editable(@user)
-        item.update(body:@json["body"])
-      }
-    end
-    delete '/comment/item/:id' do
-      Kagetra::Utils.dm_debug{
-        item = EventComment.get(params[:id])
-        halt(403,"you cannot delete this item") unless item.editable(@user)
-        item.destroy()
-      }
-    end
   end
+  comment_routes("/api/event",Event,EventComment)
 end

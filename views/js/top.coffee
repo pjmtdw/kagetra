@@ -110,7 +110,7 @@ define (require,exports,module) ->
     show_detail: ->
       $ed.reveal_detail("#container-event-detail",@model)
     show_comment: ->
-      $co.reveal_comment("#container-event-comment",@model.get('id'),@$el.find(".comment-count"))
+      $co.reveal_comment("event","#container-event-comment",@model.get('id'),@$el.find(".comment-count"))
     render: ->
       json = @model.toJSON()
       json.deadline_str = show_deadline(json.deadline_day)

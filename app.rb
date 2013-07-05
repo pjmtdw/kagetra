@@ -40,4 +40,42 @@ class MainApp < Sinatra::Base
     end
 
   end
+  def self.comment_routes(namespace,klass,klass_comment)
+    get "#{namespace}/comment/list/:id" do
+      thread = klass.get(params[:id].to_i)
+      list = thread.comments(order: [:created_at.desc]).map{|x|
+        r = x.select_attr(:id,:user_name,:body)
+          .merge({
+            date: x.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+          })
+        r[:is_new] = x.is_new(@user),
+        r[:editable] = x.editable(@user)
+        r
+      }
+      {
+        thread_name: if thread.respond_to?(:name) then thread.name end,
+        list: list
+      }
+    end
+    post "#{namespace}/comment/item" do
+      dm_response{
+        evt = klass.get(@json["thread_id"].to_i)
+        c = evt.comments.create(user:@user,body:@json["body"])
+      }
+    end
+    put "#{namespace}/comment/item/:id" do
+      dm_response{
+        item = klass_comment.get(params[:id].to_i)
+        halt(403,"you cannot edit this item") unless item.editable(@user)
+        item.update(body:@json["body"])
+      }
+    end
+    delete "#{namespace}/comment/item/:id" do
+      Kagetra::Utils.dm_debug{
+        item = klass_comment.get(params[:id])
+        halt(403,"you cannot delete this item") unless item.editable(@user)
+        item.destroy()
+      }
+    end
+  end
 end

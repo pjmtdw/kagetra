@@ -1,4 +1,5 @@
 define (require,exports,module) ->
+  $co = require("comment")
   _.mixin
     show_size: (x) ->
       if x < 1024
@@ -7,20 +8,22 @@ define (require,exports,module) ->
         "#{Math.floor(x/1024)} KB"
       else
         "#{Math.floor(x/1048576)} MB"
-  class WikiRouter extends _.router_base("wiki",["item","attached_list"])
+  class WikiRouter extends _.router_base("wiki",["item","attached_list","edit","comment","comment_thread"])
     routes:
       "page/:id" : "page"
-      "all" : "all"
       "" : "start"
     initialize: ->
       _.bindAll(@,"start")
-    all:  ->
-      @remove_all()
-      @set_id_fetch("item",WikiItemView,"all")
     page: (id) ->
       @remove_all()
       @set_id_fetch("item",WikiItemView,id)
-      @set_id_fetch("attached_list",WikiAttachedListView,id)
+      if id != "all"
+        @set_id_fetch("attached_list",WikiAttachedListView,id)
+        $co.section_comment("wiki","#wiki-comment",id,$("#wiki-comment-count"))
+        $(".hide-for-all").show()
+      else
+        $(".hide-for-all").hide()
+
     start: -> @navigate("page/all", {trigger:true, replace: true})
   WikiItemModel = Backbone.Model.extend
     urlRoot: "/api/wiki/item"
@@ -67,38 +70,29 @@ define (require,exports,module) ->
     render: (data)->
       @$el.html(@template(data:data))
       @$el.appendTo(@options.target)
-      
-  WikiItemView = Backbone.View.extend
-    template: _.template_braces($("#templ-wiki-item").html())
+  WikiBaseView = Backbone.View.extend
     events:
-      "click .link-new" : "link_new"
       "click .link-page" : "link_page"
-      "click #edit-start" : "edit_start"
-      "click #edit-new" : "edit_new"
-      "submit #wiki-edit-form" : -> false
-    edit_new: ->
-      @edit_common(new WikiItemModel())
-    edit_start: ->
-      @edit_common(@model)
-      @model.fetch(data:{edit:true})
     edit_common: (m) ->
       window.wiki_item_view.$el.hide()
       window.wiki_edit_view = new WikiEditView(model:m)
-    link_new: (ev) ->
-      obj = $(ev.currentTarget)
-      title = obj.data('link-new')
-      @edit_common(new WikiItemModel(title:title))
-    
     link_page: (ev)->
       obj = $(ev.currentTarget)
       id = obj.data('link-id')
       window.wiki_router.navigate("/page/#{id}", trigger:true)
+  
+  class WikiPanelView extends WikiBaseView
+    template: _.template_braces($("#templ-wiki-panel").html())
+    events: ->
+      _.extend(WikiBaseView.prototype.events,
+      "click #edit-new" : "edit_new"
+      )
     initialize: ->
-      @model = new WikiItemModel()
-      @listenTo(@model,"sync",@render)
+      @render()
+    edit_new: ->
+      @edit_common(new WikiItemModel())
     render: ->
       id = @model.get("id")
-
       # 最近の閲覧履歴を残しておく
       window.wiki_viewlog = (x for x in window.wiki_viewlog when x[0] not in [id,"all"])
       window.wiki_viewlog.unshift([id,@model.get("title")])
@@ -106,7 +100,31 @@ define (require,exports,module) ->
       if id != "all" then window.wiki_viewlog.push(["all","全一覧"])
 
       @$el.html(@template(data:@model.toJSON(),viewlog:window.wiki_viewlog))
+      @$el.appendTo("#wiki-panel")
+
+  class WikiItemView extends WikiBaseView
+    template: _.template_braces($("#templ-wiki-item").html())
+    events: ->
+      _.extend(WikiBaseView.prototype.events,
+      "click #edit-start" : "edit_start"
+      "click .link-new" : "link_new"
+      "submit #wiki-edit-form" : -> false
+      )
+    edit_start: ->
+      @edit_common(@model)
+      @model.fetch(data:{edit:true})
+    link_new: (ev) ->
+      obj = $(ev.currentTarget)
+      title = obj.data('link-new')
+      @edit_common(new WikiItemModel(title:title))
+    initialize: ->
+      @model = new WikiItemModel()
+      @listenTo(@model,"sync",@render)
+    render: ->
+      @$el.html(@template(data:@model.toJSON()))
       @$el.appendTo("#wiki-item")
+      window.wiki_panel_view?.remove()
+      window.wiki_panel_view = new WikiPanelView(model:@model)
   WikiAttachedListModel = Backbone.Model.extend
     urlRoot: "/api/wiki/attached_list"
   WikiAttachedListView = Backbone.View.extend

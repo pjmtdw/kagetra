@@ -92,6 +92,7 @@ define (require,exports,module) ->
 
       this.$el.foundation('section','reflow')
       $co.section_comment(
+        "event",
         "#event-comment",
         @collection.id,
         $("#event-comment-count"))

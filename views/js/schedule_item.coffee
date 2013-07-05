@@ -167,7 +167,7 @@ define (require, exports, module) ->
     show_detail: ->
       $ed.reveal_detail("#container-event-detail",@data.id)
     show_comment: ->
-      $co.reveal_comment("#container-event-comment",@data.id)
+      $co.reveal_comment("event","#container-event-comment",@data.id)
     template: _.template($("#templ-schedule-detail-event").html())
     initialize: (arg) -> @data = arg.data
 

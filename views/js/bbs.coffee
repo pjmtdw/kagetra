@@ -19,7 +19,8 @@ define (require,exports,module) ->
         data.qs = qs if qs
         window.bbs_view.refresh(data)
 
-  BbsThreadModel = Backbone.Model.extend {}
+  BbsThreadModel = Backbone.Model.extend
+    url: 'api/bbs/thread'
   BbsThreadCollection = Backbone.Collection.extend
     model: BbsThreadModel
     url: "api/bbs/threads"
@@ -63,10 +64,7 @@ define (require,exports,module) ->
     window.bbs_router.navigate("", trigger: true)
   do_search = refresh_all
   create_new_thread = ->
-    M = Backbone.Model.extend {
-      url: 'api/bbs/thread'
-    }
-    m = new M()
+    m = new BbsThreadModel()
     obj = $('#new-thread-form').serializeObj()
     _.save_model_alert(m,obj).done( ->
       $("#new-thread-form")[0].reset()

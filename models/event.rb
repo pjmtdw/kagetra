@@ -16,7 +16,9 @@ class Event
   property :end_at, HourMin #終了時刻
   property :place, TrimString, length: 255, lazy: true # 場所
 
+  # 以下のparticipant_count と contest_user_count は違うもの．前者は事前登録の数，後者は大会に出場した人の数
   property :participant_count, Integer, default: 0 # 参加者数 (毎回aggregateするのは遅いのでキャッシュ)
+  property :contest_user_count, Integer, default: 0 # result_users の count (毎回aggrerateするのは遅いのでキャッシュ)
 
   belongs_to :event_group, required: false
   belongs_to :aggregate_attr, 'UserAttributeKey' # 集計属性

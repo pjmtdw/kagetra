@@ -20,13 +20,71 @@ define (require,exports,module) ->
     start: -> @navigate("page/1", {trigger:true, replace: true})
   WikiItemModel = Backbone.Model.extend
     urlRoot: "/api/wiki/item"
+  WikiEditView = Backbone.View.extend
+    template: _.template_braces($("#templ-wiki-edit").html())
+    events:
+      "click #edit-cancel" : "edit_cancel"
+      "click #edit-preview" :"edit_preview"
+      "click #edit-done" : "edit_done"
+    edit_done:->
+      obj = $("#wiki-edit-form").serializeObj()
+      is_new = @model.isNew()
+      that = this
+      on_done = ->
+        if is_new
+          window.wiki_edit_view.remove()
+          window.wiki_router.navigate("page/#{that.model.get('id')}", {trigger:true})
+        else
+          that.edit_cancel()
+
+      _.save_model_alert(@model,obj,["revision"]).done(->
+        that.model.fetch().done(on_done)
+      )
+    edit_cancel: ->
+      window.wiki_item_view.$el.show()
+      window.wiki_edit_view.remove()
+    edit_preview: ->
+      target = "#container-wiki-preview"
+      v = new WikiPreviewView(target:target)
+      _.reveal_view(target,v)
+    initialize: ->
+      @listenTo(@model,"sync",@render)
+      if @model.isNew()
+        @render()
+    render: ->
+      @$el.html(@template(data:@model.toJSON()))
+      @$el.appendTo("#wiki-edit")
+  WikiPreviewView = Backbone.View.extend
+    template: _.template($("#templ-wiki-preview").html())
+    initialize: ->
+      body = $("#wiki-edit-form [name='body']").val()
+      that = this
+      $.post("api/wiki/preview",{body:body}).done((data)->that.render(data))
+    render: (data)->
+      @$el.html(@template(data:data))
+      @$el.appendTo(@options.target)
+      
   WikiItemView = Backbone.View.extend
     template: _.template($("#templ-wiki-item").html())
     events:
       "click .link-new" : "link_new"
       "click .link-page" : "link_page"
-    link_new: ->
-      # TODO
+      "click #edit-start" : "edit_start"
+      "click #edit-new" : "edit_new"
+      "submit #wiki-edit-form" : -> false
+    edit_new: ->
+      @edit_common(new WikiItemModel())
+    edit_start: ->
+      @edit_common(@model)
+      @model.fetch(data:{edit:true})
+    edit_common: (m) ->
+      window.wiki_item_view.$el.hide()
+      window.wiki_edit_view = new WikiEditView(model:m)
+    link_new: (ev) ->
+      obj = $(ev.currentTarget)
+      title = obj.data('link-new')
+      @edit_common(new WikiItemModel(title:title))
+    
     link_page: (ev)->
       obj = $(ev.currentTarget)
       id = obj.data('link-id')

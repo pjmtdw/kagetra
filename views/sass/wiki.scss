@@ -4,7 +4,12 @@
   }
   a{
     cursor: pointer;
+  }
+  a.link-page{
     color: rgb(6,69,173);
+  }
+  a.link-new{
+    color: #BA0000;
   }
   code{
     display: inline-block;

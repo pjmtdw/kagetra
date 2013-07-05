@@ -14,6 +14,11 @@ class ContestUser
 
   has 1, :prize, 'ContestPrize'
   has n, :games, 'ContestGame'
+  
+  after :create do
+    ev = self.event
+    ev.update(contest_user_count:ev.result_users.count)
+  end
 end
 
 # 大会の各級の情報
@@ -24,7 +29,7 @@ class ContestClass
   property :class_name, TrimString, length: 16, required: true, unique_index: :u1 # 級の名前
   property :class_rank, Enum[:a,:b,:c,:d,:e,:f,:g] # 実際の級のランク
   property :index, Integer, unique_index: :u2 # 順番
-  property :num_person, Integer # その級の参加人数(個人戦)
+  property :num_person, Integer # その級の他の会の人も含む大会自体の全参加人数(個人戦)
   property :round_name, Json, default: {} # 順位決定戦の名前(個人戦), {"4":"順決勝","5":"決勝"} のような形式
   has n, :single_user_classes, 'ContestSingleUserClass'
   has n, :single_users,'ContestUser',through: :single_user_classes,via: :contest_user # 参加者(個人戦)
@@ -139,7 +144,6 @@ class ContestTeamOpponent
   property :name, TrimString, length: 48 # 対戦相手のチーム名
   property :round, Integer, unique_index: :u1, required: true # n回戦
   property :round_name, TrimString, length: 36 # 決勝, 順位決定戦など
-  property :comment, TrimText
   property :kind, Enum[:team, :single] # 団体戦, 個人戦 (大会としては団体戦だけど各自が別々のチーム相手に対戦)
   has n, :games, 'ContestGame' # 試合結果(団体戦)
 end

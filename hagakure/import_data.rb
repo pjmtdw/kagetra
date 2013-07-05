@@ -5,7 +5,6 @@ NUM_THREADS = 8
 
 require './init'
 require 'parallel'
-require 'diff_match_patch'
 require 'sqlite3'
 
 def make_tasks
@@ -455,7 +454,7 @@ def import_event
       kanrishas.each{|k|
         user = User.first(name:k)
         if user.nil? then
-          raise Exception.new("user name not found: #{name}")
+          raise Exception.new("user name not found: #{k}")
         end
         evt.owners << user.id
       }
@@ -465,16 +464,17 @@ def import_event
       evt.save
       if not choices.nil? then
         choices.each_with_index{|(kind,name),i|
+          positive = kind==:yes
           if name.to_s.empty? then
             name = if positive then "参加する" else "参加しない" end
           end
           hr = hide_result[kind]
-          evt.choices.create(name:name,positive: kind==:yes, index: i, hide_result: hmr)
+          evt.choices.create(name:name,positive: positive, index: i, hide_result: hr)
         }
       else
           # create default
           evt.choices.create(name:"参加する", positive:true, index: 0, hide_result: false)
-          evt.choices.create(name:"参加しない, positive:false, index: 1, hide_result:true)
+          evt.choices.create(name:"参加しない", positive:false, index: 1, hide_result:true)
       end
       userchoice.each{|uc|
         puts "adding: user #{uc[:name]} to #{evt.name}"
@@ -1161,4 +1161,8 @@ def import_wiki
   }
 end
 
-make_tasks
+#make_tasks
+
+import_shurui
+import_event
+import_endtaikai

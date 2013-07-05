@@ -10,7 +10,7 @@ class MainApp < Sinatra::Base
     end
     get '/group/:gid' do
       group = AlbumGroup.get(params[:gid].to_i)
-      r = group.select_attr(:name)
+      r = group.select_attr(:name,:year)
       r[:items] = group.items.map{|x|
         x.select_attr(:id,:name).merge({
           thumb: x.thumb
@@ -20,7 +20,14 @@ class MainApp < Sinatra::Base
     end
     get '/item/:id' do
       item = AlbumItem.get(params[:id].to_i)
-      item.select_attr(:id,:name)
+      r = item.select_attr(:id,:name)
+      group = item.group
+      if group.dummy
+        r[:group_year] = group.year
+      else
+        r[:group_id] = group.id
+      end
+      r
     end
     get '/years' do
       {list: AlbumGroup.aggregate(:item_count.sum, fields:[:year], unique: true, order: [:year.desc])}

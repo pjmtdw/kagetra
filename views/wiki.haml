@@ -8,12 +8,38 @@
 
 #wiki-item
 
+#wiki-edit
+
 #wiki-attached
 
 %script#templ-wiki-item(type='text/template')
   .row
     .large-12.columns
+      %button#edit-new.small.round 新規作成
+      %button#edit-start.small.round 編集
+  .row
+    .large-12.columns
       <%= data.html %>
+
+%script#templ-wiki-preview(type='text/template')
+  .row
+    .large-12.columns
+      <%= data.html %>
+
+%script#templ-wiki-edit(type='text/template')
+  .row
+    .large-12.columns
+      %button#edit-cancel.small.round キャンセル
+      %button#edit-preview.small.round プレビュー
+      %button#edit-done.small.round 更新
+  %form#wiki-edit-form
+    .row
+      .large-12.columns
+        %input(type='text' name='title' placeholder='タイトル' value='{-data.title-}')
+    .row
+      .large-12.columns
+        %textarea(name='body' rows=60 placeholder='本文') {{data.body}}
+
 
 %script#templ-wiki-attached(type='text/template')
   .row
@@ -27,7 +53,6 @@
           %label 説明
           %input(type='text' name='description')
           %input(type='submit' value='送信')
-
 
   .row
     .large-12.columns
@@ -47,3 +72,5 @@
             {{x.date}}
           %td {{x.description}}
         <% }) %>
+
+#container-wiki-preview.reveal-modal

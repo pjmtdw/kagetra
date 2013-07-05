@@ -26,7 +26,7 @@
 
 %script#templ-album-year(type='text/template')
   .row
-    %a(href="#") 戻る
+    %a(href="album") 戻る
     %ul.large-block-grid-3.small-block-grid-2
       <% _.each(data.list,function(x){ %>
       %li
@@ -45,6 +45,7 @@
 
 %script#templ-album-group(type='text/template')
   .row
+    %a(href='album#year/{{data.year}}') 戻る
     {- data.name -}
     %ul.large-block-grid-4.small-block-grid-2
       <% _.each(data.items,function(x){ %>
@@ -57,5 +58,6 @@
 
 %script#templ-album-item(type='text/template')
   .row
+    %a(href='album{{data.group_id?"#group/"+data.group_id:"#year/"+data.group_year}}') 戻る
     {- data.name -}
     %img(src='/static/album/photo/{- data.id -}')

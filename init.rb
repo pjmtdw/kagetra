@@ -17,6 +17,7 @@ require 'json'
 require 'base64'
 require 'nkf'
 require 'redcarpet'
+require 'diff_match_patch'
 require 'RMagick'
 
 require 'data_mapper'
@@ -65,3 +66,5 @@ G_TOP_BAR_ROUTE = [
 ]
 
 G_STORAGE_DIR = "./storage"
+
+G_DIMAPA = DiffMatchPatch.new

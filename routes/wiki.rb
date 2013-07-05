@@ -2,9 +2,10 @@
 class MainApp < Sinatra::Base 
   ATTACHED_LIST_PER_PAGE = 50
   MARKDOWN = Redcarpet::Markdown.new(
-    Redcarpet::Render::HTML.new(hard_wrap:true),tables:true,fenced_code_blocks:true)
+  Redcarpet::Render::HTML.new(hard_wrap:true),tables:true,fenced_code_blocks:true)
   namespace '/api/wiki' do
     def render_wiki(body_text,public_mode)
+      body_text = body_text.clone
       # 本文中に出現しないランダムな文字列生成
       gen_tag = ->(){
         loop{
@@ -49,8 +50,57 @@ class MainApp < Sinatra::Base
       html
     end
     get '/item/:id' do
-      txt = WikiItem.get(params[:id].to_i).body
-      {html: render_wiki(txt,false)}
+      item = WikiItem.get(params[:id].to_i)
+      r = item.select_attr(:title,:revision)
+      if params[:edit].to_s.empty?.! then
+        r[:body] = item.body
+      else
+        r[:html] = render_wiki(item.body,false)
+      end
+      r
+    end
+
+    def update_or_create_item(item)
+      dm_response{
+        WikiItem.transaction{
+          new_body = @json["body"]
+          prev_body = if item then item.body else "" end
+          if item
+            # check for conflict
+            if item.revision != @json["revision"]
+              # if conflict then merge
+              r_body = item.get_revision_body(@json["revision"])
+              patches = G_DIMAPA.patch_make(r_body,new_body)
+              (new_body,_) = G_DIMAPA.patch_apply(patches,prev_body)
+            end
+            rev = item.revision + 1
+          else
+            rev = 1
+          end
+          @json["body"] = new_body
+          updates = @json.merge({revision:rev})
+          if item then 
+            item.update(updates)
+          else 
+            item = WikiItem.create(updates)
+          end
+          patches = G_DIMAPA.patch_make(new_body,prev_body)
+          patch = G_DIMAPA.patch_toText(patches)
+          item.item_logs.create(revision:rev,user:@user,patch:patch)
+          item.attributes
+        }
+      }
+    end
+
+    put '/item/:id' do
+      item = WikiItem.get(params[:id].to_i)
+      update_or_create_item(item)
+    end
+    post '/item' do
+      update_or_create_item(nil)
+    end
+    post '/preview' do
+      {html: render_wiki(params[:body],false)}
     end
 
     get '/attached_list/:id' do

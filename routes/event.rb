@@ -104,7 +104,7 @@ class MainApp < Sinatra::Base
     end
 
     def update_or_create_item
-      @json.delete("all_attrs")
+      @json.delete("all_attrs") # get時に付加したmodelにない情報なので削除する．TODO: 不要な情報なのでクライアント側で削除する
       dm_response{
         Event.transaction{
           @json["hide_choice"] = @json["hide_choice"].to_s.empty?.!

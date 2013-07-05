@@ -70,21 +70,24 @@ define (require, exports, module) ->
       $("<option>",opts)[0].outerHTML
 
     # save backbone model (only changed attributes)
-    save_model_alert: (model,obj) ->
+    # force: list of keys to be saved even if not changed
+    save_model_alert: (model,obj,force) ->
       defer = $.Deferred()
-      _.save_model(model,obj).done(->
+      _.save_model(model,obj,force).done(->
         alert("更新成功")
         defer.resolve()
       ).fail((error) ->
         alert("更新失敗: " + error)
         defer.reject(error))
       defer.promise()
-    save_model: (model,obj)->
+    save_model: (model,obj,force)->
       m = model.clone()
       m.set(obj)
       attrs = {}
       if not m.isNew()
-        attrs = m.changedAttributes()
+        attrs = m.changedAttributes() || {}
+        if force
+          attrs = _.extend(attrs,m.pick(force))
         m.clear()
         m.set('id',model.id)
       defer = $.Deferred()

@@ -1,11 +1,22 @@
 class WikiItem
   include ModelBase
   property :deleted, ParanoidBoolean, lazy: false
-  property :title, TrimString, length: 64, required: true, index: true
+  property :title, TrimString, length: 64, required: true, unique: true
   property :public, Boolean, default: false # 外部公開されているか
   property :body, TrimText, required: true
-  property :revision, Integer
+  property :revision, Integer, default: 0
   has n, :attacheds, 'WikiAttachedFile'
+  has n, :item_logs, 'WikiItemLog'
+  # そのrevisionのbodyを取得する
+  def get_revision_body(rev)
+    cur = self.body
+    self.revision.downto(rev+1).each{|r|
+      p = self.item_logs.first(revision:r).patch
+      ps = G_DIMAPA.patch_fromText(p)
+      (cur,_) = G_DIMAPA.patch_apply(ps,cur)
+    }
+    cur
+  end
 end
 class WikiItemLog
   include ModelBase

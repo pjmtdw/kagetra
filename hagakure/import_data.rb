@@ -13,24 +13,24 @@ def make_tasks
     :bbs, :schedule, :shurui, :event, 
     :endtaikai, :event_comment, :wiki, :album]
 
-  task :default => tasks
+  multitask :default => tasks
 
   tasks.each{|t|
-    task t do
+    multitask t do
       send("import_#{t}".to_sym)
     end
   }
 
-  task :user => :zokusei
+  multitask :user => :zokusei
 
   [:login_log,:meibo,:bbs,:schedule,:event,:endtaikai,:event_comment,:wiki,:album].each{|t|
-    task t => :user
+    multitask t => :user
   }
   [:event,:endtaikai].each{|t|
-    task t => :shurui
+    multitask t => :shurui
   }
 
-  task :event_comment => [:event, :endtaikai]
+  multitask :event_comment => [:event, :endtaikai]
 end
 
 GLOBAL_LOCK = Mutex.new
@@ -1161,8 +1161,8 @@ def import_wiki
   }
 end
 
-#make_tasks
+make_tasks
 
-import_shurui
-import_event
-import_endtaikai
+#import_shurui
+#import_event
+#import_endtaikai

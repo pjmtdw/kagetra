@@ -1,8 +1,13 @@
-#container-event-detail{
-  .participants{
-    margin: 3px 0px;
-    .label{
-      background-color: #63F;
-    }
+.event-participants{
+  margin: 3px 0px;
+  .label{
+    background-color: #63F;
+    display: inline-block;
+  }
+  .item{
+    margin-left: .4em;
+    border: 1px dotted silver;
+    padding: 3px;
+    display: inline-block;
   }
 }

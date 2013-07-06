@@ -11,6 +11,10 @@ module MiscHelpers
       msg = e.resource.errors.full_messages().join("\n")
       logger.warn msg
       $stderr.puts msg
+
+      bt = e.backtrace.join("\n")
+      logger.puts bt
+      $stderr.puts bt
       {_error_: msg}
     rescue Exception => e
       logger.warn e.message

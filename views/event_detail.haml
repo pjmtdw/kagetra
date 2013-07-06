@@ -37,17 +37,28 @@
 
 %script#templ-event-participant(type='text/template')
   -# data.participant[-1] が存在するならそれは選択肢が表示不可のもの
+  <% templ_i = _.template($("#templ-participant-item").html()) %>
+  <% templ_a = _.template_braces($("#templ-participant-attr").html()) %>
   <% choices = (data.participant && data.participant[-1])?[{name:"登録者",positive:true,id:-1}]:data.choices %>
-  <% _.each(_.filter(choices,function(c){return c.positive}),function(c){ %>
+  <% _.each(_.filter(choices,function(c){return c.positive || data.show_all}),function(c){ %>
   <% p = data.participant && data.participant[c.id] || [] %>
-  %fieldset.panel
-    %legend <%- c.name %> (<%- _.flatten(_.map(p,function(x){return _.values(x)})).length %>)
+  %fieldset.panel.participant-choice(data-choice-id='{{c.id}}')
+    %legend {- c.name -} ({{ _.flatten(_.map(p,function(x){return x[1]})).length }})
     <% _.each(p,function(q){ %>
-    %div.participants
-      %span.label.round <%- _.object(data.participant_attrs)[_.keys(q)[0]] %>
-      <%- _.map(_.values(q)[0],function(x){return data.participant_names[x]}).join(", ") %>
+    {{ templ_a({data:data,templ:templ_i,q:q}) }}
     <% }) %>
   <% }) %>
+
+%script#templ-participant-item(type='text/template')
+  .item
+    %span.name <%= name %>
+
+%script#templ-participant-attr(type='text/template')
+  %div.event-participants(data-attr-value='{{q[0]}}')
+    .label.round.attr {- _.object(data.participant_attrs)[q[0]] -}
+    <% _.each(q[1],function(x){ %>
+    {{templ({name:data.participant_names[x]})}}
+    <% }) %>
 
 = haml :comment
 

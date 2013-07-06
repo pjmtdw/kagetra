@@ -13,7 +13,7 @@ define ->
     urlRoot: "/api/event/item"
   EventDetailView = Backbone.View.extend
     template: _.template($("#templ-event-detail").html())
-    template_p: _.template($("#templ-event-participant").html())
+    template_p: _.template_braces($("#templ-event-participant").html())
     initialize: ->
       @.listenTo(@model,"sync",@render)
     render: ->

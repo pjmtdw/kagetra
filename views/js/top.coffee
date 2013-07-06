@@ -247,12 +247,76 @@ define (require,exports,module) ->
       else
         ev.render()
         when_done()
+
+  EventParticipantsModel = Backbone.Model.extend
+    urlRoot: "api/event/participants"
   EventEditParticipantView = Backbone.View.extend
-    template: _.template($("#templ-event-participant").html())
+    template: _.template_braces($("#templ-event-participant").html())
+    template_item: _.template($("#templ-participant-item").html())
+    template_attr: _.template_braces($("#templ-participant-attr").html())
+    cross: $("<span>",{html:'&times;',class:"delete-participant"})
+    events:
+      "click .toggle-edit" : "toggle_edit"
+      "click .delete-participant" : "delete_participant"
+      "click .add-participant" : "add_participant"
+      "click .apply-edit" : "apply_edit"
+    apply_edit: ->
+      m = new EventParticipantsModel(
+        id:@model.get("id")
+      )
+      that = this
+      _.save_model_alert(m,{log:@edit_log},["log"]).done(->
+        that.model.fetch(data:{detail:true,edit:true})
+        that.toggle_edit())
+
+    get_choice_attr: (o)->
+      attr = o.closest(".event-participants").data("attr-value")
+      choice = o.closest(".participant-choice").data("choice-id")
+      [attr,choice]
+    delete_participant: (ev) ->
+      o = $(ev.currentTarget)
+      item = o.parent(".item")
+      name = item.find(".name").text()
+      [attr,choice] = @get_choice_attr(o)
+      @edit_log[name]=["delete",attr,choice]
+      item.remove()
+    add_participant: (ev) ->
+      name = prompt("名前")
+      if name
+        item = $(ev.currentTarget)
+        newi = $($.parseHTML(@template_item(name:name)))
+        newi.append(@cross)
+        item.before(newi)
+        [attr,choice] = @get_choice_attr(item)
+        @edit_log[name]=["add",attr,choice]
+
+    toggle_edit: ->
+      @edit_log = {}
+      @$el.find(".toggle-edit").toggleBtnText()
+      @$el.find(".apply-edit").toggle()
+      @edit_mode ^= true
+      if @edit_mode
+        @$el.find(".item").append(@cross)
+        that = this
+        @$el.find(".participant-choice").each((i,x)->
+          obj = _.object(that.model.get("participant_attrs"))
+          $(x).find(".event-participants").each((i,y)->
+            delete obj[$(y).data("attr-value")]
+          )
+          for i,v of obj
+            $(x).append($($.parseHTML(that.template_attr(data:that.model.toJSON(),templ:that.template_item,q:[i,[]]))))
+
+        )
+        @$el.find(".event-participants").append($("<div>",{class:"item add-participant button tiny success",text:"追加"}))
+      else
+        @$el.find(".delete-participant").remove()
+        @$el.find(".add-participant").remove()
     initialize: ->
       @listenTo(@model,"sync",@render)
     render: ->
-      @$el.html(@template(data:@model.toJSON()))
+      data = @model.toJSON()
+      data["show_all"] = true
+      @$el.html("<button data-toggle-text='キャンセル' class='toggle-edit small round'>編集開始</button> <button class='apply-edit small round hide'>更新</button>"+@template(data:data))
 
   get_edit_choice_list = ->
     r = []

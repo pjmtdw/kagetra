@@ -17,6 +17,7 @@ define (require,exports,module) ->
     page: (id) ->
       @remove_all()
       @set_id_fetch("item",WikiItemView,id)
+      $("#section-page").click()
       if id != "all"
         @set_id_fetch("attached_list",WikiAttachedListView,id)
         $co.section_comment("wiki","#wiki-comment",id,$("#wiki-comment-count"))
@@ -94,7 +95,7 @@ define (require,exports,module) ->
     render: ->
       id = @model.get("id")
       # 最近の閲覧履歴を残しておく
-      window.wiki_viewlog = (x for x in window.wiki_viewlog when x[0] not in [id,"all"])
+      window.wiki_viewlog = (x for x in window.wiki_viewlog when x[0].toString() not in [id.toString(),"all"])
       window.wiki_viewlog.unshift([id,@model.get("title")])
       window.wiki_viewlog = window.wiki_viewlog[0..3]
       if id != "all" then window.wiki_viewlog.push(["all","全一覧"])

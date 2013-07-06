@@ -165,3 +165,12 @@ $forbidden-color: gray !important;
     margin: 3px;
   }
 }
+
+#event-edit-participant{
+  .delete-participant{
+    font-size: 120%;
+    text-shadow: 1px 1px 1px silver;
+    margin-left: 4px;
+    cursor: pointer;
+  }
+}

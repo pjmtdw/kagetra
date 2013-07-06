@@ -80,20 +80,24 @@ class EventUserChoice
     if self.user then
       self.user_name = self.user.name
       self.event_choice.event.tap{|ev|
-        self.attr_value = self.user.attrs.values.first(attr_key: ev.aggregate_attr)
+        if self.attr_value.nil? then
+          self.attr_value = self.user.attrs.values.first(attr_key: ev.aggregate_attr)
+        end
         # 一つの行事を複数選択することはできない
         ev.choices.user_choices(user:self.user).destroy
       }
     end
   end
-  after :save do
-    self.event_choice.event.tap{|ev|
-      if ev then
-        # 参加者数の更新
-        ev.update(participant_count:ev.choices(positive: true).user_choices.count)
-      end
-    }
-  end
+  [:save,:destroy].each{|sym|
+    after sym do
+      self.event_choice.event.tap{|ev|
+        if ev then
+          # 参加者数の更新
+          ev.update(participant_count:ev.choices(positive: true).user_choices.count)
+        end
+      }
+    end
+  }
 end
 
 # 大会/行事のコメント

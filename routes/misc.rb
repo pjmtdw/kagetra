@@ -69,7 +69,6 @@ class MainApp < Sinatra::Base
   end
   get '/top' do
     dph = MyConf.first(name:"daily_album_photo")
-    p dph.value
     daily_photo = if dph then dph.value end
     haml :top, locals:
       {

@@ -13,18 +13,11 @@
     .section-container.auto(data-section)
       %section
         %p.title(data-section-title)
-          %a(href="#") ページ
+          %a#section-page(href="#") ページ
         .content(data-section-content)
           %p
             #wiki-item
             #wiki-edit
-      %section
-        %p.title(data-section-title)
-          %a(href="#")
-            %span.hide-for-all 履歴
-        .content(data-section-content)
-          %p
-            #wiki-log
       %section
         %p.title(data-section-title)
           %a(href="#")
@@ -43,6 +36,13 @@
         .content(data-section-content)
           %p
             #wiki-attached
+      %section
+        %p.title(data-section-title)
+          %a(href="#")
+            %span.hide-for-all 履歴
+        .content(data-section-content)
+          %p
+            #wiki-log
 
 %script#templ-wiki-panel(type='text/template')
   .row.wiki-panel
@@ -58,7 +58,9 @@
 %script#templ-wiki-item(type='text/template')
   .row
     .large-12.columns
+      <% if(data.id != "all"){ %>
       %button#edit-start.small.round(style='position:absolute;right:1em') 編集
+      <% } %>
       {{ data.html }}
 
 %script#templ-wiki-preview(type='text/template')

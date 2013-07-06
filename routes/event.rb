@@ -41,6 +41,7 @@ class MainApp < Sinatra::Base
         r[:deadline_alert] = true
       end
       r[:choices] = ev.choices(order:[:index.asc]).map{|x|x.select_attr(:positive,:name,:id)}
+      r[:editable] = @user.admin || ev.owners.include?(@user.id)
       r[:choice] = if opts.has_key?(:user_choices) then opts[:user_choices][ev.id] 
                    else
                      t = user.event_user_choices.event_choices.first(event:ev)
@@ -62,11 +63,11 @@ class MainApp < Sinatra::Base
     end
     def get_participant(ev,edit_mode)
       participant_names = {}
-      participant_attrs = ev.aggregate_attr.values.map{|x|[x.id,x.value]}
+      participant_attrs = ev.aggregate_attr.values(:id.not => ev.forbidden_attrs).map{|x|[x.id,x.value]}
       sort_and_map = ->(h){
         h.sort_by{|k,v|k.index}
         .map{|k,v|
-          {k.id => v.map{|x|x.id}}}}
+          [k.id,v.map{|x|x.id}]}}
       add_participant_names = ->(ucs,hide_result){
         if hide_result and not edit mode then return end
         participant_names.merge!(Hash[ucs.map{|u|[u.id,u.user_name]}])
@@ -169,6 +170,32 @@ class MainApp < Sinatra::Base
         c = EventChoice.first(id:params[:cid].to_i)
         c.user_choices.create(user:@user)
         {count: c.event.participant_count}
+      }
+    end
+    put '/participants/:id' do
+      dm_response{
+        # TODO: ev が使われていない
+        #       event_choice_id がちゃんとそのEventに属しているか念のためにチェック
+        ev = Event.get(params[:id].to_i)
+        EventUserChoice.transaction{
+          @json["log"].each{|name,v|
+            (cmd,attr,choice) = v
+            case cmd
+            when "add" then
+              EventUserChoice.create(
+                event_choice_id:choice,
+                user_name:name,
+                user: User.first(name:name),
+                attr_value_id:attr)
+            when "delete" then
+              c = EventUserChoice.first(
+                event_choice_id:choice,
+                user_name:name,
+                attr_value_id:attr)
+              if c then c.destroy end
+            end
+          }
+        }
       }
     end
   end

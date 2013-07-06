@@ -84,8 +84,9 @@
         %span.participant-count {{ data.participant_count }}
         名
       .large-8.columns.buttons
-        - if @user.admin
-          %button.button-light.show-edit 編集
+        <% if(data.editable){ %>
+        %button.button-light.show-edit 編集
+        <% } %>
         %button.button-light.show-detail
           詳細
         %span.button-light.show-comment

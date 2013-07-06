@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base 
   ATTACHED_LIST_PER_PAGE = 50
+  WIKI_ALL_PER_PAGE = 50
   MARKDOWN = Redcarpet::Markdown.new(
   Redcarpet::Render::HTML.new(hard_wrap:true),tables:true,fenced_code_blocks:true)
   namespace '/api/wiki' do
@@ -50,9 +51,15 @@ class MainApp < Sinatra::Base
       html
     end
     get '/item/all' do
-      html = "<ul>" + WikiItem.all(order:[:updated_at.desc]).map{|x|
+      page = if params[:page] then params[:page].to_i else 1 end
+      # chunksを使うときはorderに同じ物がある可能性があるものを指定するとバグるので:id.descも一緒に指定すること
+      chunks = WikiItem.all(order:[:updated_at.desc,:id.desc]).chunks(WIKI_ALL_PER_PAGE)
+      html = "<ul>" + chunks[page-1].map{|x|
           "<li>[#{x.updated_at.to_date}] <a data-link-id='#{x.id}' class='link-page'>#{x.title}</a></li>"
       }.join() + "</ul>"
+      if page < chunks.size then
+        html += "<a class='next-page' data-page-num='#{page+1}'>次のページ</a>"
+      end
       {
         title: "全一覧",
         html: html
@@ -67,6 +74,11 @@ class MainApp < Sinatra::Base
         r[:html] = render_wiki(item.body,false)
       end
       r
+    end
+    delete '/item/:id' do
+      item = WikiItem.get(params[:id].to_i)
+      # destory するには関連するmodelを削除しないといけないけどそれはイヤなので deleted フラグを付けるだけ
+      item.update(deleted:true)
     end
 
     def update_or_create_item(item)
@@ -118,7 +130,7 @@ class MainApp < Sinatra::Base
 
     get '/attached_list/:id' do
       page = (params[:page] || 1).to_i
-      chunks = WikiAttachedFile.all(wiki_item_id:params[:id].to_i,order:[:created_at.desc]).chunks(ATTACHED_LIST_PER_PAGE) 
+      chunks = WikiAttachedFile.all(wiki_item_id:params[:id].to_i,order:[:created_at.desc,:id.desc]).chunks(ATTACHED_LIST_PER_PAGE) 
       pages = chunks.size
       list = chunks[page-1].map{|x|
         x.select_attr(:id,:orig_name,:description,:size).merge({

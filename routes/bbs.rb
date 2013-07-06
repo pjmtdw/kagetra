@@ -23,7 +23,8 @@ class MainApp < Sinatra::Base
           query &= qb
         }
       end
-      query.all(order: [:last_comment_date.desc ]).chunks(BBS_THREADS_PER_PAGE)[page].map{|t|
+      # chunksを使うときはorderに同じ物がある可能性があるものを指定するとバグるので:id.descも一緒に指定すること
+      query.all(order: [:last_comment_date.desc,:id.desc]).chunks(BBS_THREADS_PER_PAGE)[page].map{|t|
         items = t.comments.map{|c|
           c.select_attr(:id,:body,:user_name).merge(
           {

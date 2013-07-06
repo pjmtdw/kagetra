@@ -71,7 +71,7 @@ module CommentBase
       end
       def is_new(user)
         user.nil?.! and
-        (self.user.nil? or self.user.id != user.id) and 
+        (self.user_id.nil? or self.user_id != user.id) and 
         user.show_new_from.nil?.! and
         self.created_at >= user.show_new_from
       end

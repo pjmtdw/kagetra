@@ -1163,6 +1163,15 @@ end
 
 make_tasks
 
+#import_zokusei
+#import_user
+#import_login_log
+#import_meibo
+#import_bbs
+#import_schedule
 #import_shurui
 #import_event
 #import_endtaikai
+#import_event_comment
+#import_wiki
+#import_album

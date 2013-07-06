@@ -333,7 +333,12 @@ define (require,exports,module) ->
   EventEditInfoView = Backbone.View.extend
     template: _.template_braces($("#templ-event-edit-info").html())
     events:
+      "click #delete-event" : "delete_event"
       "submit #event-edit-form" : "do_submit"
+    delete_event: ->
+      if confirm("本当に削除しますか？")
+        @model.destroy().done(-> alert("削除しました"))
+      false
     do_submit: ->
       obj = $("#event-edit-form").serializeObj()
       obj["choices"] = get_edit_choice_list()

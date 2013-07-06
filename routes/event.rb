@@ -32,8 +32,10 @@ class MainApp < Sinatra::Base
       if ev.last_comment_date.nil?.! then
         r[:latest_comment_date] = ev.last_comment_date
         if user.show_new_from.nil?.! then
-          r[:has_new_comment] = true if ev.last_comment_date > user.show_new_from and
-            (ev.last_comment_user.nil? or ev.last_comment_user != user.id)
+          if ev.last_comment_date > user.show_new_from and
+            (ev.last_comment_user.nil? or ev.last_comment_user_id != user.id) then
+            r[:has_new_comment] = true
+          end
         end
       end
       r[:deadline_day] = (r[:deadline]-today).to_i if r[:deadline]
@@ -100,8 +102,12 @@ class MainApp < Sinatra::Base
       }
     end
     get '/item/:id' do
-      ev = Event.first(id:params[:id].to_i)
+      ev = Event.get(params[:id].to_i)
       event_info(ev,@user,{detail:params[:detail]=="true",edit:params[:edit]=="true"})
+    end
+    delete '/item/:id' do
+      # 関連する物を削除しないとdestroyできないが，全部削除はしたくないので deleted フラグを付けるだけにする
+      Event.get(params[:id].to_i).update!(deleted:true)
     end
 
     def update_or_create_item

@@ -40,27 +40,36 @@ class MainApp < Sinatra::Base
     end
 
   end
+  COMMENTS_PER_PAGE = 10
   def self.comment_routes(namespace,klass,klass_comment)
     get "#{namespace}/comment/list/:id" do
+      page = if params[:page] then params[:page].to_i else 1 end
       thread = klass.get(params[:id].to_i)
-      list = thread.comments(order: [:created_at.desc]).map{|x|
+      chunks = thread.comments(order: [:created_at.desc,:id.desc]).chunks(COMMENTS_PER_PAGE)
+      list = chunks[page-1].map{|x|
         r = x.select_attr(:id,:user_name,:body)
           .merge({
             date: x.created_at.strftime('%Y-%m-%d %H:%M:%S'),
           })
-        r[:is_new] = x.is_new(@user),
+        r[:is_new] = x.is_new(@user)
         r[:editable] = x.editable(@user)
         r
       }
-      {
+      res = {
         thread_name: if thread.respond_to?(:name) then thread.name end,
-        list: list
+        list: list,
       }
+      if page < chunks.size then
+        res[:next_page] = page + 1
+      end
+      res
     end
     post "#{namespace}/comment/item" do
       dm_response{
         evt = klass.get(@json["thread_id"].to_i)
         c = evt.comments.create(user:@user,body:@json["body"])
+        c.set_env(request)
+        c.save()
       }
     end
     put "#{namespace}/comment/item/:id" do

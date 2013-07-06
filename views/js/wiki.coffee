@@ -34,6 +34,10 @@ define (require,exports,module) ->
       "click #edit-cancel" : "edit_cancel"
       "click #edit-preview" :"edit_preview"
       "click #edit-done" : "edit_done"
+      "click #delete-wiki" : "delete_wiki"
+    delete_wiki:->
+      if confirm("本当に削除しますか？")
+        @model.destroy().done(->alert("削除しました"))
     edit_done:->
       obj = $("#wiki-edit-form").serializeObj()
       is_new = @model.isNew()
@@ -109,8 +113,13 @@ define (require,exports,module) ->
       _.extend(WikiBaseView.prototype.events,
       "click #edit-start" : "edit_start"
       "click .link-new" : "link_new"
+      "click .next-page" : "next_page"
       "submit #wiki-edit-form" : -> false
       )
+    next_page: (ev)->
+      obj = $(ev.currentTarget)
+      page = obj.data("page-num")
+      @model.fetch(data:{page:page})
     edit_start: ->
       @edit_common(@model)
       @model.fetch(data:{edit:true})

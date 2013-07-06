@@ -85,16 +85,22 @@ define ->
     url: -> "/api/event/comment/list/#{@id}"
     parse: (data) ->
       @thread_name = data.thread_name
+      @next_page = data.next_page
       data.list
 
   class ExtCommentThreadView extends CommentThreadView
-    template: _.template($("#templ-event-comment").html())
+    template: _.template_braces($("#templ-ext-comment").html())
+    events:
+      "click .next-comment-page" : "next_comment_page"
+    next_comment_page: (ev)->
+      page = $(ev.currentTarget).data("next-page")
+      @collection.fetch({data:{page:page}})
     initialize: ->
       _.bindAll(this,"render","refresh")
       @collection = if @options.mode == "event" then new EventCommentCollection() else new WikiCommentCollection()
       @listenTo(@collection,"sync",@render)
     render: ->
-      @$el.html(@template(thread_name:@collection.thread_name))
+      @$el.html(@template(_.pick(@collection,"next_page","thread_name")))
       for m in @collection.models
         v = new CommentItemView(model: m)
         @$el.find(".comment-body").append(v.$el)

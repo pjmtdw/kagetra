@@ -32,10 +32,15 @@
         <% } %>
     .body.pre <%- data.body %>
 
-%script#templ-event-comment(type='text/template')
+%script#templ-ext-comment(type='text/template')
   %button.response-toggle.small.round(data-toggle-text="キャンセル") 書き込む
+  %span.thread-name {- thread_name -}
   .response-container
   .comment-body
+  <% if(next_page){ %>
+  %hr
+  %a.next-comment-page(data-next-page='{{next_page}}') 次のページ
+  <% } %>
 
 %script#templ-bbs-thread(type='text/template')
   .thread(class='{-data.public?"public":"private"-}')

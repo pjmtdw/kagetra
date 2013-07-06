@@ -1,4 +1,8 @@
 define ["crypto-aes", "crypto-hmac","crypto-pbkdf2","crypto-base64"], ->
+  validations = [
+    ["名前",/^\s*\S+\s+\S+\s*$/,"名前の姓と名の間に空白を入れて下さい"]
+    ["ふりがな",/^\s*\S+\s+\S+\s*$/,"ふりがなの姓と名の間に空白を入れて下さい"]
+  ]
   check_password = (pass) ->
     g_confirm_str == CryptoJS.AES.decrypt(g_confirm_enc,pass).toString(CryptoJS.enc.Latin1)
   AddrBookRouter = Backbone.Router.extend
@@ -52,26 +56,26 @@ define ["crypto-aes", "crypto-hmac","crypto-pbkdf2","crypto-base64"], ->
     el: "#addrbook-body"
     events:
       "submit #addrbook-form":"do_when_submit"
-    do_when_submit: ->
-      try
-        obj = $("#addrbook-form").serializeObj()
-        json = JSON.stringify(obj)
-        pass = $("#password").val()
-        if pass.length == 0
-          alert("名簿パスワードを入力して下さい")
-          $("#password").focus()
-          return false
-        else if not check_password(pass)
-          alert("名簿パスワードが違います")
-          $("#password").focus()
-          return false
-        text = CryptoJS.AES.encrypt(json,pass).toString(CryptoJS.enc.BASE64)
-        @model.set("text",text)
-        @model.set("found",true) # AddrBookViwe が render するときに text の方を使う
-        @model.save().done(-> alert("更新しました"))
-      catch e
-        console.log e.message
-      false
+    do_when_submit: _.wrap_submit ->
+      obj = $("#addrbook-form").serializeObj()
+      for [key,patt,msg] in validations
+        if not patt.test(obj[key])
+          alert(msg)
+          return
+      json = JSON.stringify(obj)
+      pass = $("#password").val()
+      if pass.length == 0
+        alert("名簿パスワードを入力して下さい")
+        $("#password").focus()
+        return false
+      else if not check_password(pass)
+        alert("名簿パスワードが違います")
+        $("#password").focus()
+        return false
+      text = CryptoJS.AES.encrypt(json,pass).toString(CryptoJS.enc.BASE64)
+      @model.set("text",text)
+      @model.set("found",true) # AddrBookViwe が render するときに text の方を使う
+      @model.save().done(-> alert("更新しました"))
 
     template_enc: _.template($("#templ-addrbook-body-enc").html())
     template_edit: _.template_braces($("#templ-addrbook-body-edit").html())

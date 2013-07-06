@@ -9,7 +9,8 @@ class MainApp < Sinatra::Base
           {name: "出場する", positive: true, id: -1},
           {name: "出場しない", positive: false, id: -1}],
         owners_str: @user.name,
-        all_attrs: get_all_attrs
+        all_attrs: get_all_attrs,
+        all_event_groups: get_all_event_groups
       }
     end
     get '/item/party' do
@@ -25,10 +26,13 @@ class MainApp < Sinatra::Base
     def get_all_attrs
       UserAttributeKey.all(order:[:index.asc]).map{|x|[[x.id,x.name],x.values.map{|y|[y.id,y.value]}]}
     end
+    def get_all_event_groups
+      EventGroup.all(order:[:name.asc]).map{|x|x.select_attr(:id,:name)}
+    end
 
     def event_info(ev,user,opts = {})
       today = Date.today
-      r = ev.select_attr(:place,:name,:date,:kind,:official,:deadline,:created_at,:id,:participant_count,:comment_count,:team_size)
+      r = ev.select_attr(:place,:name,:date,:kind,:official,:deadline,:created_at,:id,:participant_count,:comment_count,:team_size,:event_group_id)
       if ev.last_comment_date.nil?.! then
         r[:latest_comment_date] = ev.last_comment_date
         if user.show_new_from.nil?.! then
@@ -58,6 +62,7 @@ class MainApp < Sinatra::Base
         if opts[:edit]
           r[:all_attrs] = get_all_attrs
           r[:owners_str] = ev.owners.map{|u|User.get(u).name}.join(" , ")
+          r[:all_event_groups] = get_all_event_groups
           r.merge!(ev.select_attr(:forbidden_attrs,:hide_choice,:aggregate_attr_id))
         end
       end
@@ -111,7 +116,10 @@ class MainApp < Sinatra::Base
     end
 
     def update_or_create_item
-      @json.delete("all_attrs") # get時に付加したmodelにない情報なので削除する．TODO: 不要な情報なのでクライアント側で削除する
+      # get時に付加したmodelにない情報なので削除する．TODO: 不要な情報なのでクライアント側で削除する
+      @json.delete("all_attrs") 
+      @json.delete("all_event_groups") 
+
       dm_response{
         Event.transaction{
           @json["hide_choice"] = @json["hide_choice"].to_s.empty?.!
@@ -202,6 +210,11 @@ class MainApp < Sinatra::Base
             end
           }
         }
+      }
+    end
+    get '/group_list/:id' do
+      EventGroup.get(params[:id].to_i).events(order:[:date.desc])[0...10].map{|x|
+        x.select_attr(:id,:name,:date)
       }
     end
   end

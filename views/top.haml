@@ -127,12 +127,19 @@
         <% if(data.kind == "contest"){ %>
         %label
           恒例大会
-          %button.tiny.round +
+          %button.tiny.success 追加
         .row
-          .large-9.columns
-            %select
-          .large-3.columns
-            .button.tiny.round 情報
+          .large-12.columns
+            %select#event-groups(name='event_group_id')
+              %option ---
+              <% _.each(data.all_event_groups,function(x){ %>
+              {{_.make_option(data.event_group_id,{value:x.id,text:x.name})}}
+              <% }) %>
+            <% if(data.id=='contest'){ %>
+            #cont-cur-group-list
+              %label 情報コピー
+              %select#cur-group-list
+            <% } %>
         <% }else{ %>
         %label
           種別
@@ -153,13 +160,13 @@
       .large-2.columns
         %label 公認/非公認
         %select(name='official')
-          %option(value='1') 公認
-          %option(value='0') 非公認
+          {{_.make_option(data.official,{value:true,text:"公認"})}}
+          {{_.make_option(data.official,{value:false,text:"非公認"})}}
       .large-2.columns.left
         %label 個人戦/団体戦
         %select(name='team_size')
           <% _.each(JSON.parse(g_team_sizes_str),function(x){ %>
-          %option(value='{{x[0]}}') {{x[1]}}
+          {{_.make_option(data.team_size,{value:x[0],text:x[1]})}}
           <% }) %>
       .large-4.columns
         %label 正式名称

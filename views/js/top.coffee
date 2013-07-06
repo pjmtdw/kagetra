@@ -217,6 +217,39 @@ define (require,exports,module) ->
       "click .choice-name" : "edit_choice"
       "click .choice-delete" : "delete_choice"
       "click #add-choice" : "add_choice"
+      "change #event-groups" : "group_change"
+      "change #cur-group-list" : "copy_info"
+    copy_info: ->
+      gid = parseInt($("#event-groups").val())
+      id = parseInt($("#cur-group-list").val())
+      m = new $ed.EventItemModel(id:id)
+      that = this
+      m.fetch(data:{detail:true,edit:true}).done(->
+        that.model.set(m.pick(
+          "name","formal_name","place","description",
+          "forbidden_attrs","hide_choice","official",
+          "team_size", "aggregate_attr_id","start_at","end_at"
+        ))
+        console.log m.pick("aggregate_attr_id")
+        that.model.set("event_group_id",gid)
+
+        ev = new EventEditInfoView(model:that.model)
+        ev.render()
+        that.$el.find("#event-edit-info").empty()
+        that.$el.find("#event-edit-info").append(ev.$el)
+        that.group_change(id)
+      )
+    group_change: (optdef)->
+      # 大会の新規作成時のみ有効
+      return if @model.get("id") != "contest"
+      gid = $("#event-groups").val()
+      $.get("api/event/group_list/#{gid}").done((data)->
+        opts = "<option>---</option>"
+        for d in data
+          text = "#{d.date} #{d.name}"
+          opts += _.make_option(optdef,{value:d.id,text:text})
+        $("#cur-group-list").html(opts)
+      )
     edit_choice: (ev) ->
       t = $(ev.currentTarget).text()
       if r = prompt("選択肢名:",t)
@@ -234,6 +267,7 @@ define (require,exports,module) ->
     render: ->
       @$el.html($("#templ-event-edit").html())
       ev = new EventEditInfoView(model:@model)
+      @edit_info_view = ev
       ep = new EventEditParticipantView(model:@model)
       @$el.find("#event-edit-info").append(ev.$el)
       @$el.find("#event-edit-participant").append(ep.$el)

@@ -72,6 +72,11 @@
     width: 80px;
   }
 }
-#album-comment{
+#album-comment-container{
   margin: 0;
+  legend{
+    font-size: 1em;
+    font-weight: normal;
+  }
 }
+

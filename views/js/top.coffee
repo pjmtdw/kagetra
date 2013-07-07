@@ -288,7 +288,7 @@ define (require,exports,module) ->
     template: _.template_braces($("#templ-event-participant").html())
     template_item: _.template($("#templ-participant-item").html())
     template_attr: _.template_braces($("#templ-participant-attr").html())
-    cross: $("<span>",{html:'&times;',class:"delete-participant"})
+    cross: $("<span>",{html:'&times;',class:"delete-participant cross"})
     events:
       "click .toggle-edit" : "toggle_edit"
       "click .delete-participant" : "delete_participant"
@@ -319,7 +319,7 @@ define (require,exports,module) ->
       if name
         item = $(ev.currentTarget)
         newi = $($.parseHTML(@template_item(name:name)))
-        newi.append(@cross)
+        newi.append(@cross.clone())
         item.before(newi)
         [attr,choice] = @get_choice_attr(item)
         @edit_log[name]=["add",attr,choice]
@@ -330,7 +330,7 @@ define (require,exports,module) ->
       @$el.find(".apply-edit").toggle()
       @edit_mode ^= true
       if @edit_mode
-        @$el.find(".item").append(@cross)
+        @$el.find(".item").append(@cross.clone())
         that = this
         @$el.find(".participant-choice").each((i,x)->
           obj = _.object(that.model.get("participant_attrs"))

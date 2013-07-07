@@ -121,7 +121,7 @@ end
 # タグ
 class AlbumTag
   include ModelBase
-  property :name, TrimString, required: true
+  property :name, TrimString, required: true, index: true
   property :coord_x, Integer # 写真の中のX座標
   property :coord_y, Integer # 写真の中のY座標
   property :radius, Integer # 円の半径

@@ -12,7 +12,7 @@
     .row
       .large-12.columns
         %input(name='user_name' type='text' placeholder='名前' value='{-data.user_name-}')
-        %textarea.response-edit-body(name='body' rows=20 placeholder='内容') {{ data.body }}
+        %textarea.response-edit-body(name='body' rows=20 placeholder='内容') {- data.body -}
 
 %script#templ-comment-item(type='text/template')
   .comment-item

@@ -31,6 +31,37 @@ class MainApp < Sinatra::Base
       r[:tags] = item.tags.map{|x|x.select_attr(:id,:name,:coord_x,:coord_y,:radius)}
       r
     end
+    put '/item/:id' do
+      item = AlbumItem.get(params[:id].to_i)
+      dm_response{
+        AlbumItem.transaction{
+          if @json.has_key?("tag_edit_log")
+            @json["tag_edit_log"].each{|k,v|
+              (cmd,obj) = v
+              case cmd
+              when "update_or_create"
+                if k.to_i < 0 then
+                  obj.delete("id")
+                  obj["album_item_id"] = item.id
+                  AlbumTag.create(obj)
+                else
+                  AlbumTag.update(obj)
+                end
+              when "destroy"
+                if k.to_i >= 0 then
+                  t = AlbumTag.get(k.to_i)
+                  if t.nil?.! then
+                    t.destroy()
+                  end
+                end
+              end
+            }
+            @json.delete("tag_edit_log")
+          end
+          item.update(@json)
+        }
+      }
+    end
     get '/years' do
       {list: AlbumGroup.aggregate(:item_count.sum, fields:[:year], unique: true, order: [:year.desc])}
     end

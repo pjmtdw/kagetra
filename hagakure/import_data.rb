@@ -1097,10 +1097,10 @@ def comment_log(comment)
     if %r(^##<name>(.*?)</name><date>(.*?)</date>(.*)) =~ c then
       username = $1
       editdate = DateTime.parse($2)
-      patch = $3.gsub("<br>","\n")
+      patch = $3.body_replace
       comment = mypatch(comment,patch)
     else
-      comment = c.gsub("<br>","\n")
+      comment = c.body_replace
     end
     log << {comment:comment,username:username,date:editdate}
   }

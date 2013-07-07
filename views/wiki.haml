@@ -81,7 +81,7 @@
         %input(type='text' name='title' placeholder='タイトル' value='{-data.title-}')
     .row
       .large-12.columns
-        %textarea(name='body' rows=60 placeholder='本文') {{data.body}}
+        %textarea(name='body' rows=60 placeholder='本文') {- data.body -}
 
 
 %script#templ-wiki-attached(type='text/template')

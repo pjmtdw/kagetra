@@ -214,13 +214,13 @@
     .row
       .large-12.columns
         %label 備考
-        %textarea(name='description' rows=15) {{data.description}}
+        %textarea(name='description' rows=15) {- data.description -}
 
 %script#templ-choice-item(type='text/template')
   .left.choice-item(data-choice-id='{{x.id}}' data-positive='{{x.positive}}')
     %span.choice-name {- x.name -}
     <% if(x.positive){ %>
-    %span.choice-delete &times;
+    %span.cross.choice-delete &times;
     <% } %> 
 
 

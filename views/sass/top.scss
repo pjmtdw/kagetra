@@ -146,12 +146,6 @@ $forbidden-color: gray !important;
     &[data-positive="false"]{
       background-color: #EEE;
     }
-    .choice-delete{
-      margin-left: 5px;
-      color: gray;
-      text-shadow: 1px 1px 1px gray;
-      cursor: pointer;
-    }
   }
 }
 
@@ -166,11 +160,3 @@ $forbidden-color: gray !important;
   }
 }
 
-#event-edit-participant{
-  .delete-participant{
-    font-size: 120%;
-    text-shadow: 1px 1px 1px silver;
-    margin-left: 4px;
-    cursor: pointer;
-  }
-}

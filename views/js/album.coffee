@@ -86,9 +86,9 @@ define (require,exports,module)->
     mk.css("left",cx)
     mk.css("top",cy)
     mk.show()
+    tn.text(tag.name)
     tx = tag.coord_x - tn.width()/2
     ty = tag.coord_y + mk.height()/2
-    tn.text(tag.name)
     tn.css("left",tx)
     tn.css("top",ty)
     tn.show()
@@ -99,13 +99,79 @@ define (require,exports,module)->
     tn.hide()
   AlbumItemView = Backbone.View.extend
     template: _.template_braces($("#templ-album-item").html())
+    template_tag: _.template_braces($("#templ-album-tag").html())
+    cross: $("<span>",{html:'&times;',class:"delete-tag cross"})
+
     events:
-      "mousemove #photo" : "mouse_moved"
-      "click .album-tag" : "album_tag"
+      "mousemove #photo" : (ev) -> @mouse_moved(ev) unless @edit_mode
+      "click #photo" : (ev) -> if @edit_mode then @append_tag(ev) else @mouse_moved(ev) # マウスのないスマホとかのためにもクリックでタグ表示できるようにしておく
+      "click .album-tag-name" : "album_tag"
+      "click #start-edit" : "start_edit"
+      "click .delete-tag" : "delete_tag"
+      "click #apply-edit" : "apply_edit"
+    apply_edit: ->
+      obj = $("#album-item-form").serializeObj()
+      obj["tag_edit_log"] = @tag_edit_log if not _.isEmpty(@tag_edit_log)
+      that = this
+      _.save_model(@model,obj).done(->
+        that.model.fetch().done(->
+          that.edit_mode = false
+          alert("更新完了")
+        )
+      ).fail((msg)->alert("更新失敗: " + msg))
+
+    start_edit: ->
+      hide_tag()
+      if @edit_mode
+        that = this
+        @model.fetch().done(-> that.edit_mode = false)
+        return
+      for [s,p] in [
+        ["name",""],
+        ["place",""],
+        ["date","YYYY-MM-DD"]
+      ]
+        o = $("#album-#{s}")
+        c = "<input placeholder='#{p}' type='text' name='#{s}' value='#{_.escape(@model.get(s))}'>"
+        o.html(c)
+      
+      c = "<textarea name='comment' rows='10'>#{_.escape(@model.get('comment'))}</textarea>"
+      $("#album-comment").html(c)
+      @$el.find(".album-tag").append(@cross.clone())
+      $("#canvas").before($("<div>",text:"写真をクリックするとタグを追加できます"))
+      $("#start-edit").toggleBtnText()
+      obj = $("<button>",text:"更新",class:"small round",id:"apply-edit")
+      $("#start-edit").after(obj)
+      @edit_mode = true
+      @new_tag_id = -1
+      @tag_edit_log = {}
+    
+    append_tag: (ev) ->
+      if name = prompt("タグ名")
+        o = $($.parseHTML(@template_tag(tag:{name:name,id:@new_tag_id})))
+        nw = {id:@new_tag_id,name:name,coord_x:ev.offsetX,coord_y:ev.offsetY,radius:50}
+        @tag_edit_log[@new_tag_id] = ["update_or_create", nw]
+        @model.get("tags").push(nw)
+        o.append(@cross.clone())
+        $("#album-tags").append(o)
+        @new_tag_id -= 1
+
+    delete_tag: (ev) ->
+      obj = $(ev.currentTarget).parent()
+      @tag_edit_log[obj.data("tag-id")] = ["destroy"]
+      obj.remove()
+
     album_tag: (ev)->
       obj = $(ev.currentTarget)
-      tag = _.find(@model.get("tags"),(x)->x.id == obj.data("tag-id"))
-      show_tag(tag)
+      tag_id = obj.parent().data("tag-id")
+      tag = _.find(@model.get("tags"),(x)->x.id == tag_id)
+      if @edit_mode
+        if name = prompt("タグ名",obj.text())
+          tag["name"] = name
+          @tag_edit_log[tag_id] = ["update_or_create", tag]
+          obj.text(name)
+      else
+        show_tag(tag)
     mouse_moved: (ev)->
       ev.stopPropagation()
       x = ev.offsetX

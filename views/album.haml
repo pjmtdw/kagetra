@@ -59,23 +59,27 @@
 %script#templ-album-item(type='text/template')
   .row
     .large-12.columns
-    %a(href='album{{data.group_id?"#group/"+data.group_id:"#year/"+data.group_year}}') 戻る
-  .row
-    .large-4.columns
-      %table#album-infos
-        %tr
-          %td タイトル
-          %td {- data.name -}
-        %tr
-          %td 場所
-          %td {- data.place -}
-        %tr
-          %td 日付
-          %td {{ data.date }}
-    .large-8.columns
-      %fieldset#album-comment
-        %legend コメント
-        {- data.comment -}
+      .left
+        %a(href='album{{data.group_id?"#group/"+data.group_id:"#year/"+data.group_year}}') 戻る
+      .right
+        %button.small.round#start-edit(data-toggle-text='キャンセル') 編集開始
+  %form#album-item-form
+    .row
+      .large-4.columns
+        %table#album-infos
+          %tr
+            %td タイトル
+            %td#album-name {- data.name -}
+          %tr
+            %td 場所
+            %td#album-place {- data.place -}
+          %tr
+            %td 日付
+            %td#album-date {{ data.date }}
+      .large-8.columns
+        %fieldset#album-comment-container
+          %legend コメント
+          %div#album-comment.pre {- data.comment -}
   .row
     .large-12.columns
       #album-tags
@@ -96,4 +100,4 @@
 
 %script#templ-album-tag(type='text/template')
   .album-tag(data-tag-id='{{tag.id}}')
-    %span {- tag.name -}
+    %span.album-tag-name {- tag.name -}

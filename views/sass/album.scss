@@ -31,3 +31,47 @@
     }
   }
 }
+#canvas{
+  position: relative;
+  #photo,#tag-name,.marker{
+    position: absolute;
+  }
+  #photo{
+    z-index: 1;
+    cursor: crosshair;
+  }
+  .marker{
+    z-index: 10;
+  }
+  #tag-name{
+    z-index: 20;
+    text-shadow: 1px 1px 1px gray;
+    color: white;
+    background: rgba(0,0,0,0.5);
+    padding: 3px;
+  }
+}
+#album-tags{
+  margin-bottom: 6px;
+  .album-tag{
+    cursor: pointer;
+    margin-left: .4em;
+    border: 1px dotted gray;
+    padding: 3px;
+    background-color: #FED;
+    display: inline-block; 
+    margin-bottom: 6px;
+    &:hover{
+      background-color: #DEF;
+    }
+  }
+}
+#album-infos{
+  width: 100%;
+  tr td:nth-child(1){
+    width: 80px;
+  }
+}
+#album-comment{
+  margin: 0;
+}

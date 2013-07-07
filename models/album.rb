@@ -15,9 +15,9 @@ class AlbumGroup
   property :dummy, Boolean, index: true, default: false # どのグループにも属していない写真のための擬似的なグループ
   property :year, Integer, index: true # 年ごとの集計のためにキャッシュする
 
-  property :daily_choose_count, Integer # 所属写真の今日の一枚の選ばれる数
-  property :no_comment_count, Integer # コメントの入っていない写真の数
-  property :no_tag_count, Integer # タグの入っていない写真の数
+  property :daily_choose_count, Integer, default: 0 # 所属写真の今日の一枚の選ばれる数
+  property :has_comment_count, Integer, default: 0 # コメントの入っている写真の数
+  property :has_tag_count, Integer, default: 0 # タグの入っている写真の数
   property :item_count, Integer # 毎回aggregateするのは遅いのでキャッシュ
   has n, :items, 'AlbumItem', child_key: [:group_id]
   before :save do
@@ -46,6 +46,8 @@ class AlbumItem
   property :rotate, Integer # 回転 (右向き, 度数法)
   property :orig_filename, String, length: 128 # アップロードされた元のファイル名
 
+  property :tag_count, Integer, default: 0
+
   has 1, :photo, 'AlbumPhoto'
   has 1, :thumb, 'AlbumThumbnail'
   has n, :tags, 'AlbumTag'
@@ -66,7 +68,8 @@ class AlbumItem
   after :save do
     ag = self.group
     c = ag.items(daily_choose:true).count
-    ag.update(daily_choose_count:c)
+    hc = ag.items(:comment.not => nil).count
+    ag.update(daily_choose_count:c,has_comment_count:hc)
   end
 end
 
@@ -122,4 +125,15 @@ class AlbumTag
   property :coord_x, Integer # 写真の中のX座標
   property :coord_y, Integer # 写真の中のY座標
   property :radius, Integer # 円の半径
+  belongs_to :album_item
+  [:create,:destroy].each{|sym|
+    after sym do
+      AlbumItem.transaction{
+        item = self.album_item
+        item.update(tag_count:item.tags.count)
+        ag = item.group
+        ag.update(has_tag_count:ag.items(:tag_count.gt => 0).count)
+      }
+    end
+  }
 end

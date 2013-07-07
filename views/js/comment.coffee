@@ -68,36 +68,28 @@ define ->
         v = new CommentItemView(model: m)
         @$el.find(".comment-body").append(v.$el)
 
-  WikiCommentItemModel = Backbone.Model.extend
-    urlRoot: '/api/wiki/comment/item'
-
-  WikiCommentCollection = Backbone.Collection.extend
-    model: WikiCommentItemModel
-    url: -> "/api/wiki/comment/list/#{@id}"
-    parse: (data) ->
-      data.list
-
-  EventCommentItemModel = Backbone.Model.extend
-    urlRoot: '/api/event/comment/item'
-
-  EventCommentCollection = Backbone.Collection.extend
-    model: EventCommentItemModel
-    url: -> "/api/event/comment/list/#{@id}"
-    parse: (data) ->
-      @thread_name = data.thread_name
-      @next_page = data.next_page
-      data.list
-
   class ExtCommentThreadView extends CommentThreadView
     template: _.template_braces($("#templ-ext-comment").html())
     events:
+      _.extend(CommentThreadView.prototype.events,
       "click .next-comment-page" : "next_comment_page"
+      )
     next_comment_page: (ev)->
       page = $(ev.currentTarget).data("next-page")
       @collection.fetch({data:{page:page}})
     initialize: ->
       _.bindAll(this,"render","refresh")
-      @collection = if @options.mode == "event" then new EventCommentCollection() else new WikiCommentCollection()
+      mode = @options.mode
+      M = Backbone.Model.extend {urlRoot:"api/#{mode}/comment/item"}
+      C = Backbone.Collection.extend
+        model:M
+        url:->"api/#{mode}/comment/list/#{@id}"
+        parse: (data)->
+          @thread_name = data.thread_name
+          @next_page = data.next_page
+          data.list
+        comparator: (x)-> -Date.parse(x.get("date"))
+      @collection = new C()
       @listenTo(@collection,"sync",@render)
     render: ->
       @$el.html(@template(_.pick(@collection,"next_page","thread_name")))

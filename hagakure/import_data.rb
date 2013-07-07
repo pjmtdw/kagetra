@@ -169,7 +169,7 @@ def import_bbs
         pat = /<!--ID:(\d+)-->$/
         user = nil
         if pat =~ name then
-          user = User.first(id: $1)
+          user = User.get($1)
           name.sub!(pat,"")
         end
         item_props = {
@@ -868,7 +868,7 @@ def import_event_comment
     else
       raise Exception.new("invalid filename: #{fn}")
     end
-    evt = Event.first(id:taikainum)
+    evt = Event.get(taikainum)
     if not evt then
       puts "WARNING: event with id='#{taikainum}' not found. ignoring comment file '#{fn}'"
       next
@@ -952,7 +952,7 @@ def import_album_stage1
 
   old_ids = {}
   # 関連写真があるのでまず最初にAlbumItemを作ってから後でupdateする
-  Parallel.each(Dir.glob(File.join(CONF_HAGAKURE_BASE,"album","albumlist_*.cgi")), in_threads: NUM_THREADS){|fn|
+  Parallel.each(Dir.glob(File.join(CONF_HAGAKURE_BASE,"album","albumlist_*.cgi"))[0..3], in_threads: NUM_THREADS){|fn|
     lines = File.readlines(fn)
     (dnum,dname) = lines[0].chomp.sub(/^\+/,"").split(/\t/)
     lines[1..-1].each{|line|
@@ -1161,7 +1161,7 @@ def import_wiki
   }
 end
 
-make_tasks
+#make_tasks
 
 #import_zokusei
 #import_user
@@ -1174,4 +1174,4 @@ make_tasks
 #import_endtaikai
 #import_event_comment
 #import_wiki
-#import_album
+import_album

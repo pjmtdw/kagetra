@@ -74,8 +74,54 @@ define (require,exports,module)->
 
   AlbumItemModel = Backbone.Model.extend
     urlRoot: "/api/album/item"
+  distance = (p1,p2)->
+    dx = p1.x - p2.x
+    dy = p1.y - p2.y
+    Math.sqrt(dx*dx+dy*dy)
+  show_tag = (tag)->
+    mk = $("#marker-y")
+    tn = $("#tag-name")
+    cx = tag.coord_x - mk.width()/2
+    cy = tag.coord_y - mk.height()/2
+    mk.css("left",cx)
+    mk.css("top",cy)
+    mk.show()
+    tx = tag.coord_x - tn.width()/2
+    ty = tag.coord_y + mk.height()/2
+    tn.text(tag.name)
+    tn.css("left",tx)
+    tn.css("top",ty)
+    tn.show()
+  hide_tag = ->
+    mk = $("#marker-y")
+    tn = $("#tag-name")
+    mk.hide()
+    tn.hide()
   AlbumItemView = Backbone.View.extend
     template: _.template_braces($("#templ-album-item").html())
+    events:
+      "mousemove #photo" : "mouse_moved"
+      "click .album-tag" : "album_tag"
+    album_tag: (ev)->
+      obj = $(ev.currentTarget)
+      tag = _.find(@model.get("tags"),(x)->x.id == obj.data("tag-id"))
+      show_tag(tag)
+    mouse_moved: (ev)->
+      ev.stopPropagation()
+      x = ev.offsetX
+      y = ev.offsetY
+      d_min = 999999.0
+      tag = null
+      for t in @model.get("tags")
+        d = distance({x:x,y:y},{x:t.coord_x,y:t.coord_y})
+        if d <= t.radius and d < d_min
+          tag = t
+          d_min = d
+      if tag
+        show_tag(tag)
+      else
+        hide_tag()
+
     initialize: ->
       @model = new AlbumItemModel()
       @listenTo(@model,"sync",@render)

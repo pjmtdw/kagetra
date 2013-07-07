@@ -40,7 +40,7 @@ class MainApp < Sinatra::Base
     end
 
   end
-  COMMENTS_PER_PAGE = 10
+  COMMENTS_PER_PAGE = 16
   def self.comment_routes(namespace,klass,klass_comment)
     get "#{namespace}/comment/list/:id" do
       page = if params[:page] then params[:page].to_i else 1 end

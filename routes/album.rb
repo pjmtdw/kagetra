@@ -20,13 +20,15 @@ class MainApp < Sinatra::Base
     end
     get '/item/:id' do
       item = AlbumItem.get(params[:id].to_i)
-      r = item.select_attr(:id,:name)
+      r = item.select_attr(:id,:name,:place,:date,:comment)
+      r.merge!(item.photo.select_attr(:width,:height))
       group = item.group
       if group.dummy
         r[:group_year] = group.year
       else
         r[:group_id] = group.id
       end
+      r[:tags] = item.tags.map{|x|x.select_attr(:id,:name,:coord_x,:coord_y,:radius)}
       r
     end
     get '/years' do

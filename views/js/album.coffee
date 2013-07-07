@@ -1,14 +1,24 @@
 define (require,exports,module)->
-  class AlbumRouter extends _.router_base("album",["top","year","group","item"])
+  class AlbumRouter extends _.router_base("album",["top","year","group","item","search"])
     routes:
       "year/:year" : "year"
       "group/:id" : "group"
       "item/:id" : "item"
+      "search/:qs(/:page)" : "search"
       "" : "start"
     year: (year) -> @remove_all();@set_id_fetch("year",AlbumYearView,year)
     group: (id) -> @remove_all();@set_id_fetch("group",AlbumGroupView,id)
     item: (id) -> @remove_all();@set_id_fetch("item",AlbumItemView,id)
     start: -> @remove_all();@set_id_fetch("top",AlbumTopView)
+    search: (qs,page) ->
+      qs = decodeURI(qs)
+      if not page
+        page = 1
+      if not window.album_search_view?
+        @remove_all()
+        window.album_search_view = new AlbumSearchView(init_qs:qs)
+      if qs
+        window.album_search_view.search(qs,page)
 
   AlbumTopModel = Backbone.Model.extend
     url: "/api/album/years"
@@ -17,6 +27,11 @@ define (require,exports,module)->
     template: _.template_braces($("#templ-album-top").html())
     events:
       "click .gbase.years": "do_list_year"
+      "submit .search-form" : "do_search"
+    do_search: _.wrap_submit (ev) ->
+      qs = $(ev.currentTarget).find("input[name='qs']").val()
+      window.album_router.navigate("search/#{encodeURI(qs)}", trigger:true)
+
     do_list_year: (ev)->
       year = $(ev.currentTarget).data("year")
       window.album_router.navigate("year/#{year}", trigger:true)
@@ -109,6 +124,10 @@ define (require,exports,module)->
       "click #start-edit" : "start_edit"
       "click .delete-tag" : "delete_tag"
       "click #apply-edit" : "apply_edit"
+      "click #scroll-to-relation" : "scroll_to_relation"
+    scroll_to_relation: ->
+      $("#relations-start").scrollHere(700)
+
     apply_edit: ->
       obj = $("#album-item-form").serializeObj()
       obj["tag_edit_log"] = @tag_edit_log if not _.isEmpty(@tag_edit_log)
@@ -141,6 +160,7 @@ define (require,exports,module)->
       $("#canvas").before($("<div>",text:"写真をクリックするとタグを追加できます"))
       $("#start-edit").toggleBtnText()
       obj = $("<button>",text:"更新",class:"small round",id:"apply-edit")
+      obj = $("<button>",text:"関連写真",class:"small round",id:"apply-edit")
       $("#start-edit").after(obj)
       @edit_mode = true
       @new_tag_id = -1
@@ -195,6 +215,31 @@ define (require,exports,module)->
       @$el.html(@template(data:@model.toJSON()))
       @$el.appendTo("#album-item")
 
+  AlbumSearchView = Backbone.View.extend
+    template: _.template_braces($("#templ-album-search").html())
+    template_result: _.template_braces($("#templ-album-search-result").html())
+    events:
+      "submit .search-form" : "do_submit"
+      "click .page" : "goto_page"
+    initialize: ->
+      @render()
+    render: ->
+      @$el.html(@template())
+      @$el.find(".search-form input[name='qs']").val(@options.init_qs)
+      @$el.appendTo("#album-search")
+    research: (page)->
+      qs = @$el.find(".search-form input[name='qs']").val()
+      window.album_router.navigate("search/#{encodeURI(qs)}/#{page}", trigger:true)
+    goto_page: (ev)->
+      obj = $(ev.currentTarget)
+      @research(obj.data("page"))
+    do_submit: _.wrap_submit ->
+      @research(1)
+    search: (qs,page)->
+      that = this
+      $.post("api/album/search",{qs:qs,page:page}).done((data)->
+        that.$el.find(".search-result").html(that.template_result(data:data))
+      )
 
   init: ->
     window.album_router = new AlbumRouter()

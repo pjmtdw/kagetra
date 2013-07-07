@@ -6,7 +6,9 @@ define (require, exports, module) ->
       Backbone.Router.extend
         remove_all: ->
           for k in arg
-            window["#{prefix}_#{k}_view"]?.remove()
+            vn = "#{prefix}_#{k}_view"
+            window[vn]?.remove()
+            delete window[vn]
         set_id_fetch: (k,klass,id) ->
           v = new klass()
           window["#{prefix}_#{k}_view"] = v
@@ -116,6 +118,14 @@ define (require, exports, module) ->
     t = @data("toggle-text")
     @data("toggle-text",@text())
     @text(t)
+
+
+  $.fn.scrollHere = (speed)->
+    speed ||= 1000
+    $('html, body').animate({
+      scrollTop: this.offset().top
+    }, speed)
+
 
   # formのinput要素を{name: value}形式にする
   $.fn.serializeObj = ->

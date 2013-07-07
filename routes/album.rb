@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
+  ALBUM_SEARCH_PER_PAGE = 50
   namespace '/api/album' do
     get '/year/:year' do
       year = if params[:year] == "_else_" then nil else params[:year] end
@@ -22,13 +23,9 @@ class MainApp < Sinatra::Base
       item = AlbumItem.get(params[:id].to_i)
       r = item.select_attr(:id,:name,:place,:date,:comment)
       r.merge!(item.photo.select_attr(:width,:height))
-      group = item.group
-      if group.dummy
-        r[:group_year] = group.year
-      else
-        r[:group_id] = group.id
-      end
+      r[:group] = item.group.select_attr(:dummy,:year,:id,:name)
       r[:tags] = item.tags.map{|x|x.select_attr(:id,:name,:coord_x,:coord_y,:radius)}
+      r[:relations] = item.relations.map{|x|x.id}
       r
     end
     put '/item/:id' do
@@ -63,7 +60,45 @@ class MainApp < Sinatra::Base
       }
     end
     get '/years' do
-      {list: AlbumGroup.aggregate(:item_count.sum, fields:[:year], unique: true, order: [:year.desc])}
+      aggr = AlbumGroup.aggregate(:item_count.sum, fields:[:year], unique: true, order: [:year.desc])
+      total = aggr.map{|x|x[1]}.sum
+      {list: aggr,total: total}
+    end
+    post '/search' do
+      cond = {}
+      qs = params[:qs]
+      page = if params[:page] then params[:page].to_i else 1 end
+      if /(?:^|\s)([0-9\-]+)(?:$|\s)/ =~ qs then
+        qs = $` + " " + $'
+        mt = $1
+        (year_s,year_e) = nil
+        if mt.end_with?("-") then
+          year_s = mt.gsub("-","").to_i
+        elsif mt.start_with?("-") then
+          year_e = mt.gsub("-","").to_i
+        elsif mt.include?("-") then
+          (year_s,year_e) = mt.split("-")
+        else
+          (year_s,year_e) = [mt.to_i]*2
+        end
+        cond[:date.gte] = Date.new(year_s.to_i,1,1) unless year_s.nil?
+        cond[:date.lt] = Date.new(year_e.to_i+1,1,1) unless year_e.nil?
+      end
+      qx = AlbumItem.all(id:-1) # 存在しないクエリ
+      ss = qs.strip.split(/\s+/).map{|x| "%#{x}%" }
+      [:name,:place,:comment,AlbumItem.tags.name].each{|sym|
+        q = AlbumItem.all(cond)
+        ss.each{|x|
+          q &= AlbumItem.all(sym.like => x)
+        }
+        qx |= q
+      }
+      chunks = qx.all(order:[:date.desc]).chunks(ALBUM_SEARCH_PER_PAGE)
+      {
+        list: chunks[page-1].map{|x|x.id},
+        pages: chunks.size,
+        cur_page: page
+      }
     end
   end
   get '/album' do

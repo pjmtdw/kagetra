@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 module MiscHelpers
   def get_user
-    User.first(id: session[:user_id], token: session[:user_token])
+    #User.first(id: session[:user_id], token: session[:user_token])
+    User.first(id:73)
   end
 
   def dm_response

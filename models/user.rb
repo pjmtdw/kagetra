@@ -62,7 +62,11 @@ class User
   def log_mon_count
     dt = Date.today
     monthly = self.login_monthly.first(year:dt.year,month:dt.month)
-    monthly.count
+    if monthly then
+      monthly.count
+    else
+      0
+    end
   end
   def last_login_str
     pre = self.show_new_from

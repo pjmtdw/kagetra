@@ -10,8 +10,19 @@
 #album-year
 #album-group
 #album-item
+#album-search
+
+#container-album-relations.reveal-modal
 
 %script#templ-album-top(type='text/template')
+  .row
+    .large-8.columns
+      計:
+      %span.album-num-total {{ data.total }}
+      枚
+      %button.small.round 写真アップロード
+    .large-4.columns
+      {{ $("#templ-album-search-form").html() }}
   .row
     %ul.large-block-grid-7.small-block-grid-4
       <% _.each(data.list,function(x){ %>
@@ -26,7 +37,7 @@
 
 %script#templ-album-year(type='text/template')
   .row
-    %a(href="album") 戻る
+    %a(href="album#") TOP
     %ul.large-block-grid-3.small-block-grid-2
       <% _.each(data.list,function(x){ %>
       %li
@@ -45,7 +56,8 @@
 
 %script#templ-album-group(type='text/template')
   .row
-    %a(href='album#year/{{data.year}}') 戻る
+    %a(href='album#') TOP - 
+    %a(href='album#year/{{data.year}}') {{data.year}}年 -
     {- data.name -}
     %ul.large-block-grid-4.small-block-grid-2
       <% _.each(data.items,function(x){ %>
@@ -60,7 +72,11 @@
   .row
     .large-12.columns
       .left
-        %a(href='album{{data.group_id?"#group/"+data.group_id:"#year/"+data.group_year}}') 戻る
+        %a(href='album#') TOP - 
+        %a(href='album#year/{{data.group.year}}') {{data.group.year}}年 -
+        <% if(!data.group.dummy){ %>
+        %a(href='album{{"#group/"+data.group.id}}') {- data.group.name -}
+        <% } %>
       .right
         %button.small.round#start-edit(data-toggle-text='キャンセル') 編集開始
   %form#album-item-form
@@ -88,16 +104,60 @@
         <% _.each(data.tags,function(t){ %>
         {{ templ({tag:t}) }}
         <% }) %>
-        
+  <% if(!_.isEmpty(data.relations)){ %>
+  .row.show-for-small
+    %a#scroll-to-relation 関連写真へスクロール ( {{data.relations.length}} ) 
+  <% } %>
   .row
     .large-12.columns
-      #canvas(style="height:{{data.height}}px;width:{{data.width}}px")
+      #canvas.left(style="height:{{data.height}}px;width:{{data.width}}px")
         %img#photo(height="{{data.height}}" width="{{data.width}}" src='/static/album/photo/{- data.id -}')
         %img#marker-r.marker.hide(src='/img/album_marker/red.gif')
         %img#marker-b.marker.hide(src='/img/album_marker/blue.gif')
         %img#marker-y.marker.hide(src='/img/album_marker/yellow.gif')
         %span#tag-name.hide
+      <% if(!_.isEmpty(data.relations)){ %>
+      #relations-start.left
+        関連写真 ( {{data.relations.length}} ): 
+      <% } %>
+      <% _.each(data.relations,function(r){ %>
+      .left.relation
+        %a(href='album#item/{{r}}')
+          %img(src='/static/album/thumb/{{r}}')
+      <% }) %>
 
 %script#templ-album-tag(type='text/template')
   .album-tag(data-tag-id='{{tag.id}}')
     %span.album-tag-name {- tag.name -}
+
+%script#templ-album-search(type='text/template')
+  .row
+    .large-8.columns
+      %a(href='album#') TOP
+    .large-4.columns
+      {{ $("#templ-album-search-form").html() }}
+  .search-result
+
+%script#templ-album-search-result(type='text/template')
+  .row
+    .large-12.columns
+      <% if(data.pages > 1){ %>
+      %ul.pagination
+        <% for(i=0;i<data.pages;i++){ %>
+        %li(class='{{i+1==data.cur_page?"current":""}}')
+          %a.page(data-page='{{i+1}}') {{i+1}}
+        <% } %>
+      <% } %>
+      <% _.each(data.list,function(x){ %>
+      %a(href='album#item/{{x}}')
+        %img(src='/static/album/thumb/{{x}}')
+      <% }) %>
+
+%script#templ-album-search-form(type='text/template')
+  %form.search-form
+    .row.collapse
+      .large-10.small-10.columns
+        %input(name='qs' type='text' placeholder='検索文字列')
+      .large-2.small-2.columns
+        %input.button.small.postfix.radius(type='submit' value='検索')
+

@@ -52,8 +52,13 @@ class AlbumItem
   has 1, :thumb, 'AlbumThumbnail'
   has n, :tags, 'AlbumTag'
 
-  has n, :album_relations, child_key: [:source_id]
-  has n, :relations, self, through: :album_relations, via: :target
+  # 順方向の関連写真
+  has n, :album_relations_r, 'AlbumRelation', child_key: [:source_id]
+  has n, :relations_r, self, through: :album_relations_r, via: :target
+  # 逆方向の関連写真
+  has n, :album_relations_l, 'AlbumRelation', child_key: [:target_id]
+  has n, :relations_l, self, through: :album_relations_l, via: :source
+
   has n, :comment_logs, 'AlbumCommentLog' # コメントの編集履歴
   before :create do
     if self.group_index.nil? then
@@ -71,16 +76,26 @@ class AlbumItem
     hc = ag.items(:comment.not => nil).count
     ag.update(daily_choose_count:c,has_comment_count:hc)
   end
+
+  # 順方向と逆方向の両方の関連写真
+  def relations
+    self.relations_r + self.relations_l
+  end
+
 end
 
 # 関連写真
 class AlbumRelation
   include ModelBase
-  # TODO: (source, target) と (target, sorce) を同じものとみなす
   property :source_id, Integer, unique_index: :u1, required: true, index: true
   belongs_to :source, 'AlbumItem', key: true
   property :target_id, Integer, unique_index: :u1, required: true, index: true
   belongs_to :target, 'AlbumItem', key: true
+  # (source,target) と (target,source) はどちらかしか存在できない
+  after :save do
+    r = self.class.first(source:self.target, target:self.source)
+    if r.nil?.! then r.destroy end
+  end
 end
 
 # サムネイルと写真両方に共通する情報

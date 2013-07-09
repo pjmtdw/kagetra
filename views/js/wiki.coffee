@@ -36,7 +36,7 @@ define (require,exports,module) ->
       "click #edit-done" : "edit_done"
       "click #delete-wiki" : "delete_wiki"
     delete_wiki:->
-      if confirm("本当に削除しますか？")
+      if prompt("削除するにはdeleteと入れて下さい") == "delete"
         @model.destroy().done(->alert("削除しました"))
     edit_done:->
       obj = $("#wiki-edit-form").serializeObj()

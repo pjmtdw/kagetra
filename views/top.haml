@@ -32,8 +32,7 @@
         %div.right.daily-album-photo
           %div 今日の一枚
           %div
-            %a(href="album#item/#{daily_photo['id']}")
-              %img(src="static/album/thumb/#{daily_photo['id']}" width="#{daily_photo['width']}" height="#{daily_photo['height']}")
+            <%= _.album_thumb(JSON.parse(g_daily_photo_str)) %>
   .row
     .large-12.columns
       - if @user.admin
@@ -232,3 +231,6 @@
 = haml :event_detail
 
 #sticky-alert-container
+
+%script
+  var g_daily_photo_str='#{daily_photo.to_json}';

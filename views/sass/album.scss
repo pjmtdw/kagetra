@@ -66,7 +66,7 @@
     }
   }
 }
-#album-infos{
+#album-info-table{
   width: 100%;
   tr td:nth-child(1){
     width: 80px;
@@ -84,4 +84,19 @@
   font-size: 120%;
   text-shadow: 1px 1px 1px silver;
   font-weight: bold;
+}
+#canvas-container{
+  max-width: 1050px;
+  #relation-start{
+    max-width: 200px;
+  }
+  .relation{
+    max-width: 200px;
+  }
+}
+#album-delete{
+  margin-right: 2em;
+}
+#scroll-to-relation{
+  cursor: pointer;
 }

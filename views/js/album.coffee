@@ -75,11 +75,6 @@ define (require,exports,module)->
 
   AlbumGroupView = Backbone.View.extend
     template: _.template_braces($("#templ-album-group").html())
-    events:
-      "click .gbase.thumbnail":"goto_item"
-    goto_item:(ev)->
-      id = $(ev.currentTarget).data("item-id")
-      window.album_router.navigate("item/#{id}", trigger:true)
     initialize: ->
       @model = new AlbumGroupModel()
       @listenTo(@model,"sync",@render)
@@ -115,6 +110,10 @@ define (require,exports,module)->
   AlbumItemView = Backbone.View.extend
     template: _.template_braces($("#templ-album-item").html())
     template_tag: _.template_braces($("#templ-album-tag").html())
+
+    template_info: _.template_braces($("#templ-album-info").html())
+    template_info_form: _.template_braces($("#templ-album-info-form").html())
+
     cross: $("<span>",{html:'&times;',class:"delete-tag cross"})
 
     events:
@@ -122,46 +121,44 @@ define (require,exports,module)->
       "click #photo" : (ev) -> if @edit_mode then @append_tag(ev) else @mouse_moved(ev) # マウスのないスマホとかのためにもクリックでタグ表示できるようにしておく
       "click .album-tag-name" : "album_tag"
       "click #start-edit" : "start_edit"
+      "click #cancel-edit" : "cancel_edit"
       "click .delete-tag" : "delete_tag"
       "click #apply-edit" : "apply_edit"
       "click #scroll-to-relation" : "scroll_to_relation"
+      "click #album-delete" : "album_delete"
+
     scroll_to_relation: ->
-      $("#relations-start").scrollHere(700)
+      $("#relation-start").scrollHere(700)
+
+    album_delete: ->
+      if prompt("削除するにはdeleteと入れて下さい") == "delete"
+        group_id = @model.get('group').id
+        @model.destroy().done(->
+          alert('削除しました')
+          window.album_router.navigate("group/#{group_id}", trigger:true)
+        )
 
     apply_edit: ->
       obj = $("#album-item-form").serializeObj()
       obj["tag_edit_log"] = @tag_edit_log if not _.isEmpty(@tag_edit_log)
       that = this
-      _.save_model(@model,obj).done(->
+      _.save_model(@model,obj,["comment_revision"]).done(->
         that.model.fetch().done(->
           that.edit_mode = false
-          alert("更新完了")
+          # alert("更新完了")
         )
       ).fail((msg)->alert("更新失敗: " + msg))
+    cancel_edit: ->
+      that = this
+      @model.fetch().done(-> that.edit_mode = false)
 
     start_edit: ->
       hide_tag()
-      if @edit_mode
-        that = this
-        @model.fetch().done(-> that.edit_mode = false)
-        return
-      for [s,p] in [
-        ["name",""],
-        ["place",""],
-        ["date","YYYY-MM-DD"]
-      ]
-        o = $("#album-#{s}")
-        c = "<input placeholder='#{p}' type='text' name='#{s}' value='#{_.escape(@model.get(s))}'>"
-        o.html(c)
-      
-      c = "<textarea name='comment' rows='10'>#{_.escape(@model.get('comment'))}</textarea>"
-      $("#album-comment").html(c)
+      $("#album-info").html(@template_info_form(data:@model.toJSON()))
       @$el.find(".album-tag").append(@cross.clone())
       $("#canvas").before($("<div>",text:"写真をクリックするとタグを追加できます"))
-      $("#start-edit").toggleBtnText()
-      obj = $("<button>",text:"更新",class:"small round",id:"apply-edit")
-      obj = $("<button>",text:"関連写真",class:"small round",id:"apply-edit")
-      $("#start-edit").after(obj)
+      $("#album-buttons").hide()
+      $("#album-edit-buttons").show()
       @edit_mode = true
       @new_tag_id = -1
       @tag_edit_log = {}
@@ -213,6 +210,7 @@ define (require,exports,module)->
       @listenTo(@model,"sync",@render)
     render: ->
       @$el.html(@template(data:@model.toJSON()))
+      @$el.find("#album-info").html(@template_info(data:@model.toJSON()))
       @$el.appendTo("#album-item")
 
   AlbumSearchView = Backbone.View.extend

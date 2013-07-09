@@ -14,24 +14,28 @@ class MainApp < Sinatra::Base
       r = group.select_attr(:name,:year)
       r[:items] = group.items.map{|x|
         x.select_attr(:id,:name).merge({
-          thumb: x.thumb
+          thumb: x.thumb.select_attr(:id,:width,:height)
         })
       }
       r
     end
     get '/item/:id' do
       item = AlbumItem.get(params[:id].to_i)
-      r = item.select_attr(:id,:name,:place,:date,:comment)
-      r.merge!(item.photo.select_attr(:width,:height))
+      r = item.select_attr(:id,:name,:place,:date,:comment,:daily_choose,:comment_revision)
+      r.merge!({photo:item.photo.select_attr(:id,:width,:height)})
       r[:group] = item.group.select_attr(:dummy,:year,:id,:name)
       r[:tags] = item.tags.map{|x|x.select_attr(:id,:name,:coord_x,:coord_y,:radius)}
-      r[:relations] = item.relations.map{|x|x.id}
+      r[:relations] = item.relations.map{|x| x.select_attr(:id).merge({thumb:x.thumb.select_attr(:id,:width,:height)})}
+      r[:deletable] = @user.admin or item.owner_id == @user.id
       r
     end
     put '/item/:id' do
       item = AlbumItem.get(params[:id].to_i)
       dm_response{
         AlbumItem.transaction{
+          if @json.has_key?("daily_choose") then
+            @json["daily_choose"] = @json["daily_choose"].nil?.!
+          end
           if @json.has_key?("tag_edit_log")
             @json["tag_edit_log"].each{|k,v|
               (cmd,obj) = v
@@ -55,9 +59,24 @@ class MainApp < Sinatra::Base
             }
             @json.delete("tag_edit_log")
           end
+          (updates,updates_patch) = make_comment_log_patch(item,@json,"comment","comment_revision")
+          if updates then @json.merge!(updates) end
           item.update(@json)
+          if updates_patch
+            item.comment_logs.create(updates_patch.merge({user:@user}))
+          end
         }
       }
+    end
+    delete '/item/:id' do
+      item = AlbumItem.get(params[:id].to_i)
+      if item.nil?.! then
+        AlbumItem.transaction{
+          ag = item.group
+          item.update!(deleted:true)
+          ag.update_count
+        }
+      end
     end
     get '/years' do
       aggr = AlbumGroup.aggregate(:item_count.sum, fields:[:year], unique: true, order: [:year.desc])
@@ -94,8 +113,11 @@ class MainApp < Sinatra::Base
         qx |= q
       }
       chunks = qx.all(order:[:date.desc]).chunks(ALBUM_SEARCH_PER_PAGE)
+      list = chunks[page-1].map{|x|
+        {id:x.id,thumb:x.thumb.select_attr(:id,:width,:height)}
+      }
       {
-        list: chunks[page-1].map{|x|x.id},
+        list: list,
         pages: chunks.size,
         cur_page: page
       }
@@ -106,12 +128,11 @@ class MainApp < Sinatra::Base
   end
   namespace '/static/album' do
     get '/thumb/:id' do
-      p = AlbumItem.get(params[:id].to_i).thumb
+      p = AlbumThumbnail.get(params[:id].to_i)
       send_file(File.join(CONF_HAGAKURE_BASE,"album",p.path))
-
     end
     get '/photo/:id' do
-      p = AlbumItem.get(params[:id].to_i).photo
+      p = AlbumPhoto.get(params[:id].to_i)
       send_file(File.join(CONF_HAGAKURE_BASE,"album",p.path))
     end
   end

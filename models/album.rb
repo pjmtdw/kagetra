@@ -25,6 +25,15 @@ class AlbumGroup
       self.year = if self.start_at.nil? then nil else start_at.year end
     end
   end
+  def update_count
+    # item_countのupdateは本当はAlbumItemのcreate時だけでいいけど
+    # ParanoidBooleanとの都合上update(deleted:true)みたいなことしないといけないので
+    # update時にも毎回更新する
+    dc = self.items(daily_choose:true).count
+    hc = self.items(:comment.not => nil).count
+    ic = self.items.count
+    self.update(daily_choose_count:dc,has_comment_count:hc,item_count:ic)
+  end
 end
 
 # アルバムの各写真の情報
@@ -35,7 +44,7 @@ class AlbumItem
   property :place, TrimString, length: 128 # 場所
   belongs_to :owner, 'User', required: false
   property :comment, TrimText
-  property :comment_revision, Integer
+  property :comment_revision, Integer, default: 0
 
   property :date , Date # 撮影日
   property :hourmin , HourMin # 撮影時刻
@@ -66,15 +75,9 @@ class AlbumItem
       self.group_index = ag.items.count
     end
   end
-  after :create do
-    ag = self.group
-    ag.update(item_count: ag.items.count)
-  end
   after :save do
     ag = self.group
-    c = ag.items(daily_choose:true).count
-    hc = ag.items(:comment.not => nil).count
-    ag.update(daily_choose_count:c,has_comment_count:hc)
+    ag.update_count
   end
 
   # 順方向と逆方向の両方の関連写真
@@ -82,15 +85,19 @@ class AlbumItem
     self.relations_r + self.relations_l
   end
 
+  # そのrevisionのcommentを取得する
+  def get_revision_comment(rev)
+    self.get_revision_common(rev,:comment,:comment_revision,:comment_logs)
+  end
 end
 
 # 関連写真
 class AlbumRelation
   include ModelBase
   property :source_id, Integer, unique_index: :u1, required: true, index: true
-  belongs_to :source, 'AlbumItem', key: true
+  belongs_to :source, 'AlbumItem'
   property :target_id, Integer, unique_index: :u1, required: true, index: true
-  belongs_to :target, 'AlbumItem', key: true
+  belongs_to :target, 'AlbumItem'
   # (source,target) と (target,source) はどちらかしか存在できない
   after :save do
     r = self.class.first(source:self.target, target:self.source)
@@ -107,7 +114,7 @@ module AlbumBase
       property :width, p::Integer
       property :height, p::Integer
       property :format, p::String
-      belongs_to :album_item, key: true
+      belongs_to :album_item, unique: true
     end
   end
 end
@@ -126,11 +133,9 @@ end
 # コメントの編集履歴(created_atが編集日時)
 class AlbumCommentLog
   include ModelBase
+  include PatchBase
   property :album_item_id, Integer, unique_index: :u1, required: true
   belongs_to :album_item
-  property :revision, Integer, unique_index: :u1, required: true # パッチの古い順(パッチを当てるときはcreated_atは信用しない)
-  property :patch, Text, required: true # 逆向きのdiff ( $ diff new old )
-  belongs_to :user, required: false # 編集者
 end
 
 # タグ

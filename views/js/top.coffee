@@ -370,7 +370,7 @@ define (require,exports,module) ->
       "click #delete-event" : "delete_event"
       "submit #event-edit-form" : "do_submit"
     delete_event: ->
-      if confirm("本当に削除しますか？")
+      if prompt("削除するにはdeleteと入れて下さい") == "delete"
         @model.destroy().done(-> alert("削除しました"))
       false
     do_submit: ->

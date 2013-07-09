@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 module MiscHelpers
   def get_user
-    #User.first(id: session[:user_id], token: session[:user_token])
-    User.first(id:73)
+    User.first(id: session[:user_id], token: session[:user_token])
   end
 
   def dm_response
@@ -77,7 +76,7 @@ module MiscHelpers
     }.flatten.sample
     a = ag.items.to_a.sample
     t = a.thumb
-    MyConf.update_or_create({name:DAILY_ALBUM_PHOTO_KEY},{value:{id:a.id,width:t.width,height:t.height}})
+    MyConf.update_or_create({name:DAILY_ALBUM_PHOTO_KEY},{value:{id:a.id,thumb:t.select_attr(:id,:width,:height)}})
   end
 
   # 古いログイン履歴を削除
@@ -101,5 +100,31 @@ module MiscHelpers
         MyConf.create(name:key,value:{done:"true"})
       }
     }
+  end
+
+  # wiki とアルバムコメントの共通部分
+  def make_comment_log_patch(item,json,s_body,s_revision)
+    new_body = json[s_body]
+    if new_body.to_s.empty?.! then
+      prev_body = if item then item.send(s_body.to_sym) else "" end
+      if item
+        if json[s_revision].nil? then raise Exception.new("no '#{s_revision}' found: #{json.inspect}") end
+        # check for conflict
+        if item.send(s_revision.to_sym) != json[s_revision]
+          # if conflict then merge
+          r_body = item.send(("get_revision_"+s_body).to_sym,json[s_revision])
+          patches = G_DIMAPA.patch_make(r_body,new_body)
+          (new_body,_) = G_DIMAPA.patch_apply(patches,prev_body)
+        end
+        rev = (item.send(s_revision)||0) + 1
+      else
+        rev = 1
+      end
+      updates = {s_body => new_body, s_revision => rev}
+      patches = G_DIMAPA.patch_make(new_body,prev_body)
+      patch = G_DIMAPA.patch_toText(patches)
+      updates_patch = {revision:rev,patch:patch}
+      [updates,updates_patch]
+    end
   end
 end

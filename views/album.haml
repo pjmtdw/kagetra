@@ -20,6 +20,7 @@
       計:
       %span.album-num-total {{ data.total }}
       枚
+      %button.small.round 更新履歴
       %button.small.round 写真アップロード
     .large-4.columns
       {{ $("#templ-album-search-form").html() }}
@@ -62,9 +63,8 @@
     %ul.large-block-grid-4.small-block-grid-2
       <% _.each(data.items,function(x){ %>
       %li
-        .gbase.thumbnail(data-item-id='{-x.id-}')
-          %img(src='/static/album/thumb/{- x.id -}')
-
+        .gbase.thumbnail
+          {{_.album_thumb(x)}}
       <% }) %>
       
 
@@ -77,25 +77,21 @@
         <% if(!data.group.dummy){ %>
         %a(href='album{{"#group/"+data.group.id}}') {- data.group.name -}
         <% } %>
-      .right
-        %button.small.round#start-edit(data-toggle-text='キャンセル') 編集開始
-  %form#album-item-form
-    .row
-      .large-4.columns
-        %table#album-infos
-          %tr
-            %td タイトル
-            %td#album-name {- data.name -}
-          %tr
-            %td 場所
-            %td#album-place {- data.place -}
-          %tr
-            %td 日付
-            %td#album-date {{ data.date }}
-      .large-8.columns
-        %fieldset#album-comment-container
-          %legend コメント
-          %div#album-comment.pre {- data.comment -}
+      .right#album-buttons
+        %button.small.round コメント履歴
+        %button.small.round#start-edit 編集開始
+      .right#album-edit-buttons.hide
+        <% if(data.deletable){ %>
+        %button#album-delete.small.round.alert 写真削除
+        <% } %>
+        %button#cancel-edit.small.round#cancel-edit キャンセル
+        %button#apply-edit.small.round#apply-edit 更新
+  #album-info
+  <% if(!_.isEmpty(data.relations)){ %>
+  .row.show-for-small
+    .large-12.columns
+      %a#scroll-to-relation 関連写真へスクロール ( {{data.relations.length}} ) 
+  <% } %>
   .row
     .large-12.columns
       #album-tags
@@ -104,26 +100,21 @@
         <% _.each(data.tags,function(t){ %>
         {{ templ({tag:t}) }}
         <% }) %>
-  <% if(!_.isEmpty(data.relations)){ %>
-  .row.show-for-small
-    %a#scroll-to-relation 関連写真へスクロール ( {{data.relations.length}} ) 
-  <% } %>
-  .row
+  .row#canvas-container
     .large-12.columns
-      #canvas.left(style="height:{{data.height}}px;width:{{data.width}}px")
-        %img#photo(height="{{data.height}}" width="{{data.width}}" src='/static/album/photo/{- data.id -}')
+      #canvas.left(style="height:{{data.photo.height}}px;width:{{data.photo.width}}px")
+        %img#photo(style="width:{{data.photo.width}}px;height:{{data.photo.height}}px" src='/static/album/photo/{{data.photo.id}}')
         %img#marker-r.marker.hide(src='/img/album_marker/red.gif')
         %img#marker-b.marker.hide(src='/img/album_marker/blue.gif')
         %img#marker-y.marker.hide(src='/img/album_marker/yellow.gif')
         %span#tag-name.hide
       <% if(!_.isEmpty(data.relations)){ %>
-      #relations-start.left
+      .left#relation-start
         関連写真 ( {{data.relations.length}} ): 
       <% } %>
-      <% _.each(data.relations,function(r){ %>
+      <% _.each(data.relations,function(x){ %>
       .left.relation
-        %a(href='album#item/{{r}}')
-          %img(src='/static/album/thumb/{{r}}')
+        {{_.album_thumb(x)}}
       <% }) %>
 
 %script#templ-album-tag(type='text/template')
@@ -149,8 +140,7 @@
         <% } %>
       <% } %>
       <% _.each(data.list,function(x){ %>
-      %a(href='album#item/{{x}}')
-        %img(src='/static/album/thumb/{{x}}')
+      {{_.album_thumb(x)}}
       <% }) %>
 
 %script#templ-album-search-form(type='text/template')
@@ -161,3 +151,47 @@
       .large-2.small-2.columns
         %input.button.small.postfix.radius(type='submit' value='検索')
 
+%script#templ-album-info(type='text/template')
+  .row
+    .large-5.columns
+      %table#album-info-table
+        %tr
+          %td 日付
+          %td {{ data.date }}
+        %tr
+          %td タイトル
+          %td {- data.name -}
+        %tr
+          %td 場所
+          %td {- data.place -}
+    .large-7.columns
+      %fieldset#album-comment-container
+        %legend コメント
+        %div.pre {- data.comment -}
+
+%script#templ-album-info-form(type='text/template')
+  %form#album-item-form
+    .row
+      .large-5.columns
+        %table#album-info-table
+          %tr
+            %td 日付
+            %td
+              %input(name='date' type='text' value='{-data.date-}' placeholder='YYYY-MM-DD')
+          %tr
+            %td タイトル
+            %td
+              %input(name='name' type='text' value='{-data.name-}')
+          %tr
+            %td 場所
+            %td
+              %input(name='place' type='text' value='{-data.place-}')
+          %tr
+            %td 
+            %td
+              {{ _.make_checkbox(data.daily_choose,{name:'daily_choose'}) }} 今日の一枚に選ぶ
+      .large-7.columns
+        %fieldset#album-comment-container
+          %legend コメント
+          %div
+            %textarea(name='comment' rows='10') {- data.comment -}

@@ -71,6 +71,12 @@ define (require, exports, module) ->
 
       $("<option>",opts)[0].outerHTML
 
+    album_thumb: (x) ->
+      "<a href='album#item/#{x.id}'>" +
+        "<img src='/static/album/thumb/#{x.thumb.id}' style='width:#{x.thumb.width}px;height:#{x.thumb.height}px' />" +
+      "</a>"
+
+
     # save backbone model (only changed attributes)
     # force: list of keys to be saved even if not changed
     save_model_alert: (model,obj,force) ->

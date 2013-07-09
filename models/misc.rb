@@ -19,6 +19,17 @@ module ModelBase
           [s,self.send(s)]
         }]
       end
+
+      # for wiki and album comment
+      def get_revision_common(rev,s_cur_body,s_last_revision,s_logs)
+        cur = self.send(s_cur_body)
+        self.send(s_last_revision).downto(rev+1).each{|r|
+          p = self.send(s_logs).first(revision:r).patch
+          ps = G_DIMAPA.patch_fromText(p)
+          (cur,_) = G_DIMAPA.patch_apply(ps,cur)
+        }
+        cur
+      end
     end
   end
 end
@@ -78,6 +89,17 @@ module CommentBase
       def editable(user)
         user.nil?.! and (user.admin || (self.user_id && self.user_id == user.id))
       end
+    end
+  end
+end
+
+module PatchBase
+  def self.included(base)
+    base.class_eval do
+      p = DataMapper::Property 
+      property :revision, p::Integer, unique_index: :u1, required: true
+      property :patch, p::Text, required: true # 逆向きのdiff ( $ diff new old )
+      belongs_to :user, required: false # 編集者
     end
   end
 end

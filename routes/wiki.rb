@@ -84,33 +84,15 @@ class MainApp < Sinatra::Base
     def update_or_create_item(item)
       dm_response{
         WikiItem.transaction{
-          new_body = @json["body"]
-          if new_body.to_s.empty?.! then
-            prev_body = if item then item.body else "" end
-            if item
-              # check for conflict
-              if item.revision != @json["revision"]
-                # if conflict then merge
-                r_body = item.get_revision_body(@json["revision"])
-                patches = G_DIMAPA.patch_make(r_body,new_body)
-                (new_body,_) = G_DIMAPA.patch_apply(patches,prev_body)
-              end
-              rev = item.revision + 1
-            else
-              rev = 1
-            end
-            @json["body"] = new_body
-            @json["revision"] = rev
-          end
+          (updates,updates_patch) = make_comment_log_patch(item,@json,"body","revision")
+          if updates then @json.merge!(updates) end
           if item then 
             item.update(@json)
           else 
             item = WikiItem.create(@json)
           end
-          if @json.has_key?("body")
-            patches = G_DIMAPA.patch_make(new_body,prev_body)
-            patch = G_DIMAPA.patch_toText(patches)
-            item.item_logs.create(revision:rev,user:@user,patch:patch)
+          if updates_patch
+            item.item_logs.create(updates_patch.merge({user:@user}))
           end
           item.attributes
         }

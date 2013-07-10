@@ -163,9 +163,10 @@ module Kagetra
     end
 
     # ブロック部分を実行できるのは一プロセスのみ．ロックしている間他のプロセスは素通りする
-    # 全然関係ないプロセスが $0 を flock することはないことが前提
+    # 全然関係ないプロセスが __FILE__ を flock することはないことが前提
+    # このときの __FILE__ はこのファイル自体を指すはず
     def self.single_exec
-      File.open($0){|f|
+      File.open(__FILE__){|f|
         return unless f.flock(File::LOCK_EX | File::LOCK_NB)
         begin
           yield

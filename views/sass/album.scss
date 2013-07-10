@@ -30,6 +30,9 @@
       background-color: #FFB;
     }
   }
+  &.album-item.move-from{
+    border: 3px solid blue;
+  }
 }
 #canvas{
   position: relative;
@@ -62,6 +65,10 @@
     display: inline-block; 
     margin-bottom: 6px;
     &:hover{
+      background-color: #EDF;
+    }
+    &.tag-selected{
+      font-weight: bold;
       background-color: #DEF;
     }
   }
@@ -74,6 +81,7 @@
 }
 #album-comment-container{
   margin: 0;
+  background: rgba(255,255,255,0.5);
   legend{
     font-size: 1em;
     font-weight: normal;

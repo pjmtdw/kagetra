@@ -60,12 +60,12 @@ class MainApp < Sinatra::Base
       # 後で少しずつ取得するのは遅いのでまとめて取得
       cls = evt.result_classes
       user_games = cls.single_games.map{|gm|
-        [gm.contest_user.id,gm.select_attr(:result,:opponent_name,:opponent_belongs,:score_str)]
+        [gm.contest_user_id,gm.select_attr(:result,:opponent_name,:opponent_belongs,:score_str)]
       }.each_with_object(Hash.new{[]}){|(uid,attrs),h|
         h[uid] <<= attrs
       }
       prizes = Hash[cls.prizes.map{|p|
-        [p.contest_user.id, p.select_attr(:prize, :point, :point_local)]
+        [p.contest_user_id, p.select_attr(:prize, :point, :point_local)]
       }]
 
       cls.map{|klass|
@@ -112,7 +112,7 @@ class MainApp < Sinatra::Base
       games.all(result: :lose, order: :round.desc).each{|m|
         x = temp_res.find{|uid,v|users[uid] == m.opponent_name}
         if x then
-          temp_res[m.contest_user.id][:score][m.round..-1] = x[1][:score][m.round..-1]
+          temp_res[m.contest_user_id][:score][m.round..-1] = x[1][:score][m.round..-1]
         end
       }
       temp_res.map{|uid,v|
@@ -168,7 +168,7 @@ class MainApp < Sinatra::Base
         end
         user_results = temp
         {
-          class_id: team.contest_class.id,
+          class_id: team.contest_class_id,
           header_left: hl, 
           rounds: ops.map{|x|[
             x.round_name,

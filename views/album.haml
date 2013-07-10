@@ -57,16 +57,35 @@
 
 %script#templ-album-group(type='text/template')
   .row
-    %a(href='album#') TOP - 
-    %a(href='album#year/{{data.year}}') {{data.year}}年 -
-    {- data.name -}
-    %ul.large-block-grid-4.small-block-grid-2
-      <% _.each(data.items,function(x){ %>
-      %li
-        .gbase.thumbnail
-          {{_.album_thumb(x)}}
-      <% }) %>
-      
+    .large-4.columns
+      %a(href='album#') TOP - 
+      %a(href='album#year/{{data.year}}') {{data.year}}年
+    .large-8.columns
+      .right#album-buttons
+        %button.small.round コメント履歴
+        %button.small.round#start-edit 編集開始
+      .right#album-edit-buttons.hide
+        <% if(data.deletable){ %>
+        %button#album-delete.small.round.alert フォルダ削除
+        <% } %>
+        %button#cancel-edit.small.round#cancel-edit キャンセル
+        %button#apply-edit.small.round#apply-edit 更新
+  #album-info
+  #album-tags
+    タグ一覧: 
+    <% _.each(data.tags,function(t){ %>
+    .album-tag
+      %span.album-tag-name {- t[0] -}
+      %span ({- t[1].length -})
+    <% }) %>
+  %ul#album-items.large-block-grid-4.small-block-grid-2
+
+%script#templ-album-group-items(type='text/template')      
+  <% _.each(_.filter(data.items,function(x){return ! x.hide}),function(x){ %>
+  %li
+    .gbase.thumbnail.album-item(data-id='{{x.id}}')
+      {{_.album_thumb(x)}}
+  <% }) %>
 
 %script#templ-album-item(type='text/template')
   .row
@@ -157,7 +176,7 @@
       %table#album-info-table
         %tr
           %td 日付
-          %td {{ data.date }}
+          %td {{ _.show_date(data) }}
         %tr
           %td タイトル
           %td {- data.name -}
@@ -177,7 +196,12 @@
           %tr
             %td 日付
             %td
+              <% if(_.has(data,"date")){ %>
               %input(name='date' type='text' value='{-data.date-}' placeholder='YYYY-MM-DD')
+              <% }else{ %>
+              %input(name='start_at' type='text' value='{-data.start_at-}' placeholder='開始日(YYYY-MM-DD)') &sim;
+              %input(name='end_at' type='text' value='{-data.end_at-}' placeholder='終了日(YYYY-MM-DD)')
+              <% } %>
           %tr
             %td タイトル
             %td
@@ -189,7 +213,11 @@
           %tr
             %td 
             %td
+              -# TODO: AlbumGroup か AlbumItem かを data.date があるかどうかじゃなくて is_album_group みたいなフラグで判断する
+              <% if(_.has(data,"date")){ %>
               {{ _.make_checkbox(data.daily_choose,{name:'daily_choose'}) }} 今日の一枚に選ぶ
+              <% } %>
+
       .large-7.columns
         %fieldset#album-comment-container
           %legend コメント

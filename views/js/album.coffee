@@ -1,4 +1,13 @@
 define (require,exports,module)->
+  _.mixin
+    show_date: (data)->
+      if data.date?
+        data.date
+      else
+        if not data.end_at
+          data.start_at
+        else
+          "#{data.start_at}&sim;#{data.end_at}"
   class AlbumRouter extends _.router_base("album",["top","year","group","item","search"])
     routes:
       "year/:year" : "year"
@@ -75,12 +84,86 @@ define (require,exports,module)->
 
   AlbumGroupView = Backbone.View.extend
     template: _.template_braces($("#templ-album-group").html())
+    template_info: _.template_braces($("#templ-album-info").html())
+    template_info_form: _.template_braces($("#templ-album-info-form").html())
+    template_items: _.template_braces($("#templ-album-group-items").html())
+    events:
+      "click .album-tag" : "filter_tag"
+      "click #start-edit" : "start_edit"
+      "click .album-item" : "thumb_click"
+      "click #cancel-edit" : "cancel_edit"
+      "click #apply-edit" : "apply_edit"
+      "click #album-delete" : "album_delete"
+    cancel_edit: ->
+      that = this
+      @model.fetch().done(-> that.edit_mode = false)
+    album_delete: ->
+      if prompt("削除するにはdeleteと入れて下さい") == "delete"
+        year = @model.get('year')
+        @model.destroy().done(->
+          alert('削除しました')
+          window.album_router.navigate("year/#{year}", trigger:true)
+        )
+
+    apply_edit: ->
+      obj = $("#album-item-form").serializeObj()
+      obj["item_order"] = $.makeArray($(".album-item").map((i,x)->$(x).data("id")))
+      that = this
+      _.save_model(@model,obj).done(->
+        that.model.fetch().done(->
+          that.edit_mode = false
+          # alert("更新完了")
+        )
+      ).fail((msg)->alert("更新失敗: " + msg))
     initialize: ->
       @model = new AlbumGroupModel()
       @listenTo(@model,"sync",@render)
     render: ->
       @$el.html(@template(data:@model.toJSON()))
+      @$el.find("#album-info").html(@template_info(data:@model.toJSON()))
       @$el.appendTo("#album-group")
+      @render_items()
+    render_items: ->
+      $("#album-items").html(@template_items(data:@model.toJSON()))
+    thumb_click: (ev)->
+      return unless @edit_mode
+      obj = $(ev.currentTarget)
+      if not @move_from
+        @move_from = obj
+        obj.addClass("move-from")
+      else
+        @$el.find(".album-item.move-from").removeClass("move-from")
+        tmp = obj.clone()
+        obj.replaceWith(@move_from.clone())
+        @move_from.replaceWith(tmp)
+        @move_from = null
+    show_all: ->
+      @$el.find(".tag-selected").removeClass("tag-selected")
+      for x in @model.get("items")
+        x.hide = false
+      @render_items()
+    filter_tag: (ev)->
+      return if @edit_mode
+      obj = $(ev.currentTarget)
+      if obj.hasClass("tag-selected")
+        @show_all()
+      else
+        @$el.find(".tag-selected").removeClass("tag-selected")
+        obj.addClass("tag-selected")
+        visibles = _.object(@model.get("tags"))[obj.find(".album-tag-name").text()]
+        for x in @model.get("items")
+          x.hide = not (x.id in visibles)
+        @render_items()
+    start_edit: ->
+      @show_all()
+      $("#album-tags").hide()
+      $("#album-info").html(@template_info_form(data:@model.toJSON()))
+      $("#album-items").before($("<div>",text:"写真をクリックすると順番を入れ替えることができます"))
+      $("#album-buttons").hide()
+      $("#album-edit-buttons").show()
+      @edit_mode = true
+      $("#album-items a").removeAttr("href")
+
 
   AlbumItemModel = Backbone.Model.extend
     urlRoot: "/api/album/item"

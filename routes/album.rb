@@ -11,13 +11,42 @@ class MainApp < Sinatra::Base
     end
     get '/group/:gid' do
       group = AlbumGroup.get(params[:gid].to_i)
-      r = group.select_attr(:name,:year)
-      r[:items] = group.items.map{|x|
+      r = group.select_attr(:name,:year,:place,:comment,:start_at,:end_at)
+      tags = {}
+      r[:items] = group.items(order:[:group_index.asc]).map{|x|
+        if x.tag_names then
+          JSON.parse(x.tag_names).each{|t|
+            tags[t] ||= []
+            tags[t] << x.id
+          }
+        end
         x.select_attr(:id,:name).merge({
           thumb: x.thumb.select_attr(:id,:width,:height)
         })
       }
+      r[:tags] = tags.sort_by{|k,v|v.size}.reverse
+      r[:deletable] = @user.admin or group.owner_id == @user.id
       r
+    end
+    delete '/group/:gid' do
+      group = AlbumGroup.get(params[:gid].to_i)
+      if group.nil?.! then
+        AlbumItem.transaction{
+          group.update!(deleted:true)
+        }
+      end
+    end
+    put '/group/:gid' do
+      group = AlbumGroup.get(params[:gid].to_i)
+      dm_response{
+        AlbumGroup.transaction{
+          @json["item_order"].each_with_index{|item,i|
+            AlbumItem.get(item).update(group_index:i)
+          }
+          @json.delete("item_order")
+          group.update(@json)
+        }
+      }
     end
     get '/item/:id' do
       item = AlbumItem.get(params[:id].to_i)
@@ -59,6 +88,7 @@ class MainApp < Sinatra::Base
             }
             @json.delete("tag_edit_log")
           end
+          item.do_after_tag_updated
           (updates,updates_patch) = make_comment_log_patch(item,@json,"comment","comment_revision")
           if updates then @json.merge!(updates) end
           item.update(@json)
@@ -105,7 +135,7 @@ class MainApp < Sinatra::Base
       end
       qx = AlbumItem.all(id:-1) # 存在しないクエリ
       ss = qs.strip.split(/\s+/).map{|x| "%#{x}%" }
-      [:name,:place,:comment,AlbumItem.tags.name].each{|sym|
+      [:name,:place,:comment,:tag_names].each{|sym|
         q = AlbumItem.all(cond)
         ss.each{|x|
           q &= AlbumItem.all(sym.like => x)

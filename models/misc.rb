@@ -24,7 +24,9 @@ module ModelBase
       def get_revision_common(rev,s_cur_body,s_last_revision,s_logs)
         cur = self.send(s_cur_body)
         self.send(s_last_revision).downto(rev+1).each{|r|
-          p = self.send(s_logs).first(revision:r).patch
+          lg = self.send(s_logs).first(revision:r)
+          next if lg.nil? # this shuldn't occur. but data imported from MyToma wiki has empty patch
+          p = lg.patch
           ps = G_DIMAPA.patch_fromText(p)
           (cur,_) = G_DIMAPA.patch_apply(ps,cur)
         }
@@ -206,4 +208,3 @@ class MyConf
   property :name, TrimString, length: 64, unique: true
   property :value, Json
 end
-

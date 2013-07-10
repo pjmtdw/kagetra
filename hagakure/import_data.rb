@@ -248,12 +248,9 @@ def import_schedule
 
           date = Date.new(year,mon,day)
           created_at = DateTime.parse(wdate)
-          user = User.first(name: name)
+          user = search_user_name(name)
           if user.nil? then
-            user = User.first(name: CONF_USERNAME_CHANGED[name])
-            if user.nil? then
-              raise Exception.new("no user named: '#{name}'")
-            end
+            raise Exception.new("no user named: '#{name}'")
           end
           item = ScheduleItem.create(
             owner: user,
@@ -452,7 +449,7 @@ def import_event
         start_at: start_at
       )
       kanrishas.each{|k|
-        user = User.first(name:k)
+        user = search_user_name(k)
         if user.nil? then
           raise Exception.new("user name not found: #{k}")
         end
@@ -478,7 +475,7 @@ def import_event
       end
       userchoice.each{|uc|
         puts "adding: user #{uc[:name]} to #{evt.name}"
-        user = User.first(name:uc[:name])
+        user = search_user_name(uc[:name])
         choice = if uc[:typ] == :yes then
                     evt.choices.first(positive:true,index:uc[:ci])
                  else
@@ -709,7 +706,7 @@ def import_contest_result_kojin(evt,sankas)
         puts "WARNING: event='#{evt.name}' cannot guess attribute of '#{klass.class_name}', i will set it as '#{av.value}'."
       end
       name = ss[0]
-      user = User.first(name: name)
+      user = search_user_name(name)
       choice.user_choices.create(user:user,user_name:name,attr_value:av)
       return
     end
@@ -880,7 +877,7 @@ def import_event_comment
         line.sjis!
         next if line.empty?
         (created,user_name,user_host,body) = line.split(/<>/)
-        user = User.first(name: user_name)
+        user = search_user_name(user_name)
         evt.comments.create(created_at: DateTime.parse(created),
                             user: user,
                             user_name: user_name,
@@ -894,8 +891,22 @@ def import_event_comment
   }
 end
 
+  
+REVERSE_CHANGED = Hash[CONF_USERNAME_CHANGED.map{|k,v|[v,k]}]
+
+def search_user_name(name)
+  user = User.first(name:name)
+  if user.nil? then
+    names = [CONF_USERNAME_CHANGED[name],REVERSE_CHANGED[name]].compact
+    if names.empty?.! then
+      user = User.first(name:names)
+    end
+    puts "WARNING: search_user_name failed #{name}" if user.nil?
+  end
+  user
+end
+
 def import_meibo
-  reverse_changed = Hash[CONF_USERNAME_CHANGED.map{|k,v|[v,k]}]
   ((meta,_),*rest) = CSV.read(CONF_MEIBO_CSV,encoding:'UTF-8').zip(0..Float::INFINITY)
   MyConf.update_or_create({name: "addrbook_confirm_enc"},{value: {text:Kagetra::Utils.openssl_enc(G_ADDRBOOK_CONFIRM_STR,CONF_MEIBO_PASSWD)}})
 
@@ -904,15 +915,9 @@ def import_meibo
     updated_at = DateTime.parse(res["更新日時"])
     res.delete("更新日時")
     name = res["名前"].gsub(/\s+/,'')
-    user = User.first(name:name)
+    user = search_user_name(name)
     if user.nil? then
-      names = [CONF_USERNAME_CHANGED[name],reverse_changed[name]].compact
-      if names.empty?.! then
-        user = User.first(name:names)
-      end
-      if user.nil? then
-        raise Exception.new("no user name: #{name}")
-      end
+      raise Exception.new("no user name: #{name}")
     end
     book = AddrBook.create(user:user, text: Kagetra::Utils.openssl_enc(res.to_json,CONF_MEIBO_PASSWD))
     book.update!(updated_at: updated_at)
@@ -952,7 +957,7 @@ def import_album_stage1
 
   old_ids = {}
   # 関連写真があるのでまず最初にAlbumItemを作ってから後でupdateする
-  Parallel.each(Dir.glob(File.join(CONF_HAGAKURE_BASE,"album","albumlist_*.cgi"))[0..3], in_threads: NUM_THREADS){|fn|
+  Parallel.each(Dir.glob(File.join(CONF_HAGAKURE_BASE,"album","albumlist_*.cgi")), in_threads: NUM_THREADS){|fn|
     lines = File.readlines(fn)
     (dnum,dname) = lines[0].chomp.sub(/^\+/,"").split(/\t/)
     lines[1..-1].each{|line|
@@ -1022,7 +1027,8 @@ def import_album_stage2(old_ids)
       }
       item.photo = create.call(item,AlbumPhoto,"#{prefix}.jpg")
       item.thumb = create.call(item,AlbumThumbnail,"#{prefix}_SMALL.jpg")
-      (title,year,mon,day,place,comment,width,height,importance,subdir,keyword,user) = nil
+      (title,year,mon,day,place,comment,width,height,subdir,keyword,owner) = nil
+      daily_choose = true
       lines.each{|line|
         line.chomp!
         line.sjis!
@@ -1047,6 +1053,18 @@ def import_album_stage2(old_ids)
             rid = o[0]
             AlbumRelation.create(source:item,target_id:rid)
           end
+        when %r(<!uploadperson>(.*)<!/uploadperson>)
+          person = $1
+          owner = search_user_name(person)
+          if owner.nil? then
+            puts "WARNING: user name #{person} not found in user table. setting owner_id to NULL"
+          end
+
+        when %r(<!rating>(.*)<!/rating>)
+          rating = $1.to_i
+          if rating == 1 then
+            daily_choose = false
+          end
         when %r(<area.*?coords="(.*?)".*?alt="(.*?)">)
           (x,y,r) = $1.split(",").map{|x|x.to_i}
           n = $2
@@ -1057,14 +1075,16 @@ def import_album_stage2(old_ids)
           end
         end
       }
+      item.do_after_tag_updated
       day = begin Date.new(year.to_i,mon.to_i,day.to_i) rescue nil end
-      item.update(name:title,place:place,date:day)
+      item.update(name:title,place:place,date:day,owner:owner,daily_choose:daily_choose)
     }
   }
 end
 
 def import_comment(item,comment)
   log = comment_log(comment).reverse
+  revision = 1
   if log.size >= 2 then
     patches = log[0...-1].zip(log[1..-1]).map{|cur,prev|
       patches = DMP.patch_make(cur[:comment],prev[:comment])
@@ -1073,17 +1093,17 @@ def import_comment(item,comment)
     patches.each_with_index{|x,i|
       u = nil
       if x[:username].nil?.! then
-        u = User.first(name:x[:username])
+        u = search_user_name(x[:username])
         if u.nil? then
-          # TODO: 同一人物の表を使う
           puts "WARNING: user name '#{x[:username]}' not found when creating album comment log of '#{item.name}'"
         end
       end
       # TODO: x[:date] が nil (最初のパッチ) の日時を設定する
-      item.comment_logs.create(user:u,album_item:item,revision:i,patch:x[:patch],created_at:x[:date])
+      item.comment_logs.create(user:u,album_item:item,revision:i+1,patch:x[:patch],created_at:x[:date])
     }
+    revision = patches.size
   end
-  item.update(comment:log[0][:comment])
+  item.update(comment:log[0][:comment],comment_revision:revision)
 end
 
 def comment_log(comment)
@@ -1149,6 +1169,7 @@ def import_wiki
       WikiItem.create(id:id,deleted:deleted==1,public:exhibited==1,title:keyword,body:text,revision:revision)
     }
     db.execute("select id,object_id,revision,datetime,patch,user_id from wiki_markuppatch"){|id,object_id,revision,datetime,patch,user_id|
+      next if patch.strip.to_s.empty?
       WikiItemLog.create(wiki_item_id:object_id,revision:revision,created_at:DateTime.parse(datetime),user_id:user_id,patch:patch)
     }
     db.execute("select page_id,uploaded_datetime,user_id,file,description,deleted from wiki_attachedfile"){|page_id,uploaded_datetime,user_id,file,description,deleted|
@@ -1169,9 +1190,9 @@ end
 #import_meibo
 #import_bbs
 #import_schedule
+#import_wiki
+import_album
 #import_shurui
 #import_event
 #import_endtaikai
 #import_event_comment
-#import_wiki
-import_album

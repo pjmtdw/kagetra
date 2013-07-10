@@ -18,7 +18,7 @@ class AlbumGroup
   property :daily_choose_count, Integer, default: 0 # 所属写真の今日の一枚の選ばれる数
   property :has_comment_count, Integer, default: 0 # コメントの入っている写真の数
   property :has_tag_count, Integer, default: 0 # タグの入っている写真の数
-  property :item_count, Integer # 毎回aggregateするのは遅いのでキャッシュ
+  property :item_count, Integer, default: 0 # 毎回aggregateするのは遅いのでキャッシュ
   has n, :items, 'AlbumItem', child_key: [:group_id]
   before :save do
     if not self.dummy then
@@ -32,7 +32,7 @@ class AlbumGroup
     dc = self.items(daily_choose:true).count
     hc = self.items(:comment.not => nil).count
     ic = self.items.count
-    self.update(daily_choose_count:dc,has_comment_count:hc,item_count:ic)
+    self.update!(daily_choose_count:dc,has_comment_count:hc,item_count:ic)
   end
 end
 
@@ -49,9 +49,9 @@ class AlbumItem
   property :date , Date # 撮影日
   property :hourmin , HourMin # 撮影時刻
   property :daily_choose, Boolean, default: true # 今日の一枚として選ばれるかどうか
-  property :group_id, Integer, unique_index: :u1, required: true
+  property :group_id, Integer,  required: true, index: true
   belongs_to :group, 'AlbumGroup'
-  property :group_index, Integer, unique_index: :u1, allow_nil: false # グループの中での表示順
+  property :group_index, Integer, allow_nil: false # グループの中での表示順
   property :rotate, Integer # 回転 (右向き, 度数法)
   property :orig_filename, String, length: 128 # アップロードされた元のファイル名
 
@@ -60,6 +60,8 @@ class AlbumItem
   has 1, :photo, 'AlbumPhoto'
   has 1, :thumb, 'AlbumThumbnail'
   has n, :tags, 'AlbumTag'
+
+  property :tag_names, Text # タグ名の入った配列をJSON化したもの(like検索用なので型JsonじゃなくてText)
 
   # 順方向の関連写真
   has n, :album_relations_r, 'AlbumRelation', child_key: [:source_id]
@@ -75,6 +77,18 @@ class AlbumItem
       self.group_index = ag.items.count
     end
   end
+
+  # 本来 tag_count や tag_names の更新は AlbumTag の :create, :destroy, :save Hookで行うべきだが
+  # そうすると AlbumTag を例えば100個更新すると100回 AlbumItem が更新されるので凄く遅くなる．
+  # したがって AlbumTag の更新をした後はこの関数を呼ぶという規約にする
+  # TODO: 規約に頼らずHookとか使って上記のことを強制する方法
+  def do_after_tag_updated
+    tag_names = self.tags.map{|x|x.name}.to_json
+    self.update!(tag_count:self.tags.count,tag_names:tag_names)
+    ag = self.group
+    tc = ag.items(:tag_count.gt => 0).count
+    ag.update!(has_tag_count:tc)
+  end
   after :save do
     ag = self.group
     ag.update_count
@@ -89,6 +103,7 @@ class AlbumItem
   def get_revision_comment(rev)
     self.get_revision_common(rev,:comment,:comment_revision,:comment_logs)
   end
+
 end
 
 # 関連写真
@@ -146,14 +161,4 @@ class AlbumTag
   property :coord_y, Integer # 写真の中のY座標
   property :radius, Integer # 円の半径
   belongs_to :album_item
-  [:create,:destroy].each{|sym|
-    after sym do
-      AlbumItem.transaction{
-        item = self.album_item
-        item.update(tag_count:item.tags.count)
-        ag = item.group
-        ag.update(has_tag_count:ag.items(:tag_count.gt => 0).count)
-      }
-    end
-  }
 end

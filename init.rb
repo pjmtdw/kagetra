@@ -19,6 +19,7 @@ require 'nkf'
 require 'redcarpet'
 require 'diff_match_patch'
 require 'RMagick'
+require 'zip/zip' # RubyZip
 
 require 'data_mapper'
 require 'dm-chunked_query'

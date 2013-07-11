@@ -17,6 +17,8 @@ gem 'redcarpet' # markdown to (x)html converter
 # you have to `apt-get install libmagickwand-dev` to install rmagick
 gem 'rmagick' # ImageMagick interface
 
+gem 'rubyzip' # zip/unzip archive
+
 gem 'data_mapper' # ORM
 
 # you have to install mysql client library

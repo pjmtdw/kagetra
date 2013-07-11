@@ -37,6 +37,11 @@ define (require,exports,module)->
     events:
       "click .gbase.years": "do_list_year"
       "submit .search-form" : "do_search"
+      "click #album-new-upload" : "new_upload"
+    new_upload: ->
+      target = "#container-album-upload"
+      v = new AlbumUploadView(target:target)
+      _.reveal_view(target,v)
     do_search: _.wrap_submit (ev) ->
       qs = $(ev.currentTarget).find("input[name='qs']").val()
       window.album_router.navigate("search/#{encodeURI(qs)}", trigger:true)
@@ -261,6 +266,7 @@ define (require,exports,module)->
       that = this
       _.save_model(@model,obj,["comment_revision","relations"]).done(->
         that.model.fetch().done(->
+          that.model.unset("tag_edit_log")
           that.edit_mode = false
           # alert("更新完了")
         )
@@ -400,6 +406,30 @@ define (require,exports,module)->
           o.removeAttr("href")
           o.click(that.options.do_when_click)
       )
+  AlbumUploadView = Backbone.View.extend
+    template_form: _.template_braces($("#templ-album-info-form").html())
+    template: _.template($("#templ-album-upload").html())
+    submit_done: ->
+      res = JSON.parse($("#dummy-iframe").contents().find("#response").html())
+      if res._error_
+        alert(res._error_)
+      else if res.result == "OK"
+        window.album_router.navigate("group/#{res.group_id}", trigger:true)
+        $("#container-album-upload").foundation("reveal","close")
+
+    initialize: ->
+      _.bindAll(@,"submit_done")
+      @render()
+    render: ->
+      @$el.html(@template_form(is_group:true,data:{}))
+      form = @$el.find("#album-item-form")
+      form.attr("method","post")
+      form.attr("enctype","multipart/form-data")
+      form.attr("action","album/upload")
+      form.attr("target","dummy-iframe")
+      form.append(@template())
+      @$el.appendTo(@options.target)
+      $("#dummy-iframe").load(@submit_done)
 
   init: ->
     window.album_router = new AlbumRouter()

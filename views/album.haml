@@ -21,7 +21,7 @@
       %span.album-num-total {{ data.total }}
       枚
       %button.small.round 更新履歴
-      %button.small.round 写真アップロード
+      %button.small.round#album-new-upload 写真アップロード
     .large-4.columns
       {{ $("#templ-album-search-form").html() }}
   .row
@@ -33,7 +33,6 @@
             .large-12.columns
               .year.left {- x[0]?x[0]+'年':'不明' -}
               .count.right {- x[1] -}
-
       <% }) %>
 
 %script#templ-album-year(type='text/template')
@@ -232,4 +231,19 @@
           %div
             %textarea(name='comment' rows='10') {- data.comment -}
 
+
+%script#templ-album-upload(type='text/template')
+  .row
+    .large-12.columns
+      -# %input(type='checkbox') どのフォルダにも属さない写真にする
+      %input(type='file' name='file')
+      %input.button.small.round(type='submit' value='送信')
+      %ul
+        %li 各画像ファイルの拡張子はpng,jpg,gifのどれかにして下さい．
+        %li 画像ファイルを複数圧縮したzipファイルにも対応しています．
+        -# %li ファイルに何も指定しないと空のフォルダを作ります．
+      %iframe(name='dummy-iframe' id='dummy-iframe' style='display:none;')
+
+
 #container-album-relation.reveal-modal
+#container-album-upload.reveal-modal

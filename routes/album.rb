@@ -174,14 +174,90 @@ class MainApp < Sinatra::Base
   get '/album' do
     haml :album
   end
+
+  def process_image(group,index,orig_filename,abs_path)
+    #item = group.items.create(group.select_attr(:place,:name).merge({date:group.start_at,group_index:index}))
+    item = AlbumItem.create(group.select_attr(:place,:name).merge({group_id:group.id,date:group.start_at,group_index:index}))
+    rel_path = Pathname.new(abs_path).relative_path_from(Pathname.new(File.join(G_STORAGE_DIR,"album")).realpath)
+    img = Magick::Image::read(abs_path).first
+    new_img = img.resize_to_fit(800,800)
+    if new_img.columns != img.columns or new_img.rows != img.rows
+      new_img.write(abs_path){self.quality = 95}
+    end
+
+    item.update(photo:AlbumPhoto.create(
+      album_item:item,
+      path:rel_path,
+      format: new_img.format,
+      width: new_img.columns,
+      height: new_img.rows
+    ))
+    thumb = img.resize_to_fit(200,200)
+    thumb.write(abs_path+"_thumb"){self.quality = 80}
+    item.update(thumb:AlbumThumbnail.create(
+      album_item:item,
+      path:rel_path.to_s+"_thumb",
+      format: thumb.format,
+      width: thumb.columns,
+      height: thumb.rows
+    ))
+
+  end
+
+  post '/album/upload' do
+    res = dm_response{
+      tempfile = params[:file][:tempfile]
+      filename = params[:file][:filename]
+      AlbumItem.transaction{
+        attrs = params.select_attr(:start_at,:end_at,:place,:name,:comment)
+        if attrs[:start_at].to_s.empty? then attrs[:start_at] = nil end
+        if attrs[:end_at].to_s.empty? then attrs[:end_at] = nil end
+        group = AlbumGroup.create(attrs)
+        date = Date.today
+        target_dir = File.join(G_STORAGE_DIR,"album",date.year.to_s,date.month.to_s)
+        FileUtils.mkdir_p(target_dir)
+        case filename.downcase
+        when /\.zip$/
+          tmp = Dir.mktmpdir(nil,target_dir)
+          Zip::ZipFile.new(tempfile).select{|x|x.file? and [".jpg",".png",".gif"].any?{|s|x.name.downcase.end_with?(s)}}
+            .each_with_index{|entry,i|
+              fn = File.join(tmp,i.to_s)
+              File.open(fn,"w"){|f|
+                f.write(entry.get_input_stream.read)
+              }
+              process_image(group,i,entry.name,fn)
+            }
+          {result:"OK",group_id:group.id}
+        when /\.jpg$/, /\.png$/, /\.gif$/
+          tfile = Tempfile.new(["img","dat"],target_dir)
+          FileUtils.cp(tempfile.path,tfile)
+          process_image(group,nil,filename,tfile.path)
+          {result:"OK",group_id:group.id}
+        else
+          {_error_:"ファイルの拡張子が間違いです: #{filename.downcase}"}
+        end
+      }
+    }
+    "<div id='response'>#{res.to_json}</div>"
+  end
+  def send_photo(p)
+    p1 = File.join(G_STORAGE_DIR,"album",p.path)
+    p2 = File.join(CONF_HAGAKURE_BASE,"album",p.path)
+    content_type "image/#{p.format.downcase}"
+    [p1,p2].each{|path|
+      send_file(path) if File.exist?(path)
+    }
+    halt 404 
+  end
+
   namespace '/static/album' do
     get '/thumb/:id' do
       p = AlbumThumbnail.get(params[:id].to_i)
-      send_file(File.join(CONF_HAGAKURE_BASE,"album",p.path))
+      send_photo(p)
     end
     get '/photo/:id' do
       p = AlbumPhoto.get(params[:id].to_i)
-      send_file(File.join(CONF_HAGAKURE_BASE,"album",p.path))
+      send_photo(p)
     end
   end
 end

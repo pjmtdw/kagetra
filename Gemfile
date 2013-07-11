@@ -18,6 +18,8 @@ gem 'redcarpet' # markdown to (x)html converter
 gem 'rmagick' # ImageMagick interface
 
 gem 'data_mapper' # ORM
+
+# you have to install mysql client library
 gem 'dm-mysql-adapter'
 gem 'dm-chunked_query'
 

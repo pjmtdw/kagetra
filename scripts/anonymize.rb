@@ -17,12 +17,14 @@ AlbumGroup.all.each{|ag|
       new_path = old_path.to_s+".blurred"
       abs_path = File.join(CONF_HAGAKURE_BASE,"album",old_path)
       x.update!(path:new_path)
+      new_abs_path = File.join(CONF_HAGAKURE_BASE,"album",new_path)
+      next if File.exist?(new_abs_path)
       if File.exist?(abs_path) and File.size(abs_path) > 0
         image = Magick::Image.read(abs_path).first
         size = [x.width,x.height].max
         image = image.blur_image(size/30.0,size/50.0)
         puts "writing to: #{new_path}"
-        image.write(File.join(CONF_HAGAKURE_BASE,"album",new_path))
+        image.write(new_abs_path)
       else
         puts "WARNING: skip #{abs_path} since it does not exist or size is zero"
       end
@@ -95,7 +97,7 @@ BbsThread.transaction{
     [EventComment,[:body]],
     [BbsThread,[:title]],
     [BbsItem,[:body]],
-    [AlbumItem,[:name,:place,:comment]],
+    [AlbumItem,[:name,:place,:comment,:tag_names]],
     [AlbumGroup,[:name,:place,:comment]],
     [WikiAttachedFile,[:orig_name,:description]],
     [WikiItem,[:title,:body]],

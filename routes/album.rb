@@ -88,6 +88,20 @@ class MainApp < Sinatra::Base
             }
             @json.delete("tag_edit_log")
           end
+          if @json.has_key?("relations")
+            rids_old = item.relations.map{|r|r.id }
+            rids_new = @json["relations"].map{|r|r["id"] }
+            adds = rids_new - rids_old
+            dels = rids_old - rids_new
+            if dels.empty?.! then
+              AlbumRelation.all(source_id:item.id,target_id:dels).destroy()
+              AlbumRelation.all(source_id:dels,target_id:item.id).destroy()
+            end
+            adds.each{|i|
+              item.album_relations_r.create(target_id:i)
+            }
+            @json.delete("relations")
+          end
           item.do_after_tag_updated
           (updates,updates_patch) = make_comment_log_patch(item,@json,"comment","comment_revision")
           if updates then @json.merge!(updates) end
@@ -151,6 +165,10 @@ class MainApp < Sinatra::Base
         pages: chunks.size,
         cur_page: page
       }
+    end
+    get '/thumb_info/:id' do
+      item = AlbumItem.get(params[:id].to_i)
+      item.select_attr(:id).merge({thumb:item.thumb.select_attr(:id,:width,:height)})
     end
   end
   get '/album' do

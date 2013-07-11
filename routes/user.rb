@@ -45,6 +45,9 @@ class MainApp < Sinatra::Base
       end
       {result:"OK"}
     end
+
+    get '/newly_message' do
+    end
   end
   get '/user/logout' do
     @user.change_token!

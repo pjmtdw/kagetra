@@ -6,6 +6,7 @@
     border: 1px dotted gray;
     padding: 5px;
     background-color: #EEE;
+    display: inline-block;
     @include border-radius(6px);
     a{
       color: gray;
@@ -54,4 +55,8 @@
 .public{
   border: 4px solid blue;
   background-color: #FFF;
+}
+#bbs-nav{
+  max-height: 4em;
+  overflow-y: auto;
 }

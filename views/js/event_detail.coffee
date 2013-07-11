@@ -10,7 +10,7 @@ define ->
         window.g_event_kinds[data.kind]
 
   EventItemModel = Backbone.Model.extend
-    urlRoot: "/api/event/item"
+    urlRoot: "api/event/item"
   EventDetailView = Backbone.View.extend
     template: _.template($("#templ-event-detail").html())
     template_p: _.template_braces($("#templ-event-participant").html())

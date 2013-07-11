@@ -19,7 +19,7 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
       "visible": true
   AdminCollection = Backbone.Collection.extend
     model: AdminModel
-    url: "/api/admin/list"
+    url: "api/admin/list"
     initialize: ->
       @sort_keys = [["furigana",1]]
     parse: (data) ->
@@ -86,7 +86,7 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
     apply_edit: ->
       if confirm("#{@edit_log.length} 点の変更を反映してもいいですか？")
         elog = JSON.stringify(@edit_log)
-        aj = $.ajax("/api/admin/apply_edit",
+        aj = $.ajax("api/admin/apply_edit",
           data: elog
           contentType: "application/json"
           type: "POST")
@@ -259,7 +259,7 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
       return (x.get("id") for x in @collection.models when x.get("selected"))
     change_attr: (ev)->
       uids = @get_uids()
-      $.ajax("/api/admin/change_attr",
+      $.ajax("api/admin/change_attr",
         data: JSON.stringify(
                 uids: uids
                 value: @$el.find(".attr-value-names").val())
@@ -275,7 +275,7 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
         alert("再確認のパスワードが一致しません")
         return false
       hash = _.pbkdf2_password(el.find(".pass-new").val(),g_new_salt)
-      p = $.post '/api/user/change_password',
+      p = $.post 'api/user/change_password',
         hash: hash
         salt: g_new_salt
         uids: uids
@@ -285,7 +285,7 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
     change_permission: (ev,mode) ->
       obj = $(ev.currentTarget)
       uids = @get_uids()
-      $.ajax("/api/admin/permission",
+      $.ajax("api/admin/permission",
         data: JSON.stringify(
                 mode: mode
                 uids: uids

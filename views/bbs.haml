@@ -49,7 +49,7 @@
 
 %script#templ-bbs-nav(type='text/template')
   <% _.each(data,function(x){ %>
-  .arrival.left.ellipsis(data-magellan-arrival="{{x.id}}")
+  .arrival.ellipsis(data-magellan-arrival="{{x.id}}")
     %a(href="bbs#page/{{window.bbs_page}}@{{x.id}}") {- x.title -}
   <% }) %>
 

@@ -27,7 +27,7 @@ define (require,exports,module) ->
 
     start: -> @navigate("page/all", {trigger:true, replace: true})
   WikiItemModel = Backbone.Model.extend
-    urlRoot: "/api/wiki/item"
+    urlRoot: "api/wiki/item"
   WikiEditView = Backbone.View.extend
     template: _.template_braces($("#templ-wiki-edit").html())
     events:
@@ -136,7 +136,7 @@ define (require,exports,module) ->
       window.wiki_panel_view?.remove()
       window.wiki_panel_view = new WikiPanelView(model:@model)
   WikiAttachedListModel = Backbone.Model.extend
-    urlRoot: "/api/wiki/attached_list"
+    urlRoot: "api/wiki/attached_list"
   WikiAttachedListView = Backbone.View.extend
     template: _.template_braces($("#templ-wiki-attached").html())
     events:

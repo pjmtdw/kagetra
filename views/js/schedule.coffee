@@ -21,7 +21,7 @@ define (require,exports,module) ->
   ScheduleCollection = Backbone.Collection.extend
     model: $si.ScheduleModel
     refresh: (year,mon) ->
-      @url = "/api/schedule/cal/#{year}-#{mon}"
+      @url = "api/schedule/cal/#{year}-#{mon}"
     parse: (data) ->
       @year = data.year
       @mon = data.mon
@@ -59,7 +59,7 @@ define (require,exports,module) ->
     multi_edit_apply: ->
       id = @multi_edit_item.data("schedule-id")
       that = this
-      $.post("/api/schedule/copy/#{id}",{list:@schedule_item_new}).done(-> that.multi_edit_done())
+      $.post("api/schedule/copy/#{id}",{list:@schedule_item_new}).done(-> that.multi_edit_done())
 
     multi_edit_done: ->
       @multi_edit_mode = 0
@@ -171,7 +171,7 @@ define (require,exports,module) ->
     save_holiday: (have_to_update)->
       res = Backbone.sync('update',this,
         method:'post',
-        url:'/api/schedule/update_holiday',
+        url:'api/schedule/update_holiday',
         contentType:'application/json',
         data:JSON.stringify(have_to_update))
       that = this

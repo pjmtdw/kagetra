@@ -62,7 +62,7 @@
       %a(href='album#year/{{data.year}}') {{data.year}}年
     .large-8.columns
       .right#album-buttons
-        %button.small.round コメント履歴
+        %button.small.round 写真追加
         %button.small.round#start-edit 編集開始
       .right#album-edit-buttons.hide
         <% if(data.deletable){ %>
@@ -71,20 +71,23 @@
         %button#cancel-edit.small.round#cancel-edit キャンセル
         %button#apply-edit.small.round#apply-edit 更新
   #album-info
-  #album-tags
-    タグ一覧: 
-    <% _.each(data.tags,function(t){ %>
-    .album-tag
-      %span.album-tag-name {- t[0] -}
-      %span ({- t[1].length -})
-    <% }) %>
-  %ul#album-items.large-block-grid-4.small-block-grid-2
+  .row
+    .large-12.columns
+      #album-tags
+        タグ一覧: 
+        <% _.each(data.tags,function(t){ %>
+        .album-tag
+          %span.album-tag-name {- t[0] -}
+          %span ({- t[1].length -})
+        <% }) %>
+  .row
+    .large-12.columns
+      #album-items
 
 %script#templ-album-group-items(type='text/template')      
   <% _.each(_.filter(data.items,function(x){return ! x.hide}),function(x){ %>
-  %li
-    .gbase.thumbnail.album-item(data-id='{{x.id}}')
-      {{_.album_thumb(x)}}
+  .gbase.thumbnail.album-item(data-id='{{x.id}}')
+    {{_.album_thumb(x)}}
   <% }) %>
 
 %script#templ-album-item(type='text/template')
@@ -121,20 +124,25 @@
         <% }) %>
   .row#canvas-container
     .large-12.columns
-      #canvas.left(style="height:{{data.photo.height}}px;width:{{data.photo.width}}px")
-        %img#photo(style="width:{{data.photo.width}}px;height:{{data.photo.height}}px" src='/static/album/photo/{{data.photo.id}}')
+      #container.left(style="height:{{data.photo.height}}px;width:{{data.photo.width}}px")
+        %img#photo(style="" src='/static/album/photo/{{data.photo.id}}')
         %img#marker-r.marker.hide(src='/img/album_marker/red.gif')
         %img#marker-b.marker.hide(src='/img/album_marker/blue.gif')
         %img#marker-y.marker.hide(src='/img/album_marker/yellow.gif')
+        #canvas
         %span#tag-name.hide
-      <% if(!_.isEmpty(data.relations)){ %>
-      .left#relation-start
-        関連写真 ( {{data.relations.length}} ): 
-      <% } %>
-      <% _.each(data.relations,function(x){ %>
-      .left.relation
-        {{_.album_thumb(x)}}
-      <% }) %>
+      #relation-container
+
+%script#templ-relations(type='text/template')
+  <% if(!_.isEmpty(relations)){ %>
+  .left#relation-start
+    関連写真 ( {{relations.length}} ): 
+  <% } %>
+  <% _.each(relations,function(x){ %>
+  .left.relation
+    {{_.album_thumb(x)}}
+  <% }) %>
+
 
 %script#templ-album-tag(type='text/template')
   .album-tag(data-tag-id='{{tag.id}}')
@@ -143,7 +151,8 @@
 %script#templ-album-search(type='text/template')
   .row
     .large-8.columns
-      %a(href='album#') TOP
+      .top-message
+        %a(href='album#') TOP
     .large-4.columns
       {{ $("#templ-album-search-form").html() }}
   .search-result
@@ -159,7 +168,7 @@
         <% } %>
       <% } %>
       <% _.each(data.list,function(x){ %>
-      {{_.album_thumb(x)}}
+      .gbase.thumbnail {{_.album_thumb(x)}}
       <% }) %>
 
 %script#templ-album-search-form(type='text/template')
@@ -196,7 +205,7 @@
           %tr
             %td 日付
             %td
-              <% if(_.has(data,"date")){ %>
+              <% if(!is_group){ %>
               %input(name='date' type='text' value='{-data.date-}' placeholder='YYYY-MM-DD')
               <% }else{ %>
               %input(name='start_at' type='text' value='{-data.start_at-}' placeholder='開始日(YYYY-MM-DD)') &sim;
@@ -213,8 +222,7 @@
           %tr
             %td 
             %td
-              -# TODO: AlbumGroup か AlbumItem かを data.date があるかどうかじゃなくて is_album_group みたいなフラグで判断する
-              <% if(_.has(data,"date")){ %>
+              <% if(!is_group){ %>
               {{ _.make_checkbox(data.daily_choose,{name:'daily_choose'}) }} 今日の一枚に選ぶ
               <% } %>
 
@@ -223,3 +231,5 @@
           %legend コメント
           %div
             %textarea(name='comment' rows='10') {- data.comment -}
+
+#container-album-relation.reveal-modal

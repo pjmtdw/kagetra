@@ -10,12 +10,12 @@
 .row
   .large-6.columns
     .panel.top-message
-      .event-new
-        %span 最終ログイン: #{@user.last_login_str}, 今月ログイン: #{@user.log_mon_count}
-      #bbs-new
-      #event-comment-new
-      #schedule-alert
-      #event-participant-new
+      %div 最終ログイン: #{@user.last_login_str}, 今月ログイン: #{@user.log_mon_count}
+      #newly-message
+        #bbs-new
+        #event-comment-new
+        #schedule-alert
+        #event-participant-new
 
   .large-6.columns
     %ul#schedule-panel.large-block-grid-3.small-block-grid-3

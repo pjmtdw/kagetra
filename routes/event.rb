@@ -76,7 +76,7 @@ class MainApp < Sinatra::Base
         .map{|k,v|
           [k.id,v.map{|x|x.id}]}}
       add_participant_names = ->(ucs,hide_result){
-        if hide_result and not edit mode then return end
+        if hide_result and not edit_mode then return end
         participant_names.merge!(Hash[ucs.map{|u|[u.id,u.user_name]}])
       }
       cond = if edit_mode then {} else {positive:true} end

@@ -15,7 +15,7 @@ define ["crypto-aes", "crypto-hmac","crypto-pbkdf2","crypto-base64"], ->
     user: (uid) ->
       window.addrbook_view.refresh(uid)
   AddrBookPanelModel = Backbone.Model.extend
-    urlRoot: "/api/user/auth/list"
+    urlRoot: "api/user/auth/list"
   AddrBookPanelView = Backbone.View.extend
     el: "#addrbook-panel"
     template: _.template_braces($("#templ-addrbook-panel").html())
@@ -51,7 +51,7 @@ define ["crypto-aes", "crypto-hmac","crypto-pbkdf2","crypto-base64"], ->
       @model.fetch()
 
   AddrBookModel = Backbone.Model.extend
-    url: -> "/api/addrbook/item/#{@.get('uid')}"
+    url: -> "api/addrbook/item/#{@.get('uid')}"
   AddrBookView = Backbone.View.extend
     el: "#addrbook-body"
     events:

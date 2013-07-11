@@ -59,7 +59,7 @@ define (require,exports,module) ->
 
   SchedulePanelCollection = Backbone.Collection.extend
     model: $si.ScheduleModel
-    url: "/api/schedule/panel"
+    url: "api/schedule/panel"
 
   SchedulePanelView = Backbone.View.extend
     el: '#schedule-panel'
@@ -78,7 +78,7 @@ define (require,exports,module) ->
 
   EventListCollection = Backbone.Collection.extend
     model: $ed.EventItemModel
-    url: "/api/event/list"
+    url: "api/event/list"
     set_comparator: (attr) ->
       @order = attr
       sign = if attr in ["created_at","latest_comment_date","participant_count"] then -1 else 1
@@ -181,7 +181,7 @@ define (require,exports,module) ->
         @$el.find(".deadline-message").show()
 
   EventChoiceModel = Backbone.Model.extend
-    urlRoot: "/api/event/choose/"
+    urlRoot: "api/event/choose/"
 
   EventChoiceView = Backbone.View.extend
     el: "<dd class='sub-nav'>"
@@ -394,6 +394,12 @@ define (require,exports,module) ->
       @$el.find("[name='forbidden_attrs']").chosen(
         width: "100%"
       )
+  NewlyMessageModel = Backbone.Model.extend
+    url: "api/user/newly-message"
+  NewlyMessageView = Backbone.View.extend
+    el: "#newly-message"
+    initialize: ->
+      @listenTo(@model,"sync",@render)
 
   init: ->
     window.show_schedule_weekday = true

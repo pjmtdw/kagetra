@@ -1,6 +1,6 @@
 define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
   UserConfModel = Backbone.Model.extend
-    url: "/api/user_conf/etc"
+    url: "api/user_conf/etc"
   UserConfView = Backbone.View.extend
     el: "#user-conf"
     template:  _.template_braces($("#templ-user-conf").html())
@@ -28,7 +28,7 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
         el = @$el
         first = ->
           [hash, msg] = _.hmac_password(el.find(".pass-cur").val(),g_cur_salt)
-          $.post '/api/user/confirm_password',
+          $.post 'api/user/confirm_password',
             hash: hash
             msg: msg
         second = (data)->
@@ -39,7 +39,7 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
             if el.find(".pass-new").val() != el.find(".pass-retype").val()
               return defer.reject("再確認のパスワードが一致しません")
             hash = _.pbkdf2_password(el.find(".pass-new").val(),g_new_salt)
-            $.post '/api/user/change_password',
+            $.post 'api/user/change_password',
               hash: hash
               salt: g_new_salt
           else

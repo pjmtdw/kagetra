@@ -57,7 +57,7 @@ define (require,exports,module) ->
     render: ->
       @$el.html(@template(data:_.extend(@model.toJSON(),team_size:window.result_view.collection.team_size)))
   ContestResultCollection = Backbone.Collection.extend
-    url: -> '/api/result/contest/' + (@id or "latest")
+    url: -> 'api/result/contest/' + (@id or "latest")
     model: ContestChunkModel
     parse: (data)->
       for x in ["recent_list","name","date","id",

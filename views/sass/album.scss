@@ -25,6 +25,7 @@
     }
   }
   &.thumbnail{
+    display: inline-block;
     background-color: #FFD;
     &:hover{
       background-color: #FFB;
@@ -34,14 +35,20 @@
     border: 3px solid blue;
   }
 }
-#canvas{
+#container{
+  cursor: crosshair;
+  margin: 0;
+  padding: 0;
   position: relative;
-  #photo,#tag-name,.marker{
+  * {
+    margin: 0;
+    padding: 0;
     position: absolute;
   }
   #photo{
     z-index: 1;
-    cursor: crosshair;
+    width: 100%;
+    height: 100%;
   }
   .marker{
     z-index: 10;
@@ -53,7 +60,17 @@
     background: rgba(0,0,0,0.5);
     padding: 3px;
   }
+  #canvas{
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+  }
 }
+
+#container-album-relation{
+  z-index: 200;
+}
+
 #album-tags{
   margin-bottom: 6px;
   .album-tag{
@@ -68,8 +85,13 @@
       background-color: #EDF;
     }
     &.tag-selected{
-      font-weight: bold;
+      text-shadow: 1px 1px 1px silver;
+      border: 1px solid black;
       background-color: #DEF;
+    }
+    .edit-tag{
+      padding-left: 3px;
+      padding-right: 3px;
     }
   }
 }

@@ -31,7 +31,7 @@ define (require, exports, module) ->
   ScheduleModel = Backbone.Model.extend
     url: ->
       [y,m,d] = (@get(x) for x in ['year','mon','day'])
-      "/api/schedule/get/#{y}-#{m}-#{d}"
+      "api/schedule/get/#{y}-#{m}-#{d}"
     parse: (data)->
       data.current = true unless data.current?
       data
@@ -98,10 +98,10 @@ define (require, exports, module) ->
         @$el.find(".info-item-edit").addClass("not-current-edit")
 
   ScheduleDetailModel = Backbone.Model.extend
-    urlRoot: "/api/schedule/detail/item"
+    urlRoot: "api/schedule/detail/item"
 
   ScheduleDetailCollection = Backbone.Collection.extend
-    url: -> "/api/schedule/detail/#{@year}-#{@mon}-#{@day}"
+    url: -> "api/schedule/detail/#{@year}-#{@mon}-#{@day}"
     model: ScheduleDetailModel
     refresh: (year,mon,day) ->
       @year = year

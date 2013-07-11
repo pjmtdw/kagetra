@@ -41,7 +41,8 @@ for Ubuntu ->
   $ apt-get install rbenv
   $ echo 'eval "$(rbenv init -)"' >> ~/.bashrc
   $ rbenv alternatives
-  $ cd kagetra && rbenv local 1.9.3-debian
+  ( install ruby-build plug-in for rbenv and execute $ rbenv install 1.9.3-p448 )
+  $ cd kagetra && rbenv local 1.9.3-debian ( or 1.9.3-p448 if using ruby-build )
 (1) Install bundler
   $ gem install bundler
 (2) Install Sinatra and other Ruby modules

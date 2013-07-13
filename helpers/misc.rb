@@ -27,14 +27,13 @@ module MiscHelpers
     end
   end
 
-  PERMANENT_COOKIE_NAME="kagetra.permanent"
   def get_permanent(key)
     data = get_permanent_all
     if data then data[key] end
   end
 
   def get_permanent_all
-    str = request.cookies[PERMANENT_COOKIE_NAME]
+    str = request.cookies[G_PERMANENT_COOKIE_NAME]
     if str.to_s.empty? then
       {}
     else
@@ -50,7 +49,7 @@ module MiscHelpers
 
   def set_permanent_all(data)
     str = Base64.strict_encode64(data.to_json)
-    response.set_cookie(PERMANENT_COOKIE_NAME,
+    response.set_cookie(G_PERMANENT_COOKIE_NAME,
                         value: str,
                         path: "/",
                         expires: (Date.today + 90).to_time)
@@ -60,7 +59,7 @@ module MiscHelpers
     data = get_permanent_all
     data.delete(key)
     if data.empty?
-      response.delete_cookie(PERMANENT_COOKIE_NAME)
+      response.delete_cookie(G_PERMANENT_COOKIE_NAME)
     else
       set_permanent_all(data)
     end

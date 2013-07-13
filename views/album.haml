@@ -183,11 +183,11 @@
     .large-5.columns
       %table#album-info-table
         %tr
-          %td 日付
-          %td {{ _.show_date(data) }}
-        %tr
           %td タイトル
           %td {- data.name -}
+        %tr
+          %td 日付
+          %td {{ _.show_date(data) }}
         %tr
           %td 場所
           %td {- data.place -}
@@ -202,6 +202,10 @@
       .large-5.columns
         %table#album-info-table
           %tr
+            %td タイトル
+            %td
+              %input(name='name' type='text' value='{-data.name-}')
+          %tr
             %td 日付
             %td
               <% if(!is_group){ %>
@@ -210,10 +214,6 @@
               %input(name='start_at' type='text' value='{-data.start_at-}' placeholder='開始日(YYYY-MM-DD)') &sim;
               %input(name='end_at' type='text' value='{-data.end_at-}' placeholder='終了日(YYYY-MM-DD)')
               <% } %>
-          %tr
-            %td タイトル
-            %td
-              %input(name='name' type='text' value='{-data.name-}')
           %tr
             %td 場所
             %td
@@ -242,6 +242,7 @@
         %li 各画像ファイルの拡張子はpng,jpg,gifのどれかにして下さい．
         %li 画像ファイルを複数圧縮したzipファイルにも対応しています．
         -# %li ファイルに何も指定しないと空のフォルダを作ります．
+        %li 写真のアップロードは一枚につき1〜2秒かかります．気長にお待ち下さい．
       %iframe(name='dummy-iframe' id='dummy-iframe' style='display:none;')
 
 

@@ -114,11 +114,12 @@ class MainApp < Sinatra::Base
         item: ScheduleItem.all(date:date).map{|x|make_item(x)}
       }
     end
+
+    SCHEDULE_PANEL_DAYS = 3
     get '/panel' do
-      PANEL_DAYS = 3
       today = Date.today
-      cond = {:date.gte => today, :date.lt => today + PANEL_DAYS}
-      arr = (0...PANEL_DAYS).map{|i|
+      cond = {:date.gte => today, :date.lt => today + SCHEDULE_PANEL_DAYS}
+      arr = (0...SCHEDULE_PANEL_DAYS).map{|i|
         d = today + i
         {year: d.year, mon: d.mon, day: d.day}
       }

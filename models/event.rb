@@ -49,7 +49,7 @@ end
 # 行事のグループ
 class EventGroup
   include ModelBase
-  property :name, TrimString, length: 60, required: true
+  property :name, TrimString, length: 60, required: true, unique: true
   property :description, TrimText
   has n, :events
 end

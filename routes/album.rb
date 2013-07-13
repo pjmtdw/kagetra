@@ -25,7 +25,7 @@ class MainApp < Sinatra::Base
         })
       }
       r[:tags] = tags.sort_by{|k,v|v.size}.reverse
-      r[:deletable] = @user.admin or group.owner_id == @user.id
+      r[:deletable] = @user.admin || group.owner_id == @user.id
       r
     end
     delete '/group/:gid' do
@@ -55,7 +55,7 @@ class MainApp < Sinatra::Base
       r[:group] = item.group.select_attr(:dummy,:year,:id,:name)
       r[:tags] = item.tags.map{|x|x.select_attr(:id,:name,:coord_x,:coord_y,:radius)}
       r[:relations] = item.relations.map{|x| x.select_attr(:id).merge({thumb:x.thumb.select_attr(:id,:width,:height)})}
-      r[:deletable] = @user.admin or item.owner_id == @user.id
+      r[:deletable] = @user.admin || item.owner_id == @user.id
       r
     end
     put '/item/:id' do
@@ -176,8 +176,7 @@ class MainApp < Sinatra::Base
   end
 
   def process_image(group,index,orig_filename,abs_path)
-    #item = group.items.create(group.select_attr(:place,:name).merge({date:group.start_at,group_index:index}))
-    item = AlbumItem.create(group.select_attr(:place,:name).merge({group_id:group.id,date:group.start_at,group_index:index}))
+    item = AlbumItem.create(group.select_attr(:place,:name,:owner).merge({group_id:group.id,date:group.start_at,group_index:index}))
     rel_path = Pathname.new(abs_path).relative_path_from(Pathname.new(File.join(G_STORAGE_DIR,"album")).realpath)
     img = Magick::Image::read(abs_path).first
     new_img = img.resize_to_fit(800,800)
@@ -212,6 +211,7 @@ class MainApp < Sinatra::Base
         attrs = params.select_attr(:start_at,:end_at,:place,:name,:comment)
         if attrs[:start_at].to_s.empty? then attrs[:start_at] = nil end
         if attrs[:end_at].to_s.empty? then attrs[:end_at] = nil end
+        attrs[:owner] = @user
         group = AlbumGroup.create(attrs)
         date = Date.today
         target_dir = File.join(G_STORAGE_DIR,"album",date.year.to_s,date.month.to_s)

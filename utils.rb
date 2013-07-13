@@ -164,7 +164,7 @@ module Kagetra
 
     # ブロック部分を実行できるのは一プロセスのみ．ロックしている間他のプロセスは素通りする
     # 全然関係ないプロセスが __FILE__ を flock することはないことが前提
-    # このときの __FILE__ はこのファイル自体を指すはず
+    # このときの __FILE__ はこのファイル自体(utils.rb)を指すはず
     def self.single_exec
       File.open(__FILE__){|f|
         return unless f.flock(File::LOCK_EX | File::LOCK_NB)
@@ -176,7 +176,9 @@ module Kagetra
       }
     end
 
+    # Copied From: PEAR::Mail_RFC822::isValidInetAddress()
     EMAIL_ADDRESS_REGEX = %r(([*+!.&#\$|\'\\%\/0-9a-z^_`{}=?~:-]+)@(([0-9a-z-]+\.)+[0-9a-z]{2,}))i
+    
     TELEPHONE_NUMBER_REGEX = %r([0０]([0-9０-９]{9,10}|[0-9０-９]{1,3}([ー\−\-][0-9０-９]{2,4}){2}))
   end
 

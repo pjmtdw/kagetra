@@ -3,7 +3,7 @@
 # 大会出場者(後に改名する人がいる可能性があるのと，Userにない人を追加できるようにするため)
 class ContestUser
   include ModelBase
-  property :name, TrimString, length: 24, required: true
+  property :name, TrimString, length: 24, required: true, remove_whitespace: true
   property :user_id, Integer, unique_index: :u1, required: false
   belongs_to :user, required: false
   property :event_id, Integer, unique_index: :u1, required: true
@@ -45,7 +45,7 @@ class ContestPrize
   belongs_to :contest_class
   property :contest_user_id, Integer, unique_index: :u1, required: true
   belongs_to :contest_user
-  property :prize, TrimString, length: 32, required: true # 実際の名前 (優勝, 全勝賞など)
+  property :prize, TrimString, length: 32, required: true, remove_whitespace: true # 実際の名前 (優勝, 全勝賞など)
   property :promotion, Enum[:rank_up, :dash] # 昇級, ダッシュ
   property :point, Integer # A級のポイント
   property :point_local, Integer # 会内ポイント
@@ -64,9 +64,9 @@ class ContestGame
   belongs_to :contest_user
   property :result, Enum[:now,:win,:lose,:default_win], required: true # 勝敗 => 対戦中, 勝ち, 負け, 不戦勝,
   property :score_str, TrimString, length: 8 # 枚数(文字) "棄" とか "3+1" とかあるので文字列として用意しておく
-  property :score_int, Integer, index: true # 枚数(数字)
-  property :opponent_name, TrimString, length: 24 # 対戦相手の名前
-  property :opponent_belongs, TrimString, length: 36 # 対戦相手の所属, 個人戦のみ使用 (ただし団体戦の大会でも対戦相手の所属がバラバラな場合はここに書く))
+  property :score_int, Integer, index: true # 枚数(数字), score_str を parse したもの．集計する際に利用
+  property :opponent_name, TrimString, length: 24, remove_whitespace: true # 対戦相手の名前
+  property :opponent_belongs, TrimString, length: 36, remove_whitespace: true # 対戦相手の所属, 個人戦のみ使用 (ただし団体戦の大会でも対戦相手の所属がバラバラな場合はここに書く))
   property :comment, TrimText # コメント
 
   is_single = ->(x){ x.type == :single }

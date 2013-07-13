@@ -6,7 +6,7 @@ class MainApp < Sinatra::Base
   set :session_secret, 
     ((if defined?(CONF_SESSION_SECRET) then CONF_SESSION_SECRET end) or ENV["RACK_SESSION_SECRET"] or SecureRandom.base64(48)) 
   
-  set :sessions, key:'kagetra.session'
+  set :sessions, key:G_SESSION_COOKIE_NAME
   # for Internet Explorer 8, 9 (and maybe also 10?) protection session hijacking refuses the session.
   # https://github.com/rkh/rack-protection/issues/11
   set :protection, except: :session_hijacking

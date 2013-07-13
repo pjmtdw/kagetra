@@ -219,6 +219,13 @@ define (require,exports,module) ->
       "click #add-choice" : "add_choice"
       "change #event-groups" : "group_change"
       "change #cur-group-list" : "copy_info"
+      "click #add-contest-group" : "add_contest_group"
+    add_contest_group: ->
+      if r = prompt("追加する恒例大会名:")
+        $.post("api/event/group/new",name:r).done((data)->
+          $("#event-groups").append($($.parseHTML(_.make_option(data.id,{value:data.id,text:data.name}))))
+        )
+      false
     copy_info: ->
       gid = parseInt($("#event-groups").val())
       id = parseInt($("#cur-group-list").val())

@@ -52,10 +52,11 @@ class MainApp < Sinatra::Base
     shared_salt = shared.value["salt"]
 
     uid = get_permanent("uid")
+    user = User.get(uid.to_i)
     (login_uid,login_uname) =
-      if uid.nil? then nil 
+      if uid.nil? or user.nil? then nil 
       else 
-        [uid,User.get(uid.to_i).name]
+        [uid,user.name]
       end
     haml :login, locals: {
       shared_salt: shared_salt,

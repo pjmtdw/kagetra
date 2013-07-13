@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 class User
   include ModelBase
-  property :name,          TrimString, length: 24, required: true, lazy: true
+  property :name,          TrimString, length: 24, required: true, lazy: true, remove_whitespace: true
   property :furigana,      TrimString, length: 36, required: true, lazy: true
   property :furigana_row,  Integer, index: true, allow_nil: false, lazy:true # 振り仮名の最初の一文字が五十音順のどの行か
   property :password_hash, TrimString, length: 44, lazy: true

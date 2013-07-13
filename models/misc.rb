@@ -181,12 +181,21 @@ module DataMapper
   end
   class Property
     class TrimString < DataMapper::Property::String
+      accept_options :remove_whitespace
+      remove_whitespace(false)
+      def initialize(model, name, options = {})
+        super
+        @remove_whitespace = options.fetch(:remove_whitespace,false) 
+      end
       def custom?
         true
       end
       def dump(value)
         return nil if value.nil?
         r = value.to_s.strip
+        if @remove_whitespace then
+          r.gsub!(/\s+/,"")
+        end
         if r.empty? then nil else r end
       end
     end

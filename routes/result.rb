@@ -31,7 +31,7 @@ class MainApp < Sinatra::Base
               (Event.all(:participant_count.gt => 0) | Event.all(:contest_user_count.gt => 0)) )
       evt = (cond & Event.all(
               if id == "latest" then
-                {order: [:date.desc]}
+                {order: [:date.desc,:id.desc]}
               else
                 {id: id.to_i}
               end

@@ -10,7 +10,9 @@ class MainApp < Sinatra::Base
           {name: "出場しない", positive: false, id: -1}],
         owners_str: @user.name,
         all_attrs: get_all_attrs,
-        all_event_groups: get_all_event_groups
+        all_event_groups: get_all_event_groups,
+        aggregate_attr_id: UserAttributeKey.first(name:G_CONTEST_DEFAULT_AGGREGATE_ATTR).id,
+        forbidden_attrs: G_CONTEST_DEFAULT_FORBIDDEN_ATTRS.map{|k,v|UserAttributeKey.first(name:k).values(value:v).map{|x|x.id}}.flatten
       }
     end
     get '/item/party' do
@@ -19,7 +21,8 @@ class MainApp < Sinatra::Base
           {name: "参加する", positive: true, id: -1},
           {name: "参加しない", positive: false, id: -1}],
         owners_str: @user.name,
-        all_attrs: get_all_attrs
+        all_attrs: get_all_attrs,
+        aggregate_attr_id: UserAttributeKey.first(name:G_PARTY_DEFAULT_AGGREGATE_ATTR).id
       }
     end
 
@@ -216,6 +219,10 @@ class MainApp < Sinatra::Base
       EventGroup.get(params[:id].to_i).events(order:[:date.desc])[0...10].map{|x|
         x.select_attr(:id,:name,:date)
       }
+    end
+    post '/group/new' do
+      name = params[:name]
+      EventGroup.create(name:name).select_attr(:id,:name)
     end
   end
   comment_routes("/api/event",Event,EventComment)

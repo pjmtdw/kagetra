@@ -115,15 +115,14 @@ module ThreadBase
       belongs_to :last_comment_user, 'User', required: false # スレッドに最後に書き込んだユーザ
       property :last_comment_date, p::DateTime, index: true # スレッドに最後に書き込んだ日時
       property :comment_count, Integer, default: 0 # コメント数 (毎回aggregateするのは遅いのでキャッシュ)
-    end
-    def self.new_threads(user)
-      search_from = user.show_new_from
-      c0 = self.all(
-        :last_comment_date.gte => user.show_new_from,
-        order: [:last_comment_date.desc])
-      c1 = self.all(:last_comment_user_id => nil)
-      c2 = self.all(:last_comment_user_id.not => user.id)
-      c0 & (c1 | c2)
+      def self.new_threads(user,cond={})
+        search_from = [user.show_new_from,DateTime.now-G_NEWLY_DAYS_MAX].max
+        c0 = self.all(
+          cond.merge({:last_comment_date.gte => search_from}))
+        c1 = self.all(:last_comment_user_id => nil)
+        c2 = self.all(:last_comment_user_id.not => user.id)
+        (c0 & (c1 | c2)).all(order: [:last_comment_date.desc])
+      end
     end
   end
 end

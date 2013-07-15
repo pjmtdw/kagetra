@@ -4,6 +4,16 @@ define (require,exports,module) ->
   $co = require("comment")
   $ch = require("chosen")
   _.mixin
+    show_news: (arr,attr,msg,href)->
+      return "" if _.isEmpty(arr)
+      buf = msg.replace("%%",arr.length)
+      buf += ": "
+      rs = []
+      for x in arr[0..10]
+        hr = href.replace("%%",x.id)
+        rs.push("<a href='#{hr}'>#{x[attr]}</a>")
+      buf += rs.join(" / ")
+      buf
     show_all_attrs: (all_attrs,forbidden_attrs) ->
       r = ""
       for [[kid,kname],v] in all_attrs
@@ -402,15 +412,32 @@ define (require,exports,module) ->
         width: "100%"
       )
   NewlyMessageModel = Backbone.Model.extend
-    url: "api/user/newly-message"
+    url: "api/user/newly_message"
   NewlyMessageView = Backbone.View.extend
     el: "#newly-message"
+    events:
+      "click #event-comment-new a" : "show_event_comment"
+      "click .link-detail a" : "show_event_detail"
+    show_event_comment: (ev)->
+      id = _.last($(ev.currentTarget).attr("href").split("/"))
+      $(".event-item[data-id='#{id}'] .show-comment").trigger("click")
+      false
+    show_event_detail: (ev)->
+      id = _.last($(ev.currentTarget).attr("href").split("/"))
+      $(".event-item[data-id='#{id}'] .show-detail").trigger("click")
+      false
+    template: _.template_braces($("#templ-newly-message").html())
     initialize: ->
+      @model = new NewlyMessageModel()
       @listenTo(@model,"sync",@render)
+      @model.fetch()
+    render: ->
+      @$el.html(@template(data:@model.toJSON()))
 
   init: ->
     window.show_schedule_weekday = true
     window.show_schedule_month = true
     window.schedule_panel_view = new SchedulePanelView()
     window.event_list_view = new EventListView()
+    window.newly_message_view = new NewlyMessageView()
     $si.init()

@@ -44,6 +44,25 @@ class Event
       [false, "invalid forbidden_attrs: #{self.forbidden_attrs.inspect}"]
     end
   }
+  def self.new_events(user)
+    search_from = [user.show_new_from,DateTime.now-G_NEWLY_DAYS_MAX].max
+    self.all(:date.gte=>Date.today,:created_at.gte => search_from,order: [:created_at.desc])
+  end
+  def self.my_events(user)
+    evs = self.all(:date.gte=>Date.today)
+    if user.admin
+      return evs
+    end
+    evs.select{|x|x.owners.include?(user.id)}
+  end
+  def self.new_participants(user)
+    search_from = [user.show_new_from,DateTime.now-G_NEWLY_DAYS_MAX].max
+    self.my_events(user).map{|ev|
+      all = ev.choices(positive: true).user_choices.all(:created_at.gte => search_from)
+      res = [ev.id,ev.name,all.map{|x|x.user_name}]
+      if all.empty? then nil else res end
+    }.compact
+  end
 end
 
 # 行事のグループ

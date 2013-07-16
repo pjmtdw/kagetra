@@ -141,21 +141,32 @@ define (require,exports,module) ->
     template: _.template_braces($("#templ-wiki-attached").html())
     events:
       "click .page": "change_page"
-      "submit #attached-form" : "send_file"
       "click  #toggle-attached" : "toggle_attached"
+    submit_done: ->
+      res = JSON.parse($("#dummy-iframe").contents().find("#response").html())
+      if res._error_
+        alert(res._error_)
+      else if res.result == "OK"
+        alert("送信しました")
+        @model.fetch()
     toggle_attached: ->
-      $("#toggle-attached").hide()
-      $("#attached-form").show()
+      $("#toggle-attached").toggleBtnText()
+      if $("#attached-form").is(":visible")
+        $("#attached-form").hide()
+      else
+        $("#attached-form").show()
     change_page: (ev)->
       obj = $(ev.currentTarget)
       page = obj.data("page")
       @model.fetch(data:{page:page})
     initialize: ->
+      _.bindAll(@,"submit_done")
       @model = new WikiAttachedListModel()
       @listenTo(@model,"sync",@render)
     render: ->
       @$el.html(@template(data:@model.toJSON()))
       @$el.appendTo("#wiki-attached")
+      $("#dummy-iframe").load(@submit_done)
   init: ->
     window.wiki_router = new WikiRouter()
     # id が 1 のものは StartPage として特別扱い

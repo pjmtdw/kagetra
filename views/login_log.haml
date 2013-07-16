@@ -6,4 +6,71 @@
   login_log
 = haml :top_bar
 
--# ユーザの最近のログイン履歴およびログインランキング
+.row
+  .section-container.tabs(data-section="tabs")
+    %section
+      %p.title(data-section-title)
+        %a(href="login_log#ranking") ランキング
+      .content(data-section-content)
+        #login-ranking
+    %section
+      %p.title(data-section-title)
+        %a(href="login_log#total") 全体履歴
+      .content(data-section-content)
+        #login-total
+    %section
+      %p.title(data-section-title)
+        %a(href="login_log#weekly") 今週のログイン
+      .content(data-section-content)
+        #login-weekly
+
+%script#templ-login-ranking(type='text/template')
+  .row
+    .large-12.columns
+      %table
+        %tbody
+          <% found = false %>
+          <% _.each(data.ranking,function(x){ %>
+          <% if(x.user_id == data.myinfo.user_id){klass="myrank";found=true}else{klass=""} %>
+          %tr(class='{{klass}}')
+            %td.count {{ x.rank }}
+            %td.count {{ x.count }}
+            %td {- data.names[x.user_id] -}
+          <% }) %>
+          <% if(!found){ %>
+          %tr.myrank
+            %td.count {{ data.myinfo.rank }}
+            %td.count {{ data.myinfo.count }}
+            %td {{ data.names[data.myinfo.user_id] }}
+          <% } %>
+%script#templ-login-total(type='text/template')
+  .row
+    .large-12.columns
+      %table
+        %thead
+          %tr
+            %th 年月
+            %th 総数
+            %th(colspan=5) TOP5
+            %th 貴方
+            %th 順位
+        %tbody
+          <% _.each(data.list,function(x){ %>
+          %tr
+            %td
+              <%= x[0] %>
+            %td.count
+              <%= x[1].count %>
+            <% for(i=1;i<=5;i++){ %>
+            %td.count
+              <%= x[1].top ? x[1].top[i] : 0 %>
+            <% } %>
+            %td.count
+              <%= x[1].user ? x[1].user.count : 0 %>
+            %td.count
+              <%= x[1].user ? x[1].user.rank : -1 %>
+          <% }) %>
+%script#templ-login-weekly(type='text/template')
+  .row
+    .large-12.columns
+      weekly

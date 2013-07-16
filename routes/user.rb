@@ -22,6 +22,7 @@ class MainApp < Sinatra::Base
         if res[:result] == "OK" then
           user.update_login(request)
           exec_daily_job
+          exec_monthly_job
           session[:user_id] = uid
           session[:user_token] = user.token
           set_permanent("uid",uid)

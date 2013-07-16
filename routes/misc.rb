@@ -31,6 +31,7 @@ class MainApp < Sinatra::Base
   namespace '/api' do
     before do
       content_type :json
+      cache_control :no_cache
       if request.content_type == "application/json" then
         @json = JSON.parse(request.body.read)
       end

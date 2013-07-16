@@ -180,6 +180,13 @@ module Kagetra
     EMAIL_ADDRESS_REGEX = %r(([*+!.&#\$|\'\\%\/0-9a-z^_`{}=?~:-]+)@(([0-9a-z-]+\.)+[0-9a-z]{2,}))i
     
     TELEPHONE_NUMBER_REGEX = %r([0０]([0-9０-９]{9,10}|[0-9０-９]{1,3}([ー\−\-][0-9０-９]{2,4}){2}))
+
+    def self.inc_month(year,month,inc)
+        m = year * 12 + (month-1) + inc
+        pyear = m / 12
+        pmonth = (m % 12) + 1
+        [pyear,pmonth]
+    end
   end
 
 end

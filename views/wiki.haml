@@ -87,8 +87,8 @@
 %script#templ-wiki-attached(type='text/template')
   .row
     .large-12.columns
-      %button#toggle-attached.small.round ファイル添付
-      %form#attached-form.hide(action='wiki/attached/{{data.item_id}}' method='post' enctype='multipart/form-data')
+      %button#toggle-attached.small.round(data-toggle-text='キャンセル') ファイル添付
+      %form#attached-form.hide(action='wiki/attached/{{data.item_id}}' method='post' enctype='multipart/form-data' target='dummy-iframe')
         %fieldset
           %legend ファイル添付
           %label ファイル
@@ -96,6 +96,7 @@
           %label 説明
           %input(type='text' name='description')
           %input(type='submit' value='送信')
+      %iframe(name='dummy-iframe' id='dummy-iframe' style='display:none;')
 
   .row
     .large-12.columns

@@ -18,8 +18,8 @@ class User
   has n, :event_user_choices
 
   has 1, :login_latest, 'UserLoginLatest'
-  has n, :login_log, 'UserLoginLog'
-  has n, :login_monthly, 'UserLoginMonthly'
+  has n, :login_logs, 'UserLoginLog'
+  has n, :login_monthlies, 'UserLoginMonthly'
 
   after :create do
     UserAttributeValue.all(default:true).each{|v|
@@ -37,7 +37,7 @@ class User
       latest = UserLoginLatest.first_or_new(user: self)
       now = DateTime.now
       if self.show_new_from.nil? or (now - self.show_new_from)*1440 >= MIN_LOGIN_SPAN then
-        monthly = self.login_monthly.first_or_new(year:now.year,month:now.month)
+        monthly = self.login_monthlies.first_or_new(year_month:UserLoginMonthly.year_month(now.year,now.month))
         monthly.count += 1
         monthly.save
         self.show_new_from = latest.updated_at
@@ -49,7 +49,7 @@ class User
       latest.touch
       latest.save
 
-      log = self.login_log.new
+      log = self.login_logs.new
       log.set_env(request)
       log.save
 
@@ -61,7 +61,7 @@ class User
   # 今月のログイン数
   def log_mon_count
     dt = Date.today
-    monthly = self.login_monthly.first(year:dt.year,month:dt.month)
+    monthly = self.login_monthlies.first(year_month:UserLoginMonthly.year_month(dt.year,dt.month))
     if monthly then
       monthly.count
     else
@@ -105,9 +105,24 @@ class UserLoginMonthly
   include ModelBase
   property :user_id, Integer, unique_index: :u1, required: true
   belongs_to :user
-  property :year, Integer, unique_index: :u1, required: true
-  property :month, Integer, unique_index: :u1, required: true
-  property :count, Integer, default: 0, required: true
+  property :year_month, String, unique_index: :u1, required: true, index: true, length: 8 # YYYY-MM
+  property :count, Integer, default: 0
+  property :rank, Integer
+  def self.year_month(year,month)
+    "%d-%02d" % [year,month]
+  end
+  def self.calc_rank(year,month)
+    year_month = self.year_month(year,month)
+    rank = nil
+    prev = nil
+    self.all(year_month:year_month,order:[:count.desc]).to_enum.with_index(1).map{|x,index|
+      if prev != x.count then
+        rank = index
+        prev = x.count
+      end
+      x.select_attr(:user_id,:count).merge({rank:rank})
+    }
+  end
 end
 
 # どのユーザがどの属性を持っているか

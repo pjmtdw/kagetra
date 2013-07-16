@@ -101,7 +101,7 @@ def import_user
         end
         if login_num and n_total and n_total > 0 then
           n_monthbefore = 0 if n_monthbefore.nil? 
-          u.login_monthly.create(year:last_login.year,month:last_login.month,count:n_total-n_monthbefore)
+          u.login_monthlies.create(year_month:UserLoginMonthly.year_month(last_login.year,last_login.month),count:n_total-n_monthbefore)
         end
         puts name
         zokusei.each_with_index{|a,i|
@@ -124,16 +124,22 @@ def import_login_log
     year = $1.to_i
     month = $2.to_i
     puts "y=#{year}, m=#{month}"
-    File.readlines(fn)[1..-1].each{|line|
+    rank = nil
+    prev_num = nil
+    File.readlines(fn)[1..-1].to_enum.with_index(1){|line,index|
       line.chomp!
       (num,uid) = line.split(/<>/)
+      if num != prev_num
+        rank = index
+        prev_num = num
+      end
       user = User.get(uid.to_i)
       if user.nil? then
         puts "USER ID:#{uid} not found: ignoring login log"
         next
       end
       Kagetra::Utils.dm_debug(fn){
-        UserLoginMonthly.update_or_create({user:user, year:year, month: month},{count:num.to_i})
+        UserLoginMonthly.update_or_create({user:user, year_month:UserLoginMonthly.year_month(year,month)},{rank:rank,count:num.to_i})
       }
     }
   }
@@ -1184,14 +1190,14 @@ end
 
 #make_tasks
 
-#import_zokusei
-#import_user
-#import_login_log
+import_zokusei
+import_user
+import_login_log
 #import_meibo
 #import_bbs
 #import_schedule
 #import_wiki
-import_album
+#import_album
 #import_shurui
 #import_event
 #import_endtaikai

@@ -83,20 +83,45 @@ module MiscHelpers
     day_from = Date.today - G_LOGIN_LOG_DAYS
     UserLoginLog.all(:created_at.lt => day_from).destroy
   end
-  DAILY_JOB_KEY_PREFIX = "daily_job_"
+  DAILY_JOB_KEY = "daily_job"
   DAILY_ALBUM_PHOTO_KEY = "daily_album_photo"
   def exec_daily_job
     Kagetra::Utils.single_exec{
-      key = DAILY_JOB_KEY_PREFIX + Date.today.to_s
-      conf = MyConf.first(name:key)
-      return if conf.nil?.!
+      today = Date.today.to_s
+      conf = MyConf.first(name:DAILY_JOB_KEY)
+      return if (conf.nil?.! and conf.value["date"] == today)
       MyConf.transaction{
         # put daily tasks here
         choose_daily_album_photo
         clean_login_log
 
-        MyConf.all(:name.like => DAILY_JOB_KEY_PREFIX + "%", :name.not => key).destroy
-        MyConf.create(name:key,value:{done:"true"})
+        MyConf.update_or_create({name:DAILY_JOB_KEY},{value:{date:today}})
+      }
+    }
+  end
+
+  def update_login_ranking(year,month)
+    UserLoginMonthly.calc_rank(year,month).each{|x|
+      p ([x[:user_id],year,month])
+      u = UserLoginMonthly.first(user_id:x[:user_id],year:year,month:month)
+      u.update(rank:x[:rank]) if u.nil?.!
+    }
+  end
+
+  MONTHLY_JOB_KEY = "monthly_job"
+
+  def exec_monthly_job
+    Kagetra::Utils.single_exec{
+      today = Date.today
+      yearmon = "#{today.year}-#{today.month}"
+      conf = MyConf.first(name:MONTHLY_JOB_KEY)
+      return if (conf.nil?.! and conf.value["yearmon"] == yearmon)
+      MyConf.transaction{
+        # put monthly tasks here
+        (pyear,pmonth) = Kagetra::Utils.inc_month(today.year,today.month,-1)
+        update_login_ranking(pyear,pmonth)
+
+        MyConf.update_or_create({name:MONTHLY_JOB_KEY},{value:{yearmon:yearmon}})
       }
     }
   end

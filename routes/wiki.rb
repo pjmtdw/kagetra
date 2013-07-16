@@ -137,18 +137,19 @@ class MainApp < Sinatra::Base
     date = Date.today
     target_dir = File.join(G_STORAGE_DIR,"attached",date.year.to_s,date.month.to_s)
     FileUtils.mkdir_p(target_dir)
-    target_file = Tempfile.new(["attached","dat"],target_dir)
-    message = begin
+    target_file = Tempfile.new(["attached-",".dat"],target_dir)
+    res = begin
       WikiAttachedFile.transaction{
         item = WikiItem.get(params[:id].to_i)
         FileUtils.cp(tempfile.path,target_file)
         item.attacheds.create(owner:@user,path:target_file,orig_name:filename,description:params[:description],size:File.size(target_file))
       }
-      "送信成功しました"
+      {result:"OK"}
     rescue
       FileUtils.rm(target_file)
-      "送信失敗しました"
+      {_error_:"送信失敗"}
     end
-    "#{message} [<a href='/wiki#page/#{params[:id]}'>戻る</a>]"
+
+    "<div id='response'>#{res.to_json}</div>"
   end
 end

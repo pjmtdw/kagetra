@@ -1,0 +1,14 @@
+.count{
+  text-align:right;
+}
+#login-ranking{
+  .myrank td{
+    font-weight: bold;
+    color: #003;
+  }
+}
+#login-total{
+  table tbody tr:nth-child(12n){
+    border-bottom: 1px solid silver;
+  }
+}

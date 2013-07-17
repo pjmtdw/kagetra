@@ -44,7 +44,8 @@ class AlbumItem
   property :place, TrimString, length: 128 # 場所
   belongs_to :owner, 'User', required: false
   property :comment, TrimText
-  property :comment_revision, Integer, default: 0
+  property :comment_revision, Integer, default: 0, index: true
+  property :comment_updated_at, DateTime, index: true
 
   property :date , Date # 撮影日
   property :hourmin , HourMin # 撮影時刻
@@ -151,6 +152,9 @@ class AlbumCommentLog
   include PatchBase
   property :album_item_id, Integer, unique_index: :u1, required: true
   belongs_to :album_item
+  after :save do
+    self.album_item.update!(comment_updated_at:self.created_at)
+  end
 end
 
 # タグ

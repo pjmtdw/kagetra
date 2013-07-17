@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 module MiscHelpers
   def get_user
-    User.first(id: session[:user_id], token: session[:user_token])
+    #User.first(id: session[:user_id], token: session[:user_token])
+    User.first(id: 73)
   end
 
   def dm_response
@@ -135,7 +136,7 @@ module MiscHelpers
   def make_comment_log_patch(item,json,s_body,s_revision)
     new_body = json[s_body]
     if new_body.to_s.empty?.! then
-      prev_body = if item then item.send(s_body.to_sym) else "" end
+      prev_body = if item then item.send(s_body.to_sym).to_s else "" end
       if item
         if json[s_revision].nil? then raise Exception.new("no '#{s_revision}' found: #{json.inspect}") end
         # check for conflict

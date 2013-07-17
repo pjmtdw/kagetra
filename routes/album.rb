@@ -170,6 +170,28 @@ class MainApp < Sinatra::Base
       item = AlbumItem.get(params[:id].to_i)
       item.select_attr(:id).merge({thumb:item.thumb.select_attr(:id,:width,:height)})
     end
+    ALBUM_COMMENTS_PER_PAGE = 40
+    get '/all_comment_log' do
+      page = if params[:page].to_s.empty?.! then params[:page].to_i else 1 end
+      chunks = AlbumItem.all(:comment_revision.gte => 1,:comment_updated_at.not=>nil,order:[:comment_updated_at.desc,:id.desc]).chunks(ALBUM_COMMENTS_PER_PAGE)
+      res = chunks[page-1].map{|x|
+        cur = x.comment
+        prev = x.get_revision_comment(x.comment_revision - 1)
+        next if prev == cur
+        diffs = G_DIMAPA.diff_main(prev,cur)
+        html = G_DIMAPA.diff_prettyHtml(diffs)
+        r = x.select_attr(:id)
+        r[:thumb] = x.thumb.select_attr(:width,:height,:id)
+        r[:diff_html] = html
+        log = x.comment_logs.first(revision:x.comment_revision)
+        r[:log] = {
+          date: log.created_at.strftime("%Y-%m-%d"),
+          user_name: if not log.user.nil? then log.user.name else "" end
+        }
+        r
+      }.compact
+      {list:res,next_page:page+1}
+    end
   end
   get '/album' do
     haml :album

@@ -130,3 +130,24 @@
 #scroll-to-relation{
   cursor: pointer;
 }
+#album-all-log{
+  .item{
+    margin-top: 1em;
+    .thumbnail{
+      vertical-align: top;
+    }
+    .comment{
+      margin: 0.5em;
+      background: rgba(255,255,255,0.5);
+      max-width: 400px;
+      font-size: 90%;
+      vertical-align: top; 
+    }
+    .user-name{
+      color: #004;
+    }
+    .date{
+      color: maroon;
+    }
+  }
+}

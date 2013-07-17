@@ -8,17 +8,23 @@ define (require,exports,module)->
           data.start_at
         else
           "#{data.start_at}&sim;#{data.end_at}"
-  class AlbumRouter extends _.router_base("album",["top","year","group","item","search"])
+  class AlbumRouter extends _.router_base("album",["top","year","group","item","search","all_log"])
     routes:
       "year/:year" : "year"
       "group/:id" : "group"
       "item/:id" : "item"
       "search/:qs(/:page)" : "search"
+      "all_log(/:page)" : "all_log"
       "" : "start"
     year: (year) -> @remove_all();@set_id_fetch("year",AlbumYearView,year)
     group: (id) -> @remove_all();@set_id_fetch("group",AlbumGroupView,id)
     item: (id) -> @remove_all();@set_id_fetch("item",AlbumItemView,id)
     start: -> @remove_all();@set_id_fetch("top",AlbumTopView)
+    all_log: (page)->
+      @remove_all()
+      window.album_all_log_view = new AlbumAllLogView(page:page)
+
+
     search: (qs,page) ->
       qs = decodeURI(qs)
       if not page
@@ -430,6 +436,17 @@ define (require,exports,module)->
       form.append(@template())
       @$el.appendTo(@options.target)
       $("#dummy-iframe").load(@submit_done)
+  AlbumAllLogModel = Backbone.Model.extend
+    url: "api/album/all_comment_log"
+  AlbumAllLogView = Backbone.View.extend
+    template: _.template_braces($("#templ-album-all-log").html())
+    initialize: ->
+      @model = new AlbumAllLogModel()
+      @listenTo(@model,"sync",@render)
+      @model.fetch(data:{page:@options.page})
+    render: ->
+      @$el.html(@template(data:@model.toJSON()))
+      @$el.appendTo("#album-all-log")
 
   init: ->
     window.album_router = new AlbumRouter()

@@ -53,3 +53,26 @@ body{
   margin-left: 5px; 
   cursor: pointer;
 }
+
+// for bbs
+@media #{$screen}{
+  [data-magellan-expedition]{
+    .arrival{
+      max-width: 80px;
+    }
+  }
+}
+@media #{$small}{
+  [data-magellan-expedition]{
+    .arrival{
+      max-width: 120px;
+    }
+  }
+}
+@media #{$medium}{
+  [data-magellan-expedition]{
+    .arrival{
+      max-width: 170px;
+    }
+  }
+}

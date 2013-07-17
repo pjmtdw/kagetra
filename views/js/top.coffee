@@ -367,7 +367,7 @@ define (require,exports,module) ->
     render: ->
       data = @model.toJSON()
       data["show_all"] = true
-      @$el.html("<button data-toggle-text='キャンセル' class='toggle-edit small round'>編集開始</button> <button class='apply-edit small round hide'>更新</button>"+@template(data:data))
+      @$el.html("<button data-toggle-text='キャンセル' class='toggle-edit small round'>編集開始</button> <button class='apply-edit small round hide'>送信</button>"+@template(data:data))
 
   get_edit_choice_list = ->
     r = []

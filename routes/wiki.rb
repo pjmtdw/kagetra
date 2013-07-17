@@ -34,7 +34,8 @@ class MainApp < Sinatra::Base
 
       if not public_mode then
         html.gsub!(%r(#{tag_private_s}:(.*?):#{tag_private_e})m){
-          %(<span class="private">#{$1}</span>)
+          tag = if $1.include?("\n") then "div" else "span" end
+          %(<#{tag} class="private">#{$1}</#{tag}>)
         }
       end
 
@@ -53,7 +54,8 @@ class MainApp < Sinatra::Base
     get '/item/all' do
       page = if params[:page] then params[:page].to_i else 1 end
       # chunksを使うときはorderに同じ物がある可能性があるものを指定するとバグるので:id.descも一緒に指定すること
-      chunks = WikiItem.all(order:[:updated_at.desc,:id.desc]).chunks(WIKI_ALL_PER_PAGE)
+      cond = if @public_mode then {public:true} else {} end
+      chunks = WikiItem.all(cond.merge({order:[:updated_at.desc,:id.desc]})).chunks(WIKI_ALL_PER_PAGE)
       html = "<ul>" + chunks[page-1].map{|x|
           "<li>[#{x.updated_at.to_date}] <a data-link-id='#{x.id}' class='link-page'>#{x.title}</a></li>"
       }.join() + "</ul>"
@@ -67,15 +69,17 @@ class MainApp < Sinatra::Base
     end
     get '/item/:id' do
       item = WikiItem.get(params[:id].to_i)
-      r = item.select_attr(:title,:revision)
+      halt 403 unless (not @public_mode or (@public_mode and item.public))
+      r = item.select_attr(:title,:revision,:public)
       if params[:edit].to_s.empty?.! then
         r[:body] = item.body
       else
-        r[:html] = render_wiki(item.body,false)
+        r[:html] = render_wiki(item.body,@public_mode)
       end
       r
     end
     delete '/item/:id' do
+      halt 403 if @public_mode
       item = WikiItem.get(params[:id].to_i)
       # destory するには関連するmodelを削除しないといけないけどそれはイヤなので deleted フラグを付けるだけ
       item.update(deleted:true)
@@ -83,6 +87,9 @@ class MainApp < Sinatra::Base
 
     def update_or_create_item(item)
       dm_response{
+        if @json.has_key?("public") then
+          @json["public"] = @json["public"].to_s.empty?.!
+        end
         WikiItem.transaction{
           (updates,updates_patch) = make_comment_log_patch(item,@json,"body","revision")
           if updates then @json.merge!(updates) end
@@ -100,17 +107,21 @@ class MainApp < Sinatra::Base
     end
 
     put '/item/:id' do
+      halt 403 if @public_mode
       item = WikiItem.get(params[:id].to_i)
       update_or_create_item(item)
     end
     post '/item' do
+      halt 403 if @public_mode
       update_or_create_item(nil)
     end
     post '/preview' do
+      halt 403 if @public_mode
       {html: render_wiki(params[:body],false)}
     end
 
     get '/attached_list/:id' do
+      halt 403 if @public_mode
       page = (params[:page] || 1).to_i
       chunks = WikiAttachedFile.all(wiki_item_id:params[:id].to_i,order:[:created_at.desc,:id.desc]).chunks(ATTACHED_LIST_PER_PAGE) 
       pages = chunks.size
@@ -127,6 +138,7 @@ class MainApp < Sinatra::Base
     haml :wiki
   end
   get '/static/wiki/attached/:id' do
+    halt 403 if @public_mode
     attached = WikiAttachedFile.get(params[:id].to_i)
     send_file("../mytoma/storage/wiki/#{attached.path}",filename:attached.orig_name)
   end

@@ -172,7 +172,7 @@ class MainApp < Sinatra::Base
       update_or_create_item
     end
     get '/list' do
-      events = (Event.all(:date.gte => Date.today) + Event.all(date: nil))
+      events = Event.all(done:false)
 
       # 各eventごとに取得するのは遅いのでまとめて取得しておく
       user_choices = @user.event_user_choices.event_choice(event:events).to_enum.with_object({}){|x,h|h[x.event_id]=x.id}

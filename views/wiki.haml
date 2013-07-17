@@ -10,7 +10,7 @@
 
 .row
   .large-12.columns
-    .section-container.auto(data-section)
+    .section-container.tabs(data-section="tabs")
       %section
         %p.title(data-section-title)
           %a#section-page(href="#") ページ
@@ -18,31 +18,32 @@
           %p
             #wiki-item
             #wiki-edit
-      %section
-        %p.title(data-section-title)
-          %a(href="#")
-            %span.hide-for-all
-              コメント ( 
-              %span#wiki-comment-count
-              )
-        .content(data-section-content)
-          %p
-            #wiki-comment
-      %section
-        %p.title(data-section-title)
-          %a(href="#")
-            %span.hide-for-all
-              添付ファイル
-        .content(data-section-content)
-          %p
-            #wiki-attached
-      %section
-        %p.title(data-section-title)
-          %a(href="#")
-            %span.hide-for-all 履歴
-        .content(data-section-content)
-          %p
-            #wiki-log
+      - if not @public_mode then
+        %section
+          %p.title(data-section-title)
+            %a(href="#")
+              %span.hide-for-all
+                コメント ( 
+                %span#wiki-comment-count
+                )
+          .content(data-section-content)
+            %p
+              #wiki-comment
+        %section
+          %p.title(data-section-title)
+            %a(href="#")
+              %span.hide-for-all
+                添付ファイル
+          .content(data-section-content)
+            %p
+              #wiki-attached
+        %section
+          %p.title(data-section-title)
+            %a(href="#")
+              %span.hide-for-all 履歴
+          .content(data-section-content)
+            %p
+              #wiki-log
 
 %script#templ-wiki-panel(type='text/template')
   .row.wiki-panel
@@ -53,14 +54,25 @@
         %a.left(href='wiki#page/{{x[0]}}') {- x[1] -}
         <% }}) %>
     .large-2.columns
+      <% if(! _.is_public_mode() ){ %>
       %button#edit-new.small.round.right 新規作成
+      <% } %>
 
 %script#templ-wiki-item(type='text/template')
   .row
     .large-12.columns
-      <% if(data.id != "all"){ %>
+      <% if(data.id != "all" && ! _.is_public_mode() ){ %>
       %button#edit-start.small.round 編集
       <% } %>
+      - if not @public_mode then
+        <% if(data.public){ %>
+        .public-message
+          このページは
+          %a(href='/public/wiki#page/{{data.id}}') 外部公開
+          です．ただし
+          %span.private この色の部分
+          は非公開です．
+        <% }  %>
       {{ data.html }}
 
 %script#templ-wiki-preview(type='text/template')
@@ -73,12 +85,15 @@
     .large-12.columns
       %button#edit-cancel.small.round キャンセル
       %button#edit-preview.small.round プレビュー
-      %button#edit-done.small.round 更新
+      %button#edit-done.small.round 送信
       %button#delete-wiki.right.small.round.alert 削除
   %form#wiki-edit-form
     .row
-      .large-12.columns
+      .large-10.columns
         %input(type='text' name='title' placeholder='タイトル' value='{-data.title-}')
+      - if not @public_mode
+        .large-2.columns
+          {{ _.make_checkbox(data.public,{name:'public'}) }} 外部公開
     .row
       .large-12.columns
         %textarea(name='body' rows=60 placeholder='本文') {- data.body -}

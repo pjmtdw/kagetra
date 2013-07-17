@@ -53,6 +53,12 @@
   td,th{
     min-width: 100px;
   }
+  .private{
+    border: 2px dotted gray;
+    background-color: #EEF;
+    color: black;
+    font-weight: normal;
+  }
 }
 
 #wiki-attached{
@@ -72,4 +78,9 @@
 #edit-start{
   position:absolute;
   right: 1em;
+}
+.public-message{
+  font-weight: bold;
+  color: maroon;
+  margin-bottom: 0.5em;
 }

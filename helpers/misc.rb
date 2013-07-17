@@ -78,6 +78,10 @@ module MiscHelpers
     MyConf.update_or_create({name:DAILY_ALBUM_PHOTO_KEY},{value:{id:a.id,thumb:t.select_attr(:id,:width,:height)}})
   end
 
+  def update_event_done_flag
+    Event.all(:date.lte => Date.today, done:false).update(done: true)
+  end
+
   # 古いログイン履歴を削除
   def clean_login_log
     day_from = Date.today - G_LOGIN_LOG_DAYS
@@ -94,6 +98,7 @@ module MiscHelpers
         # put daily tasks here
         choose_daily_album_photo
         clean_login_log
+        update_event_done_flag
 
         MyConf.update_or_create({name:DAILY_JOB_KEY},{value:{date:today}})
       }

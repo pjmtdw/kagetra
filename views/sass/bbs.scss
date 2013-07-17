@@ -1,7 +1,6 @@
 @import "compass/css3/border-radius";
 [data-magellan-expedition]{
   .arrival{
-    max-width: 170px;
     margin-left: 10px;
     border: 1px dotted gray;
     padding: 5px;
@@ -55,8 +54,4 @@
 .public{
   border: 4px solid blue;
   background-color: #FFF;
-}
-#bbs-nav{
-  max-height: 4em;
-  overflow-y: auto;
 }

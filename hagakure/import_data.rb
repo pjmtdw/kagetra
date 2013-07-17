@@ -452,7 +452,8 @@ def import_event
         event_group: shurui,
         hide_choice: ! show_choice,
         aggregate_attr: agg_attr,
-        start_at: start_at
+        start_at: start_at,
+        done: false
       )
       kanrishas.each{|k|
         user = search_user_name(k)
@@ -830,7 +831,8 @@ def import_endtaikai
                        place: place,
                        event_group: shurui,
                        aggregate_attr: agg_attr,
-                       start_at: Kagetra::HourMin.new(khour,kmin)
+                       start_at: Kagetra::HourMin.new(khour,kmin),
+                       done: true
       )
       if choices then 
         choices.each_with_index{|(typ,name),i|

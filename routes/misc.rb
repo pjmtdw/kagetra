@@ -5,7 +5,7 @@ class MainApp < Sinatra::Base
     halt(403,"this page is not public") unless G_TOP_BAR_ROUTE.any?{|x|
       next unless x[:public]
       r = x[:route]
-      [r,"/api"+r].any?{|z| path.start_with?(z)}
+      ["/"+r,"/api/"+r].any?{|z| path.start_with?(z)}
     }
     @public_mode = true
     call env.merge("PATH_INFO" => path)

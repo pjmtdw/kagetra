@@ -7,7 +7,7 @@ class MainApp < Sinatra::Base
       (evt,recent_list) = recent_contests(params[:id])
 
       gr = evt.event_group
-      group = if gr then gr.events(:date.lte => Date.today, order:[:date.desc])
+      group = if gr then gr.events(done:true, order:[:date.desc])
                 .map{|x| x.select_attr(:id,:name,:date)} else [] end
       
       contest_results = if evt.team_size == 1 then
@@ -27,7 +27,7 @@ class MainApp < Sinatra::Base
 
     # 日時順に並べたときの前後の大会
     def recent_contests(id)
-      cond = (Event.all(kind: :contest, :date.lte => Date.today) &
+      cond = (Event.all(kind: :contest, done:true) &
               (Event.all(:participant_count.gt => 0) | Event.all(:contest_user_count.gt => 0)) )
       evt = (cond & Event.all(
               if id == "latest" then

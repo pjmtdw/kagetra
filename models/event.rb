@@ -7,14 +7,16 @@ class Event
   property :name, TrimString, length: 48, required: true # 名称
   property :formal_name, TrimString, length: 96, lazy:true # 正式名称
   property :official, Boolean, default: true # 公認大会
-  property :kind, Enum[:contest, :party, :etc], default: :etc # 大会, コンパ/合宿/アフター等, アンケート/購入/その他
+  property :kind, Enum[:contest, :party, :etc], default: :etc, index: true # 大会, コンパ/合宿/アフター等, アンケート/購入/その他
   property :team_size, Integer, default: 1 # 1 => 個人戦, 3 => 3人団体戦, 5 => 5人団体戦
   property :description, TrimText # 備考
   property :deadline, Date # 締切
-  property :date, Date # 日時 
+  property :date, Date, index: true # 日時 
   property :start_at, HourMin #開始時刻
   property :end_at, HourMin #終了時刻
   property :place, TrimString, length: 255, lazy: true # 場所
+  property :done, Boolean, default: false, index:true # 終わった大会/行事
+  property :public, Boolean, default: true, index: true # 公開されているか
 
   # 以下のparticipant_count と contest_user_count は違うもの．前者は事前登録の数，後者は大会に出場した人の数
   property :participant_count, Integer, default: 0 # 参加者数 (毎回aggregateするのは遅いのでキャッシュ)
@@ -46,10 +48,10 @@ class Event
   }
   def self.new_events(user)
     search_from = [user.show_new_from,DateTime.now-G_NEWLY_DAYS_MAX].max
-    self.all(:date.gte=>Date.today,:created_at.gte => search_from,order: [:created_at.desc])
+    self.all(done:false,:created_at.gte => search_from,order: [:created_at.desc])
   end
   def self.my_events(user)
-    evs = self.all(:date.gte=>Date.today)
+    evs = self.all(done:false)
     if user.admin
       return evs
     end

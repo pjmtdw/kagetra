@@ -8,8 +8,6 @@ gem 'sinatra-contrib'
 gem 'haml' # meta html
 gem 'sass' # meta css
 
-gem 'diff_match_patch' # diff & patch
-
 gem 'zurb-foundation' # design framework
 gem 'compass' # css authoring framework
 gem 'redcarpet' # markdown to (x)html converter

@@ -25,7 +25,7 @@ G_TOP_BAR_ROUTE = [
 
 G_STORAGE_DIR = "./storage"
 
-G_DIMAPA = DiffMatchPatch.new
+G_DIMAPA = DiffPatchMatch.new
 
 G_CONTEST_DEFAULT_AGGREGATE_ATTR = "級" # 大会のデフォルトの集計属性
 G_CONTEST_DEFAULT_FORBIDDEN_ATTRS = {"全日協" => ["×"]} # 大会のデフォルトの参加不能属性

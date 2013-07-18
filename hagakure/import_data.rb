@@ -1170,17 +1170,20 @@ def import_album
   import_album_stage2(import_album_stage1)
 end
 
+# MyToma の Wiki から import する
 def import_wiki
+  # kagetraやhagakure の user_id と mytoma の user_id は別物なので注意
+  # kagetraやhagakure の user_id は mytoma の auth_user の username に格納されてある
   Kagetra::Utils.dm_debug{
     db = SQLite3::Database.open CONF_MYTOMA_WIKI_FILE
     db.execute("select id,text,revision,keyword,exhibited,deleted from wiki_wikipage"){|id,text,revision,keyword,exhibited,deleted|
       WikiItem.create(id:id,deleted:deleted==1,public:exhibited==1,title:keyword,body:text,revision:revision)
     }
-    db.execute("select id,object_id,revision,datetime,patch,user_id from wiki_markuppatch"){|id,object_id,revision,datetime,patch,user_id|
+    db.execute("select p.id,p.object_id,p.revision,p.datetime,p.patch,a.username from wiki_markuppatch p join auth_user a on a.id = p.user_id"){|id,object_id,revision,datetime,patch,user_id|
       next if patch.strip.to_s.empty?
       WikiItemLog.create(wiki_item_id:object_id,revision:revision,created_at:DateTime.parse(datetime),user_id:user_id,patch:patch)
     }
-    db.execute("select page_id,uploaded_datetime,user_id,file,description,deleted from wiki_attachedfile"){|page_id,uploaded_datetime,user_id,file,description,deleted|
+    db.execute("select p.page_id,p.uploaded_datetime,a.username,p.file,p.description,p.deleted from wiki_attachedfile p join auth_user a on a.id = p.user_id"){|page_id,uploaded_datetime,user_id,file,description,deleted|
       base = File.basename(file).sub(/_\d+$/,"").gsub("-","/")
       orig_name = Base64.strict_decode64(base)
       abs_path = "../mytoma/storage/wiki/#{file}"
@@ -1192,13 +1195,13 @@ end
 
 #make_tasks
 
-import_zokusei
-import_user
-import_login_log
+#import_zokusei
+#import_user
+#import_login_log
 #import_meibo
 #import_bbs
 #import_schedule
-#import_wiki
+import_wiki
 #import_album
 #import_shurui
 #import_event

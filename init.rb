@@ -17,7 +17,7 @@ require 'json'
 require 'base64'
 require 'nkf'
 require 'redcarpet'
-require 'diff_match_patch'
+require './libs/diff_match_patch-ruby/diff_match_patch.rb'
 require 'RMagick'
 require 'zip/zip' # RubyZip
 

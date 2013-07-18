@@ -134,6 +134,22 @@
           %td {{x.description}}
         <% }) %>
 
+%script#templ-wiki-log(type='text/template')
+  .row
+    <% if(data.next_page){ %>
+    #wiki-log-next-page.button.small.round(data-page='{{data.next_page}}') 次のページ
+    <% } %>
+  <% _.each(data.list,function(x){ %>
+  %hr
+  .row
+    .large-12.columns
+      %span.revision [{{x.revision}}]
+      %span.user-name {- x.user_name -}
+      %span.date @ {{ x.date }}
+      .pre
+        {{ x.html }}
+  <% }) %>
+
 #container-wiki-preview.reveal-modal
 
 = haml :comment

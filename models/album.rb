@@ -54,7 +54,7 @@ class AlbumItem
   belongs_to :group, 'AlbumGroup'
   property :group_index, Integer, allow_nil: false # グループの中での表示順
   property :rotate, Integer # 回転 (右向き, 度数法)
-  property :orig_filename, String, length: 128 # アップロードされた元のファイル名
+  property :orig_filename, String, length: 128, lazy: true # アップロードされた元のファイル名
 
   property :tag_count, Integer, default: 0
 
@@ -100,11 +100,14 @@ class AlbumItem
     self.relations_r + self.relations_l
   end
 
-  # そのrevisionのcommentを取得する
-  def get_revision_comment(rev)
-    self.get_revision_common(rev,:comment,:comment_revision,:comment_logs)
+  # get_revision_of を使うにはこの関数を実装しておく必要がある
+  def patch_syms
+    {
+      cur_body: :comment,
+      last_rev: :comment_revision,
+      logs: :comment_logs
+    }
   end
-
 end
 
 # 関連写真

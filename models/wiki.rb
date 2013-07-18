@@ -9,10 +9,16 @@ class WikiItem
   has n, :attacheds, 'WikiAttachedFile'
   has n, :item_logs, 'WikiItemLog'
   has n, :comments, 'WikiComment', child_key: [:thread_id] # コメント
-  # そのrevisionのbodyを取得する
-  def get_revision_body(rev)
-    self.get_revision_common(rev,:body,:revision,:item_logs)
+
+  # get_revision_of を使うにはこの関数を実装しておく必要がある
+  def patch_syms
+    {
+      cur_body: :body,
+      last_rev: :revision,
+      logs: :item_logs
+    }
   end
+
 end
 class WikiItemLog
   include ModelBase

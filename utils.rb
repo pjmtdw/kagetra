@@ -7,6 +7,12 @@ class Hash
   end
 end
 
+class String
+  def escape_html
+    Rack::Utils.escape_html(self)
+  end
+end
+
 module Kagetra
   class HourMin
     def initialize(hour,min)
@@ -112,9 +118,6 @@ module Kagetra
     end
     def self.hmac_password(hash,msg)
       Base64.strict_encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::Digest.new('sha256'), hash, msg))
-    end
-    def self.escape_html_br(s)
-      Rack::Utils.escape_html(s).gsub("\n","<br>")
     end
 
     def self.zenkaku_to_hankaku(s)

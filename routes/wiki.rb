@@ -2,6 +2,8 @@
 class MainApp < Sinatra::Base 
   ATTACHED_LIST_PER_PAGE = 50
   WIKI_ALL_PER_PAGE = 50
+  WIKI_LOG_PER_PAGE = 10
+  WIKI_LOG_MAX_PAGE = 20 # 現在過去ログは遅いのでページ制限を設ける TODO: ページ制限をなくす
   MARKDOWN = Redcarpet::Markdown.new(
   Redcarpet::Render::HTML.new(hard_wrap:true),tables:true,fenced_code_blocks:true)
   namespace '/api/wiki' do
@@ -131,6 +133,28 @@ class MainApp < Sinatra::Base
         })
       }
       {item_id:params[:id].to_i,list: list, pages: pages, cur_page: page}
+    end
+    get '/log/:id' do
+      halt 403 if @public_mode
+      page = if params[:page].to_s.empty?.! then params[:page].to_i else 1 end
+      item = WikiItem.get(params[:id].to_i)
+      list = item.each_diff_htmls_until(WIKI_LOG_PER_PAGE,WIKI_LOG_PER_PAGE*(page-1)).map{|x|
+        log = x[:log]
+        # TODO: これだと <ins> や </ins> のある行しか表示されないので
+        # 複数行編集されてる場合途中が表示されない
+        html = x[:html].lines.select{|x| /<\/?(ins|del)/ =~ x}.join("")
+        {
+          html:html,
+          user_name: if log.user.nil?.! then log.user.name else "" end,
+          date: log.created_at.strftime("%Y-%m-%d"),
+          revision: log.revision
+        }
+      }
+      {
+        list:list,
+        next_page: if page+1 > WIKI_LOG_MAX_PAGE then nil else page+1 end
+      }
+
     end
   end
   comment_routes("/api/wiki",WikiItem,WikiComment)

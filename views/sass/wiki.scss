@@ -10,7 +10,7 @@
     color: rgb(6,69,173);
   }
 }
-#wiki-item{
+#wiki-item,#container-wiki-preview{
   .row{
     background-color: rgba(255,255,255,0.5);
   }
@@ -83,4 +83,16 @@
   font-weight: bold;
   color: maroon;
   margin-bottom: 0.5em;
+}
+
+#wiki-log{
+  .revision{
+    font-weight: bold;
+  }
+  .user-name{
+    color: #004;
+  }
+  .date{
+    color: maroon;
+  }
 }

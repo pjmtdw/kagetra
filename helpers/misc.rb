@@ -108,8 +108,7 @@ module MiscHelpers
 
   def update_login_ranking(year,month)
     UserLoginMonthly.calc_rank(year,month).each{|x|
-      p ([x[:user_id],year,month])
-      u = UserLoginMonthly.first(user_id:x[:user_id],year:year,month:month)
+      u = UserLoginMonthly.first(user_id:x[:user_id],year_month:UserLoginMonthly.year_month(year,month))
       u.update(rank:x[:rank]) if u.nil?.!
     }
   end

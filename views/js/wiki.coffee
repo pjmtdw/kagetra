@@ -8,7 +8,7 @@ define (require,exports,module) ->
         "#{Math.floor(x/1024)} KB"
       else
         "#{Math.floor(x/1048576)} MB"
-  class WikiRouter extends _.router_base("wiki",["item","attached_list","edit","comment","comment_thread"])
+  class WikiRouter extends _.router_base("wiki",["item","attached_list","edit","comment","comment_thread","log"])
     routes:
       "page/:id" : "page"
       "" : "start"
@@ -20,6 +20,7 @@ define (require,exports,module) ->
       $("#section-page").click()
       if id != "all" and not _.is_public_mode()
         @set_id_fetch("attached_list",WikiAttachedListView,id)
+        @set_id_fetch("log",WikiLogView,id)
         $co.section_comment("wiki","#wiki-comment",id,$("#wiki-comment-count"))
         $(".hide-for-all").show()
       else
@@ -167,6 +168,24 @@ define (require,exports,module) ->
       @$el.html(@template(data:@model.toJSON()))
       @$el.appendTo("#wiki-attached")
       $("#dummy-iframe").load(@submit_done)
+  WikiLogModel = Backbone.Model.extend
+    urlRoot: "api/wiki/log"
+  WikiLogView = Backbone.View.extend
+    template: _.template_braces($("#templ-wiki-log").html())
+    events:
+      "click #wiki-log-next-page" : "next_page"
+    next_page: (ev)->
+      page = $(ev.currentTarget).data("page")
+      @model.fetch(data:{page:page})
+      false
+
+    initialize: ->
+      @model = new WikiLogModel()
+      @listenTo(@model,"sync",@render)
+    render: ->
+      @$el.html(@template(data:@model.toJSON()))
+      @$el.appendTo("#wiki-log")
+
   init: ->
     window.wiki_router = new WikiRouter()
     # id が 1 のものは StartPage として特別扱い

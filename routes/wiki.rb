@@ -73,6 +73,7 @@ class MainApp < Sinatra::Base
       item = WikiItem.get(params[:id].to_i)
       halt 403 unless (not @public_mode or (@public_mode and item.public))
       r = item.select_attr(:title,:revision,:public)
+      r[:deletable] = @user.admin || item.owner_id == @user.id
       if params[:edit].to_s.empty?.! then
         r[:body] = item.body
       else
@@ -89,9 +90,6 @@ class MainApp < Sinatra::Base
 
     def update_or_create_item(item)
       dm_response{
-        if @json.has_key?("public") then
-          @json["public"] = @json["public"].to_s.empty?.!
-        end
         WikiItem.transaction{
           (updates,updates_patch) = make_comment_log_patch(item,@json,"body","revision")
           if updates then @json.merge!(updates) end

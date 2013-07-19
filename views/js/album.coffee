@@ -224,8 +224,8 @@ define (require,exports,module)->
     editmark: $("<span>",{html:'&loz;',class:"edit-tag"})
 
     events:
-      "mousemove #canvas" : (ev) -> if @edit_mode then @show_marker(ev) else @mouse_moved(ev)
-      "click #canvas" : (ev) -> if @edit_mode then @show_marker(ev);@append_tag(ev) else @mouse_moved(ev) # マウスのないスマホとかのためにもクリックでタグ表示できるようにしておく
+      "mousemove #photo" : (ev) -> if @edit_mode then hide_tag() else @mouse_moved(ev)
+      "click #photo" : (ev) -> if @edit_mode then @show_marker(ev);@append_tag(ev) else @mouse_moved(ev) # マウスのないスマホとかのためにもクリックでタグ表示できるようにしておく
       "click .album-tag-name" : (ev) -> obj = $(ev.currentTarget).parent(); if obj.hasClass("tag-selected") then hide_tag() else @album_tag(obj)
       "click .edit-tag" : "edit_tag"
       "mouseover .album-tag" : (ev) -> @album_tag($(ev.currentTarget))
@@ -305,13 +305,22 @@ define (require,exports,module)->
         newr = (r for r in @model.get("relations") when r.id != id)
         @model.set("relations",newr)
         @render_relations(true)
-
+    get_pos: (ev)->
+      if ev.offsetX? and ev.offsetY?
+        [ev.offsetX,ev.offsetY]
+      else if ev.pageX? and ev.pageY?
+        offset = $(ev.target).offset()
+        [ev.pageX-offset.left,ev.pageY-offset.top]
+      else
+        console.log "cannot determine position"
+        [-1,-1]
     append_tag: (ev) ->
       obj = $(ev.currentTarget)
       hide_tag()
       if name = prompt("タグ名")
         o = $($.parseHTML(@template_tag(tag:{name:name,id:@new_tag_id})))
-        nw = {id:@new_tag_id,name:name,coord_x:ev.offsetX,coord_y:ev.offsetY,radius:50}
+        [x,y] = @get_pos(ev)
+        nw = {id:@new_tag_id,name:name,coord_x:x,coord_y:y,radius:50}
         @tag_edit_log[@new_tag_id] = ["update_or_create", nw]
         @model.get("tags").push(nw)
         o.append(@cross.clone())
@@ -340,13 +349,11 @@ define (require,exports,module)->
         tobj.text(name)
     show_marker: (ev)->
       ev.stopPropagation()
-      x = ev.offsetX
-      y = ev.offsetY
+      [x,y] = @get_pos(ev)
       show_tag({coord_x:x,coord_y:y})
     mouse_moved: (ev)->
       ev.stopPropagation()
-      x = ev.offsetX
-      y = ev.offsetY
+      [x,y] = @get_pos(ev)
       d_min = 999999.0
       tag = null
       for t in @model.get("tags")

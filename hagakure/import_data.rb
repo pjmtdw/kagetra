@@ -34,7 +34,7 @@ def make_tasks
 end
 
 GLOBAL_LOCK = Mutex.new
-DMP = DiffMatchPatch.new
+DMP = DiffPatchMatch.new
 
 class String
   def sjis!
@@ -1181,6 +1181,9 @@ def import_wiki
     }
     db.execute("select p.id,p.object_id,p.revision,p.datetime,p.patch,a.username from wiki_markuppatch p join auth_user a on a.id = p.user_id"){|id,object_id,revision,datetime,patch,user_id|
       next if patch.strip.to_s.empty?
+      if revision == 1 then
+        WikiItem.get(object_id).update!(owner_id:user_id)
+      end
       WikiItemLog.create(wiki_item_id:object_id,revision:revision,created_at:DateTime.parse(datetime),user_id:user_id,patch:patch)
     }
     db.execute("select p.page_id,p.uploaded_datetime,a.username,p.file,p.description,p.deleted from wiki_attachedfile p join auth_user a on a.id = p.user_id"){|page_id,uploaded_datetime,user_id,file,description,deleted|

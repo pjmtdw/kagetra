@@ -62,9 +62,6 @@ class MainApp < Sinatra::Base
       item = AlbumItem.get(params[:id].to_i)
       dm_response{
         AlbumItem.transaction{
-          if @json.has_key?("daily_choose") then
-            @json["daily_choose"] = @json["daily_choose"].nil?.!
-          end
           if @json.has_key?("tag_edit_log")
             @json["tag_edit_log"].each{|k,v|
               (cmd,obj) = v

@@ -16,7 +16,7 @@
           %a#section-page(href="#") ページ
         .content(data-section-content)
           %p
-            #wiki-item
+            #wiki-item.wiki-page
             #wiki-edit
       - if not @public_mode then
         %section
@@ -83,10 +83,13 @@
 %script#templ-wiki-edit(type='text/template')
   .row
     .large-12.columns
+      %a(href='#' data-reveal-id='wiki-help') ヘルプ
       %button#edit-cancel.small.round キャンセル
       %button#edit-preview.small.round プレビュー
       %button#edit-done.small.round 送信
+      <% if(data.deletable){ %>
       %button#delete-wiki.right.small.round.alert 削除
+      <% } %>
   %form#wiki-edit-form
     .row
       .large-10.columns
@@ -150,6 +153,40 @@
         {{ x.html }}
   <% }) %>
 
-#container-wiki-preview.reveal-modal
+#wiki-help.reveal-modal
+  .row
+    .large-12.columns
+      このWikiは
+      %a(target='_blank' href='http://ja.wikipedia.org/wiki/Markdown') Markdown記法
+      で書くことができます．記法についての説明は前述のリンクに委ねるとして，ここではこのWiki独自の仕様について説明します．
+      %hr
+      このWikiでは任意のHTMLタグが使えます．また&lt;style&gt;を使うときは
+      %code .wiki-page
+      がページ内を示すセレクタです．
+      %hr
+      Wiki内リンクは [[ ]] で囲みます．
+      .panel
+        %code
+          %div [[ リンク先タイトル ]]
+          %div [[ リンク先タイトル | 表示される文字列 ]]
+      %hr
+      テーブルを記述するには下記のようにします．ハイフンは3つ以上必要です．
+      .panel
+        %code
+          %div | Item&nbsp;&nbsp; | Price |&nbsp; 
+          %div | ------ | ----- |&nbsp;
+          %div | Apple&nbsp; | &nbsp;&nbsp;300 |&nbsp;
+          %div | Banana | &nbsp;&nbsp;400 |&nbsp;
+      %hr
+      %div 「外部公開」にチェックを入れるとそのページを公開できます．ただしコメント，添付ファイル，履歴は公開されません．
+      %div 公開ページの一部を非公開にするには /* */ で囲みます．
+      .panel
+        %code
+          %div この部分は公開 /* この部分は非公開 */
+        
+        
+
+
+#container-wiki-preview.wiki-page.reveal-modal
 
 = haml :comment

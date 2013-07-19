@@ -33,7 +33,7 @@ class MainApp < Sinatra::Base
       [:name,:place,:start_at,:end_at].each{|s|
         key = "emph_#{s}"
         if json.has_key?(key) then
-          if json[key].to_s.empty?.! then
+          if json[key] then
             emph << s
           else
             emph.reject!{|x|x==s}
@@ -50,7 +50,7 @@ class MainApp < Sinatra::Base
       )
     end
     def make_detail_item(x)
-      r = x.select_attr(:id,:start_at,:end_at,:name,:place,:description)
+      r = x.select_attr(:id,:start_at,:end_at,:name,:place,:description,:public)
       x.emphasis.each{|e|
         r["emph_#{e}".to_sym] = "on"
       }

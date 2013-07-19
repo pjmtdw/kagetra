@@ -3,7 +3,7 @@
 class Hash
   # {a:1,b:2,c:3}.select_attr(:a,:c) =>{a:1,c:3}
   def select_attr(*symbols)
-    Hash[symbols.map{|s|[s,self[s]]}]
+    Hash[symbols.map{|s|if self.has_key?(s) then [s,self[s]] end}.compact]
   end
 end
 

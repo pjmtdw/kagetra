@@ -147,6 +147,9 @@ $forbidden-color: gray !important;
       background-color: #EEE;
     }
   }
+  #move-to-done{
+    margin-right: 1em;
+  }
 }
 
 .daily-album-photo{
@@ -159,4 +162,7 @@ $forbidden-color: gray !important;
     margin: 3px;
   }
 }
-
+#help-public,#help-hide-choice{
+  width: 420px;
+  font-size: 90%;
+}

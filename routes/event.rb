@@ -35,7 +35,7 @@ class MainApp < Sinatra::Base
 
     def event_info(ev,user,opts = {})
       today = Date.today
-      r = ev.select_attr(:place,:name,:date,:kind,:official,:deadline,:created_at,:id,:participant_count,:comment_count,:team_size,:event_group_id)
+      r = ev.select_attr(:place,:name,:date,:kind,:official,:deadline,:created_at,:id,:participant_count,:comment_count,:team_size,:event_group_id,:public)
       if ev.last_comment_date.nil?.! then
         r[:latest_comment_date] = ev.last_comment_date
         if user.show_new_from.nil?.! then
@@ -125,7 +125,6 @@ class MainApp < Sinatra::Base
 
       dm_response{
         Event.transaction{
-          @json["hide_choice"] = @json["hide_choice"].to_s.empty?.!
           choices = if @json.has_key?("choices") then
             @json.delete("choices")
           end

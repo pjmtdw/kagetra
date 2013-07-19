@@ -146,8 +146,10 @@ define (require, exports, module) ->
         o[this.name].push(this.value || null)
       else
         o[this.name] = this.value || null
-    # checkbox でチェックされていないものを集めてくる
-    this.find("input[type='checkbox']:not(:checked)").each(->
-      o[this.name] = null
+    # checkboxでチェックされていないものは
+    # serializeArrayに出て来ないので自分で集めてくる
+    this.find("input[type='checkbox']").each(->
+      o[this.name] = $(this).is(":checked")
+      true
     )
     o

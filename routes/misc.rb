@@ -22,7 +22,7 @@ class MainApp < Sinatra::Base
     return if @public_mode
     path = request.path_info
     # 以下のURLはログインしなくてもアクセスできる
-    return if ["/public/","/api/user/auth/"].any?{|s|path.start_with?(s)} or ["/","/robots.txt","/relogin"].include?(path)
+    return if ["/public/","/api/user/auth/","/js/","/img/","/css/"].any?{|s|path.start_with?(s)} or ["/","/robots.txt","/relogin"].include?(path)
     @user = get_user
     if @user.nil? then
       halt 403, "login required"
@@ -32,8 +32,11 @@ class MainApp < Sinatra::Base
     before do
       content_type :json
       cache_control :no_cache
-      if request.content_type == "application/json" then
-        @json = JSON.parse(request.body.read)
+      if request.content_type then
+        ctype = request.content_type.split(";")[0].downcase
+        if ["json","javascript"].any?{|x|ctype.include?(x)} then
+          @json = JSON.parse(request.body.read)
+        end
       end
     end
     after do

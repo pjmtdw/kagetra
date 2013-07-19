@@ -6,6 +6,7 @@ class WikiItem
   property :public, Boolean, default: false # 外部公開されているか
   property :body, TrimText, required: true
   property :revision, Integer, default: 0
+  belongs_to :owner, 'User', required: false
   has n, :attacheds, 'WikiAttachedFile'
   has n, :item_logs, 'WikiItemLog'
   has n, :comments, 'WikiComment', child_key: [:thread_id] # コメント

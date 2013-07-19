@@ -385,7 +385,12 @@ define (require,exports,module) ->
     template: _.template_braces($("#templ-event-edit-info").html())
     events:
       "click #delete-event" : "delete_event"
+      "click #move-to-done" : "move_to_done"
       "submit #event-edit-form" : "do_submit"
+    move_to_done: ->
+      if confirm("この行事を予定表の過去の行事に移動します．よろしいですか？")
+        _.save_model_alert(@model,{done:true})
+      false
     delete_event: ->
       if prompt("削除するにはdeleteと入れて下さい") == "delete"
         @model.destroy().done(-> alert("削除しました"))

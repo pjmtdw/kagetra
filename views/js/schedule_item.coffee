@@ -179,7 +179,7 @@ define (require, exports, module) ->
     events:
       "click #add-new-item": "do_add_new"
     do_add_new: ->
-      m = new ScheduleDetailModel(year:@collection.year,mon:@collection.mon,day:@collection.day)
+      m = new ScheduleDetailModel(year:@collection.year,mon:@collection.mon,day:@collection.day,public:true)
       v = new ScheduleDetailItemView(model:m)
       $("#container-new-item").empty()
       v.render_edit()

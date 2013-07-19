@@ -116,6 +116,9 @@
     .clearfix
       %input.left.button.small(type='submit' value='送信')
       %button#delete-event.right.button.small.alert 削除
+      <% if(data.kind != "contest"){ %>
+      %button#move-to-done.right.button-maroon.small 過去の行事化
+      <% } %>
     .row
       .large-4.columns
         <% if(data.kind == "contest"){ %>
@@ -125,7 +128,7 @@
         .row
           .large-12.columns
             %select#event-groups(name='event_group_id')
-              %option ---
+              %option(value='') ---
               <% _.each(data.all_event_groups,function(x){ %>
               {{_.make_option(data.event_group_id,{value:x.id,text:x.name})}}
               <% }) %>
@@ -143,9 +146,13 @@
           {{_.make_option(data.kind,{value:x[0],text:x[1]})}}
           <% }) %>
         <% } %>
-      .large-5.columns
+      .large-4.columns
         %label 大会/行事名
         %input(name='name' type='text' value='{- data.name -}')
+      .large-1.columns
+        {{ _.make_checkbox(data.public,{name:'public'}) }} 公開
+        %a(href="#" data-dropdown="help-public") [?]
+
       .large-3.columns
         %label 管理者(半角コンマ区切り)
         %input(name='owners_str' type='text' value='{- data.owners_str -}')
@@ -203,8 +210,8 @@
           <% }) %>
         %button#add-choice.left.tiny.success 追加
       .large-3.columns
-        {{ _.make_checkbox(data.hide_choice,{name:'hide_choice'}) }}
-        %span(title='誰がどの選択肢を選んだかユーザには分からないようにする') どれを選択したかを隠す
+        {{ _.make_checkbox(data.hide_choice,{name:'hide_choice'}) }} 選択結果を隠す
+        %a(href="#" data-dropdown="help-hide-choice") [?]
     .row
       .large-12.columns
         %label 備考
@@ -251,3 +258,11 @@
 
 %script
   var g_daily_photo_str='#{daily_photo.to_json}';
+
+%ul(id="help-public" class="f-dropdown" data-dropdown-content)
+  %div 外部公開版の予定表や大会行事案内に表示されます．
+  %div ただし参加者およびコメントは公開されません．
+
+%ul(id="help-hide-choice" class="f-dropdown" data-dropdown-content)
+  %div 誰がどの選択肢を選んだかを他のユーザには分からないようにします．
+  %div Tシャツ注文のサイズなどのプライバシーの保護にお使い下さい．

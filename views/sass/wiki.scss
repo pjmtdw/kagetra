@@ -10,7 +10,7 @@
     color: rgb(6,69,173);
   }
 }
-#wiki-item,#container-wiki-preview{
+.wiki-page{
   .row{
     background-color: rgba(255,255,255,0.5);
   }
@@ -49,9 +49,6 @@
   }
   p{
     margin-bottom: .5em;
-  }
-  td,th{
-    min-width: 100px;
   }
   .private{
     border: 2px dotted gray;

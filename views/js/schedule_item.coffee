@@ -3,6 +3,13 @@ define (require, exports, module) ->
   $co = require("comment")
   locals = {}
   _.mixin
+    show_name_public: (data)->
+      s = _.escape(data.name)
+      if data.public
+        s
+      else
+        "(#{s})"
+
     show_schedule_emphasis: (data)->
       return "" unless data.emphasis
       d = _.pick(data,data.emphasis)

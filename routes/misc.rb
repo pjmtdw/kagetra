@@ -11,6 +11,14 @@ class MainApp < Sinatra::Base
     call env.merge("PATH_INFO" => path)
   end
 
+  set(:private){|value|
+    condition{
+      if value and @public_mode
+        halt 403,"this page is private"
+      end
+    }
+  }
+
   # /public/ では GET と POST しか許可しない ( PUT や DELETE はできない )
   get '/public/*' do |splat|
     filter_public(splat)

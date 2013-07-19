@@ -8,10 +8,10 @@ module ModelBase
       property :created_at, p::DateTime, index: true, lazy: true
       property :updated_at, p::DateTime, index: true, lazy: true
 
-      def self.all_month(prop,year,month)
+      def self.all_month(prop,year,month,cond={})
         from = Date.new(year,month,1)
         to = from >> 1
-        all(prop.gte => from, prop.lt => to)
+        all(cond.merge({prop.gte => from, prop.lt => to}))
       end
 
       def select_attr(*symbols)

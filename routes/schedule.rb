@@ -1,6 +1,6 @@
 class MainApp < Sinatra::Base
   namespace '/api/schedule' do
-    post '/copy/:id' do
+    post '/copy/:id', private:true do
       item = ScheduleItem.get(params[:id].to_i)
       params[:list].each{|d|
         date = Date.parse(d)
@@ -13,7 +13,7 @@ class MainApp < Sinatra::Base
       }
 
     end
-    post '/update_holiday' do
+    post '/update_holiday', private:true do
       @json.each{|day,obj|
         ScheduleDateInfo.first_or_create(date:Date.parse(day)).update(
           names:obj["names"],
@@ -59,7 +59,7 @@ class MainApp < Sinatra::Base
     get '/detail/item/:id' do
       make_detail_item(ScheduleItem.get(params[:id]))
     end
-    post '/detail/item' do
+    post '/detail/item',private:true do
       dm_response{
         update_or_create(nil, @user, @json)
       }
@@ -77,10 +77,11 @@ class MainApp < Sinatra::Base
     get '/detail/:year-:mon-:day' do
       (year,mon,day) = [:year,:mon,:day].map{|x|params[x].to_i}
       date = Date.new(year,mon,day)
-      list = ScheduleItem.all(date:date).map{|x|
+      cond = if @public_mode then {public:true} else {} end
+      list = ScheduleItem.all(cond.merge({date:date})).map{|x|
         make_detail_item(x)
       }
-      events = Event.all(date:date).map{|x|
+      events = Event.all(cond.merge({date:date})).map{|x|
         x.select_attr(:id,:name,:place,:comment_count,:start_at,:end_at)
       }
       info = ScheduleDateInfo.first(date:date)
@@ -95,13 +96,13 @@ class MainApp < Sinatra::Base
     end
     def make_item(x)
       return unless x
-      base = x.select_attr(:id,:kind,:name,:place,:start_at,:end_at)
+      base = x.select_attr(:id,:kind,:name,:place,:start_at,:end_at,:public)
       base[:emphasis] = x.emphasis if x.emphasis.empty?.!
       base
     end
     def make_event(x)
       return unless x
-      x.select_attr(:name)
+      x.select_attr(:name,:public)
     end
     get '/get/:year-:mon-:day' do
       (year,mon,day) = [:year,:mon,:day].map{|x|params[x].to_i}
@@ -116,7 +117,7 @@ class MainApp < Sinatra::Base
     end
 
     SCHEDULE_PANEL_DAYS = 3
-    get '/panel' do
+    get '/panel',private:true do
       today = Date.today
       cond = {:date.gte => today, :date.lt => today + SCHEDULE_PANEL_DAYS}
       arr = (0...SCHEDULE_PANEL_DAYS).map{|i|
@@ -150,12 +151,14 @@ class MainApp < Sinatra::Base
       after_day = 7 - lday.cwday
       today = Date.today.day
 
+      cbase = if @public_mode then {public:true} else {} end
+
       (day_infos,items,events) = [
-        [ScheduleDateInfo,:info,:make_info,Hash],
-        [ScheduleItem,:item,:make_item,Array],
-        [Event,:event,:make_event,Array]
-      ].map{|klass,sym,func,obj|
-        klass.all_month(:date,year,mon)
+        [ScheduleDateInfo,:info,:make_info,Hash,{}],
+        [ScheduleItem,:item,:make_item,Array,cbase],
+        [Event,:event,:make_event,Array,cbase]
+      ].map{|klass,sym,func,obj,cond|
+        klass.all_month(:date,year,mon,cond)
         .each_with_object(if obj == Array then Hash.new{[]} else {} end){|x,h|
           if obj == Array then
             h[x.date.day] <<= send(func,x)
@@ -177,7 +180,7 @@ class MainApp < Sinatra::Base
       }
     end
     SCHEDULE_EVENT_DONE_PER_PAGE = 40
-    get '/ev_done' do
+    get '/ev_done',private:true do
       page = if params[:page].to_s.empty?.! then params[:page].to_i else 1 end
       chunks = Event.all(:kind.not=>:contest,done:true,order:[:updated_at.desc,:id.desc]).chunks(SCHEDULE_EVENT_DONE_PER_PAGE)
       pages = chunks.size

@@ -7,12 +7,12 @@
     .event
       <% _.each(event,function(o){ %>
       .event-item
-        {- o.name -}
+        {{ _.show_name_public(o) }}
       <% }) %>
     .item
       <% _.each(item,function(o){ %>
       .schedule-item(data-schedule-id='{{o.id}}')
-        %span.title {- o.name -}
+        %span.title {{ _.show_name_public(o) }}
         {{ _.show_schedule_emphasis(o) }}
       <% }) %>
 %script#templ-schedule-item-edit-info(type='text/template')
@@ -40,9 +40,10 @@
   .day-infos.left
     <%- data.day_infos.join(", ") %>
   <% } %>
-  .right
-    %button#add-new-item.small.round
-      予定追加
+  - if not @public_mode
+    .right
+      %button#add-new-item.small.round
+        予定追加
   #container-new-item
   .body
 
@@ -54,20 +55,22 @@
     .right
       %span.detail.button-light.small
         詳細
-      %span.comment.button-light.small
-        コメント
-        %span.comment-count ({{ data.comment_count }})
+      - if not @public_mode
+        %span.comment.button-light.small
+          コメント
+          %span.comment-count ({{ data.comment_count }})
 
 %script#templ-schedule-detail-item(type='text/template')
   %hr
   .detail-item.clearfix
     .info.left
       <%= _.show_item_detail(data) %>
-    .right
-      %button.edit.small.round
-        編集
-      %button.delete.small.round.alert
-        削除
+    - if not @public_mode
+      .right
+        %button.edit.small.round
+          編集
+        %button.delete.small.round.alert
+          削除
 
 %script#templ-schedule-detail-item-edit(type='text/template')
   %hr

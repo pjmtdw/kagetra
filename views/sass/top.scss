@@ -2,6 +2,10 @@
 @import "foundation/components/buttons";
 $forbidden-color: gray !important;
 .event-item{
+  &.private{
+    border: 2px dashed silver;
+    background-color: #EED;
+  }
   .row{
     padding-top: 4px;
     padding-bottom: 4px;

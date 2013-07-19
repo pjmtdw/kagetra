@@ -73,7 +73,9 @@ class MainApp < Sinatra::Base
       item = WikiItem.get(params[:id].to_i)
       halt 403 unless (not @public_mode or (@public_mode and item.public))
       r = item.select_attr(:title,:revision,:public)
-      r[:deletable] = @user.admin || item.owner_id == @user.id
+      if not @public_mode then
+        r[:deletable] = @user.admin || item.owner_id == @user.id
+      end
       if params[:edit].to_s.empty?.! then
         r[:body] = item.body
       else
@@ -82,7 +84,6 @@ class MainApp < Sinatra::Base
       r
     end
     delete '/item/:id' do
-      halt 403 if @public_mode
       item = WikiItem.get(params[:id].to_i)
       # destory するには関連するmodelを削除しないといけないけどそれはイヤなので deleted フラグを付けるだけ
       item.update(deleted:true)
@@ -107,21 +108,17 @@ class MainApp < Sinatra::Base
     end
 
     put '/item/:id' do
-      halt 403 if @public_mode
       item = WikiItem.get(params[:id].to_i)
       update_or_create_item(item)
     end
-    post '/item' do
-      halt 403 if @public_mode
+    post '/item', private:true do
       update_or_create_item(nil)
     end
-    post '/preview' do
-      halt 403 if @public_mode
+    post '/preview', private:true do
       {html: render_wiki(params[:body],false)}
     end
 
-    get '/attached_list/:id' do
-      halt 403 if @public_mode
+    get '/attached_list/:id', private:true do
       page = (params[:page] || 1).to_i
       chunks = WikiAttachedFile.all(wiki_item_id:params[:id].to_i,order:[:created_at.desc,:id.desc]).chunks(ATTACHED_LIST_PER_PAGE) 
       pages = chunks.size
@@ -132,8 +129,7 @@ class MainApp < Sinatra::Base
       }
       {item_id:params[:id].to_i,list: list, pages: pages, cur_page: page}
     end
-    get '/log/:id' do
-      halt 403 if @public_mode
+    get '/log/:id', private:true do
       page = if params[:page].to_s.empty?.! then params[:page].to_i else 1 end
       item = WikiItem.get(params[:id].to_i)
       list = item.each_diff_htmls_until(WIKI_LOG_PER_PAGE,WIKI_LOG_PER_PAGE*(page-1)).map{|x|
@@ -155,17 +151,15 @@ class MainApp < Sinatra::Base
 
     end
   end
-  comment_routes("/api/wiki",WikiItem,WikiComment)
+  comment_routes("/api/wiki",WikiItem,WikiComment,true)
   get '/wiki' do
     haml :wiki
   end
-  get '/static/wiki/attached/:id' do
-    halt 403 if @public_mode
+  get '/static/wiki/attached/:id', private:true do
     attached = WikiAttachedFile.get(params[:id].to_i)
     send_file("../mytoma/storage/wiki/#{attached.path}",filename:attached.orig_name)
   end
-  post '/wiki/attached/:id' do
-    halt 403 if @public_mode
+  post '/wiki/attached/:id', private:true do
     tempfile = params[:file][:tempfile]
     filename = params[:file][:filename]
     date = Date.today

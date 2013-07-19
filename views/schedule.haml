@@ -12,21 +12,27 @@
 %script#templ-cal-header(type='text/template')
   .row
     .large-4.small-2.columns
-      %button.show-done-events.small.round.button-maroon 過去の行事
+      - if not @public_mode
+        %button.show-done-events.small.success 過去の行事
+      - else
+        &nbsp;
     .large-4.small-6.columns.year-month
-      %button#prev-month.small.success &laquo;
+      %button#prev-month.small.button-light &laquo;
       %span.year
         <%= year %>
       年
       %span.mon
         <%= mon %>
       月
-      %button#next-month.small.success &raquo;
+      %button#next-month.small.button-light &raquo;
     .large-4.small-4.columns
-      .container-btn
-        %button.toggle-edit-info.small.round 祝日編集
-        %button.start-multi-edit.small.round 一括追加
-      .container-multi-edit
+      - if not @public_mode
+        .container-btn
+          %button.toggle-edit-info.small.round 祝日編集
+          %button.start-multi-edit.small.round 一括追加
+        .container-multi-edit
+      - else
+        &nbsp;
 
 %script#templ-multi-edit(type='text/template')
   %a(href="#" data-dropdown="multi-edit-usage") 使い方
@@ -59,9 +65,11 @@
     <% } %>
   <% } %>
   <% templ = _.template_braces($("#templ-schedule-detail-event").html()) %>
-  <% _.each(data.list,function(x){ %>
-  {{ templ({data:_.extend(x,{show_date:true})}) }}
-  <% }) %>
+  %ul#cal-body.large-block-grid-2.small-block-grid-1
+    <% _.each(data.list,function(x){ %>
+    %li
+      {{ templ({data:_.extend(x,{show_date:true})}) }}
+    <% }) %>
 
 #container-event-detail.reveal-modal
 #container-event-comment.reveal-modal

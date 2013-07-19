@@ -1,13 +1,16 @@
 define ->
   _.mixin
     show_kind_detail: (data) ->
-      if data.kind == "contest"
-        s1 = if data.official then "公認" else "非公認"
-        s2 = _.object(JSON.parse(g_team_sizes_str))[data.team_size]
-        s1 + " " + s2
-      else
-        window.g_event_kinds ||= _.object(JSON.parse(g_event_kinds_str))
-        window.g_event_kinds[data.kind]
+      s = if data.kind == "contest"
+            s1 = if data.official then "公認" else "非公認"
+            s2 = _.object(JSON.parse(g_team_sizes_str))[data.team_size]
+            s1 + " " + s2
+          else
+            window.g_event_kinds ||= _.object(JSON.parse(g_event_kinds_str))
+            window.g_event_kinds[data.kind]
+      if not data.public
+        s = "非公開, #{s}"
+      s
 
   EventItemModel = Backbone.Model.extend
     urlRoot: "api/event/item"

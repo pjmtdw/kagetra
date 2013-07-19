@@ -60,7 +60,7 @@
       .event-choice
 
 %script#templ-event-item(type='text/template')
-  .panel.event-item(data-id='{{data.id}}')
+  .panel.event-item(data-id='{{data.id}}' class='{{data.public?"":"private"}}')
     .row.event-name-row
       .large-12.columns
         %span {{ _.show_kind_symbol(data.kind,data.official) }}
@@ -263,8 +263,8 @@
 
 %ul(id="help-public" class="f-dropdown" data-dropdown-content)
   %div 外部公開版の予定表や大会行事案内に表示されます．
-  %div ただし参加者およびコメントは公開されません．
+  %div ただし参加者一覧およびコメントは公開されません．
 
 %ul(id="help-hide-choice" class="f-dropdown" data-dropdown-content)
-  %div 誰がどの選択肢を選んだかを他のユーザには分からないようにします．
+  %div 誰がどの選択肢を選んだかを管理者以外には分からないようにします．
   %div Tシャツ注文のサイズなどのプライバシーの保護にお使い下さい．

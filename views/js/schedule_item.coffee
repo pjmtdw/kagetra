@@ -13,11 +13,12 @@ define (require, exports, module) ->
         r += " &isin; <span class='hourmin'>#{d.start_at ? ''}</span> &sim; <span class='hourmin'>#{d.end_at ? ''}</span>"
       r
         
-    show_item_detail: (data)->
+    show_item_detail: (data,show_date=false)->
+      dt = if show_date then "<span class='date'>#{data.date}</span>"
       hm = if data.start_at or data.end_at
         c1 = if data.emph_start_at then "emphasis" else ""
         c2 = if data.emph_end_at then "emphasis" else ""
-        "[ <span class='hourmin #{c1}'>#{data.start_at ? ''}</span> &sim; <span class='hourmin #{c2}'>#{data.end_at ? ''}</span> ] "
+        "<span class='hourmin #{c1}'>#{data.start_at ? ''}</span> &sim; <span class='hourmin #{c2}'>#{data.end_at ? ''}</span>"
       pl = if data.place
         c = if data.emph_place then "emphasis" else ""
         " @ <span class='place #{c}'>#{_.escape(data.place ? '')}</span>"
@@ -26,7 +27,8 @@ define (require, exports, module) ->
       tt = if data.name
         c = if data.emph_name then "emphasis" else ""
         "<span class='title #{c}'>#{_.escape(data.name)}</span>"
-      ss = (hm ? '') + (tt ? '') + (pl ? '')
+      dthm = if dt or hm then "[ #{dt ? ''} #{hm ? ''} ] "
+      ss = (dthm ? '') + (tt ? '') + (pl ? '')
       "<div>#{ss}</div>" + (ds ? '')
   ScheduleModel = Backbone.Model.extend
     url: ->
@@ -168,7 +170,7 @@ define (require, exports, module) ->
       $ed.reveal_detail("#container-event-detail",@data.id)
     show_comment: ->
       $co.reveal_comment("event","#container-event-comment",@data.id)
-    template: _.template($("#templ-schedule-detail-event").html())
+    template: _.template_braces($("#templ-schedule-detail-event").html())
     initialize: (arg) -> @data = arg.data
 
     render: ->

@@ -3,10 +3,13 @@ define (require,exports,module) ->
   # since both scripts contains whole content of schedule_item.js.
   # TODO: do not require schedule_item here and load it dynamically.
   $si = require("schedule_item")
+  $ed = require("event_detail")
+  $co = require("comment")
 
   ScheduleRouter = Backbone.Router.extend
     routes:
       "cal/:year-:mon": "cal",
+      "ev_done(/:page)" : "ev_done",
       "": "start"
     initialize: ->
       _.bindAll(@,"start")
@@ -15,8 +18,38 @@ define (require,exports,module) ->
       mon = dt.getMonth() + 1
       year = dt.getFullYear()
       @navigate("cal/#{year}-#{mon}", {trigger: true, replace: true})
+    ev_done: (page) ->
+      window.schedule_view.$el.hide()
+      if window.schedule_event_done_view?
+        window.schedule_event_done_view.remove()
+      window.schedule_event_done_view = new ScheduleEventDoneView(page:page)
+
     cal: (year,mon) ->
+      if window.schedule_event_done_view?
+        window.schedule_event_done_view.remove()
+      window.schedule_view.$el.show()
       window.schedule_view.refresh(year,mon)
+
+  ScheduleEventDoneModel = Backbone.Model.extend
+    url: "api/schedule/ev_done"
+  ScheduleEventDoneView = Backbone.View.extend
+    template: _.template_braces($("#templ-schedule-event-done").html())
+    events:
+      "click .detail" : "reveal_detail"
+      "click .comment" : "reveal_comment"
+    reveal_detail: (ev)->
+      id = $(ev.currentTarget).closest("[data-event-id]").data("event-id")
+      $ed.reveal_detail("#container-event-detail",id)
+    reveal_comment: (ev)->
+      id = $(ev.currentTarget).closest("[data-event-id]").data("event-id")
+      $co.reveal_comment("event","#container-event-comment",id)
+    initialize: ->
+      @model = new ScheduleEventDoneModel()
+      @listenTo(@model,"sync",@render)
+      @model.fetch(data:{page:@options.page})
+    render: ->
+      @$el.html(@template(data:@model.toJSON()))
+      @$el.appendTo("#schedule-event-done")
 
   ScheduleCollection = Backbone.Collection.extend
     model: $si.ScheduleModel
@@ -53,6 +86,7 @@ define (require,exports,module) ->
       "click #prev-month": -> @inc_month(-1)
       "click #next-month": -> @inc_month(1)
       "click .toggle-edit-info": "do_toggle_edit_info"
+      "click .show-done-events": -> window.schedule_router.navigate("ev_done", trigger: true)
       "click .start-multi-edit": "multi_edit_1"
       "click #multi-edit-apply": "multi_edit_apply"
       "click #multi-edit-cancel": "multi_edit_done"

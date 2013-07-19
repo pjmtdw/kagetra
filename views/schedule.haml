@@ -7,11 +7,12 @@
 = haml :top_bar
 .row
   #schedule
+  #schedule-event-done
 
 %script#templ-cal-header(type='text/template')
   .row
     .large-4.small-2.columns
-      %button.show-done-events.small.round 過去の行事
+      %button.show-done-events.small.round.button-maroon 過去の行事
     .large-4.small-6.columns.year-month
       %button#prev-month.small.success &laquo;
       %span.year
@@ -46,6 +47,21 @@
 
 %script#templ-cal(type='text/template')
   %ul#cal-body.large-block-grid-7.small-block-grid-4
+
+%script#templ-schedule-event-done(type='text/template')
+  %h3 過去の行事
+
+  <% if(data.pages > 1){ %>
+  %ul.pagination
+    <% for(i=0;i<data.pages;i++){ %>
+    %li(class='{{i+1==data.cur_page?"current":""}}')
+      %a(href='schedule#ev_done/{{i+1}}') {{i+1}}
+    <% } %>
+  <% } %>
+  <% templ = _.template_braces($("#templ-schedule-detail-event").html()) %>
+  <% _.each(data.list,function(x){ %>
+  {{ templ({data:_.extend(x,{show_date:true})}) }}
+  <% }) %>
 
 #container-event-detail.reveal-modal
 #container-event-comment.reveal-modal

@@ -234,6 +234,8 @@
     {{ _.show_news(data.event_comment,"name","大会行事コメントに新着%%件","top#event-comment/%%")  }}
   #result-comment-new
     {{ _.show_news(data.result_comment,"name","大会結果コメントに新着%%件","result#contest/%%")  }}
+  #ev-done-comment
+    {{ _.show_news(data.ev_done_comment,"name","過去行事コメントに新着%%件","schedule#ev_done")  }}
   #wiki-comment-new
     {{ _.show_news(data.wiki,"title","Wikiコメントに新着%%件","wiki#page/%%")  }}
   #event-participant-new.link-detail

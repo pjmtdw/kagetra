@@ -48,15 +48,15 @@
 
 %script#templ-schedule-detail-event(type='text/template')
   %hr
-  .schedule-detail-event.clearfix
+  .schedule-detail-event.clearfix(data-event-id='{{data.id}}')
     .left
-      <%= _.show_item_detail(data) %>
+      {{ _.show_item_detail(data,data.show_date) }}
     .right
       %span.detail.button-light.small
         詳細
       %span.comment.button-light.small
         コメント
-        %span.comment-count (<%- data.comment_count %>)
+        %span.comment-count ({{ data.comment_count }})
 
 %script#templ-schedule-detail-item(type='text/template')
   %hr

@@ -55,7 +55,8 @@ class MainApp < Sinatra::Base
         log_mon: @user.log_mon_count,
         wiki: WikiItem.new_threads(@user).map{|x|x.select_attr(:title,:id)},
         event_comment: Event.new_threads(@user,{done:false}).map{|x|x.select_attr(:name,:id)},
-        result_comment: Event.new_threads(@user,{done:true}).map{|x|x.select_attr(:name,:id)},
+        result_comment: Event.new_threads(@user,{done:true,kind: :contest}).map{|x|x.select_attr(:name,:id)},
+        ev_done_comment: Event.new_threads(@user,{done:true,:kind.not=>:contest}).map{|x|x.select_attr(:name,:id)},
         bbs: BbsThread.new_threads(@user).map{|x|x.select_attr(:title,:id)},
         new_events: new_events,
         participants: participants

@@ -70,7 +70,7 @@ $title-color: #003;
     height: 80px;
   }
 }
-#container-schedule-detail{
+#container-schedule-detail,#schedule-event-done{
   .year-month-day{
     .year,.mon,.day,.wday{
       font-weight: bold;
@@ -97,5 +97,20 @@ $title-color: #003;
     }
   }
   .detail-item-edit{
+  }
+}
+#schedule-event-done{
+  hr{
+    display:none;
+  }
+  .schedule-detail-event{
+    background: rgba(255,255,240,0.5);
+    @include border-radius(6px);
+    border: 3px solid silver;
+    padding: 0.5em;
+    margin-top: 1em;
+    .date{
+      font-weight: bold;
+    }
   }
 }

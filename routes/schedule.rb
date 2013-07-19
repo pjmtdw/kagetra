@@ -176,6 +176,20 @@ class MainApp < Sinatra::Base
         events: events
       }
     end
+    SCHEDULE_EVENT_DONE_PER_PAGE = 40
+    get '/ev_done' do
+      page = if params[:page].to_s.empty?.! then params[:page].to_i else 1 end
+      chunks = Event.all(:kind.not=>:contest,done:true,order:[:updated_at.desc,:id.desc]).chunks(SCHEDULE_EVENT_DONE_PER_PAGE)
+      pages = chunks.size
+      list = chunks[page-1].map{|x|
+        x.select_attr(:id,:name,:place,:comment_count,:start_at,:end_at,:date)
+      }
+      {
+        list:list,
+        pages: pages,
+        cur_page: page
+      }
+    end
   end
   get '/schedule' do
     haml :schedule

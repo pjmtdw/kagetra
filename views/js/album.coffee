@@ -120,10 +120,16 @@ define (require,exports,module)->
     events:
       "click .album-tag" : "filter_tag"
       "click #start-edit" : "start_edit"
+      "click #add-picture" : "add_picture"
       "click .album-item" : "thumb_click"
       "click #cancel-edit" : "cancel_edit"
       "click #apply-edit" : "apply_edit"
       "click #album-delete" : "album_delete"
+    add_picture: ->
+      target = "#container-album-upload"
+      t = _.template_braces($("#templ-album-empty-form").html())
+      v = new AlbumUploadView(target:target,tform:t(data:@model.toJSON()))
+      _.reveal_view(target,v)
     cancel_edit: ->
       that = this
       @model.fetch().done(-> that.edit_mode = false)
@@ -447,10 +453,20 @@ define (require,exports,module)->
   AlbumUploadView = Backbone.View.extend
     template_form: _.template_braces($("#templ-album-info-form").html())
     template: _.template($("#templ-album-upload").html())
+    events:
+      "submit #album-item-form" : "do_submit"
+    do_submit: ->
+      return false unless confirm("アップロードしますか？")
+      obj = @$el.find("input[type='submit']")
+      obj.after($("<div>",id:"now-uploading-message",text:"アップロード中..."))
+      obj.hide()
     submit_done: ->
       res = JSON.parse($("#dummy-iframe").contents().find("#response").html())
       if res._error_
         alert(res._error_)
+        obj = @$el.find("input[type='submit']")
+        obj.show()
+        obj.next("#now-uploading-message").remove()
       else if res.result == "OK"
         window.album_router.navigate("group/#{res.group_id}", trigger:true)
         $("#container-album-upload").foundation("reveal","close")
@@ -459,7 +475,8 @@ define (require,exports,module)->
       _.bindAll(@,"submit_done")
       @render()
     render: ->
-      @$el.html(@template_form(is_group:true,data:{}))
+      tform = @options.tform || @template_form(is_group:true,data:{})
+      @$el.html(tform)
       form = @$el.find("#album-item-form")
       form.attr("method","post")
       form.attr("enctype","multipart/form-data")

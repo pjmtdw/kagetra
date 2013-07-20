@@ -239,11 +239,15 @@ class MainApp < Sinatra::Base
       tempfile = params[:file][:tempfile]
       filename = params[:file][:filename]
       AlbumItem.transaction{
-        attrs = params.select_attr(:start_at,:end_at,:place,:name,:comment)
-        if attrs[:start_at].to_s.empty? then attrs[:start_at] = nil end
-        if attrs[:end_at].to_s.empty? then attrs[:end_at] = nil end
-        attrs[:owner] = @user
-        group = AlbumGroup.create(attrs)
+        group = if params[:group_id] then
+          AlbumGroup.get(params[:group_id])
+        else
+          attrs = params.select_attr("start_at","end_at","place","name","comment")
+          if attrs["start_at"].to_s.empty? then attrs["start_at"] = nil end
+          if attrs["end_at"].to_s.empty? then attrs["end_at"] = nil end
+          attrs["owner"] = @user
+          AlbumGroup.create(attrs)
+        end
         date = Date.today
         target_dir = File.join(G_STORAGE_DIR,"album",date.year.to_s,date.month.to_s)
         FileUtils.mkdir_p(target_dir)
@@ -251,7 +255,7 @@ class MainApp < Sinatra::Base
         when /\.zip$/
           tmp = Dir.mktmpdir(nil,target_dir)
           Zip::ZipFile.new(tempfile).select{|x|x.file? and [".jpg",".png",".gif"].any?{|s|x.name.downcase.end_with?(s)}}
-            .each_with_index{|entry,i|
+            .to_enum.with_index(group.item_count){|entry,i|
               fn = File.join(tmp,i.to_s)
               File.open(fn,"w"){|f|
                 f.write(entry.get_input_stream.read)
@@ -262,7 +266,7 @@ class MainApp < Sinatra::Base
         when /\.jpg$/, /\.png$/, /\.gif$/
           tfile = Tempfile.new(["img","dat"],target_dir)
           FileUtils.cp(tempfile.path,tfile)
-          process_image(group,nil,filename,tfile.path)
+          process_image(group,group.item_count,filename,tfile.path)
           {result:"OK",group_id:group.id}
         else
           {_error_:"ファイルの拡張子が間違いです: #{filename.downcase}"}

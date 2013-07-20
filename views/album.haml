@@ -71,7 +71,7 @@
       %a(href='album#year/{{data.year}}') {{data.year}}年
     .large-8.columns
       .right#album-buttons
-        %button.small.round 写真追加
+        %button.small.round#add-picture 写真追加
         %button.small.round#start-edit 編集開始
       .right#album-edit-buttons.hide
         <% if(data.deletable){ %>
@@ -245,6 +245,10 @@
           %div
             %textarea(name='comment' rows='10') {- data.comment -}
 
+%script#templ-album-empty-form(type='text/template')
+  %form#album-item-form
+    %div {-data.name-} @ {{data.start_at}} に写真追加
+    %input(type='hidden' name='group_id' value='{{data.id}}')
 
 %script#templ-album-upload(type='text/template')
   .row

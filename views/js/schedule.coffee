@@ -122,7 +122,7 @@ define (require,exports,module) ->
         "click .schedule-item": (ev)->
           @multi_edit_item = $(ev.currentTarget).clone()
           @multi_edit_item.addClass("schedule-item-new success")
-          @$el.find(".schedule-item").removeClass("button-maroon")
+          @$el.find(".schedule-item").removeClass("now-copying")
           @multi_edit_2()
       "stage_2":
         "click .info-item": (ev)->
@@ -144,7 +144,7 @@ define (require,exports,module) ->
       @multi_edit_mode = 1
       @schedule_item_new = []
       @multi_edit_common()
-      @$el.find(".schedule-item").addClass("button-maroon")
+      @$el.find(".schedule-item").addClass("now-copying")
       @events = _.extend(@events,@multi_edit_events.stage_1)
       # @events を変更したあとは @delegateEvents() を呼ぶ
       @delegateEvents()

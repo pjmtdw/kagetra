@@ -32,7 +32,7 @@
   %script#templ-user-name(type='text/template')
     .row
       .large-6.columns
-        = login_uname
+        %div(style='font-weight:bold;font-size:110%;margin-bottom:0.5em;color:#003')= login_uname
       .large-6.columns
         %a(href="relogin") 別ユーザでログイン
     %input#login-uid(type='hidden' value='#{login_uid}')

@@ -30,7 +30,7 @@
     .large-12.columns
       %fieldset.panel
         %legend 備考
-        .pre <%- data.description %>
+        .pre <%= _.replace_url_escape(data.description) %>
   .row
     .large-12.columns
       .participants
@@ -69,11 +69,13 @@
           %a 情報
         .content(data-section-content)
           #event-edit-info
+      <% if(!data.done){ %>
       %section
         %p.title(data-section-title)
           %a 参加者
         .content(data-section-content)
           #event-edit-participant
+      <% } %>
 
 %script#templ-event-edit-info(type='text/template')
   %form#event-edit-form

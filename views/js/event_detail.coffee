@@ -40,6 +40,7 @@ define (require,exports,module)->
     reveal: (model_or_id) ->
 
   EventEditView = Backbone.View.extend
+    template: _.template($("#templ-event-edit").html())
     template_choice: _.template_braces($("#templ-choice-item").html())
     events:
       "click .choice-name" : "edit_choice"
@@ -99,7 +100,7 @@ define (require,exports,module)->
     initialize: ->
       @render()
     render: ->
-      @$el.html($("#templ-event-edit").html())
+      @$el.html(@template(data:@model.toJSON()))
       ev = new EventEditInfoView(model:@model)
       ep = new EventEditParticipantView(model:@model)
       @$el.find("#event-edit-info").append(ev.$el)

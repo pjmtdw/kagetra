@@ -1,7 +1,25 @@
 define (require, exports, module) ->
   _ = require("underscore")
   $ = require("zep_or_jq")
+  # 前半はURL,後半はメールアドレスにマッチ
+  # メールアドレスにマッチする部分は PEAR::Mail_RFC822::isValidInetAddress()
+  pat_url = new RegExp("((https?://[a-zA-Z0-9/:%#$&?()~.=+_-]+)|(([*+!.&#\$|\'\\%\/0-9a-z^_`{}=?~:-]+)@(([0-9a-z-]+\.)+[0-9a-z]{2,})))","gi")
   _.mixin
+    replace_url_escape: (s)->
+      return "" if _.isEmpty(s)
+      offset = 0
+      r = ""
+      while mat = pat_url.exec(s)
+        r += _.escape(s.substring(offset,mat.index))
+        if not _.isEmpty(mat[2])
+          r += "<a href='#{mat[0]}' target='_blank'>#{mat[0]}</a>"
+        else
+          r += "<a href='mailto:#{mat[0]}'>#{mat[0]}</a>"
+        offset = pat_url.lastIndex
+      r += _.escape(s.substring(offset))
+      r
+
+      
     is_public_mode: ->
       location.pathname.indexOf("/public/") == 0
     router_base: (prefix,arg) ->

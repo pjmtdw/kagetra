@@ -33,7 +33,11 @@ class MainApp < Sinatra::Base
     return if ["/public/","/api/user/auth/","/js/","/img/","/css/"].any?{|s|path.start_with?(s)} or ["/","/robots.txt","/relogin"].include?(path)
     @user = get_user
     if @user.nil? then
-      halt 403, "login required"
+      if path.start_with?("/api/") then
+        halt 403, "login required"
+      else
+        redirect '/'
+      end
     end
   end
   namespace '/api' do

@@ -30,7 +30,7 @@ define (require, exports, module) ->
         c = if data.emph_place then "emphasis" else ""
         " @ <span class='place #{c}'>#{_.escape(data.place ? '')}</span>"
       ds = if data.description
-        "<div class='description panel left pre'>#{_.escape(data.description)}</div>"
+        "<div class='description panel left pre'>#{_.replace_url_escape(data.description)}</div>"
       tt = if data.name
         c = if data.emph_name then "emphasis" else ""
         "<span class='title #{c}'>#{_.escape(data.name)}</span>"

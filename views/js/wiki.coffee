@@ -54,6 +54,7 @@ define (require,exports,module) ->
         that.model.fetch().done(on_done)
       )
     edit_cancel: ->
+      return if @changed and !confirm("内容が変更されています．キャンセルして良いですか？")
       window.wiki_item_view.$el.show()
       window.wiki_edit_view.remove()
     edit_preview: ->
@@ -67,6 +68,8 @@ define (require,exports,module) ->
     render: ->
       @$el.html(@template(data:@model.toJSON()))
       @$el.appendTo("#wiki-edit")
+      that = this
+      $("#wiki-edit-form").one("change",":input",->that.changed=true)
   WikiPreviewView = Backbone.View.extend
     template: _.template($("#templ-wiki-preview").html())
     initialize: ->

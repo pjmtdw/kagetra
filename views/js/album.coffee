@@ -297,6 +297,9 @@ define (require,exports,module)->
         )
       ).fail((msg)->alert("更新失敗: " + msg))
     cancel_edit: ->
+      return if (@changed or not _.isEmpty(@tag_edit_log)) and !confirm("内容が変更されています．キャンセルして良いですか？")
+      @changed = false
+      @tag_edit_log = {}
       that = this
       @model.fetch().done(-> that.edit_mode = false)
 
@@ -317,6 +320,9 @@ define (require,exports,module)->
       @edit_mode = true
       @new_tag_id = -1
       @tag_edit_log = {}
+
+      that = this
+      $("#album-item-form").one("change",":input",->that.changed=true)
     
     remove_relation: (ev)->
       if confirm("関連写真を解除してもいいですか？")

@@ -60,7 +60,149 @@
     {{templ({name:data.participant_names[x]})}}
     <% }) %>
 
+
+%script#templ-event-edit(type='text/template')
+  .row
+    .section-container.tabs(data-section="tabs")
+      %section
+        %p.title(data-section-title)
+          %a 情報
+        .content(data-section-content)
+          #event-edit-info
+      %section
+        %p.title(data-section-title)
+          %a 参加者
+        .content(data-section-content)
+          #event-edit-participant
+
+%script#templ-event-edit-info(type='text/template')
+  %form#event-edit-form
+    .clearfix
+      %input.left.button.small(type='submit' value='送信')
+      %button#delete-event.right.button.small.alert 削除
+      <% if(data.kind != "contest"){ %>
+      %button#move-to-done.right.button-maroon.small 過去の行事化
+      <% } %>
+    .row
+      .large-4.columns
+        <% if(data.kind == "contest"){ %>
+        %label
+          恒例大会
+          %button.tiny.success#add-contest-group 追加
+        .row
+          .large-12.columns
+            %select#event-groups(name='event_group_id')
+              %option(value='') ---
+              <% _.each(data.all_event_groups,function(x){ %>
+              {{_.make_option(data.event_group_id,{value:x.id,text:x.name})}}
+              <% }) %>
+            <% if(data.id=='contest'){ %>
+            #cont-cur-group-list
+              %label 情報コピー
+              %select#cur-group-list
+            <% } %>
+        <% }else{ %>
+        %label
+          種別
+        %select(name="kind")
+          <% event_kinds = JSON.parse(g_event_kinds_str) %>
+          <% _.each(event_kinds, function(x){ %>
+          {{_.make_option(data.kind,{value:x[0],text:x[1]})}}
+          <% }) %>
+        <% } %>
+      .large-4.columns
+        %label 大会/行事名
+        %input(name='name' type='text' value='{- data.name -}')
+      .large-1.columns
+        {{ _.make_checkbox(data.public,{name:'public'}) }} 公開
+        %a(href="#" data-dropdown="help-public") [?]
+
+      .large-3.columns
+        %label 管理者(半角コンマ区切り)
+        %input(name='owners_str' type='text' value='{- data.owners_str -}')
+    <% if(data.kind == "contest"){ %>
+    .row
+      .large-2.columns
+        %label 公認/非公認
+        %select(name='official')
+          {{_.make_option(data.official,{value:true,text:"公認"})}}
+          {{_.make_option(data.official,{value:false,text:"非公認"})}}
+      .large-2.columns.left
+        %label 個人戦/団体戦
+        %select(name='team_size')
+          <% _.each(JSON.parse(g_team_sizes_str),function(x){ %>
+          {{_.make_option(data.team_size,{value:x[0],text:x[1]})}}
+          <% }) %>
+      .large-4.columns
+        %label 正式名称
+        %input(name='formal_name' type='text' value='{- data.formal_name -}')
+      .large-4.columns
+        <% if(!data.done){ %>
+        %label 参加不能属性
+        %select(name='forbidden_attrs' multiple) {{ _.show_all_attrs(data.all_attrs,data.forbidden_attrs)}}
+        <% } %>
+    <% } %>
+    .row
+      .large-6.columns
+        %label 場所
+        %input(name='place' type='text' value='{- data.place -}')
+      .large-4.columns
+        .row
+          .large-6.columns
+            %label 開催日
+            %input(name='date' type='text' placeholder='YYYY-MM-DD' value='{- data.date -}')
+          .large-3.columns
+            %label 開始時刻
+            %input(name='start_at' type='text' placeholder='hh:mm' value='{- data.start_at -}')
+          .large-3.columns
+            %label 終了時刻
+            %input(name='end_at' type='text' placeholder='hh:mm' value='{- data.end_at -}')
+      .large-2.columns
+        <% if(!data.done){ %>
+        %label 締切日
+        %input(name='deadline' type='text' placeholder='YYYY-MM-DD' value='{- data.deadline -}')
+        <% } %>
+    <% if(!data.done){ %>
+    .row
+      .large-2.columns
+        %label 集計属性
+        %select(name='aggregate_attr_id')
+          <% _.each(data.all_attrs,function(x){ %>
+          {{_.make_option(data.aggregate_attr_id,{value:x[0][0],text:x[0][1]})}}
+          <% }) %>
+      .large-7.columns
+        %label 選択肢
+        #edit-choice-list
+          <% temp = _.template_braces($("#templ-choice-item").html()) %>
+          <% _.each(data.choices,function(x){ %>
+          {{ temp({x:x}) }}
+          <% }) %>
+        %button#add-choice.left.tiny.success 追加
+      .large-3.columns
+        {{ _.make_checkbox(data.hide_choice,{name:'hide_choice'}) }} 選択結果を隠す
+        %a(href="#" data-dropdown="help-hide-choice") [?]
+    <% } %>
+    .row
+      .large-12.columns
+        %label 備考
+        %textarea(name='description' rows=15) {- data.description -}
+
+%script#templ-choice-item(type='text/template')
+  .left.choice-item(data-choice-id='{{x.id}}' data-positive='{{x.positive}}')
+    %span.choice-name {- x.name -}
+    <% if(x.positive){ %>
+    %span.cross.choice-delete &times;
+    <% } %> 
+
 = haml :comment
+
+%ul(id="help-public" class="f-dropdown" data-dropdown-content)
+  %div 外部公開版の予定表や大会行事案内に表示されます．
+  %div ただし参加者一覧およびコメントは公開されません．
+
+%ul(id="help-hide-choice" class="f-dropdown" data-dropdown-content)
+  %div 誰がどの選択肢を選んだかを管理者以外には分からないようにします．
+  %div Tシャツ注文のサイズなどのプライバシーの保護にお使い下さい．
 
 %script
   -# Rubyの連想配列は順番が保持されるけどJavaScriptは保持されないので配列に変換

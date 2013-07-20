@@ -27,9 +27,10 @@ class MainApp < Sinatra::Base
 
     # 日時順に並べたときの前後の大会
     def recent_contests(id)
-      cond = (Event.all(kind: :contest, done:true) &
+      cond0 = Event.all(kind: :contest, done:true)
+      cond = (cond0 &
               (Event.all(:participant_count.gt => 0) | Event.all(:contest_user_count.gt => 0)) )
-      evt = (cond & Event.all(
+      evt = (cond0 & Event.all(
               if id == "latest" then
                 {order: [:date.desc,:id.desc]}
               else

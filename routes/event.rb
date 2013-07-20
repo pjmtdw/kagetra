@@ -3,6 +3,7 @@ class MainApp < Sinatra::Base
   namespace '/api/event' do
     get '/item/contest' do
       {
+        public:true,
         team_size: 1,
         official: true,
         choices:[
@@ -17,6 +18,7 @@ class MainApp < Sinatra::Base
     end
     get '/item/party' do
       {
+        public:true,
         choices:[
           {name: "参加する", positive: true, id: -1},
           {name: "参加しない", positive: false, id: -1}],
@@ -60,8 +62,8 @@ class MainApp < Sinatra::Base
       forbidden = (ev.forbidden_attrs & opts[:user_attr_values]).empty?.!
       r[:forbidden] = true if forbidden
       if opts[:detail] 
-        r.merge!(ev.select_attr(:description,:formal_name,:start_at, :end_at))
-        r.merge!(get_participant(ev,opts[:edit]))
+        r.merge!(ev.select_attr(:description,:formal_name,:start_at, :end_at, :done))
+        r.merge!(get_participant(ev,opts[:edit])) unless opts[:no_participant]
         if opts[:edit]
           r[:all_attrs] = get_all_attrs
           r[:owners_str] = ev.owners.map{|u|User.get(u).name}.join(" , ")
@@ -111,7 +113,8 @@ class MainApp < Sinatra::Base
     end
     get '/item/:id' do
       ev = Event.get(params[:id].to_i)
-      event_info(ev,@user,{detail:params[:detail]=="true",edit:params[:edit]=="true"})
+      opts = Hash[[:detail,:edit,:no_participant].map{|x|[x,params[x]=="true"]}]
+      event_info(ev,@user,opts)
     end
     delete '/item/:id' do
       # 関連する物を削除しないとdestroyできないが，全部削除はしたくないので deleted フラグを付けるだけにする
@@ -129,7 +132,7 @@ class MainApp < Sinatra::Base
             @json.delete("choices")
           end
           if @json.has_key?("owners_str") then
-            owners = @json["owners_str"].split(/\s*,\s*/).map{|s|
+            owners = @json["owners_str"].to_s.split(/\s*,\s*/).map{|s|
               u = User.first(name:s)
               if u.nil? then
                 raise Exception.new("invalid owner name: #{s}")

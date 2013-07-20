@@ -11,3 +11,24 @@
     display: inline-block;
   }
 }
+#help-public,#help-hide-choice{
+  width: 420px;
+  font-size: 90%;
+}
+#event-edit-form{
+  .choice-item{
+    background-color: #FFD;
+    border: 1px dotted gray;
+    margin-right: 6px;
+    padding: 4px;
+    .choice-name{
+      cursor: pointer;
+    }
+    &[data-positive="false"]{
+      background-color: #EEE;
+    }
+  }
+  #move-to-done{
+    margin-right: 1em;
+  }
+}

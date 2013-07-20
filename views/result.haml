@@ -50,6 +50,7 @@
         %li.contest-link(data-id='{-x.id-}')
           %a.ellipsis {- x.date -} {- x.name -}
         <% }) %>
+      %button.small.round#contest-add 大会追加
   .row
     %div.contest-name-date
       %span.contest-name {- name -} 
@@ -63,12 +64,21 @@
           #contest-result-body.row
       %section
         %p.title(data-section-title)
+          %a 情報
+        .content(data-section-content)
+          #contest-info.row
+      %section
+        %p.title(data-section-title)
           %a
             コメント (
             %span#event-comment-count
             )
         .content(data-section-content)
           #event-comment.row
+
+%script#templ-contest-info(type='text/template')
+  %button#contest-info-edit.small 編集
+  #event-detail
 
 %script#templ-contest-chunk(type='text/template')
   .row
@@ -100,5 +110,7 @@
               {- _.show_opponent_belongs(data.team_size,y.opponent_belongs) -}
           <% }) %>
         <% }) %>
+
+#container-event-edit.reveal-modal
 
 = haml :event_detail

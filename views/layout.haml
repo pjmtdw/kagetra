@@ -8,6 +8,7 @@
     %link(rel="shortcut icon" href="/img/favicon.ico")
     %link(rel="stylesheet" href="/css/base1.css")
     %link(rel="stylesheet" href="/css/base2.css")
+    %link(rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/chosen/0.9.15/chosen.css")
     - this_css = yield_content(:css)
     - this_css.strip.split(/\s*,\s*/).each do |x|
       - path = if x.start_with?("http://") then x else "/css/#{x}.css" end

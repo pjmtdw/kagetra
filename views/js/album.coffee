@@ -90,9 +90,9 @@ define (require,exports,module)->
         o = $(@)
         [percent,color] = (o.data(x) for x in ["percent","color"])
         [width,height] = (o.attr(x) for x in ["width","height"])
-        endx = (percent/100.0)*width
+        barw = Math.max((percent/100.0)*(width-2),1)
         c = o[0].getContext("2d")
-        c.strokeStyle = "black"
+        c.strokeStyle = color
         c.fillStyle = "white"
         c.beginPath()
         c.rect(0,0,width,height)
@@ -100,7 +100,7 @@ define (require,exports,module)->
         c.stroke()
         c.fillStyle = color
         c.strokeStyle = color
-        c.fillRect(1,1,endx-1,height-1)
+        c.fillRect(1,1,barw,height-2)
         true
       )
     render: ->

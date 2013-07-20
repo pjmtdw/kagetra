@@ -70,6 +70,12 @@ define (require,exports,module) ->
     template: _.template_braces($('#templ-contest-result').html())
     events:
       "click .contest-link": "contest_link"
+      "click #contest-add": "contest_add"
+    contest_add: ->
+      $ed.show_event_edit(
+        new $ed.EventItemModel(kind:"contest",id:"contest",done:true),
+        {do_when_done:-> window.result_router.navigate("contest/#{@model.get('id')}",trigger:true)}
+      )
     contest_link: (ev) ->
       id = $(ev.currentTarget).data('id')
       window.result_router.navigate("contest/#{id}",trigger:true)
@@ -94,12 +100,25 @@ define (require,exports,module) ->
       $co.section_comment(
         "event",
         "#event-comment",
-        @collection.id,
+        col.id,
         $("#event-comment-count"))
+      new ContestInfoView(id:col.id)
     refresh: (id) ->
       @collection.id = id
       @collection.fetch()
-
+  ContestInfoView = Backbone.View.extend
+    el: "#contest-info"
+    events:
+      "click #contest-info-edit":"info_edit"
+    info_edit: ->
+      $ed.show_event_edit(@model)
+    initialize: ->
+      @render()
+    render: ->
+      @$el.html($("#templ-contest-info").html())
+      @model = new $ed.EventItemModel(id:@options.id)
+      v = new $ed.EventDetailView(target:"#event-detail",model:@model,no_participant:true)
+      @model.fetch(data:{detail:true,no_participant:true})
   init: ->
     window.result_router = new CotestResultRouter()
     window.result_view = new ContestResultView()

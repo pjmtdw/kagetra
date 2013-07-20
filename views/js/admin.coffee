@@ -187,7 +187,6 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
     apply_filter: ->
       f_name = $("#filter-text").val()
       f_attr = parseInt(@$el.find(".attr-value-names").val())
-      console.log f_attr
       for m in @collection.models
         # name filter
         name = m.get("name")

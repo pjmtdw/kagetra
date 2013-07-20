@@ -30,7 +30,6 @@ define (require,exports,module) ->
       @listenTo(@model,"sync",@render)
       @model.fetch()
     render: ->
-      console.log @model.get("prev")
       h_cur = @template_table(title:"今月",data:@model.get("cur"),names:@model.get("names"))
       h_prev = @template_table(title:"先月",data:@model.get("prev"),names:@model.get("names"))
       @$el.html($("#templ-login-ranking").html())

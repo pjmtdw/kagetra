@@ -21,7 +21,7 @@
       計:
       %span.album-num-total {{ data.total }}
       枚
-      %a.button.small.round#album-comment-log-all(href='album#all_log') コメント履歴
+      %a.button.success.small#album-comment-log-all(href='album#all_log') コメント履歴
       %button.small.round#album-new-upload 写真アップロード
     .large-4.columns
       {{ $("#templ-album-search-form").html() }}
@@ -46,7 +46,16 @@
         .gbase.group(data-group-id='{-x.id-}')
           .clearfix
             .date.left {- x.start_at -}
+            <% if(x.no_tag){ %>
+            .left
+              %canvas.percent(title='タグ無し: {{x.no_tag}}%' width=21 height=13 data-percent='{{x.no_tag}}' data-color='teal')
+            <% } %>
+            <% if(x.no_comment){ %>
+            .left
+              %canvas.percent(title='コメント無し: {{x.no_comment}}%' width=21 height=13 data-percent='{{x.no_comment}}' data-color='olive')
+            <% } %>
             .count.right {- x.item_count -}
+            
           %div {- x.name -}
         <% }else{ %>
         .gbase.item(data-item-id='{-x.id-}')
@@ -87,6 +96,12 @@
 %script#templ-album-group-items(type='text/template')      
   <% _.each(_.filter(data.items,function(x){return ! x.hide}),function(x){ %>
   .gbase.thumbnail.album-item(data-id='{{x.id}}')
+    <% if(x.no_tag){ %>
+    .no-tag(title="タグ無し") {{x.no_tag?"★":""}}
+    <% } %>
+    <% if(x.no_comment){ %>
+    .no-comment(title="コメント無し") {{x.no_comment?"◆":""}}
+    <% } %>
     {{_.album_thumb(x)}}
   <% }) %>
 

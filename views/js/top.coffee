@@ -247,7 +247,6 @@ define (require,exports,module) ->
           "forbidden_attrs","hide_choice","official",
           "team_size", "aggregate_attr_id","start_at","end_at"
         ))
-        console.log m.pick("aggregate_attr_id")
         that.model.set("event_group_id",gid)
 
         ev = new EventEditInfoView(model:that.model)

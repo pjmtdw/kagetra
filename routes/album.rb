@@ -4,7 +4,21 @@ class MainApp < Sinatra::Base
   namespace '/api/album' do
     get '/year/:year' do
       year = if params[:year] == "_else_" then nil else params[:year] end
-      groups = AlbumGroup.all(year:year, dummy:false).map{|x|x.select_attr(:id,:name,:start_at,:item_count).merge({type:"group"})}
+      groups = AlbumGroup.all(year:year, dummy:false).map{|x|
+        r = x.select_attr(:id,:name,:start_at,:item_count).merge({type:"group"})
+        ic = x.item_count || 0
+        if ic > 0 then
+          cc = x.has_comment_count || 0
+          tc = x.has_tag_count || 0
+          if ic - cc > 0 then
+            r[:no_comment] = (((ic-cc)/ic.to_f)*100).to_i
+          end
+          if ic - tc > 0 then
+            r[:no_tag] = (((ic-tc)/ic.to_f)*100).to_i
+          end
+        end
+        r
+      }
       items = AlbumGroup.all(year:year, dummy:true).items.map{|x|x.select_attr(:id,:name,:date).merge({type:"item"})}
 
       {list:groups+items} 
@@ -21,7 +35,9 @@ class MainApp < Sinatra::Base
           }
         end
         x.select_attr(:id,:name).merge({
-          thumb: x.thumb.select_attr(:id,:width,:height)
+          thumb: x.thumb.select_attr(:id,:width,:height),
+          no_tag: x.tag_count == 0,
+          no_comment: x.comment.to_s.empty?
         })
       }
       r[:tags] = tags.sort_by{|k,v|v.size}.reverse

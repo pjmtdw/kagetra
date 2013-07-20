@@ -224,5 +224,5 @@ class MainApp < Sinatra::Base
       EventGroup.create(name:name).select_attr(:id,:name)
     end
   end
-  comment_routes("/api/event",Event,EventComment)
+  comment_routes("/api/event",Event,EventComment,true)
 end

@@ -151,3 +151,24 @@
     }
   }
 }
+canvas.percent{
+  margin-left: 0.5em;
+}
+.album-item{
+  position: relative;
+  padding: 7px;
+  .no-tag{
+    position: absolute;
+    left: -3px;
+    top: -3px;
+    color: teal;
+    font-size: 80%;
+  }
+  .no-comment{
+    position: absolute;
+    right: -3px;
+    top: -3px;
+    color: olive;
+    font-size: 80%;
+  }
+}

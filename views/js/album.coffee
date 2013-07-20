@@ -85,10 +85,29 @@ define (require,exports,module)->
     initialize: ->
       @model = new AlbumYearModel()
       @listenTo(@model,"sync",@render)
+    render_percent: ->
+      $("canvas.percent").each(->
+        o = $(@)
+        [percent,color] = (o.data(x) for x in ["percent","color"])
+        [width,height] = (o.attr(x) for x in ["width","height"])
+        endx = (percent/100.0)*width
+        c = o[0].getContext("2d")
+        c.strokeStyle = "black"
+        c.fillStyle = "white"
+        c.beginPath()
+        c.rect(0,0,width,height)
+        c.fill()
+        c.stroke()
+        c.fillStyle = color
+        c.strokeStyle = color
+        c.fillRect(1,1,endx-1,height-1)
+        true
+      )
     render: ->
       @model.set("list",_.sortBy(@model.get("list"),(x)->x.start_at or x.date).reverse())
       @$el.html(@template(data:@model.toJSON()))
       @$el.appendTo("#album-year")
+      @render_percent()
 
   AlbumGroupModel = Backbone.Model.extend
     urlRoot: "api/album/group"

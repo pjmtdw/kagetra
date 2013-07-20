@@ -36,13 +36,13 @@
       %tbody
         <% found = false %>
         <% _.each(data.ranking,function(x){ %>
-        <% if(x.user_id == data.myinfo.user_id){klass="myrank";found=true}else{klass=""} %>
+        <% if(data.myinfo && x.user_id == data.myinfo.user_id){klass="myrank";found=true}else{klass=""} %>
         %tr(class='{{klass}}')
           %td.count {{ x.rank }}
           %td.count {{ x.count }}
           %td {- names[x.user_id] -}
         <% }) %>
-        <% if(!found){ %>
+        <% if(!found && data.myinfo){ %>
         %tr.myrank
           %td.count {{ data.myinfo.rank }}
           %td.count {{ data.myinfo.count }}

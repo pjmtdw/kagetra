@@ -1,4 +1,9 @@
 %script#templ-event-detail(type='text/template')
+  <% if(data.editable){ %>
+  .row
+    .large-12.columns
+      %button#contest-info-edit.small 編集
+  <% } %>
   .row
     .large-8.columns
       %fieldset.panel
@@ -82,7 +87,7 @@
     .clearfix
       %input.left.button.small(type='submit' value='送信')
       %button#delete-event.right.button.small.alert 削除
-      <% if(data.kind != "contest"){ %>
+      <% if(data.kind != "contest" && ! data.done){ %>
       %button#move-to-done.right.button-maroon.small 過去の行事化
       <% } %>
     .row

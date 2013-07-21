@@ -30,8 +30,12 @@ define (require,exports,module)->
   EventDetailView = Backbone.View.extend
     template: _.template($("#templ-event-detail").html())
     template_p: _.template_braces($("#templ-event-participant").html())
+    events:
+      "click #contest-info-edit":"info_edit"
+    info_edit: ->
+      show_event_edit(@model)
     initialize: ->
-      @.listenTo(@model,"sync",@render)
+      @listenTo(@model,"sync",@render)
     render: ->
       data = @model.toJSON()
       @$el.html(@template(data:data))
@@ -247,12 +251,12 @@ define (require,exports,module)->
       "click #cancel-edit" : "cancel_edit"
       "click #apply-edit" : "apply_edit"
     start_edit: ->
-      $(@options.target).find(".info").hide()
-      $(@options.target).find(".info-edit").show()
+      @$el.find(".info").hide()
+      @$el.find(".info-edit").show()
       false
     cancel_edit: ->
-      $(@options.target).find(".info").show()
-      $(@options.target).find(".info-edit").hide()
+      @$el.find(".info").show()
+      @$el.find(".info-edit").hide()
       false
     apply_edit: _.wrap_submit ->
       obj = $("#event-group-form").serializeObj()

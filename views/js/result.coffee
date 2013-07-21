@@ -111,16 +111,11 @@ define (require,exports,module) ->
       @collection.fetch()
   ContestInfoView = Backbone.View.extend
     el: "#contest-info"
-    events:
-      "click #contest-info-edit":"info_edit"
-    info_edit: ->
-      $ed.show_event_edit(@model)
     initialize: ->
       @render()
     render: ->
-      @$el.html($("#templ-contest-info").html())
       @model = new $ed.EventItemModel(id:@options.id)
-      v = new $ed.EventDetailView(target:"#event-detail",model:@model,no_participant:true)
+      v = new $ed.EventDetailView(target:"#contest-info",model:@model,no_participant:true)
       @model.fetch(data:{detail:true,no_participant:true})
   init: ->
     window.result_router = new CotestResultRouter()

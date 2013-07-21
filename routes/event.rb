@@ -37,16 +37,8 @@ class MainApp < Sinatra::Base
 
     def event_info(ev,user,opts = {})
       today = Date.today
-      r = ev.select_attr(:place,:name,:date,:kind,:official,:deadline,:created_at,:id,:participant_count,:comment_count,:team_size,:event_group_id,:public)
-      if ev.last_comment_date.nil?.! then
-        r[:latest_comment_date] = ev.last_comment_date
-        if user.show_new_from.nil?.! then
-          if ev.last_comment_date > user.show_new_from and
-            (ev.last_comment_user.nil? or ev.last_comment_user_id != user.id) then
-            r[:has_new_comment] = true
-          end
-        end
-      end
+      r = ev.select_attr(:place,:name,:date,:kind,:official,:deadline,:created_at,:id,:participant_count,:comment_count,:team_size,:event_group_id,:public,:last_comment_date)
+      r[:has_new_comment] = ev.has_new_comment(user)
       r[:deadline_day] = (r[:deadline]-today).to_i if r[:deadline]
       if r[:deadline_day] and r[:deadline_day].between?(0,G_DEADLINE_ALERT) then
         r[:deadline_alert] = true

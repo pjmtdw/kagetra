@@ -185,7 +185,7 @@ class MainApp < Sinatra::Base
       chunks = Event.all(:kind.not=>:contest,done:true,order:[:updated_at.desc,:id.desc]).chunks(SCHEDULE_EVENT_DONE_PER_PAGE)
       pages = chunks.size
       list = chunks[page-1].map{|x|
-        x.select_attr(:id,:name,:place,:comment_count,:start_at,:end_at,:date)
+        x.select_attr(:id,:name,:place,:comment_count,:start_at,:end_at,:date).merge({has_new_comment:x.has_new_comment(@user)})
       }
       {
         list:list,

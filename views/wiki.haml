@@ -23,16 +23,6 @@
           %p.title(data-section-title)
             %a(href="#")
               %span.hide-for-all
-                コメント ( 
-                %span#wiki-comment-count
-                )
-          .content(data-section-content)
-            %p
-              #wiki-comment
-        %section
-          %p.title(data-section-title)
-            %a(href="#")
-              %span.hide-for-all
                 添付ファイル
           .content(data-section-content)
             %p
@@ -44,6 +34,15 @@
           .content(data-section-content)
             %p
               #wiki-log
+        %section
+          %p.title(data-section-title)
+            %a(href="#")
+              %span.hide-for-all
+                コメント 
+                %span#wiki-comment-count
+          .content(data-section-content)
+            %p
+              #wiki-comment
 
 %script#templ-wiki-panel(type='text/template')
   .row.wiki-panel

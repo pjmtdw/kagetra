@@ -146,6 +146,17 @@ module ThreadBase
         c2 = self.all(:last_comment_user_id.not => user.id)
         (c0 & (c1 | c2)).all(order: [:last_comment_date.desc])
       end
+      def has_new_comment(user)
+        if self.last_comment_date.nil?.! then
+          if user.show_new_from.nil?.! then
+            if self.last_comment_date > user.show_new_from and
+              (self.last_comment_user.nil? or self.last_comment_user_id != user.id) then
+                return true 
+            end
+          end
+        end
+        false
+      end
     end
   end
 end

@@ -5,6 +5,12 @@ define (require, exports, module) ->
   # メールアドレスにマッチする部分は PEAR::Mail_RFC822::isValidInetAddress()
   pat_url = new RegExp("((https?://[a-zA-Z0-9/:%#$&?()~.=+_-]+)|(([*+!.&#\$|\'\\%\/0-9a-z^_`{}=?~:-]+)@(([0-9a-z-]+\.)+[0-9a-z]{2,})))","gi")
   _.mixin
+    show_new_comment: (data)->
+      c = if data.has_new_comment
+        " <span class='new-comment'>new</span>"
+      else
+        ""
+      "( <span class='comment-count'>#{data.comment_count}</span>#{c} )"
     replace_url_escape: (s)->
       return "" if _.isEmpty(s)
       offset = 0

@@ -13,12 +13,6 @@ define (require,exports,module) ->
         rs.push("<a href='#{hr}'>#{x[attr]}</a>")
       buf += rs.join(" / ")
       buf
-    show_new_comment: (count,has_new)->
-      c = if has_new
-        " <span class='new-comment'>new</span>"
-      else
-        ""
-      "( <span class='comment-count'>#{count}</span>#{c} )"
     show_kind_symbol: (kind,official) ->
       s = switch kind
             when "contest"
@@ -106,7 +100,7 @@ define (require,exports,module) ->
     show_detail: ->
       $ed.reveal_detail("#container-event-detail",@model)
     show_comment: ->
-      $co.reveal_comment("event","#container-event-comment",@model.get('id'),@$el.find(".comment-count"))
+      $co.reveal_comment("event","#container-event-comment",@model.get('id'),@$el.find(".event-comment-count"))
     render: ->
       json = @model.toJSON()
       json.deadline_str = show_deadline(json.deadline_day)

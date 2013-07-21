@@ -58,6 +58,8 @@ class MainApp < Sinatra::Base
       res = {
         thread_name: if thread.respond_to?(:name) then thread.name end,
         list: list,
+        comment_count: thread.comment_count,
+        has_new_comment: thread.has_new_comment(@user)
       }
       if page < chunks.size then
         res[:next_page] = page + 1

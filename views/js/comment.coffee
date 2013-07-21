@@ -85,8 +85,8 @@ define ->
         model:M
         url:->"api/#{mode}/comment/list/#{@id}"
         parse: (data)->
-          @thread_name = data.thread_name
-          @next_page = data.next_page
+          for x in ["thread_name","next_page","comment_count","has_new_comment"]
+            @[x] = data[x]
           data.list
         comparator: (x)-> -Date.parse(x.get("date"))
       @collection = new C()
@@ -99,7 +99,7 @@ define ->
 
       @$el.appendTo(@options.target)
       o = @options.comment_num_obj
-      if o? then o.text(@collection.length)
+      if o? then o.html(_.show_new_comment(@collection))
     do_response: _.wrap_submit ->
       m = new @collection.model(thread_id:@collection.id)
       that = this

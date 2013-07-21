@@ -41,7 +41,7 @@
           %a 締切日
         %dd.choice(data-order='created_at')
           %a 追加日
-        %dd.choice(data-order='latest_comment_date')
+        %dd.choice(data-order='last_comment_date')
           %a 最終書込
   .row
     .large-12.columns
@@ -87,7 +87,8 @@
         %button.button-light.show-detail
           詳細
         %span.button-light.show-comment
-          コメント {{ _.show_new_comment(data.comment_count,data.has_new_comment) }}
+          コメント
+          %span.event-comment-count {{ _.show_new_comment(data) }}
 
 %script#templ-event-choice(type='text/template')
   <% _.each(data,function(d){ %>

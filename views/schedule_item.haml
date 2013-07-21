@@ -57,8 +57,7 @@
         詳細
       - if not @public_mode
         %span.comment.button-light.small
-          コメント
-          %span.comment-count ({{ data.comment_count }})
+          コメント {{ _.show_new_comment(data) }}
 
 %script#templ-schedule-detail-item(type='text/template')
   %hr

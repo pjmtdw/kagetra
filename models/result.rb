@@ -19,6 +19,47 @@ class ContestUser
     ev = self.event
     ev.update(contest_user_count:ev.result_users.count)
   end
+  after :update do
+    ev = self.event
+    ev.update_cache_winlose
+  end
+end
+
+
+# 毎回aggregateするのは遅いのでキャッシュ
+class ContestResultCache
+  include ModelBase
+  belongs_to :event
+  property :win, Integer, default: 0 # 勝ち数の合計
+  property :lose, Integer, default: 0 # 負け数の合計
+  property :prizes, Json, default: [] # 入賞情報
+  def update_prizes
+    ev = self.event
+    prizes = ev.result_classes.all(order:[:index.asc]).map{|c|
+      r = if ev.team_size > 1 then
+            c.teams.map{|t|
+              if t.prize.nil?.! then
+                t.select_attr(:name,:prize).merge({type: :team,class_name:c.class_name})
+              end
+            }.compact
+          else [] end
+      r + c.prizes.all(order:[:rank.asc]).map{|x|
+        p = x.select_attr(:prize,:point,:point_local)
+        cuser = x.contest_user
+        p.merge!({type: :person,name:cuser.name,user_id:cuser.user_id,class_name:c.class_name})
+      }
+    }.flatten
+    self.update(prizes:prizes)
+  end
+  def update_winlose
+    win = 0
+    lose = 0
+    ev.result_users.each{|x|
+      win += x.win || 0
+      lose += x.lose || 0
+    }
+    self.update(win:win,lose:lose)
+  end
 end
 
 

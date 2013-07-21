@@ -83,6 +83,11 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
       "submit .edit-item" : "submit_edit_item"
       "click #undo-last-edit" : "undo_last_edit"
       "click #apply-edit" : "apply_edit"
+      "click #add-user" : "add_user"
+    add_user: ->
+      t = "#admin-user-add"
+      v = new AdminUserAddView(target:t,collection:@collection)
+      _.reveal_view(t,v)
     apply_edit: ->
       if confirm("#{@edit_log.length} 点の変更を反映してもいいですか？")
         elog = JSON.stringify(@edit_log)
@@ -254,6 +259,14 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
       "click #del-permission": (ev) -> @change_permission(ev,"del")
       "click #change-attr": "change_attr"
       "submit #change-passwd": "change_passwd"
+      "click #delete-user": "delete_user"
+    delete_user: _.wrap_submit ->
+      return unless (prompt("削除するにはdeleteと入れて下さい") == "delete")
+      uids = @get_uids()
+      $.ajax("api/user/delete_users",
+        data: JSON.stringify(uids: uids)
+        contentType: "application/json"
+        type: "DELETE").done( -> alert("削除完了"))
     get_uids: ->
       return (x.get("id") for x in @collection.models when x.get("selected"))
     change_attr: (ev)->
@@ -301,6 +314,26 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
     reveal: ->
       @$el.foundation("reveal","open")
       @render()
+  AdminUserAddView = Backbone.View.extend
+    template: _.template_braces($("#templ-admin-user-add").html())
+    events:
+      "click #apply-add" : "apply_add"
+    apply_add: ->
+      list = $.makeArray(@$el.find("form").map((i,x)->
+        obj = $(x).serializeObj()
+        if !_.isEmpty(obj.name) and !_.isEmpty(obj.furigana)
+          obj
+      ))
+      $.ajax("api/user/create_users",
+        data: JSON.stringify({list:list})
+        contentType: "application/json"
+        type: "POST").done( -> alert("追加完了"))
+    initialize: ->
+      @collection = @options.collection
+      @render()
+    render: ->
+      @$el.html(@template(data:_.pick(@collection,"attr_values","key_names","key_values")))
+      @$el.appendTo(@options.target)
 
   init: ->
     collection = new AdminCollection()

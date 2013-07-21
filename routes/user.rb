@@ -62,6 +62,20 @@ class MainApp < Sinatra::Base
         participants: participants
       }
     end
+    delete '/delete_users' do
+      User.all(id:@json["uids"].map{|x|x.to_i}).update!(deleted:true)
+    end
+    post '/create_users' do
+      User.transaction{
+        @json["list"].each{|x|
+          u = User.create(name:x["name"],furigana:x["furigana"])
+          x.each{|k,v|
+            next unless k.start_with?("attr_")
+            u.attrs.create(value_id:v)
+          }
+        }
+      }
+    end
   end
   get '/user/logout' do
     @user.change_token!

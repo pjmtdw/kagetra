@@ -2,22 +2,24 @@
 class MainApp < Sinatra::Base
   namespace '/api/admin' do
     get '/list' do
-      # UserAttribute.all.map{|x|[x.user_id,x.value_id]} が遅いので手動でクエリする
+      # UserAttribute.all(fields:[:user_id,:value_id]).map{|x|[x.user_id,x.value_id]} が遅いので手動でクエリする
       # TODO: 上記が遅い原因を探り, 手動クエリを使わない方法を見つける
       user_attrs = Hash[repository(:default).adapter
         .select('SELECT user_id, value_id FROM user_attributes')
         .group_by{|x| x[:user_id]}.map{|xs|[xs[0],xs[1].map{|x|x[:value_id]}]}]
       attr_values = Hash[UserAttributeValue.all
-        .map{|x| [x.id, {key_id:x.attr_key.id, index:x.index, value:x.value}]}]
+        .map{|x| [x.id, x.select_attr(:index,:value,:default).merge({key_id:x.attr_key.id})]}]
       key_names = UserAttributeKey.all(order: [:index.asc]).map{|x|[x.id,x.name]}
       key_values = Hash[UserAttributeKey.all.map{|x|[x.id,x.values.map{|v|v.id}]}]
 
       values_indexes = Hash[UserAttributeValue.all.map{|x|[x.id,x.attr_key.index]}]
 
-      list = User.all.map{|u|
+      login_latests = Hash[UserLoginLatest.all(fields:[:user_id,:updated_at]).map{|x|
+        [x.user_id,x.updated_at.to_date]
+      }]
+      list = User.all(fields:[:id,:name,:furigana]).map{|u|
         r = u.select_attr(:id,:name,:furigana)
-        l = u.login_latest
-        r[:login_latest] = l.updated_at.to_date if l
+        r[:login_latest] = login_latests[u.id]
         a = user_attrs[u.id].sort_by{|x|values_indexes[x]} if user_attrs[u.id]
         r[:attrs] = a if a
         r

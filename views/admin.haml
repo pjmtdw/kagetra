@@ -10,13 +10,11 @@
   .large-12.columns
     %ul.breadcrumbs
       %li
-        %a ユーザ編集
+        %a(href="admin") ユーザ編集
       %li
-        %a ユーザ追加
+        %a(href="admin_attr") 属性編集
       %li
-        %a 属性編集
-      %li
-        %a 設定
+        %a(href="admin_config") 設定
 
 #admin-view
   .header
@@ -50,13 +48,20 @@
         選択取消
       %button.small.round#reveal-edit
         一括編集
-    .large-4.columns.left
+    .large-6.columns
+      %a(href="#" data-dropdown="admin-edit-usage") 使い方
+      %ul(id="admin-edit-usage" class="f-dropdown" data-dropdown-content )
+        %div (1) テーブルの各項目をクリックすることで編集開始
+        %div (2) 「最後の変更取り消し」で一つだけ変更を取り消せる
+        %div (3) 「全変更反映」で実際にデータ変更をサーバに伝える
       変更点:
       %span#edit-log-count {- data.edit_log_count -}
       %button.small.round#undo-last-edit
         最後の変更取消
       %button.small.round#apply-edit
         全変更反映
+    .large-2.columns
+      %button.small.round#add-user ユーザ追加
   .row
     %table
       %thead
@@ -130,9 +135,34 @@
       %form#delete-user
         %fieldset
           %legend ユーザ削除
-          %input.button.small.round(type='submit' value='ユーザ削除')
+          %input.button.small.round#delete-user(type='submit' value='ユーザ削除')
 
+%script#templ-admin-user-add(type='text/template')
+  %button.small.round#apply-add 追加
+  ※ 一人につき1〜2秒かかるので気長にお待ち下さい
+  <% for(i=0;i<10;i++){ %>
+  %form.clearfix
+    .left
+      名前:
+      %input(type='text' name='name')
+    .left
+      ふりがな:
+      %input(type='text' name='furigana')
+
+    <% _.each(data.key_names,function(x){ %>
+    .left
+      {- x[1] -}:
+      %select(name='attr_{{x[0]}}')
+        <% _.each(data.key_values[x[0]],function(y){ %>
+        <% v = data.attr_values[y] %>
+        {{_.make_option(v.default?y:null,{value:y,text:v.value})}}
+        <% }) %>
+    <% }) %>
+  <% } %>
+
+#admin-user-add.reveal-modal
 
 #admin-edit.reveal-modal
-  %script
-    var g_new_salt="#{@new_salt}";
+
+%script
+  var g_new_salt="#{@new_salt}";

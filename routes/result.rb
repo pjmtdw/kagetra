@@ -1,14 +1,19 @@
 # -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
-  EVENTS_PER_PAGE = 4
+  EVENTS_PER_PAGE = 6
   HALF_PAGE = EVENTS_PER_PAGE/2
+  DROPDOWN_EVENT_GROUP_MAX = 20
+  EVENT_GROUP_PER_PAGE = 10
   namespace '/api/result' do
     get '/contest/:id' do
       (evt,recent_list) = recent_contests(params[:id])
 
       gr = evt.event_group
-      group = if gr then gr.events(done:true, order:[:date.desc])
-                .map{|x| x.select_attr(:id,:name,:date)} else [] end
+      group = if gr then 
+                fdate = if evt.date.nil? then Date.today else evt.date + 365*5 end
+                gr.events(done:true, :date.lte => fdate, order:[:date.desc])[0...DROPDOWN_EVENT_GROUP_MAX]
+                .map{|x| x.select_attr(:id,:name,:date)}
+              else [] end
       
       contest_results = if evt.team_size == 1 then
                         contest_results_single(evt) else
@@ -16,7 +21,7 @@ class MainApp < Sinatra::Base
 
       contest_classes = Hash[evt.result_classes.map{|c| [c.id,c.class_name]}]
 
-      evt.select_attr(:id,:name,:team_size,:date).merge({
+      evt.select_attr(:id,:name,:team_size,:date,:event_group_id).merge({
         recent_list: recent_list,
         group: group,
         team_size: evt.team_size,
@@ -179,6 +184,47 @@ class MainApp < Sinatra::Base
           user_results: user_results 
         }
       }
+    end
+
+    def result_summary(ev)
+      win = 0
+      lose = 0
+      uid2name = {}
+      ev.result_users.each{|x|
+        uid2name[x.id] = x.name
+        win += x.win || 0
+        lose += x.lose || 0
+      }
+      prizes = ev.result_classes.all(order:[:index.asc]).map{|c|
+        r = if ev.team_size > 1 then
+              c.teams.map{|t|
+                if t.prize.nil?.! then
+                  t.select_attr(:name,:prize).merge({type: :team,class_name:c.class_name})
+                end
+              }.compact
+            else [] end
+        r + c.prizes.all(order:[:rank.asc]).map{|x|
+          p = x.select_attr(:prize,:point,:point_local)
+          p.merge!({type: :person,name:uid2name[x.contest_user_id],class_name:c.class_name})
+        }
+      }.flatten
+      r = ev.select_attr(:id,:name,:date)
+      r.merge({
+        user_count: ev.contest_user_count,
+        win: win,
+        lose: lose,
+        prizes: prizes
+      })
+    end
+    get '/group/:id' do
+      page = if params[:page].to_s.empty?.! then params[:page].to_i else 1 end
+      group = EventGroup.get(params[:id].to_i)
+      r = group.select_attr(:name,:description)
+      chunks = group.events.all(order:[:date.desc]).chunks(EVENT_GROUP_PER_PAGE)
+      list = chunks[page-1].map{|ev|
+        result_summary(ev)
+      }
+      r.merge({list:list,cur_page:page,pages:chunks.size})
     end
 
   end

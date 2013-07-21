@@ -196,6 +196,48 @@
     %span.cross.choice-delete &times;
     <% } %> 
 
+%script#templ-event-group(type='text/template')
+  .info
+    %div.clearfix
+      .left
+        .group-name {- data.name -}
+      .right
+        %button#start-edit.small.round 編集開始
+
+    .panel.pre.group-description {- data.description -}
+  .info-edit.hide
+    %form#event-group-form
+      %div.clearfix
+        .left
+          %input(type='text' name='name' value='{-data.name-}' placeholder='名前')
+        .right
+          %button#apply-edit.small.round 送信
+          %button#cancel-edit.small.round キャンセル 
+
+      .div
+        %textarea(name='description' placeholder='備考' rows='10' ) {{ data.description }}
+  %ul.pagination
+    <% if(data.pages > 1){ %>
+    <% for(i=0;i<data.pages;i++){ %>
+    %li(class='{{i+1==data.cur_page?"current":""}}')
+      %a.page(data-page='{{i+1}}') {{i+1}}
+    <% } %>
+    <% } %>
+  %table
+    <% _.each(data.list,function(x){ %>
+    %tr
+      %td
+        {{x.date}}
+      %td
+        %div
+          %a.contest-link(href='result#contest/{{x.id}}') {{x.name}}
+        %div &rArr; {{x.win}}勝{{x.lose}}敗 ({{x.user_count}}人)
+      %td
+        <% _.each(x.prizes,function(p){ %>
+        %div(class='{{p.type}}') {-p.class_name-} {-p.prize-} {-p.name-} {{p.point?"["+p.point+"pt]":""}} {{p.point_local?"["+p.point_local+"kpt]":""}}
+        <% }) %>
+    <% }) %>
+
 = haml :comment
 
 %ul(id="help-public" class="f-dropdown" data-dropdown-content)
@@ -210,3 +252,6 @@
   -# Rubyの連想配列は順番が保持されるけどJavaScriptは保持されないので配列に変換
   var g_event_kinds_str='#{G_EVENT_KINDS.to_a.to_json}' 
   var g_team_sizes_str='#{G_TEAM_SIZES.to_a.to_json}'
+
+#container-event-group.reveal-modal
+#container-event-edit.reveal-modal

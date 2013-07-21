@@ -310,7 +310,7 @@ def import_shurui
     line.sjis!
     (num,name,description) = line.split("\t")
     Kagetra::Utils.dm_debug("#{fn} line #{lineno}"){
-      group = EventGroup.create(id:num, name:name, description:description)
+      group = EventGroup.create(id:num, name:name, description:description.body_replace)
     }
   }
 end

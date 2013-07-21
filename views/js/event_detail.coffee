@@ -235,12 +235,60 @@ define (require,exports,module)->
       @$el.find("[name='forbidden_attrs']").chosen(
         width: "100%"
       )
+  
+  EventGroupModel = Backbone.Model.extend
+    urlRoot: "api/result/group"
+  EventGroupView = Backbone.View.extend
+    template: _.template_braces($("#templ-event-group").html())
+    events:
+      "click .contest-link" : "do_contest_link"
+      "click .page" : "do_page"
+      "click #start-edit" : "start_edit"
+      "click #cancel-edit" : "cancel_edit"
+      "click #apply-edit" : "apply_edit"
+    start_edit: ->
+      $(@options.target).find(".info").hide()
+      $(@options.target).find(".info-edit").show()
+      false
+    cancel_edit: ->
+      $(@options.target).find(".info").show()
+      $(@options.target).find(".info-edit").hide()
+      false
+    apply_edit: _.wrap_submit ->
+      obj = $("#event-group-form").serializeObj()
+      M = Backbone.Model.extend {urlRoot:'api/event/group'}
+      m = new M()
+      m.set('id',@model.get('id'))
+      that = this
+      _.save_model_alert(m,obj).done(->
+        that.model.fetch()
+      )
+    do_page: (ev)->
+      page = $(ev.currentTarget).data("page")
+      @model.fetch(data:{page:page})
+
+    do_contest_link: ->
+      $("#container-event-group").foundation("reveal","close")
+    initialize: ->
+      @model = new EventGroupModel(id:@options.id)
+      @listenTo(@model,"sync",@render)
+      @model.fetch()
+    render: ->
+      @$el.html(@template(data:@model.toJSON()))
+      @$el.appendTo(@options.target)
+
+  show_event_group = (id)->
+    t = "#container-event-group"
+    v = new EventGroupView(id:id,target:t)
+    _.reveal_view(t,v)
+
   show_event_edit = (model,opts={})->
       t = "#container-event-edit"
       v = new EventEditView(_.extend(opts,{target:t,model:model}))
       _.reveal_view(t,v)
       window.event_edit_view = v
   {
+    show_event_group: show_event_group
     show_event_edit: show_event_edit
     EventItemModel: EventItemModel
     EventDetailView: EventDetailView

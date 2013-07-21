@@ -80,6 +80,10 @@
         <% if(data.editable){ %>
         %button.button-light.show-edit 編集
         <% } %>
+        <% if(data.event_group_id){ %>
+        %button.button-light.show-group
+          過去の結果
+        <% } %>
         %button.button-light.show-detail
           詳細
         %span.button-light.show-comment
@@ -123,7 +127,6 @@
 
 #container-event-detail.reveal-modal
 #container-event-comment.reveal-modal
-#container-event-edit.reveal-modal
 
 = haml :schedule_item
 = haml :event_detail

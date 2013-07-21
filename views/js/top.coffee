@@ -97,9 +97,12 @@ define (require,exports,module) ->
   EventItemBaseView = Backbone.View.extend
     events:
       "click .show-detail": "show_detail"
+      "click .show-group": "show_group"
       "click .show-comment": "show_comment"
     initialize: ->
       @listenTo(@model,"sync",@render)
+    show_group: ->
+      $ed.show_event_group(@model.get('event_group_id'))
     show_detail: ->
       $ed.reveal_detail("#container-event-detail",@model)
     show_comment: ->

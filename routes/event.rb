@@ -226,6 +226,11 @@ class MainApp < Sinatra::Base
       name = params[:name]
       EventGroup.create(name:name).select_attr(:id,:name)
     end
+    put '/group/:id' do
+      dm_response{
+        EventGroup.get(params[:id].to_i).update(@json)
+      }
+    end
   end
   comment_routes("/api/event",Event,EventComment,true)
 end

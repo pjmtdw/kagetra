@@ -33,23 +33,29 @@
 
 %script#templ-contest-result(type='text/template')
   .row
-    .large-8.small-8.columns
+    .large-8.columns
       %ul.pagination
-        %li.arrow
+        <% _.each(recent_list,function(x,i){ %>
+        %li.contest-link(data-id='{-x.id-}' class='{{x.id==id?"current":""}}')
+          <% if(i == 0 && x.id != id) { %>
           %a &lsaquo;
-        <% _.each(recent_list,function(x){ %>
-        %li.contest-link(data-id='{-x.id-}')
-          %a {- x.name -}
-        <% }) %>
-        %li.arrow
+          <% }else if(i == recent_list.length - 1 && x.id != id) { %>
           %a &rsaquo;
-    .large-4.small-4.columns
-      %a.small.button.dropdown(href='#' data-dropdown='contest-group') 過去の大会
+          <% }else{ %>
+          %a {- x.name -}
+          <% } %>
+        <% }) %>
+    .large-4.columns
+      <% if(!_.isEmpty(group)){ %>
+      %a.small.button.split.dropdown
+        %div#show-event-group 過去の結果
+        %span(data-dropdown='contest-group')
       %ul#contest-group.f-dropdown
         <% _.each(group,function(x){ %>
         %li.contest-link(data-id='{-x.id-}')
           %a.ellipsis {- x.date -} {- x.name -}
         <% }) %>
+      <% } %>
       %button.small.round#contest-add 大会追加
   .row
     %div.contest-name-date
@@ -110,7 +116,5 @@
               {- _.show_opponent_belongs(data.team_size,y.opponent_belongs) -}
           <% }) %>
         <% }) %>
-
-#container-event-edit.reveal-modal
 
 = haml :event_detail

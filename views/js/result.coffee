@@ -61,7 +61,7 @@ define (require,exports,module) ->
     model: ContestChunkModel
     parse: (data)->
       for x in ["recent_list","name","date","id",
-        "contest_classes","group","team_size"]
+        "contest_classes","group","team_size","event_group_id"]
         @[x] = data[x]
       data.contest_results
   # TODO: split this view to ContestInfoView which has name, date, group, list  and ContestResultView which only has result
@@ -70,23 +70,26 @@ define (require,exports,module) ->
     template: _.template_braces($('#templ-contest-result').html())
     events:
       "click .contest-link": "contest_link"
+      "click #show-event-group": "show_event_group"
       "click #contest-add": "contest_add"
+    show_event_group: _.wrap_submit ->
+      $ed.show_event_group(@collection.event_group_id)
+      false
     contest_add: ->
       $ed.show_event_edit(
         new $ed.EventItemModel(kind:"contest",id:"contest",done:true),
-        {do_when_done:-> window.result_router.navigate("contest/#{@model.get('id')}",trigger:true)}
+        {do_when_done:(m)-> window.result_router.navigate("contest/#{m.get('id')}",trigger:true)}
       )
     contest_link: (ev) ->
       id = $(ev.currentTarget).data('id')
       window.result_router.navigate("contest/#{id}",trigger:true)
     initialize: ->
-      _.bindAll(this,"render","refresh","contest_link")
+      _.bindAll(this,"render","refresh","contest_link","show_event_group")
       @collection = new ContestResultCollection()
       @listenTo(@collection,"sync",@render)
     render: ->
       col = @collection
-      @$el.html(@template(_.pick(@collection,"recent_list","group","name","date")))
-      @$el.find("li[data-id='#{col.id}']").addClass("current")
+      @$el.html(@template(_.pick(@collection,"id","recent_list","group","name","date")))
       cur_class = null
       col.each (m)->
         if m.get("class_id") != cur_class

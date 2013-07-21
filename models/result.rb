@@ -21,13 +21,45 @@ class ContestUser
   end
 end
 
+
+# 毎回aggregateするのは遅いのでキャッシュ
+class ContestResultCache
+  include ModelBase
+  belongs_to :event
+  property :win, Integer, default: 0 # 勝ち数の合計
+  property :lose, Integer, default: 0 # 負け数の合計
+  property :prizes, Json, default: [] # 入賞情報
+  def update_prizes
+    ev = self.event
+    prz = ev.result_classes.all(order:[:index.asc]).map{|c|
+      r = if ev.team_size > 1 then
+            c.teams.map{|t|
+              if t.prize.nil?.! then
+                t.select_attr(:name,:prize).merge({type: :team,class_name:c.class_name})
+              end
+            }.compact
+          else [] end
+      r + c.prizes.all(order:[:rank.asc]).map{|x|
+        p = x.select_attr(:prize,:point,:point_local,:promotion)
+        cuser = x.contest_user
+        p.merge!({type: :person,name:cuser.name,user_id:cuser.user_id,class_name:c.class_name})
+      }
+    }.flatten
+    self.update(prizes:prz)
+  end
+  def update_winlose
+    (w,l) = self.event.result_users.aggregate(:win.sum,:lose.sum)
+    self.update(win:w,lose:l)
+  end
+end
+
 # 大会の各級の情報
 class ContestClass
   include ModelBase
   property :event_id, Integer, unique_index: [:u1,:u2], required: true
   belongs_to :event
   property :class_name, TrimString, length: 16, required: true, unique_index: :u1 # 級の名前
-  property :class_rank, Enum[:a,:b,:c,:d,:e,:f,:g] # 実際の級のランク
+  property :class_rank, Enum[:a,:b,:c,:d,:e,:f,:g] # 実際の級のランク(団体戦や非公認大会の場合はnil)
   property :index, Integer, unique_index: :u2 # 順番
   property :num_person, Integer # その級の他の会の人も含む大会自体の全参加人数(個人戦)
   property :round_name, Json, default: {} # 順位決定戦の名前(個人戦), {"4":"順決勝","5":"決勝"} のような形式
@@ -36,6 +68,13 @@ class ContestClass
   has n, :single_games,'ContestGame' # 試合結果(個人戦)
   has n, :prizes, 'ContestPrize'
   has n, :teams, 'ContestTeam' # 参加チーム(団体戦)
+  before :save do
+    ev = self.event
+    if ev.official and ev.team_size == 1 then
+      # 公認大会でAからGの文字で始まっていないものは全てA級とみなす
+      self.class_rank = Kagetra::Utils.class_from_name(self.class_name) || :a
+    end
+  end
 end
 
 # 個人賞/入賞
@@ -46,10 +85,27 @@ class ContestPrize
   property :contest_user_id, Integer, unique_index: :u1, required: true
   belongs_to :contest_user
   property :prize, TrimString, length: 32, required: true, remove_whitespace: true # 実際の名前 (優勝, 全勝賞など)
-  property :promotion, Enum[:rank_up, :dash] # 昇級, ダッシュ
+  property :promotion, Enum[:rank_up, :dash, :a_champ] # 昇級, ダッシュ, A級優勝
   property :point, Integer # A級のポイント
   property :point_local, Integer # 会内ポイント
   property :rank, Integer # 順位(1=優勝, 2=準優勝, 3=三位, 4=四位, ...)
+  before :save do
+    if self.prize.to_s.empty?.! then
+      self.prize = Kagetra::Utils.zenkaku_to_hankaku(self.prize.strip)
+      if /\((.+)\)/ =~ self.prize then
+        self.promotion = case $1
+        when 'ダッシュ' then :dash
+        when '昇級' then :rank_up
+        end
+      end
+      if self.prize == "優勝" and self.contest_class.class_rank == :a then
+        self.promotion = :a_champ
+      end
+    end
+  end
+  after :save do
+    self.contest_class.event.update_cache_prizes
+  end
 end
 
 
@@ -92,12 +148,14 @@ class ContestGame
   validates_absence_of :contest_class_id, if: is_team
   validates_absence_of :round, if: is_team
 
+  # TODO: 複数の勝ち負けの一括更新に対応
   after :save do
     u = self.contest_user
     updates = Hash[[:win,:lose].map{|sym|
       [sym,u.games(result:sym).count]
     }]
     u.update(updates)
+    u.event.update_cache_winlose
   end
 end
 
@@ -134,6 +192,9 @@ class ContestTeam
   property :promotion, Enum[:rank_up,:rank_down] # 昇級, 陥落
   has n, :members, 'ContestTeamMember'
   has n, :opponents, 'ContestTeamOpponent'
+  after :save do
+    self.contest_class.event.update_cache_prizes
+  end
 end
 
 # 各チームが何回戦にどのチームと対戦したか(団体戦)

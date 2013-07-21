@@ -309,8 +309,9 @@ def import_shurui
     line.chomp!
     line.sjis!
     (num,name,description) = line.split("\t")
+    if description.nil?.! then description = description.body_replace end
     Kagetra::Utils.dm_debug("#{fn} line #{lineno}"){
-      group = EventGroup.create(id:num, name:name, description:description.body_replace)
+      group = EventGroup.create(id:num, name:name, description:description)
     }
   }
 end
@@ -542,7 +543,7 @@ def import_contest_result_dantai(evt,sankas)
               when 'FUSEN'
                 :default_win
               else
-                raise Exception("unknwon result: #{result}")
+                raise Exception("unknown result: #{result}")
               end
     score_int = Kagetra::Utils.eval_score_char(maisuu)
     op_team.games.create(
@@ -605,8 +606,7 @@ def import_contest_result_dantai(evt,sankas)
     case curl
     when /^<!--(.*)-->/
       klass_name = $1
-      kl = Kagetra::Utils.class_from_name(klass_name)
-      klass = evt.result_classes.create(index:order,class_rank:kl,class_name:klass_name)
+      klass = evt.result_classes.create(index:order,class_name:klass_name)
       order += 1
     when /^\(\((.*)\)\)/
       team_name = $1
@@ -741,7 +741,7 @@ def import_contest_result_kojin(evt,sankas)
           when '昇級' then :rank_up
           end
         end
-        klass.prizes.create(rank:Kagetra::Utils.rank_from_prize(pr),contest_user:user,prize:pr,promotion:promtype,point:pt,point_local:kpt)
+        klass.prizes.create(rank:Kagetra::Utils.rank_from_prize(pr),contest_user:user,prize:pr,point:pt,point_local:kpt)
       end
     end
   }
@@ -761,11 +761,10 @@ def import_contest_result_kojin(evt,sankas)
         klass_name = $1
         num_person = $2
         num_person = if num_person.to_s.empty? then nil else num_person.to_i end
-        kl = Kagetra::Utils.class_from_name(klass_name)
         begin
-          klass = evt.result_classes.create(index:order,class_rank:kl,class_name:klass_name,num_person:num_person)
+          klass = evt.result_classes.create(index:order,class_name:klass_name,num_person:num_person)
         rescue Exception => e
-          puts "ERROR in: #{evt.inspect} order:#{order}, class_rank:#{kl}, klass_name:#{klass_name}, num_person: #{num_person}"
+          puts "ERROR in: #{evt.inspect} order:#{order}, klass_name:#{klass_name}, num_person: #{num_person}"
           throw e
         end
         order += 1
@@ -1204,9 +1203,9 @@ end
 #import_meibo
 #import_bbs
 #import_schedule
-import_wiki
+#import_wiki
 #import_album
-#import_shurui
-#import_event
-#import_endtaikai
-#import_event_comment
+import_shurui
+import_event
+import_endtaikai
+import_event_comment

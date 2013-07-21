@@ -28,6 +28,9 @@ class Event
   property :owners, Json, default: [] # 管理者一覧( User.id の配列 )
   property :forbidden_attrs, Json, default: [] # 登録不可属性 ( UserAttributeValue.id の配列 )
   property :hide_choice, Boolean, default: false # ユーザがどれを選択したかを管理者以外には分からなくする
+
+  has 1, :result_cache, 'ContestResultCache'
+
   has n, :choices, 'EventChoice'
   has n, :result_classes, 'ContestClass' # 大会結果の各級の情報
   has n, :result_users, 'ContestUser' # 大会結果の出場者
@@ -64,6 +67,20 @@ class Event
       res = [ev.id,ev.name,all.map{|x|x.user_name}]
       if all.empty? then nil else res end
     }.compact
+  end
+  def create_result_cache
+    if self.result_cache.nil? then
+      self.result_cache = ContestResultCache.new
+      self.save
+    end
+  end
+  def update_cache_prizes
+    self.create_result_cache
+    self.result_cache.update_prizes
+  end
+  def update_cache_winlose
+    self.create_result_cache
+    self.result_cache.update_winlose
   end
 end
 

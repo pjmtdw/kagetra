@@ -35,4 +35,4 @@ G_PARTY_DEFAULT_AGGREGATE_ATTR = "学年" # 大会以外の行事のデフォル
 G_SESSION_COOKIE_NAME = "kagetra.session" # ブラウザが閉じられると消える
 G_PERMANENT_COOKIE_NAME = "kagetra.permanent" # 3ヶ月保存される
 
-G_NEWLY_DAYS_MAX = 60 # 新着コメントとして表示される最大の日数
+G_NEWLY_DAYS_MAX = 75 # 新着コメントとして表示される最大の日数

@@ -37,6 +37,10 @@ define (require,exports,module) ->
     events:
       "click .detail" : "reveal_detail"
       "click .comment" : "reveal_comment"
+      "click .page" : "goto_page"
+    goto_page: (ev)->
+      page = $(ev.currentTarget).data("page")
+      window.schedule_router.navigate("ev_done/#{page}", trigger: true)
     reveal_detail: (ev)->
       id = $(ev.currentTarget).closest("[data-event-id]").data("event-id")
       $ed.reveal_detail("#container-event-detail",id)

@@ -66,13 +66,15 @@ class MainApp < Sinatra::Base
     def contest_results_single(evt)
       # 後で少しずつ取得するのは遅いのでまとめて取得
       cls = evt.result_classes
-      user_games = cls.single_games.map{|gm|
-        [gm.contest_user_id,gm.select_attr(:result,:opponent_name,:opponent_belongs,:score_str)]
+      ugattrs = [:result,:opponent_name,:opponent_belongs,:score_str]
+      user_games = cls.single_games.all(fields:[:contest_user_id,*ugattrs]).map{|gm|
+        [gm.contest_user_id,gm.select_attr(*ugattrs)]
       }.each_with_object(Hash.new{[]}){|(uid,attrs),h|
         h[uid] <<= attrs
       }
-      prizes = Hash[cls.prizes.map{|p|
-        [p.contest_user_id, p.select_attr(:prize, :point, :point_local)]
+      prattrs = [:prize, :point, :point_local]
+      prizes = Hash[cls.prizes.all(fields:[:contest_user_id,*prattrs]).map{|p|
+        [p.contest_user_id, p.select_attr(*prattrs)]
       }]
 
       cls.map{|klass|
@@ -96,7 +98,7 @@ class MainApp < Sinatra::Base
       temp_res = {}
 
       # 後で少しずつ取得するのは遅いのでまとめて取得
-      users = Hash[games.contest_users.map{|u|
+      users = Hash[games.contest_users.all(fields:[:id,:name]).map{|u|
         [u.id,u.name]}]
 
       users.keys.each{|uid|

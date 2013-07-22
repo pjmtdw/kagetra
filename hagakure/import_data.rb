@@ -1106,7 +1106,7 @@ def import_comment(item,comment)
         end
       end
       # TODO: x[:date] が nil (最初のパッチ) の日時を設定する
-      item.comment_logs.create(user:u,album_item:item,revision:i+1,patch:x[:patch],created_at:x[:date])
+      item.comment_logs.create(user:u,album_item:item,revision:i+1,patch:x[:patch],created_at:x[:date]||DateTime.parse('1980-01-01 00:00:00'))
     }
     revision = patches.size
   end
@@ -1204,8 +1204,8 @@ end
 #import_bbs
 #import_schedule
 #import_wiki
-#import_album
-import_shurui
-import_event
-import_endtaikai
-import_event_comment
+import_album
+#import_shurui
+#import_event
+#import_endtaikai
+#import_event_comment

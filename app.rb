@@ -55,16 +55,14 @@ class MainApp < Sinatra::Base
         r[:editable] = x.editable(@user)
         r
       }
-      res = {
+      {
         thread_name: if thread.respond_to?(:name) then thread.name end,
         list: list,
         comment_count: thread.comment_count,
-        has_new_comment: thread.has_new_comment(@user)
+        has_new_comment: thread.has_new_comment(@user),
+        cur_page: page,
+        pages: chunks.size
       }
-      if page < chunks.size then
-        res[:next_page] = page + 1
-      end
-      res
     end
     post "#{namespace}/comment/item",private:private do
       dm_response{

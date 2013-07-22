@@ -72,10 +72,10 @@ define ->
     template: _.template_braces($("#templ-ext-comment").html())
     events:
       _.extend(CommentThreadView.prototype.events,
-      "click .next-comment-page" : "next_comment_page"
+      "click .page" : "comment_page"
       )
-    next_comment_page: (ev)->
-      page = $(ev.currentTarget).data("next-page")
+    comment_page: (ev)->
+      page = $(ev.currentTarget).data("page")
       @collection.fetch({data:{page:page}})
     initialize: ->
       _.bindAll(this,"render","refresh")
@@ -85,14 +85,14 @@ define ->
         model:M
         url:->"api/#{mode}/comment/list/#{@id}"
         parse: (data)->
-          for x in ["thread_name","next_page","comment_count","has_new_comment"]
+          for x in ["thread_name","cur_page","pages","comment_count","has_new_comment"]
             @[x] = data[x]
           data.list
         comparator: (x)-> -Date.parse(x.get("date"))
       @collection = new C()
       @listenTo(@collection,"sync",@render)
     render: ->
-      @$el.html(@template(_.pick(@collection,"next_page","thread_name")))
+      @$el.html(@template(data:_.pick(@collection,"pages","cur_page","thread_name")))
       for m in @collection.models
         v = new CommentItemView(model: m)
         @$el.find(".comment-body").append(v.$el)

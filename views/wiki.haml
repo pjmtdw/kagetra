@@ -117,13 +117,7 @@
 
   .row
     .large-12.columns
-      <% if(data.pages > 1){ %>
-      %ul.pagination
-        <% for(i=0;i<data.pages;i++){ %>
-        %li(class='{{i+1==data.cur_page?"current":""}}')
-          %a.page(data-page='{{i+1}}') {{i+1}}
-        <% } %>
-      <% } %>
+      = haml :pagination
       %table
         <% _.each(data.list,function(x){ %>
         %tr

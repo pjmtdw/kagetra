@@ -33,6 +33,18 @@ class MainApp < Sinatra::Base
         {salt: User.first(id: params[:id]).password_salt}
       end
     end
+    get '/mysalt' do
+      {
+        salt_cur: @user.password_salt,
+        salt_new: Kagetra::Utils.gen_salt
+      }
+    end
+    get '/shared_salt' do
+      {
+        salt_cur: MyConf.first(name: "shared_password").value["salt"],
+        salt_new: Kagetra::Utils.gen_salt
+      }
+    end
     post '/confirm_password' do
       hash = @user.password_hash
       Kagetra::Utils.check_password(params,hash) 
@@ -44,6 +56,11 @@ class MainApp < Sinatra::Base
       else
         @user.update(up)
       end
+      {result:"OK"}
+    end
+    post '/change_shared_password' do
+      up = {hash: params[:hash], salt: params[:salt]}
+      MyConf.first(name: "shared_password").update(value: up)
       {result:"OK"}
     end
 

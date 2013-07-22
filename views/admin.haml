@@ -1,20 +1,12 @@
 - content_for :title do
-  管理画面  
+  管理画面 - ユーザ編集
 - content_for :js_start do
   admin
 - content_for :css do
   admin
 = haml :top_bar
+= haml :admin_common
 
-.row
-  .large-12.columns
-    %ul.breadcrumbs
-      %li
-        %a(href="admin") ユーザ編集
-      %li
-        %a(href="admin_attr") 属性編集
-      %li
-        %a(href="admin_config") 設定
 
 #admin-view
   .header

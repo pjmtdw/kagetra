@@ -5,6 +5,47 @@ define (require, exports, module) ->
   # メールアドレスにマッチする部分は PEAR::Mail_RFC822::isValidInetAddress()
   pat_url = new RegExp("((https?://[a-zA-Z0-9/:%#$&?()~.=+_-]+)|(([*+!.&#\$|\'\\%\/0-9a-z^_`{}=?~:-]+)@(([0-9a-z-]+\.)+[0-9a-z]{2,})))","gi")
   _.mixin
+    confirm_change_password: (args)->
+      try
+        el = args.el
+        salt_new = null
+        first = ->
+          $.get args.url_salt
+        second = (data)->
+          [hash, msg] = _.hmac_password(el.find(args.cur).val(),data.salt_cur)
+          salt_new = data.salt_new
+          $.post args.url_confirm,
+            hash: hash
+            msg: msg
+        third = (data)->
+          defer = $.Deferred()
+          if salt_new == null
+            return defer.reject("saltが空です")
+          if data.result == 'OK'
+            if el.find(args.new_1).val().length == 0
+              return defer.reject("新パスワードが空白です")
+            if el.find(args.new_1).val() != el.find(args.new_2).val()
+              return defer.reject("再確認のパスワードが一致しません")
+            hash = _.pbkdf2_password(el.find(args.new_1).val(),salt_new)
+            $.post args.url_change,
+              hash: hash
+              salt: salt_new
+          else
+            defer.reject("現在のパスワードが違います")
+        fourth = (data) ->
+          defer = $.Deferred()
+          if data.result == 'OK'
+            defer.resolve("パスワードを変更しました")
+          else
+            defer.reject(data)
+        $.when(first()).then(second).then(third).then(fourth)
+          .done((data) -> alert("成功: " + data))
+          .fail((data) -> alert("失敗: " + data);console.log data)
+        false
+      catch e
+        console.log e.message
+        alert e.message
+        false
     show_new_comment: (data)->
       c = if data.has_new_comment
         " <span class='new-comment'>new</span>"

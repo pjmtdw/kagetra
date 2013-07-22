@@ -139,7 +139,7 @@ module ThreadBase
       property :last_comment_date, p::DateTime, index: true # スレッドに最後に書き込んだ日時
       property :comment_count, Integer, default: 0 # コメント数 (毎回aggregateするのは遅いのでキャッシュ)
       def self.new_threads(user,cond={})
-        search_from = [user.show_new_from,DateTime.now-G_NEWLY_DAYS_MAX].max
+        search_from = [user.show_new_from||DateTime.now,DateTime.now-G_NEWLY_DAYS_MAX].max
         c0 = self.all(
           cond.merge({:last_comment_date.gte => search_from}))
         c1 = self.all(:last_comment_user_id => nil)

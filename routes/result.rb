@@ -3,7 +3,7 @@ class MainApp < Sinatra::Base
   EVENTS_PER_PAGE = 6
   HALF_PAGE = EVENTS_PER_PAGE/2
   DROPDOWN_EVENT_GROUP_MAX = 20
-  EVENT_GROUP_PER_PAGE = 40
+  EVENT_GROUP_PER_PAGE = 20
   namespace '/api/result' do
     get '/contest/:id' do
       (evt,recent_list) = recent_contests(params[:id])
@@ -191,9 +191,9 @@ class MainApp < Sinatra::Base
       r = ev.select_attr(:id,:name,:date)
       r.merge({
         user_count: ev.contest_user_count,
-        win: cache.win,
-        lose: cache.lose,
-        prizes: cache.prizes
+        win: if cache then cache.win else 0 end,
+        lose: if cache then cache.lose else 0 end,
+        prizes: if cache then cache.prizes else [] end
       })
     end
     get '/group/:id' do

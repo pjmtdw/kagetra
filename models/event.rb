@@ -50,7 +50,7 @@ class Event
     end
   }
   def self.new_events(user)
-    search_from = [user.show_new_from,DateTime.now-G_NEWLY_DAYS_MAX].max
+    search_from = [user.show_new_from||DateTime.now,DateTime.now-G_NEWLY_DAYS_MAX].max
     self.all(done:false,:created_at.gte => search_from,order: [:created_at.desc])
   end
   def self.my_events(user)
@@ -61,7 +61,7 @@ class Event
     evs.select{|x|x.owners.include?(user.id)}
   end
   def self.new_participants(user)
-    search_from = [user.show_new_from,DateTime.now-G_NEWLY_DAYS_MAX].max
+    search_from = [user.show_new_from||DateTime.now,DateTime.now-G_NEWLY_DAYS_MAX].max
     self.my_events(user).map{|ev|
       all = ev.choices(positive: true).user_choices.all(:created_at.gte => search_from)
       res = [ev.id,ev.name,all.map{|x|x.user_name}]

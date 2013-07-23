@@ -1,0 +1,22 @@
+.row
+  .large-7.columns
+    %ul.breadcrumbs
+      %li
+        %a(href='result_list') 大会一覧
+      %li
+        %a(href='result_record') 個人記録
+      %li
+        %a(href='result_promotion') 昇級履歴
+      %li
+        %a(href='result_ranking') ランキング
+  .large-5.columns
+    .row.collapse
+      %form.custom
+        .large-3.small-3.columns
+          %select.medium
+            %option(value='name')選手名
+            %option(value='event')大会名
+        .large-7.small-7.columns
+          %input(type='text' placeholder='検索文字列')
+        .large-2.small-2.columns
+          %input.button.postfix.radius(type='submit' value='検索')

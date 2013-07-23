@@ -1,0 +1,26 @@
+- content_for :title do
+  大会結果 - 大会一覧
+- content_for :js_start do
+  result_list
+- content_for :css do
+  event_detail
+= haml :top_bar
+= haml :result_common
+
+#result-list
+
+%script#templ-result-list(type='text/template')
+  .row
+    .large-12.columns
+      %ul.pagination
+        <% for(i=data.maxyear;i>=data.minyear;i--){ %>
+        %li(class='{{i==data.curyear?"current":""}}')
+          %a.page(data-year='{{i}}') {{i}}
+        <% } %>
+  <% t = _.template_braces($("#templ-result-summaries").html()) %>
+  .row
+    .large-12.columns
+      {{ t({data:data})}}
+  
+
+= haml :event_detail

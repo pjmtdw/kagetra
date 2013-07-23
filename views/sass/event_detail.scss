@@ -33,7 +33,16 @@
   .group-name{
     font-weight: bold;
   }
+}
+.event-summary{
   .team{
     color: #300;
+    font-style: italic;
+  }
+  .rank_up{
+    color: green;
+  }
+  .a_champ{
+    color: purple;
   }
 }

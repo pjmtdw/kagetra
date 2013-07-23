@@ -224,8 +224,12 @@
 
       .div
         %textarea(name='description' placeholder='備考' rows='10' ) {{ data.description }}
+  <% t = _.template_braces($("#templ-result-summaries").html()) %>
+  {{ t({data:data}) }}
+
+%script#templ-result-summaries(type='text/template')
   = haml :pagination
-  %table
+  %table.event-summary
     <% _.each(data.list,function(x){ %>
     %tr
       %td
@@ -236,9 +240,10 @@
         %div &rArr; {{x.win}}勝{{x.lose}}敗 ({{x.user_count}}人)
       %td
         <% _.each(x.prizes,function(p){ %>
-        %div(class='{{p.type}}') {-p.class_name-} {-p.prize-} {-p.name-} {{p.point?"["+p.point+"pt]":""}} {{p.point_local?"["+p.point_local+"kpt]":""}}
+        %div(class='{{p.type}} {{p.promotion}}') {-p.class_name-} {-p.prize-} {-p.name-} {{p.point?"["+p.point+"pt]":""}} {{p.point_local?"["+p.point_local+"kpt]":""}}
         <% }) %>
     <% }) %>
+
 
 = haml :comment
 

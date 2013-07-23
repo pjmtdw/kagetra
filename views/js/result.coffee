@@ -41,7 +41,7 @@ define (require,exports,module) ->
         a[0].outerHTML + b[0].outerHTML
         
   
-  CotestResultRouter = Backbone.Router.extend
+  ContestResultRouter = Backbone.Router.extend
     routes:
       "contest/:id": "contest"
       "": "contest"
@@ -118,6 +118,6 @@ define (require,exports,module) ->
       v = new $ed.EventDetailView(target:"#contest-info",model:@model,no_participant:true)
       @model.fetch(data:{detail:true,no_participant:true})
   init: ->
-    window.result_router = new CotestResultRouter()
+    window.result_router = new ContestResultRouter()
     window.result_view = new ContestResultView()
     Backbone.history.start()

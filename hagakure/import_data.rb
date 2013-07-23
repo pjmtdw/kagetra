@@ -1201,10 +1201,10 @@ end
 #import_user
 #import_login_log
 #import_meibo
-#import_bbs
+import_bbs
 #import_schedule
 #import_wiki
-import_album
+#import_album
 #import_shurui
 #import_event
 #import_endtaikai

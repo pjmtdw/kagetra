@@ -66,6 +66,8 @@
           <% _.each(key_names,function(x,index){ %>
           %th.thead.thead-key-name(data-key-index='{{index}}') {- x[1] -}
           <% }) %>
+          %th.thead.thead-loginable ログイン
+          %th.thead.thead-permission 権限
       %tbody
         <% _.each(_.filter(data,function(x){return x.visible}),function(x,i){ %>
         %tr(data-uid='{{x.id}}')
@@ -78,6 +80,8 @@
           <% av = attr_values[a] %>
           %td.user-attr(data-key-id='{{av.key_id}}' data-value-id='{{a}}') {- av.value -}
           <% }) %>
+          %td {{x.loginable?'可能':'不可'}}
+          %td {{x.admin?'管理者':(x.permission=='sub_admin'?'副管理':'')}}
         <% }) %>
 
 %script#templ-admin-edit(type='text/template')
@@ -95,7 +99,7 @@
         .row
           .large-7.columns
             %select#permission-name
-              %option(value='loginable') ログイン
+              %option(value='loginable') ログイン可能
               %option(value='admin') 管理者
               %option(value='sub_admin') 副管理者
           .large-5.columns

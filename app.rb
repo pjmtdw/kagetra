@@ -46,15 +46,8 @@ class MainApp < Sinatra::Base
       page = if params[:page] then params[:page].to_i else 1 end
       thread = klass.get(params[:id].to_i)
       chunks = thread.comments(order: [:created_at.desc,:id.desc]).chunks(COMMENTS_PER_PAGE)
-      list = chunks[page-1].map{|x|
-        r = x.select_attr(:id,:user_name,:body)
-          .merge({
-            date: x.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-          })
-        r[:is_new] = x.is_new(@user)
-        r[:editable] = x.editable(@user)
-        r
-      }
+      uidmap = {}
+      list = chunks[page-1].map{|x|x.show(@user,@public_mode)}
       {
         thread_name: if thread.respond_to?(:name) then thread.name end,
         list: list,
@@ -67,7 +60,7 @@ class MainApp < Sinatra::Base
     post "#{namespace}/comment/item",private:private do
       dm_response{
         evt = klass.get(@json["thread_id"].to_i)
-        c = evt.comments.create(user:@user,body:@json["body"])
+        c = evt.comments.create(@json.select_attr("user_name","body").merge({user:@user}))
         c.set_env(request)
         c.save()
       }
@@ -76,7 +69,7 @@ class MainApp < Sinatra::Base
       dm_response{
         item = klass_comment.get(params[:id].to_i)
         halt(403,"you cannot edit this item") unless item.editable(@user)
-        item.update(body:@json["body"])
+        item.update(@json.select_attr("user_name","body"))
       }
     end
     delete "#{namespace}/comment/item/:id" do

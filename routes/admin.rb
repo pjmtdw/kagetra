@@ -17,8 +17,9 @@ class MainApp < Sinatra::Base
       login_latests = Hash[UserLoginLatest.all(fields:[:user_id,:updated_at]).map{|x|
         [x.user_id,x.updated_at.to_date]
       }]
-      list = User.all(fields:[:id,:name,:furigana]).map{|u|
-        r = u.select_attr(:id,:name,:furigana)
+      fields = [:id,:name,:furigana,:admin,:loginable,:permission]
+      list = User.all(fields:fields).map{|u|
+        r = u.select_attr(*fields)
         r[:login_latest] = login_latests[u.id]
         a = user_attrs[u.id].sort_by{|x|values_indexes[x]} if user_attrs[u.id]
         r[:attrs] = a if a
@@ -32,9 +33,9 @@ class MainApp < Sinatra::Base
       }
     end
     post '/permission' do
-      is_add = (json["mode"] == "add")
-      sym = json["type"].to_sym
-      users = User.all(id: json["uids"])
+      is_add = (@json["mode"] == "add")
+      sym = @json["type"].to_sym
+      users = User.all(id: @json["uids"])
       case @json["type"]
       when "admin","loginable" then
         change_admin_or_loginable(is_add,sym,users)

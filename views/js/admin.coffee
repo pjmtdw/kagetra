@@ -41,6 +41,8 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
         mp = {
           login_latest: (x) -> x.get("login_latest") || "0000_01_01"
           furigana: (x) -> x.get("furigana")
+          loginable: (x) -> if x.get("loginable") then 1 else 0
+          permission: (x) -> if x.get("admin") then "zzz" else x.get("permission")
         }
         if mp[k]
           return mp[k]
@@ -75,6 +77,8 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
       "change .attr-value-names" : "do_submit"
       "click .thead-last-login" : -> @collection.add_comp_sort("login_latest",-1)
       "click .thead-furigana" : -> @collection.add_comp_sort("furigana",1)
+      "click .thead-loginable" : -> @collection.add_comp_sort("loginable",-1)
+      "click .thead-permission" : -> @collection.add_comp_sort("permission",-1)
       "click .thead-key-name" : "do_sort_attr"
       "click #clear-select" : "do_clear_select"
       "click .furigana" : "start_edit_furigana"
@@ -114,7 +118,7 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
       new_val = input.val()
       old_val = input.data("old-value")
       type = obj.data("type")
-      if new_val != old_val
+      if new_val.toString() != old_val.toString()
         @edit_log.push(
           type: type
           uid: obj.data("uid")

@@ -25,14 +25,7 @@ class MainApp < Sinatra::Base
       end
       # chunksを使うときはorderに同じ物がある可能性があるものを指定するとバグるので:id.descも一緒に指定すること
       query.all(order: [:last_comment_date.desc,:id.desc]).chunks(BBS_THREADS_PER_PAGE)[page].map{|t|
-        items = t.comments.map{|c|
-          c.select_attr(:id,:body,:user_name).merge(
-          {
-            date: c.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-            is_new: c.is_new(@user),
-            editable: c.editable(@user)
-          })
-        }
+        items = t.comments.map{|c|c.show(@user,@public_mode)}
         title = t.title
         {id: t.id, title: title, items: items, public: t.public}
       }

@@ -91,11 +91,15 @@ module CommentBase
       property :deleted, p::ParanoidBoolean, lazy: false
       property :body, p::TrimText, required: true # 内容
       property :user_name, p::TrimString, length: 24, allow_nil: false # 書き込んだ人の名前
+      property :real_name, p::TrimString, length: 24 # 内部的な名前と書き込んだ名前が違う場合に使用
       belongs_to :user, required: false # 内部的なユーザID
 
       before :save do
         if self.user_name.to_s.empty? and self.user then
           self.user_name = self.user.name
+        end
+        if self.user and self.user_name != self.user.name then
+          self.real_name = self.user.name
         end
       end
       after :create do
@@ -113,6 +117,18 @@ module CommentBase
       end
       def editable(user)
         user.nil?.! and (user.admin || (self.user_id && self.user_id == user.id))
+      end
+      def show(user,public_mode)
+        r = self.select_attr(:id,:body,:user_name).merge(
+          {
+            date: self.created_at.strftime("%Y-%m-%d %H:%M"),
+            is_new: self.is_new(user),
+            editable: self.editable(user)
+          })
+        if not public_mode then
+          r[:real_name] = self.real_name if self.real_name
+        end
+        r
       end
     end
   end

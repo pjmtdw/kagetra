@@ -19,7 +19,7 @@
     .clearfix
       .name-date.left
         %span.name
-          <%- data.user_name %>
+          <%= _.user_name_with_real_name(data) %>
         %span.date
           @ <%= data.date %>
         <% if(data.is_new){ %>

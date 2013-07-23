@@ -27,10 +27,25 @@ class MainApp < Sinatra::Base
       end
       r
     end
+    # TODO: パスワードを平文で送るのは危険
+    post '/change_pass' do
+      cpass = @json["cur_password"]
+      npass = @json["new_password"]
+      Kagetra::Utils.single_exec{
+        raise Exception.new("旧パスワードが違います") unless addrbook_check_password(cpass)
+
+        AddrBook.transaction{
+          AddrBook.all.each{|x|
+            # 古いパスワードでデコードし，新しいパスワードでエンコードする
+            plain = Kagetra::Utils.openssl_dec(x.text,cpass)
+            x.update(text:Kagetra::Utils.openssl_enc(plain,npass))
+          }
+          Kagetra::Utils.set_addrbook_password(npass)
+        }
+      }
+    end
   end
   get '/addrbook' do
-    # パスワードが正しいかどうかの確認用
-    confirm_enc = MyConf.first(name: "addrbook_confirm_enc").value["text"]
-    haml :addrbook,{locals: {confirm_enc: confirm_enc}}
+    haml :addrbook
   end
 end

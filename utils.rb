@@ -31,6 +31,11 @@ module Kagetra
     end
   end
   module Utils
+    def self.set_addrbook_password(pass)
+      # パスワード確認用
+      MyConf.update_or_create({name: "addrbook_confirm_enc"},{value: {text:Kagetra::Utils.openssl_enc(G_ADDRBOOK_CONFIRM_STR,pass)}})
+    end
+
     # Equivalent to:
     #   CryptoJS.AES.encrypt(plain_text, "Secret Passphrase")
     #   $ openssl enc -e -base64 -aes-256-cbc -in infile -out outfile -pass pass:"Secret Passphrase"

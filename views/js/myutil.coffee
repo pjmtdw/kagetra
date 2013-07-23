@@ -27,11 +27,12 @@ define (require, exports, module) ->
           if salt_new == null
             return defer.reject("saltが空です")
           if data.result == 'OK'
-            if el.find(args.new_1).val().length == 0
+            npass = el.find(args.new_1).val()
+            if npass.length == 0
               return defer.reject("新パスワードが空白です")
-            if el.find(args.new_1).val() != el.find(args.new_2).val()
+            if npass != el.find(args.new_2).val()
               return defer.reject("再確認のパスワードが一致しません")
-            hash = _.pbkdf2_password(el.find(args.new_1).val(),salt_new)
+            hash = _.pbkdf2_password(npass,salt_new)
             $.post args.url_change,
               hash: hash
               salt: salt_new

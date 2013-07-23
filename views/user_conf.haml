@@ -2,8 +2,6 @@
   ユーザ設定
 - content_for :js_start do
   user_conf
-- content_for :css do
-  user_conf
 = haml :top_bar
 
 .row
@@ -38,3 +36,4 @@
           %label 新パスワードの再確認
           %input.pass-retype(type='password')
           %input.button.small.round(type='submit' value='送信')
+

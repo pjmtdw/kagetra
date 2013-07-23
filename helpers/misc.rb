@@ -4,6 +4,23 @@ module MiscHelpers
     User.first(id: session[:user_id], token: session[:user_token])
   end
 
+  def addrbook_check_password_js
+    # 名簿パスワードが正しいかどうか確認するJavaScriptを埋め込む
+    enc = MyConf.first(name: "addrbook_confirm_enc").value["text"]
+    str = G_ADDRBOOK_CONFIRM_STR
+    <<-HEREDOC
+    function g_addrbook_check_password(pass){
+      return ('#{str}'== CryptoJS.AES.decrypt('#{enc}',pass).toString(CryptoJS.enc.Latin1))
+    }
+    HEREDOC
+  end
+
+  def addrbook_check_password(pass)
+    enc = MyConf.first(name: "addrbook_confirm_enc").value["text"]
+    str = G_ADDRBOOK_CONFIRM_STR
+    str == Kagetra::Utils.openssl_dec(enc,pass)
+  end
+
   def dm_response
     begin
       yield

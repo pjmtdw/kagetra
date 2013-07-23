@@ -29,4 +29,6 @@
           %input(name='new-addrbook-pass-1' type='password') 
           %label 新しい名簿パスワード(確認用)
           %input(name='new-addrbook-pass-2' type='password') 
-          %input.button.small.round(type='submit' value='送信')
+          %input.button.small.round(type='submit' value='送信') ※パスワード変更には数秒〜数十秒かかります
+%script
+  = addrbook_check_password_js

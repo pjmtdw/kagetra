@@ -3,8 +3,6 @@
   名簿  
 - content_for :js_start do
   addrbook
-- content_for :css do
-  addrbook
 = haml :top_bar
 
 .row
@@ -52,7 +50,6 @@
   <% }) %>
 
 %script
-  var g_confirm_enc="#{confirm_enc}";
-  var g_confirm_str="#{::G_ADDRBOOK_CONFIRM_STR}";
+  = addrbook_check_password_js
   var g_keys_str='#{::G_ADDRBOOK_KEYS.to_json}';
   var g_myid='#{@user.id}';

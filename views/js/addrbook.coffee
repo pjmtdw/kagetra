@@ -3,8 +3,6 @@ define ["crypto-aes", "crypto-hmac","crypto-pbkdf2","crypto-base64"], ->
     ["名前",/^\s*\S+\s+\S+\s*$/,"名前の姓と名の間に空白を入れて下さい"]
     ["ふりがな",/^\s*\S+\s+\S+\s*$/,"ふりがなの姓と名の間に空白を入れて下さい"]
   ]
-  check_password = (pass) ->
-    g_confirm_str == CryptoJS.AES.decrypt(g_confirm_enc,pass).toString(CryptoJS.enc.Latin1)
   AddrBookRouter = Backbone.Router.extend
     routes:
       "user/:id": "user"
@@ -25,7 +23,7 @@ define ["crypto-aes", "crypto-hmac","crypto-pbkdf2","crypto-base64"], ->
       "submit #panel-form": "do_when_submit"
     do_when_submit: ->
       pass = $("#password").val()
-      if check_password(pass)
+      if g_addrbook_check_password(pass)
         alert("名簿パスワードは正しいです")
         if not window.addrbook_view.decode_success
           window.addrbook_view.render()
@@ -68,7 +66,7 @@ define ["crypto-aes", "crypto-hmac","crypto-pbkdf2","crypto-base64"], ->
         alert("名簿パスワードを入力して下さい")
         $("#password").focus()
         return false
-      else if not check_password(pass)
+      else if not g_addrbook_check_password(pass)
         alert("名簿パスワードが違います")
         $("#password").focus()
         return false

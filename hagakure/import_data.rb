@@ -915,7 +915,7 @@ end
 
 def import_meibo
   ((meta,_),*rest) = CSV.read(CONF_MEIBO_CSV,encoding:'UTF-8').zip(0..Float::INFINITY)
-  MyConf.update_or_create({name: "addrbook_confirm_enc"},{value: {text:Kagetra::Utils.openssl_enc(G_ADDRBOOK_CONFIRM_STR,CONF_MEIBO_PASSWD)}})
+  Kagetra::Utils.set_addrbook_password(CONF_MEIBO_PASSWD)
 
   Parallel.each(rest,in_threads:NUM_THREADS){|line,lineno|
     res = Hash[meta.zip(line)]

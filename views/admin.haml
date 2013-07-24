@@ -14,12 +14,12 @@
 
 %script#attr-key-values(type='text/template')
   .row
-    .large-6.columns
+    .large-6.small-6.columns
       %select.attr-key-names
         <% _.each(key_names,function(x){ %>
         %option(value='{-x[0]-}') {- x[1] -}
         <% }) %>
-    .large-6.columns
+    .large-6.small-6.columns
       %select.attr-value-names
 
 %script#templ-admin-header(type='text/template')

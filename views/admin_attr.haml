@@ -1,0 +1,44 @@
+- content_for :title do
+  管理画面 - 属性編集
+- content_for :js_start do
+  admin_attr
+- content_for :css do
+  admin_attr
+= haml :top_bar
+= haml :admin_common
+
+#admin-attr
+
+%script#templ-admin-attr(type='text/template')
+  .row
+    .large-12.columns
+      %button.small.add-key 追加
+      %button.small.round.apply-edit 反映
+      %div
+        %div ※ 順番を入れ替えるには属性をクリックします
+        %div ※ 属性の追加にはユーザ数に比例した時間がかかります
+      <% tmpl = _.template_braces($("#templ-attr-table").html()) %>
+      <% _.each(data.list,function(x){ %>
+      {{ tmpl({data:x}) }}
+      <% }) %>
+      #after-last-key
+
+%script#templ-attr-table(type='text/template')
+  %table(data-key-id='{{data.id}}')
+    %tr.thead
+      %th.show-key-button.key-name {{data.name}}
+      %th デフォルト
+    <% t = _.template_braces($("#templ-attr-row").html()) %>
+    <% _.each(data.values,function(x){ %>
+    {{ t({data:x}) }}
+    <% }) %>
+    %tr.after-last-value
+      %td
+        %button.tiny.success.add-value 追加
+      %td &nbsp;
+
+%script#templ-attr-row(type='text/template')
+  %tr(data-value-id='{{data.id}}' class='{{data.default?"default":""}}')
+    %td.value-name {{ data.value }}
+    %td.show-value-button {{ data.default ? "○" : ""}}
+

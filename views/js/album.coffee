@@ -169,9 +169,7 @@ define (require,exports,module)->
         obj.addClass("move-from")
       else
         @$el.find(".album-item.move-from").removeClass("move-from")
-        tmp = obj.clone()
-        obj.replaceWith(@move_from.clone())
-        @move_from.replaceWith(tmp)
+        _.swap_elem(obj,@move_from)
         @move_from = null
     show_all: ->
       @$el.find(".tag-selected").removeClass("tag-selected")

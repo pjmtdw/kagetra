@@ -66,6 +66,50 @@ class MainApp < Sinatra::Base
       }
     end
 
+    post '/update_attr' do
+      UserAttributeKey.transaction{
+        created_keys = []
+        @json["list"].to_enum.with_index(1){|x,index|
+          k = nil
+          if x["key_id"] == "new" then
+            next if x["deleted"]
+            if not x["list"].empty? then
+              k = UserAttributeKey.create(name:x["name"],index:index)
+              created_keys << k
+            end
+          else
+            k = UserAttributeKey.get(x["key_id"])
+            if x["deleted"] then
+              UserAttribute.all(value:k.values).update!(deleted:true)
+              k.values.update!(deleted:true)
+              k.update!(deleted:true)
+              next
+            end
+          end
+          next if k.nil?
+          k.update(index:index)
+          x["list"].each_with_index{|y,i|
+            if y["value_id"] == "new" then
+              next if y["deleted"]
+              c = k.values.create(value:y["value"],index:i,default:y["default"])
+            elsif y["deleted"] then
+              next if y["default"]
+              UserAttribute.all(value_id:y["value_id"]).update!(value_id:k.values.first(default:true).id)
+              k.values.get(y["value_id"]).update!(deleted:true)
+            else
+              k.values.get(y["value_id"]).update(index:i,default:y["default"])
+            end
+          }
+        }
+        created_keys.each{|k|
+          d = k.values.first(default:true)
+          User.all.each{|u|
+            u.attrs.create(value:d)
+          }
+        }
+      }
+    end
+
     def change_admin_or_loginable(is_add,sym,users)
       users.update(sym => is_add)
     end
@@ -80,6 +124,16 @@ class MainApp < Sinatra::Base
         u.update(permission: np)
       }
     end
+    get '/attrs' do
+      list = UserAttributeKey.all(:index.gte => 1,order:[:index.asc]).map{|x|
+        x.select_attr(:id,:name).merge({
+          values: x.values.all(order:[:index.asc]).map{|v|
+            v.select_attr(:id,:value,:default)
+          }
+        })
+      }
+      {list:list}
+    end
   end
   get '/admin' do
     @new_salt = Kagetra::Utils.gen_salt
@@ -89,5 +143,8 @@ class MainApp < Sinatra::Base
     @cur_shared_salt = MyConf.first(name: "shared_password").value["salt"]
     @new_shared_salt = Kagetra::Utils.gen_salt
     haml :admin_config
+  end
+  get '/admin_attr' do
+    haml :admin_attr
   end
 end

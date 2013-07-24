@@ -166,7 +166,8 @@ module Kagetra
       case prize
       when "優勝" then 1
       when "準優勝" then 2
-      when /^(\d+)位$/ then $1.to_i
+      when /^(\d+)位/ then $1.to_i
+      else 9999
       end
     end
 

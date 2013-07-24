@@ -5,6 +5,11 @@ define (require, exports, module) ->
   # メールアドレスにマッチする部分は PEAR::Mail_RFC822::isValidInetAddress()
   pat_url = new RegExp("((https?://[a-zA-Z0-9/:%#$&?()~.=+_-]+)|(([*+!.&#\$|\'\\%\/0-9a-z^_`{}=?~:-]+)@(([0-9a-z-]+\.)+[0-9a-z]{2,})))","gi")
   _.mixin
+    swap_elem: (a,b) ->
+      tmp = a.clone()
+      a.replaceWith(b.clone())
+      b.replaceWith(tmp)
+
     user_name_with_real_name: (data)->
       un = _.escape(data.user_name)
       rn = if data.real_name then "(#{_.escape(data.real_name)})"

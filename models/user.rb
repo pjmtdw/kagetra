@@ -129,6 +129,7 @@ end
 # どのユーザがどの属性を持っているか
 class UserAttribute
   include ModelBase
+  property :deleted,       ParanoidBoolean, lazy: false # 自動的に付けられる削除済みフラグ
   belongs_to :user
   belongs_to :value, 'UserAttributeValue'
   before :save do
@@ -142,22 +143,31 @@ end
 # ユーザ属性の名前
 class UserAttributeKey
   include ModelBase
+  property :deleted,       ParanoidBoolean, lazy: false # 自動的に付けられる削除済みフラグ
   property :name, TrimString, length: 36, required:true
-  property :index, Integer, required: true, unique: true # 順番
+  property :index, Integer, required: true # 順番
   has n, :values, 'UserAttributeValue', child_key: [:attr_key_id]
 end
 
 # ユーザ属性の値
 class UserAttributeValue
   include ModelBase
-  property :attr_key_id, Integer, unique_index: :u1, required: true
+  property :deleted,       ParanoidBoolean, lazy: false # 自動的に付けられる削除済みフラグ
+  property :attr_key_id, Integer, required: true
   belongs_to :attr_key, 'UserAttributeKey'
   property :value, TrimString, length: 48, required: true
-  property :index, Integer, unique_index: :u1, required: true
+  property :index, Integer, required: true
   property :default, Boolean, default: false # ユーザ作成時のデフォルトの値
+  # デフォルトは必ず一つ必要
   before :create do
     if self.attr_key.values(default:true).count == 0 then
       self.default = true
+    end
+  end
+  # デフォルトが二つあってはいけない
+  after :save do
+    if self.default then
+      self.attr_key.values(default:true,:id.not => self.id).update!(default:false)
     end
   end
   before :destroy do

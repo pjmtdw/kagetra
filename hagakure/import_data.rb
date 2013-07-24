@@ -627,6 +627,8 @@ def import_contest_result_dantai(evt,sankas)
                       when "昇級" then :rank_up
                     end
       end
+      # 原因不明: ここでreloadしないとContestResultCacheのupdate_prizesのc.teamsの内容がおかしいことになる
+      klass.reload
       team = klass.teams.create(name: team_name, prize: pr, rank: Kagetra::Utils.rank_from_prize(pr), promotion: promtype)
       team_members[team] = []
       puts "dantai result #{evt.name} of #{team_name}"
@@ -777,7 +779,7 @@ end
 
 def import_endtaikai
   puts "import_endtaikai begin"
-  lines = File.readlines(File.join(CONF_HAGAKURE_BASE,"txts","endtaikailist.cgi"))
+  lines = File.readlines(File.join(CONF_HAGAKURE_BASE,"txts","endtaikailist.cgi"))[17..17]
   Parallel.each(lines,in_threads:NUM_THREADS){|line|
     line.chomp!
     line.sjis!
@@ -1201,11 +1203,11 @@ end
 #import_user
 #import_login_log
 #import_meibo
-import_bbs
+#import_bbs
 #import_schedule
 #import_wiki
 #import_album
-#import_shurui
+import_shurui
 #import_event
-#import_endtaikai
+import_endtaikai
 #import_event_comment

@@ -135,7 +135,7 @@ class UserAttribute
   before :save do
     #一人のユーザは各属性keyにつき一つの属性valueしか持てない
     values = self.value.attr_key.values
-    self.user.attrs(value: values).destroy
+    self.user.attrs(value: values).destroy!
   end
 end
   

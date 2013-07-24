@@ -179,8 +179,8 @@ class MainApp < Sinatra::Base
         {
           class_id: team.contest_class_id,
           header_left: hl, 
-          rounds: ops.map{|x|[
-            x.round_name,
+          rounds: ops.to_enum.with_index(1).map{|x,i|[
+            x.round_name  || "#{i}回戦",
             if x.kind == :single then "(個人戦)" else x.name end
         ]},
           user_results: user_results 

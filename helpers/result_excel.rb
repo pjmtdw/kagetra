@@ -13,8 +13,9 @@ module ResultExcelHelpers
       font:Spreadsheet::Font.new(mincho,size:11))
 
     # 列の長さを決めるためにあらかじめ選手名，対戦相手の名前の最大長さを取得しておく
-    namelen = (45 * ev.result_users.map{|x|x.name.size}.max)/3
-    aitelen = (45 * ev.result_classes.map{|x|x.single_games.map{|y|y.opponent_name}}.flatten.compact.map{|x|x.size}.max)/3
+    # 団体戦の場合は (将順) って文字を入れるので少し大きめにする
+    namelen = (15 * ev.result_users.map{|x|x.name.size}.max) + if ev.team_size == 1 then 0 else 40 end
+    aitelen = (15 * ev.result_users.map{|x|x.games.map{|y|y.opponent_name}}.flatten.compact.map{|x|x.size}.max)
     [19,31,12,33,19,namelen,12,40,12,aitelen,200,19].each_with_index{|w,i|
       # ピクセルからSpredsheet内部のwidthに変換
       sheet.column(i).width = w / 7.0
@@ -48,11 +49,13 @@ module ResultExcelHelpers
     sheet.merge_cells(num,0,num,5)
     
     # 各級の参加者数
-    format = sheet.default_format.clone
-    format.horizontal_align = :right
-    row.set_format(6,format)
-    row[6] = ev.result_classes.all(order:[:index.asc]).map{|c| "#{c.class_name.sub(/級/,'')}:#{c.num_person}"}.join(" ")
-    sheet.merge_cells(num,6,num,10)
+    if ev.team_size == 1 then
+      format = sheet.default_format.clone
+      format.horizontal_align = :right
+      row.set_format(6,format)
+      row[6] = ev.result_classes.all(order:[:index.asc]).map{|c| "#{c.class_name.sub(/級/,'')}:#{c.num_person}"}.join(" ")
+      sheet.merge_cells(num,6,num,10)
+    end
 
     (num,row) = inc_num.call(num)
     # 場所
@@ -63,21 +66,47 @@ module ResultExcelHelpers
     sheet.row(num).height = 9.0
 
     classes = ev.result_classes.all(order:[:index.asc])
+    if ev.team_size != 1 then
+      teams = ContestTeam.all(contest_class:classes)
+    end
     # 試合結果
     round = 1
     loop{
-      games = ContestGame.all(contest_class:classes,round:round).group_by{|x|x.contest_class_id}
+      if ev.team_size == 1 then
+        games = ContestGame.all(contest_class:classes,round:round).group_by{|x|x.contest_class_id}
+      else
+        op_teams = ContestTeamOpponent.all(contest_team:teams,round:round)
+        games = ContestGame.all(contest_team_opponent:op_teams).group_by{|x|x.contest_team_opponent_id}
+      end
       break if games.empty?
       (num,row) = inc_num.call(num)
       row[2] = "#{round}回戦"
       sheet.merge_cells(num,2,num,10)
-      classes.each{|c|
+      chunks = if ev.team_size == 1 then classes else op_teams end
+      chunks.each{|c|
         next unless games.has_key?(c.id)
         (num,row) = inc_num.call(num)
-        round_name = c.round_name[round.to_s]
-        row[3] = c.class_name + if round_name then " (#{round_name})" else "" end
+        theader = if ev.team_size == 1 then
+                    round_name = c.round_name[round.to_s]
+                    c.class_name + if round_name then " (#{round_name})" else "" end
+                  else 
+                    team = c.contest_team
+                    cname = team.contest_class.class_name + if c.round_name then "(#{c.round_name})" else "" end
+                    vs =  if c.kind == :single then
+                            "(個人戦)"
+                          else
+                            "対 #{c.name}"
+                          end
+                   "#{cname}: #{team.name} #{vs}"
+                 end
+        row[3] = theader 
         sheet.merge_cells(num,3,num,10)
-        games[c.id].select{|x|[:win,:lose].include?(x.result)}.each{|x|
+        gs = if ev.team_size == 1 then
+               games[c.id].sort_by{|g|g.contest_user.win}.reverse
+             else
+               games[c.id].sort_by{|g|team.members.first(contest_user:g.contest_user).order_num}
+             end
+        gs.select{|x|[:win,:lose].include?(x.result)}.each{|x|
           (num,row) = inc_num.call(num)
           format = sheet.default_format.clone
           format.horizontal_align = :center
@@ -87,10 +116,19 @@ module ResultExcelHelpers
                    when :win then "○"
                    when :lose then "●"
                    end
-          row[5] = x.contest_user.name
+          order_num = if ev.team_size == 1 then "" else " (#{team.members.first(contest_user:x.contest_user).order_num})" end
+          belongs = if ev.team_size == 1 then
+                      x.opponent_belongs
+                    elsif c.kind == :single then
+                      x.opponent_belongs + if x.opponent_order then "・#{x.opponent_order}" else "" end
+                    else
+                      x.opponent_order
+                    end
+
+          row[5] = x.contest_user.name + order_num
           row[7] = x.score_str
           row[9] = x.opponent_name
-          row[10] = "(#{x.opponent_belongs})" if x.opponent_belongs
+          row[10] = "(#{belongs})" if belongs
 
         }
         default_wins = games[c.id].select{|x|x.result == :default_win}.map{|x|
@@ -122,21 +160,36 @@ module ResultExcelHelpers
     }
 
     # 入賞
-    prizes = classes.map{|x|
-      x.prizes.all(order:[:rank.asc]).map{|x|
-        prize = x.prize
-        name = x.contest_user.name
-        if /\(.*\)/ =~ prize then
-          name += $&
-          prize = $` + $'
-        end
-        {klass:x.contest_class.class_name,prize:prize,name:name}
-      }
-    }.flatten
+    prizes = if ev.team_size == 1 then
+      classes.map{|x|
+        x.prizes.all(order:[:rank.asc]).map{|x|
+          prize = x.prize
+          name = x.contest_user.name
+          if /\(.*\)/ =~ prize then
+            name += $&
+            prize = $` + $'
+          end
+          {klass:x.contest_class.class_name,prize:prize,name:name}
+        }
+      }.flatten
+    else
+      classes.map{|x|
+        x.teams.all(order:[:rank.asc]).map{|x|
+          prize = x.prize
+          name = x.name
+          next unless prize
+          if /\(.*\)/ =~ prize then
+            name += $&
+            prize = $` + $'
+          end
+          {klass:x.contest_class.class_name,prize:prize,name:name}
+        }
+      }.flatten.compact
+    end
     if not prizes.empty? then
       (num,row) = inc_num.call(num)
       (num,row) = inc_num.call(num)
-      row[7] = "入賞者"
+      row[7] = if ev.team_size == 1 then "入賞者" else "順位" end
       sheet.merge_cells(num,7,num,8)
       (num,row) = inc_num.call(num)
 

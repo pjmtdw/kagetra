@@ -590,7 +590,7 @@ def import_contest_result_dantai(evt,sankas)
     return if tbuf.nil?
     tbuf.to_enum.with_index(1){|b,round|
       (kaisen,op_team) = b.split(/<>/)
-      kaisen = nil if kaisen == '#{round}回戦'
+      kaisen = nil if kaisen == "#{round}回戦"
       if op_team == "_KOJIN" then
         op_team = nil
         typ = :single
@@ -641,7 +641,7 @@ def import_contest_result_dantai(evt,sankas)
   }
   team_members.each{|k,v|
     v.to_enum.with_index(1){|user,rank|
-      team.members.create(order_num:rank,contest_user:user)
+      k.members.create(order_num:rank,contest_user:user)
     }
   }
 end
@@ -779,7 +779,7 @@ end
 
 def import_endtaikai
   puts "import_endtaikai begin"
-  lines = File.readlines(File.join(CONF_HAGAKURE_BASE,"txts","endtaikailist.cgi"))[17..17]
+  lines = File.readlines(File.join(CONF_HAGAKURE_BASE,"txts","endtaikailist.cgi"))
   Parallel.each(lines,in_threads:NUM_THREADS){|line|
     line.chomp!
     line.sjis!
@@ -1208,6 +1208,6 @@ end
 #import_wiki
 #import_album
 import_shurui
-#import_event
+import_event
 import_endtaikai
-#import_event_comment
+import_event_comment

@@ -2,7 +2,7 @@ define (require,exports,module) ->
   ResultListRouter = Backbone.Router.extend
     routes:
       "year/:year" : "do_year"
-      "": -> @navigate("year/#{(new Date()).getFullYear()}",trigger:true)
+      "": -> @navigate("year/#{(new Date()).getFullYear()}",{trigger:true,replace:true})
     do_year: (year) ->
       window.result_list_view?.remove()
       window.result_list_view = new ResultListView(year:year)

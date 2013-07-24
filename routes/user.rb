@@ -86,6 +86,9 @@ class MainApp < Sinatra::Base
       User.transaction{
         @json["list"].each{|x|
           u = User.create(name:x["name"],furigana:x["furigana"])
+          # 同名のユーザがあったらuser_idを関連付ける
+          EventUserChoice.all(user_name:u.name,user_id:nil).update(user_id:u.id)
+          ContestUser.all(name:u.name,user_id:nil).update(user_id:u.id)
           x.each{|k,v|
             next unless k.start_with?("attr_")
             u.attrs.create(value_id:v)

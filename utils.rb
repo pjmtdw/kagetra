@@ -163,7 +163,7 @@ module Kagetra
       return if prize.nil?
       prize = self.normalize_token(prize)
       prize = self.kansuuji_to_arabic(prize)
-      case prize
+      case prize.sub(/\(.*\)/,"")
       when "優勝" then 1
       when "準優勝" then 2
       when /^(\d+)位/ then $1.to_i

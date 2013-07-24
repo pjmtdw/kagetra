@@ -213,4 +213,7 @@ class MainApp < Sinatra::Base
   get '/result' do
     haml :result
   end
+  get '/result/excel/:id' do
+    send_excel(Event.get(params[:id]))
+  end
 end

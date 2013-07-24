@@ -23,6 +23,7 @@ require 'zip/zip' # RubyZip
 
 require 'data_mapper'
 require 'dm-chunked_query'
+require 'spreadsheet'
 
 case CONF_DB_PATH
 when /^sqlite3:/

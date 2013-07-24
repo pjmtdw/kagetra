@@ -11,6 +11,7 @@ gem 'sass' # meta css
 gem 'zurb-foundation' # design framework
 gem 'compass' # css authoring framework
 gem 'redcarpet' # markdown to (x)html converter
+gem 'spreadsheet' # make Microsoft Excel files
 
 # you have to `apt-get install libmagickwand-dev` to install rmagick
 gem 'rmagick' # ImageMagick interface

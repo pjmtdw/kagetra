@@ -45,6 +45,8 @@
               - "abcdefg".each_char do |c|
                 %option(value='#{c}') #{c.upcase}級公認個人戦
   %ul(id="year-list" class="f-dropdown" data-dropdown-content)
+    %li
+      %a.goto-year(data-year='all') 全期間
     - Date.today.year.downto(@minyear).each do |y|
       %li
         %a.goto-year(data-year='#{y}') #{y}年
@@ -55,8 +57,7 @@
 %script#templ-ranking-result(type='text/template')
   <% key1name = $("select[name='key1'] option[value='"+data.meta["key1"].name+"']").text() %>
   <% key2name = $("select[name='key2'] option[value='"+data.meta["key2"].name+"']").text() %>
-  %div {{ key1name }} &rArr; 計: {{data.meta["key1"].sum}}
-  %div {{ key2name }} &rArr; 計: {{data.meta["key2"].sum}}
+  %div 合計 &rArr; {{ key1name }}: {{data.meta["key1"].sum}}, {{ key2name }}: {{data.meta["key2"].sum}}
   %table
     %thead
       %tr
@@ -72,7 +73,7 @@
       <% if(prev != v){ rank = index + 1; prev = v} %>
       %tr
         %td {{ rank }}
-        %td {{ x[0] }}
+        %td {- x[0] -}
         %td.ranking-value {{ x[1]["key1"]  }}
         %td.ranking-value {{ x[1]["key2"]  }}
       <% }) %>

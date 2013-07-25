@@ -39,8 +39,9 @@ define (require,exports,module) ->
       window.result_ranking_router.navigate("show/#{$.param(obj)}",{trigger:true})
     goto_year: (ev)->
       year = $(ev.currentTarget).data("year")
-      $("#ranking-form input[name='start']").val("#{year}-1")
-      $("#ranking-form input[name='end']").val("#{year}-12")
+      [f,t] = if year == "all" then ["",""] else ["#{year}-1","#{year}-12"]
+      $("#ranking-form input[name='start']").val(f)
+      $("#ranking-form input[name='end']").val(t)
       $("#ranking-form").submit()
       # TDOO: is this the correct way to close dropdown ?
       $("[data-dropdown='year-list']").click()

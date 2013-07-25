@@ -1,0 +1,30 @@
+- content_for :title do
+  大会結果 - 昇級履歴
+- content_for :js_start do
+  result_promotion
+= haml :top_bar
+= haml :result_common
+
+#result-promotion
+
+%script#templ-result-promotion(type='text/template')
+  .row
+    .large-12.columns
+      <% _.each(data.list,function(x){ %>
+      .panel
+        %div [{{ x.event.date }}] {- x.name -} さんが {- x.event.name -} の {- x.class_name -} で {- x.prize -} でした
+        <% if(! _.isNull(x.user_id) && ! _.isUndefined(x.user_id)){ %>
+        %div
+          %form.change-attr(data-user-id='{{x.user_id}}')
+            現在の属性:
+            <% _.each(data.attrs,function(y,i){ %>
+            %span
+              {- y[0] -} &rArr;
+              %select(name='attr{{i}}' style='width:auto;display:inline-block')
+                <% _.each(y[1],function(z){ %>
+                {{ _.make_option(_.find(x.attr_values,function(p){return p==z[1]}),{value:z[1],text:z[0]}) }}
+                <% }) %>
+            <% }) %>
+            %input.button.small(type='submit' value='変更')
+        <% } %>
+      <% }) %>

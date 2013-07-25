@@ -11,6 +11,7 @@ deploy/log/
 deploy/sock/
 deploy/pid/
 scripts/wikipedia_name/tmp/
+storage/
 
 Gemfile.lock
 conf.rb

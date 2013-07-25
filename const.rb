@@ -31,6 +31,7 @@ G_CONTEST_DEFAULT_AGGREGATE_ATTR = "級" # 大会のデフォルトの集計属�
 G_CONTEST_DEFAULT_FORBIDDEN_ATTRS = {"全日協" => ["×"]} # 大会のデフォルトの参加不能属性
 G_PARTY_DEFAULT_AGGREGATE_ATTR = "学年" # 大会以外の行事のデフォルトの集計属性
 
+G_PROMOTION_ATTRS = ["級","段位"] # 昇級履歴で編集できる属性
 
 G_SESSION_COOKIE_NAME = "kagetra.session" # ブラウザが閉じられると消える
 G_PERMANENT_COOKIE_NAME = "kagetra.permanent" # 3ヶ月保存される

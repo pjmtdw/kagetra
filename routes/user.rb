@@ -1,4 +1,4 @@
-
+# -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
   namespace '/api/user' do
     # /auth 以下はログインなしでも見られるように名前空間を分ける
@@ -92,6 +92,27 @@ class MainApp < Sinatra::Base
           x.each{|k,v|
             next unless k.start_with?("attr_")
             u.attrs.create(value:UserAttributeValue.get(v.to_i))
+          }
+        }
+      }
+    end
+    post '/change_attr/:id' do
+      User.transaction{
+        u = User.get(params[:id].to_i)
+        @json["values"].each{|v|
+          new_value = UserAttributeValue.get(v.to_i)
+          key = new_value.attr_key
+          cur_value = u.attrs.first(value:key.values).value
+          u.attrs.create(value_id:v.to_i)
+          Event.all(done:false).choices.user_choices(user:u,attr_value:cur_value).each{|choice|
+            ev = choice.event_choice.event
+            if ev.forbidden_attrs.include?(v.to_i) then
+              choice.destroy
+              ev.comments.create(user_name:"ロビタ",body:"#{u.name}さんが#{ev.name}で昇級して参加不能属性になったので登録を取り消しました。")
+            else
+              choice.event_choice.user_choices.create(user:u)
+              ev.comments.create(user_name:"ロビタ",body:"#{u.name}さんが#{ev.name}で昇級したので#{cur_value.value}から#{new_value.value}に登録変更しました。")
+            end
           }
         }
       }

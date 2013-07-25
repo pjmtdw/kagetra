@@ -10,7 +10,7 @@ module ModelBase
 
       def self.all_month(prop,year,month,cond={})
         from = Date.new(year,month,1)
-        to = from >> 1
+        to = from.next_month
         all(cond.merge({prop.gte => from, prop.lt => to}))
       end
 

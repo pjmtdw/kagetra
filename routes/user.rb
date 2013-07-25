@@ -91,7 +91,7 @@ class MainApp < Sinatra::Base
           ContestUser.all(name:u.name,user_id:nil).update(user_id:u.id)
           x.each{|k,v|
             next unless k.start_with?("attr_")
-            u.attrs.create(value_id:v)
+            u.attrs.create(value:UserAttributeValue.get(v.to_i))
           }
         }
       }

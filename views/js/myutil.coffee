@@ -5,6 +5,13 @@ define (require, exports, module) ->
   # メールアドレスにマッチする部分は PEAR::Mail_RFC822::isValidInetAddress()
   pat_url = new RegExp("((https?://[a-zA-Z0-9/:%#$&?()~.=+_-]+)|(([*+!.&#\$|\'\\%\/0-9a-z^_`{}=?~:-]+)@(([0-9a-z-]+\.)+[0-9a-z]{2,})))","gi")
   _.mixin
+    # reverse of $.param
+    deparam: (s) ->
+      _.object(
+        for p in s.split('&')
+         p.split('=')
+      )
+        
     swap_elem: (a,b) ->
       tmp = a.clone()
       a.replaceWith(b.clone())
@@ -202,7 +209,10 @@ define (require, exports, module) ->
     t = @data("toggle-text")
     @data("toggle-text",@text())
     @text(t)
-
+  
+  $.fn.fillForm = (obj)->
+    for k,v of obj
+      @.find("[name='#{k}']").val(v)
 
   $.fn.scrollHere = (speed)->
     speed ||= 1000

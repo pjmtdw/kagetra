@@ -35,6 +35,13 @@ class Event
   has n, :result_classes, 'ContestClass' # 大会結果の各級の情報
   has n, :result_users, 'ContestUser' # 大会結果の出場者
   has n, :comments, 'EventComment', child_key: [:thread_id] # コメント
+  validates_with_block(:date){
+    if self.kind == :contest and self.date.nil? then
+      [false, "date cannot be null for contest"]
+    else
+      true
+    end
+  }
   validates_with_block(:owners){
     if self.owners.all?{|o| o.is_a?(Integer) and User.get(o) } then
       true

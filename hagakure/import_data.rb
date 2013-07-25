@@ -352,11 +352,12 @@ end
 def import_event
   puts "import_event begin"
   lines = File.readlines(File.join(CONF_HAGAKURE_BASE,"txts","taikailist.cgi"))[1..-1]
+  $event_groups = Hash[EventGroup.all(fields:[:id]).map{|x|[x.id,x.id]}]
   Parallel.each(lines,in_threads:NUM_THREADS){|line|
     line.chomp!
     line.sjis!
     (taikainum,kaisaidate,iskonpa,kanrisha,koureitaikai) = line.split("\t")
-    shurui = if koureitaikai.to_s.empty?.! then EventGroup.get(koureitaikai.to_i) end
+    shurui = if koureitaikai.to_s.empty?.! then $event_groups[koureitaikai.to_i] end
     (kyear,kmon,kday,khour,kmin,kweekday) = kaisaidate.split('/')
     if kyear == "なし" then
       kaisaidate = nil
@@ -450,7 +451,7 @@ def import_event
         date: kaisaidate,
         created_at: DateTime.parse(tourokudate),
         place: place,
-        event_group: shurui,
+        event_group_id: shurui,
         hide_choice: ! show_choice,
         aggregate_attr: agg_attr,
         start_at: start_at,
@@ -503,13 +504,13 @@ def import_event
   }
 end
 
-def get_user_or_add(evt,username)
+def get_user_or_add(evt,username,klass)
   username.strip!
   begin
     u = User.first(name:username)
     GLOBAL_LOCK.synchronize{
       # first_or_create は thread safe ではないみたい
-      ContestUser.first_or_create({name:username,user:u,event:evt}) 
+      ContestUser.first_or_create({name:username,user:u,event:evt,contest_class:klass}) 
     }
   rescue DataMapper::SaveFailureError => e
     p e.resource.errors
@@ -561,7 +562,7 @@ def import_contest_result_dantai(evt,sankas)
     ss = curl.split(/\t/)
     return if ss.empty?
     if ss.size == 1 then
-      user = get_user_or_add(evt,ss[0])
+      user = get_user_or_add(evt,ss[0],klass)
       team_members[team] << user
       return
     end
@@ -569,7 +570,7 @@ def import_contest_result_dantai(evt,sankas)
     if name.to_s.empty? then
       return
     end
-    user = get_user_or_add(evt,name)
+    user = get_user_or_add(evt,name,klass)
     team_members[team] << user
     ss[2..-1].to_enum.with_index(1){|body,round|
       handle_single.call(user,round,body)
@@ -723,9 +724,8 @@ def import_contest_result_kojin(evt,sankas)
     if name.to_s.empty? then
       return
     end
-    user = get_user_or_add(evt,name)
+    user = get_user_or_add(evt,name,klass)
     puts "result of #{evt.name} user #{user.name}"
-    ContestSingleUserClass.create(contest_user:user,contest_class:klass)
     ss[2..-1].to_enum.with_index(1){|body,round|
       handle_single.call(user,round,body)
     }
@@ -779,6 +779,7 @@ end
 
 def import_endtaikai
   puts "import_endtaikai begin"
+  $event_groups = Hash[EventGroup.all(fields:[:id]).map{|x|[x.id,x.id]}]
   lines = File.readlines(File.join(CONF_HAGAKURE_BASE,"txts","endtaikailist.cgi"))
   Parallel.each(lines,in_threads:NUM_THREADS){|line|
     line.chomp!
@@ -801,7 +802,7 @@ def import_endtaikai
       end
       kaisaidate = Date.new(kyear.to_i,kmon.to_i,kday.to_i)
     end
-    shurui = if koureitaikai.to_s.empty?.! then EventGroup.get(koureitaikai.to_i) end
+    shurui = if koureitaikai.to_s.empty?.! then $event_groups[koureitaikai.to_i] end
     (tourokudate,kanrisha) = kanrisha.split(/<>/)
     if tourokudate.nil? then
       tourokudate = "1975/01/01"
@@ -830,7 +831,7 @@ def import_endtaikai
                        date: kaisaidate,
                        created_at: DateTime.parse(tourokudate),
                        place: place,
-                       event_group: shurui,
+                       event_group_id: shurui,
                        aggregate_attr: agg_attr,
                        start_at: Kagetra::HourMin.new(khour,kmin),
                        done: true

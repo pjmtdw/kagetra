@@ -8,20 +8,24 @@ class ContestUser
   belongs_to :user, required: false
   property :event_id, Integer, unique_index: :u1, required: true
   belongs_to :event
+  belongs_to :contest_class
 
-  property :win, Integer # 勝ち数(毎回aggregateするのは遅いのでキャッシュ)
-  property :lose, Integer # 負け数(毎回aggregateするのは遅いのでキャッシュ)
+  property :win, Integer, default:0 # 勝ち数(毎回aggregateするのは遅いのでキャッシュ)
+  property :lose, Integer, default:0# 負け数(毎回aggregateするのは遅いのでキャッシュ)
+  property :point, Integer, default:0 # ポイント(毎回aggregateするのは遅いのでキャッシュ)
+  property :point_local, Integer,default:0 # 会内ポイント(毎回aggregateするのは遅いのでキャッシュ)
+  property :class_rank, Enum[:a,:b,:c,:d,:e,:f,:g] # ContestClassのclass_rankのキャッシュ
 
   has 1, :prize, 'ContestPrize'
   has n, :games, 'ContestGame'
+
+  before :save do
+    self.class_rank = self.contest_class.class_rank
+  end
   
   after :create do
     ev = self.event
     ev.update(contest_user_count:ev.result_users.count)
-  end
-  after :update do
-    ev = self.event
-    ev.update_cache_winlose
   end
 end
 
@@ -66,17 +70,16 @@ class ContestClass
   property :index, Integer, unique_index: :u2 # 順番
   property :num_person, Integer # その級の他の会の人も含む大会自体の全参加人数(個人戦)
   property :round_name, Json, default: {} # 順位決定戦の名前(個人戦), {"4":"順決勝","5":"決勝"} のような形式
-  has n, :single_user_classes, 'ContestSingleUserClass'
-  has n, :single_users,'ContestUser',through: :single_user_classes,via: :contest_user # 参加者(個人戦)
   has n, :single_games,'ContestGame' # 試合結果(個人戦)
   has n, :prizes, 'ContestPrize'
   has n, :teams, 'ContestTeam' # 参加チーム(団体戦)
+  has n, :users,'ContestUser'
   before :save do
     ev = self.event
-    if ev.official and ev.team_size == 1 then
-      # 公認大会でAからGの文字で始まっていないものは全てA級とみなす
-      self.class_rank = Kagetra::Utils.class_from_name(self.class_name) || :a
-    end
+    self.class_rank = if ev.official and ev.team_size == 1 then
+                        # 公認大会でAからGの文字で始まっていないものは全てA級とみなす
+                        Kagetra::Utils.class_from_name(self.class_name) || :a
+                      end
   end
 end
 
@@ -89,8 +92,8 @@ class ContestPrize
   belongs_to :contest_user
   property :prize, TrimString, length: 32, required: true, remove_whitespace: true # 実際の名前 (優勝, 全勝賞など)
   property :promotion, Enum[:rank_up, :dash, :a_champ] # 昇級, ダッシュ, A級優勝
-  property :point, Integer # A級のポイント
-  property :point_local, Integer # 会内ポイント
+  property :point, Integer, default: 0 # A級のポイント
+  property :point_local, Integer, default: 0 # 会内ポイント
   property :rank, Integer # 順位(1=優勝, 2=準優勝, 3=三位, 4=四位, ...)
   before :save do
     if self.prize.to_s.empty?.! then
@@ -107,6 +110,9 @@ class ContestPrize
     end
   end
   after :save do
+    if (self.point || 0) > 0 or (self.point_local || 0) > 0 then
+      self.contest_user.update(point:self.point,point_local:self.point_local)
+    end
     self.contest_class.event.update_cache_prizes
   end
 end
@@ -160,16 +166,6 @@ class ContestGame
     u.update(updates)
     u.event.update_cache_winlose
   end
-end
-
-# 誰がどの級に出場したか(個人戦)
-class ContestSingleUserClass
-  include ModelBase
-  # belongs_to does not support unique_index so we do this ugly hack.
-  property :contest_user_id, Integer, unique_index: :u1, required: true
-  property :contest_class_id, Integer, unique_index: :u1, required: true
-  belongs_to :contest_user
-  belongs_to :contest_class
 end
 
 # 誰がどのチームの何将か(団体戦)

@@ -145,7 +145,7 @@ class MainApp < Sinatra::Base
       year = params[:year].to_i
       mon = params[:mon].to_i
       fday = Date.new(year,mon,1)
-      lday = fday >> 1
+      lday = fday.next_month
       month_day = (lday - fday).to_i
       before_day = fday.cwday % 7
       after_day = 7 - lday.cwday

@@ -1,0 +1,79 @@
+- content_for :title do
+  大会結果 - ランキング
+- content_for :js_start do
+  result_ranking
+- content_for :css do
+  result_ranking
+= haml :top_bar
+= haml :result_common
+
+#result-ranking
+
+%script#templ-ranking(type='text/template')
+  .row
+    .large-12.columns
+      %form#ranking-form
+        %label 期間
+        .row
+          .large-8.small-8.columns
+            .row
+              .large-5.small-4.columns
+                %input(name='start' type='text' placeholder='YYYY-MM(-DD)')
+              .large-1.small-1.columns
+                &sim;
+              .large-5.small-4.columns.left
+                %input(name='end' type='text' placeholder='YYYY-MM(-DD)')
+              .large-1.small-1.columns
+                %a.button.small(href="#" data-dropdown="year-list") 年
+          .large-4.small-4.columns.left
+            %input.button.small(type='submit' value='送信')
+        .row
+          - [["集計1","key1"],["集計2","key2"]].each do |label,key|
+            .large-2.small-4.columns
+              %label #{label}
+              %select(name='#{key}')
+                %option(value='win') 勝ち数
+                %option(value='contest_num') 大会出場数
+                %option(value='win_percent') 勝率
+                %option(value='point') ポイント
+                %option(value='point_local') 会内ポイント
+          .large-2.small-4.columns.left
+            %label フィルタ
+            %select(name='filter')
+              %option(value='') ---
+              %option(value='official') 公認大会
+              - "abcdefg".each_char do |c|
+                %option(value='#{c}') #{c.upcase}級公認個人戦
+  %ul(id="year-list" class="f-dropdown" data-dropdown-content)
+    - Date.today.year.downto(@minyear).each do |y|
+      %li
+        %a.goto-year(data-year='#{y}') #{y}年
+  .row
+    .large-12.columns
+      #ranking-result
+
+%script#templ-ranking-result(type='text/template')
+  <% key1name = $("select[name='key1'] option[value='"+data.meta["key1"].name+"']").text() %>
+  <% key2name = $("select[name='key2'] option[value='"+data.meta["key2"].name+"']").text() %>
+  %div {{ key1name }} &rArr; 計: {{data.meta["key1"].sum}}
+  %div {{ key2name }} &rArr; 計: {{data.meta["key2"].sum}}
+  %table
+    %thead
+      %tr
+        %th 順位
+        %th 名前
+        %th {{ key1name }}
+        %th {{ key2name }}
+    %tbody
+      <% rank = null %>
+      <% prev = null %>
+      <% _.each(data.ranking,function(x,index){ %>
+      <% v = x[1]["key1"] %>
+      <% if(prev != v){ rank = index + 1; prev = v} %>
+      %tr
+        %td {{ rank }}
+        %td {{ x[0] }}
+        %td.ranking-value {{ x[1]["key1"]  }}
+        %td.ranking-value {{ x[1]["key2"]  }}
+      <% }) %>
+

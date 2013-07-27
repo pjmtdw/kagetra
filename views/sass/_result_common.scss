@@ -1,0 +1,68 @@
+.game-result{
+  width: 120px;
+  height: 48px;
+  text-align: center;
+  padding: 5px;
+  border: 1px dotted gray;
+}
+.result-default_win{
+  background-color: #DDD;
+}
+
+.result-win{
+  background-color: #FFF;
+}
+
+.result-lose{
+  background-color: #CFF;
+}
+.result-break{
+  background-color: #FFD;
+}
+
+.chunk-body{
+  .team-prize{
+    margin-top: 5px;
+    color: #039;
+  }
+  thead{
+    background-color: #FDC;
+  }
+  td,th{
+    border: 1px dotted gray;
+    text-align: center;
+    line-height: 125%;
+    a{
+      color: #003;
+    }
+  }
+  .result{
+    min-width: 108px;
+    max-width: 128px;
+    div{
+      // expand table width even if it is smaller than display width
+      width: inherit;
+    }
+  }
+  .row-info{
+    background-color: #FFD;
+    .prize{
+      margin-top: 5px;
+      color: purple;
+      font-weight: bold;
+    }
+  }
+  col{
+    width: 100px;
+  }
+}
+.contest-name-date{
+  margin-bottom: 8px;
+  .contest-name{
+    font-size: 110%;
+    font-weight: bold;
+  }
+  .contest-date{
+    color: brown;
+  }
+}

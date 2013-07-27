@@ -1,5 +1,4 @@
 define (require,exports,module)->
-  $ch = require("chosen")
   _.mixin
     show_all_attrs: (all_attrs,forbidden_attrs) ->
       r = ""
@@ -235,10 +234,7 @@ define (require,exports,module)->
       @listenTo(@model,"sync",@render)
     render: ->
       @$el.html(@template(data:@model.toJSON()))
-      # we have to set width explicitly to use chosen inside zurb foundation's section
-      @$el.find("[name='forbidden_attrs']").chosen(
-        width: "100%"
-      )
+      @$el.find("[name='forbidden_attrs']").select2()
   
   EventGroupModel = Backbone.Model.extend
     urlRoot: "api/result/group"

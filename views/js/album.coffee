@@ -26,7 +26,7 @@ define (require,exports,module)->
 
 
     search: (qs,page) ->
-      qs = decodeURI(qs)
+      qs = decodeURIComponent(qs)
       if not page
         page = 1
       if not window.album_search_view?
@@ -50,7 +50,7 @@ define (require,exports,module)->
       _.reveal_view(target,v)
     do_search: _.wrap_submit (ev) ->
       qs = $(ev.currentTarget).find("input[name='qs']").val()
-      window.album_router.navigate("search/#{encodeURI(qs)}", trigger:true)
+      window.album_router.navigate("search/#{encodeURIComponent(qs)}", trigger:true)
 
     do_list_year: (ev)->
       year = $(ev.currentTarget).data("year")
@@ -433,7 +433,7 @@ define (require,exports,module)->
       if @options.target?
         @search(qs,page)
       else
-        window.album_router.navigate("search/#{encodeURI(qs)}/#{page}", trigger:true)
+        window.album_router.navigate("search/#{encodeURIComponent(qs)}/#{page}", trigger:true)
     goto_page: (ev)->
       obj = $(ev.currentTarget)
       @research(obj.data("page"))

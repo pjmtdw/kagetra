@@ -4,14 +4,9 @@ define (require,exports,module) ->
   # TODO: do not require schedule_item here and load it dynamically.
   $ed = require("event_detail")
   $co = require("comment")
+  $rc = require("result_common")
 
   _.mixin
-    result_str: (s) ->
-      {win: '○'
-      lose: '●'
-      now: '対戦中'
-      default_win: '不戦'
-      }[s]
     show_opponent_belongs: (team_size,s) ->
       return "" unless s
       r = []
@@ -24,14 +19,6 @@ define (require,exports,module) ->
           when 2 then "副将"
           else "#{s.opponent_order}将") if s.opponent_order?
       "(#{r.join(" / ")})" if r.length > 0
-    show_prize: (s) ->
-      r = []
-      ss = s.prize
-      if s.point then r.push "#{s.point}pt"
-      if s.point_local then r.push "#{s.point_local}kpt"
-      if r.length > 0
-        ss += " [#{r.join(",")}]"
-      ss
     show_header_left: (s) ->
       if not s?
         "名前"
@@ -120,4 +107,5 @@ define (require,exports,module) ->
   init: ->
     window.result_router = new ContestResultRouter()
     window.result_view = new ContestResultView()
+    $rc.init()
     Backbone.history.start()

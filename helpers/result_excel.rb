@@ -84,6 +84,7 @@ module ResultExcelHelpers
       sheet.merge_cells(num,2,num,10)
       chunks = if ev.team_size == 1 then classes else op_teams end
       chunks.each{|c|
+        # TODO: 団体戦の同会対決の場合は負けた側を表示しない
         next unless games.has_key?(c.id)
         (num,row) = inc_num.call(num)
         theader = if ev.team_size == 1 then
@@ -101,12 +102,19 @@ module ResultExcelHelpers
                  end
         row[3] = theader 
         sheet.merge_cells(num,3,num,10)
+        
+        wls = games[c.id].select{|x|[:win,:lose].include?(x.result)}
         gs = if ev.team_size == 1 then
-               games[c.id].sort_by{|g|g.contest_user.win}.reverse
+               wls = wls.sort_by{|g|g.contest_user.win}.reverse
+               # 同会対決の場合は負けた方は表示しない
+               cusers = wls.map{|g|[g.contest_user.name,g.opponent_name]}
+               wls.reject{|g|
+                 g.result == :lose and cusers.include?([g.opponent_name,g.contest_user.name])
+               }
              else
-               games[c.id].sort_by{|g|team.members.first(contest_user:g.contest_user).order_num}
+               wls.sort_by{|g|team.members.first(contest_user:g.contest_user).order_num}
              end
-        gs.select{|x|[:win,:lose].include?(x.result)}.each{|x|
+        gs.each{|x|
           (num,row) = inc_num.call(num)
           format = sheet.default_format.clone
           format.horizontal_align = :center

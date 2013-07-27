@@ -974,7 +974,7 @@ def import_album_stage1
       line.chomp!
       line.sjis!
       (fnum,fname,group,_,_,_,_,year) = line.split(/\t/)
-      puts "#{dnum}-#{fnum}"
+      puts "album: #{dnum}-#{fnum}"
       group = nil if group and group.empty?
       Kagetra::Utils.dm_debug(line){
         ag = if group.nil?.! then
@@ -1209,6 +1209,6 @@ end
 #import_wiki
 #import_album
 import_shurui
-import_event
+#import_event
 import_endtaikai
 import_event_comment

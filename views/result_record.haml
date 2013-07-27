@@ -1,0 +1,52 @@
+- content_for :title do
+  大会結果 - 個人記録
+- content_for :js_start do
+  result_record
+- content_for :css do
+  result_record
+= haml :top_bar
+= haml :result_common
+
+#result-record
+
+
+%script#templ-record(type='text/template')
+  #record-result
+
+%script#templ-record-result(type='text/template')
+  .row
+    .large-12.columns
+      %span.record-user-name {- data.name -}
+      %span.all-span ( {{ data.mindate }} &sim; {{ data.maxdate }} )
+  .row
+    .large-12.columns
+      %table.chunk-body
+        %tbody
+          <% _.each(data.events,function(ev){ %>
+          %tr
+            <% cinfo = data.class_info[ev[0]] %>
+            %td.leftmost.row-info(class='{{ev[1].is_op?"is-opponent":""}}')
+              %div
+                %a(href='result#contest/{{ev[0]}}') {{ ev[1].name }}
+              %div @ {{ ev[1].date }}
+              %div {{ cinfo.class_name }} {{ data.my_belongs[ev[0]] }}
+              <% if(data.prizes[ev[0]]){ %>
+              %div.prize {- _.show_prize(data.prizes[ev[0]]) -}
+              <% } %>
+            <% games = data.games[ev[0]] %>
+            <% max_round = _.max(_.keys(games)) %>
+            <% for(i=1;i<=max_round;i++){ %>
+            <% if(!_.isUndefined(games[i])){ %>
+            %td.result(class='result-{{games[i].result}}')
+              %div.record-round-name
+                \- {{ cinfo.round_name[i] || i + "回戦" }} -
+              %div
+                {- _.result_str(games[i].result) -} {- games[i].score_str -}
+                %a(href='result_record#show/{{encodeURIComponent(games[i].opponent_name)}}') {- games[i].opponent_name -}
+              %div
+                {- games[i].opponent_belongs?"("+games[i].opponent_belongs+")":""-}
+            <% }else{ %>
+            %td.result-break
+            <% } %>
+            <% } %>
+          <% }) %>

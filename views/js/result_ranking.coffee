@@ -1,4 +1,5 @@
 define (require,exports,module) ->
+  $rc = require("result_common")
   ResultRankingRouter = Backbone.Router.extend
     routes:
       "" : "start"
@@ -54,5 +55,6 @@ define (require,exports,module) ->
       }).done((data)->that.render_result(data:data))
 
   init: ->
+    $rc.init()
     window.result_ranking_router = new ResultRankingRouter()
     Backbone.history.start()

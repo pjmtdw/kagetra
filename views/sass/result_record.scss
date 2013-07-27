@@ -1,0 +1,21 @@
+@import "result_common";
+.all-span{
+  color: gray;
+}
+.record-user-name{
+  font-weight: bold;
+  font-size: 110%;
+}
+
+.chunk-body{
+  .leftmost{
+    max-width: 192px;
+    min-width: 128px;
+  }
+  .is-opponent{
+    background-color: #E2FFDD;
+  }
+  .record-round-name{
+    color: gray;
+  }
+}

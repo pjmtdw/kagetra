@@ -1,6 +1,7 @@
 define (require,exports,module) ->
+  $rc = require("result_common")
   ResultPromotionModel = Backbone.Model.extend
-    url: "api/result_list/promotion"
+    url: "api/result_misc/promotion"
   ResultPromotionView = Backbone.View.extend
     el: "#result-promotion"
     template: _.template_braces($("#templ-result-promotion").html())
@@ -22,4 +23,5 @@ define (require,exports,module) ->
     render: ->
       @$el.html(@template(data:@model.toJSON()))
   init: ->
+    $rc.init()
     window.result_promotion_view = new ResultPromotionView()

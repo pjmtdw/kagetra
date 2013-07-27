@@ -3,7 +3,7 @@
 # 大会出場者(後に改名する人がいる可能性があるのと，Userにない人を追加できるようにするため)
 class ContestUser
   include ModelBase
-  property :name, TrimString, length: 24, required: true, remove_whitespace: true
+  property :name, TrimString, length: 24, required: true,index:true, remove_whitespace: true
   property :user_id, Integer, unique_index: :u1, required: false
   belongs_to :user, required: false
   property :event_id, Integer, unique_index: :u1, required: true
@@ -121,6 +121,8 @@ end
 # 試合結果(個人戦, 団体戦共通)
 class ContestGame
   include ModelBase
+  property :event_id, Integer, index:true, allow_nil: false # 検索用にキャッシュ
+  belongs_to :event
   # Discriminator を使った Single Table Inheritance は子クラスにインデックスを作れないし
   # 親クラスと子クラスの間のunique_indexを作れないので自分で切り変える
   property :type, Enum[:single,:team] , index: true # 個人戦, 団体戦
@@ -130,7 +132,7 @@ class ContestGame
   property :result, Enum[:now,:win,:lose,:default_win], required: true # 勝敗 => 対戦中, 勝ち, 負け, 不戦勝,
   property :score_str, TrimString, length: 8 # 枚数(文字) "棄" とか "3+1" とかあるので文字列として用意しておく
   property :score_int, Integer, index: true # 枚数(数字), score_str を parse したもの．集計する際に利用
-  property :opponent_name, TrimString, length: 24, remove_whitespace: true # 対戦相手の名前
+  property :opponent_name, TrimString, length: 24, index:true, remove_whitespace: true # 対戦相手の名前
   property :opponent_belongs, TrimString, length: 36, remove_whitespace: true # 対戦相手の所属, 個人戦のみ使用 (ただし団体戦の大会でも対戦相手の所属がバラバラな場合はここに書く))
   property :comment, TrimText # コメント
 
@@ -156,6 +158,10 @@ class ContestGame
   validates_presence_of :contest_team_opponent_id, if: is_team
   validates_absence_of :contest_class_id, if: is_team
   validates_absence_of :round, if: is_team
+
+  before :save do
+    self.event = self.contest_user.event if self.event.nil?
+  end
 
   # TODO: 複数の勝ち負けの一括更新に対応
   after :save do

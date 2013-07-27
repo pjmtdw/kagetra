@@ -57,7 +57,12 @@
 %script#templ-ranking-result(type='text/template')
   <% key1name = $("select[name='key1'] option[value='"+data.meta["key1"].name+"']").text() %>
   <% key2name = $("select[name='key2'] option[value='"+data.meta["key2"].name+"']").text() %>
-  %div 合計 &rArr; {{ key1name }}: {{data.meta["key1"].sum}}, {{ key2name }}: {{data.meta["key2"].sum}}
+  <% key2name = $("select[name='key2'] option[value='"+data.meta["key2"].name+"']").text() %>
+  <% filtername = $("select[name='filter'] option[value='"+data.meta["filter"]+"']").text() %>
+  %div 期間: {{ data.meta["start"] }} &sim; {{ data.meta["end"] }}
+  %div フィルタ: {{ filtername }}
+
+  %div 合計: {{ key1name }} &rArr; {{data.meta["key1"].sum}}, {{ key2name }} &rArr; {{data.meta["key2"].sum}}
   %table
     %thead
       %tr
@@ -73,7 +78,8 @@
       <% if(prev != v){ rank = index + 1; prev = v} %>
       %tr
         %td {{ rank }}
-        %td {- x[0] -}
+        %td
+          %a(href='result_record#show/{{encodeURIComponent(x[0])}}') {- x[0] -}
         %td.ranking-value {{ x[1]["key1"]  }}
         %td.ranking-value {{ x[1]["key2"]  }}
       <% }) %>

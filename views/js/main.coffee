@@ -17,8 +17,7 @@ requirejs.config
     "foundation.magellan": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/foundation/foundation.magellan.min"
     modernizr: "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/vendor/custom.modernizr.min"
     json2: "http://cdnjs.cloudflare.com/ajax/libs/json2/20121008/json2"
-    chosen: "http://cdnjs.cloudflare.com/ajax/libs/chosen/0.9.15/chosen.jquery.min"
-    deferred: "libs/deferred.min"
+    select2: "http://cdnjs.cloudflare.com/ajax/libs/select2/3.4.0/select2.min"
     crypto: "libs/CryptoJS/crypto"
     require: "libs/require"
     "crypto-pbkdf2": "libs/CryptoJS/rollups/pbkdf2"
@@ -29,6 +28,7 @@ requirejs.config
 
   shim:
     myutil: deps: ["underscore","zep_or_jq"]
+    select2: deps: ["zep_or_jq"]
     schedule_item: deps: ["backbone"]
     jquery: exports: "$"
     underscore: exports: "_"
@@ -49,16 +49,18 @@ requirejs.config
     "crypto-pbkdf2": deps: ["crypto"]
     "crypto-aes": deps: ["crypto"]
 
-require ["zep_or_jq","myutil","deferred","backbone"
+require ["zep_or_jq","myutil","backbone","select2"
      "foundation.reveal","foundation.topbar","foundation.dropdown","foundation.section","foundation.alerts","foundation.forms","foundation.magellan"], ->
-  # Zeptoで使える Simply Deferred にはバグがあって使いものにならないので採用を見送る
-  # https://github.com/sudhirj/simply-deferred/issues/12
-  # なので基本的にjQueryを使用する
+  # simply-deferred を使う場合は下記が必要
+  # 現在は jquery の select2 プラグインを使用しているため zepto は使わない方針
+  # zep_or_jq は常にjqueryを返すようになっている 
+      
+  # Deferred.installInto(Zepto) if Zepto?
   $ = require("zep_or_jq")
-  Deferred.installInto(Zepto) if Zepto?
   init_f = ->
     # alert if ajax failed
     $(document).ajaxError((evt,xhr,settings,error)->
+      return if xhr.status == 0
       alert("通信エラー(#{xhr.status}): #{xhr.statusText}"))
     # insert dummy element to detect whether it is small screen
     v = $("<div class='show-for-small'></div>")

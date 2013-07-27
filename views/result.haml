@@ -43,7 +43,7 @@
     .section-container.tabs(data-section="tabs")
       %section
         %p.title(data-section-title)
-          %a 試合結果
+          %a 結果
         .content(data-section-content)
           #contest-result-body.row
       %section
@@ -75,8 +75,9 @@
         %tbody
         <% _.each(data.user_results,function(x){ %>
         %tr
-          %td.leftmost.user-name
-            %div {- x.user_name -}
+          %td.leftmost.row-info
+            %div
+              %a(href='result_record#show/{{encodeURIComponent(x.user_name)}}') {- x.user_name -}
             %div
               <% if(x.prize){ %>
               %div.prize {- _.show_prize(x.prize) -}
@@ -84,7 +85,8 @@
           <% _.each(x.game_results,function(y){ %>
           %td.result(class='result-{-y.result-}')
             %div
-              {- _.result_str(y.result) -} {- y.score_str -} {- y.opponent_name -}
+              {- _.result_str(y.result) -} {- y.score_str -}
+              %a(href='result_record#show/{{encodeURIComponent(y.opponent_name)}}') {- y.opponent_name -}
             %div
               {- _.show_opponent_belongs(data.team_size,y.opponent_belongs) -}
           <% }) %>

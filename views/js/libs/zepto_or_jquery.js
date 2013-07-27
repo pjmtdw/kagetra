@@ -1,7 +1,6 @@
 var isZeptoSupported = function(){
-  //return '__proto__' in {}
-  // currently we cannot use simply-deferred so we use jQuery
   return false
+  // return '__proto__' in {}
 }
 
 define([ isZeptoSupported() ? "zepto" : "jquery"], function(){

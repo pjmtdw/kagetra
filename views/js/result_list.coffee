@@ -1,4 +1,5 @@
 define (require,exports,module) ->
+  $rc = require("result_common")
   ResultListRouter = Backbone.Router.extend
     routes:
       "year/:year" : "do_year"
@@ -7,7 +8,7 @@ define (require,exports,module) ->
       window.result_list_view?.remove()
       window.result_list_view = new ResultListView(year:year)
   ResultListModel = Backbone.Model.extend
-    url: -> "api/result_list/year/#{@get('year')}"
+    url: -> "api/result_misc/year/#{@get('year')}"
   ResultListView = Backbone.View.extend
     template: _.template_braces($("#templ-result-list").html())
     events:
@@ -24,5 +25,6 @@ define (require,exports,module) ->
       @$el.html(@template(data:@model.toJSON()))
       @$el.appendTo("#result-list")
   init: ->
+    $rc.init()
     window.result_list_router = new ResultListRouter()
     Backbone.history.start()

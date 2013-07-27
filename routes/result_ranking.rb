@@ -23,12 +23,18 @@ class MainApp < Sinatra::Base
     post '/search' do
       cond = {}
       eventcond = {}
+      meta = {}
       if @json["start"].to_s.empty?.! then
-        eventcond[:date.gte] = parse_month_date(@json["start"],false)
+        sdate = parse_month_date(@json["start"],false)
+        eventcond[:date.gte] = sdate
+        meta[:start] = sdate
       end
       if @json["end"].to_s.empty?.! then
-        eventcond[:date.lte] = parse_month_date(@json["end"],true)
+        edate = parse_month_date(@json["end"],true)
+        eventcond[:date.lte] = edate
+        meta[:end] = edate
       end
+      meta[:filter] = @json["filter"]
       if @json["filter"] == "official" then
         eventcond[:official] = true
       end
@@ -38,7 +44,6 @@ class MainApp < Sinatra::Base
       if @json["filter"].to_s.empty?.! and @json["filter"] != "official" then
         cond[:class_rank] = @json["filter"].to_sym
       end
-      meta = {}
       data = {}
       ["key1","key2"].each{|key|
         ll = case @json[key]

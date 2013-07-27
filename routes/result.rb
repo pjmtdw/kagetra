@@ -208,7 +208,6 @@ class MainApp < Sinatra::Base
       }
       r.merge({list:list,cur_page:page,pages:chunks.size})
     end
-
   end
   get '/result' do
     haml :result

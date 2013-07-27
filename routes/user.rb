@@ -105,13 +105,18 @@ class MainApp < Sinatra::Base
           cur_value = u.attrs.first(value:key.values).value
           u.attrs.create(value_id:v.to_i)
           Event.all(done:false).choices.user_choices(user:u,attr_value:cur_value).each{|choice|
-            ev = choice.event_choice.event
+            ev_choice = choice.event_choice
+            ev = ev_choice.event
             if ev.forbidden_attrs.include?(v.to_i) then
               choice.destroy
-              ev.comments.create(user_name:"ロビタ",body:"#{u.name}さんが#{ev.name}で昇級して参加不能属性になったので登録を取り消しました。")
+              if ev_choice.positive then
+                ev.comments.create(user_name:"ロビタ",body:"#{u.name}さんが#{ev.name}で昇級して参加不能属性になったので登録を取り消しました。")
+              end
             else
-              choice.event_choice.user_choices.create(user:u)
-              ev.comments.create(user_name:"ロビタ",body:"#{u.name}さんが#{ev.name}で昇級したので#{cur_value.value}から#{new_value.value}に登録変更しました。")
+              ev_choice.user_choices.create(user:u)
+              if ev_choice.positive then
+                ev.comments.create(user_name:"ロビタ",body:"#{u.name}さんが#{ev.name}で昇級したので#{cur_value.value}から#{new_value.value}に登録変更しました。")
+              end
             end
           }
         }

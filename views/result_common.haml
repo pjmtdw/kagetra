@@ -11,12 +11,8 @@
         %a(href='result_ranking') ランキング
   .large-5.columns
     .row.collapse
-      %form.custom
-        .large-3.small-3.columns
-          %select.medium
-            %option(value='name')選手名
-            %option(value='event')大会名
-        .large-7.small-7.columns
-          %input(type='text' placeholder='検索文字列')
+      %form#result-search-form
+        .large-10.small-10.columns
+          %input#result-search-text(type='text' placeholder='選手名検索')
         .large-2.small-2.columns
           %input.button.postfix.radius(type='submit' value='検索')

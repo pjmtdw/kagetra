@@ -5,6 +5,20 @@ define (require, exports, module) ->
   # メールアドレスにマッチする部分は PEAR::Mail_RFC822::isValidInetAddress()
   pat_url = new RegExp("((https?://[a-zA-Z0-9/:%#$&?()~.=+_-]+)|(([*+!.&#\$|\'\\%\/0-9a-z^_`{}=?~:-]+)@(([0-9a-z-]+\.)+[0-9a-z]{2,})))","gi")
   _.mixin
+    show_prize: (s) ->
+      r = []
+      ss = s.prize
+      if s.point then r.push "#{s.point}pt"
+      if s.point_local then r.push "#{s.point_local}kpt"
+      if r.length > 0
+        ss += " [#{r.join(",")}]"
+      ss
+    result_str: (s) ->
+      {win: '○'
+      lose: '●'
+      now: '対戦中'
+      default_win: '不戦'
+      }[s]
     # reverse of $.param
     deparam: (s) ->
       _.object(

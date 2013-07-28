@@ -1,7 +1,7 @@
 <% if(data.pages > 1){ %>
 %ul.pagination
   <% for(i=0;i<data.pages;i++){ %>
-  %li(class='{{i+1==data.cur_page?"current":""}}')
+  %li(class='{{i+1==data.cur_page?"current":""}}' title='{{!(_.isUndefined(data.page_infos))?data.page_infos[i]:""}}')
     %a.page(data-page='{{i+1}}') {{i+1}}
   <% } %>
 <% } %>

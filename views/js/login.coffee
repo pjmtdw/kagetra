@@ -27,7 +27,8 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
     render: -> @$el.html($("#templ-shared-pass").html())
 
     on_shared_pass_submit: _.wrap_submit ->
-      password = $("#shared-pass input[type=password]").val()
+      elem = $("#shared-pass input[type=password]")
+      password = elem.val()
       [hash,msg] = _.hmac_password(password ,g_shared_salt)
       $.post 'api/user/auth/shared',
         hash: hash
@@ -38,6 +39,8 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
           new LoginView()
         else
           alert("パスワードが違います")
+          elem.val("")
+          elem.focus()
 
   LoginView = Backbone.View.extend
     el: "#container-login"
@@ -60,7 +63,8 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
           $("#login-uid").val()
         else
           $("#user-names").val()
-      password = $("#login input[type=password]").val()
+      elem = $("#login input[type=password]")
+      password = elem.val()
       first = ->
         $.get "api/user/auth/salt/#{user_id}"
       second = (data) ->
@@ -74,6 +78,8 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
           window.location.href = "/top"
         else
           alert("パスワードが違います")
+          elem.val("")
+          elem.focus()
   init: ->
     if $("#templ-user-name").length == 0
       window.shared_passwd_view = new SharedPasswdView()

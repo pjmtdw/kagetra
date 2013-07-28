@@ -19,3 +19,29 @@
     color: gray;
   }
 }
+#record-summary{
+  thead{
+    background-color: #FDC;
+  }
+  .a_champ{
+    color: purple;
+  }
+  .rank_up{
+    color: green;
+  }
+  .value{
+    text-align: right;
+  }
+  tbody tr{
+    border-bottom: 1px solid silver;
+    vertical-align: top;
+  }
+  .sum{
+    background-color: #DEF;
+    font-weight: bold;
+  }
+}
+#contest-span{
+  margin-top: 6px;
+  margin-bottom: 0;
+}

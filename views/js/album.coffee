@@ -24,9 +24,7 @@ define (require,exports,module)->
       @remove_all()
       window.album_all_log_view = new AlbumAllLogView(page:page)
 
-
     search: (qs,page) ->
-      qs = decodeURIComponent(qs)
       if not page
         page = 1
       if not window.album_search_view?

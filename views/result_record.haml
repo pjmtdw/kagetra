@@ -12,6 +12,7 @@
 
 %script#templ-record(type='text/template')
   #record-result
+  #record-detail
 
 %script#templ-record-result(type='text/template')
   .row
@@ -20,20 +21,79 @@
       %span.all-span ( {{ data.mindate }} &sim; {{ data.maxdate }} )
   .row
     .large-12.columns
+      %dl#contest-span.sub-nav
+        %dt 期間:
+        %dd.choice(data-span='recent')
+          %a 直近
+        %dd.choice(data-span='full')
+          %a 全期間
+      %table#record-summary
+        %thead
+          %tr
+            %th 年
+            %th 大会
+            %th 勝
+            %th 敗
+            %th 勝率
+            %th(title='ポイント') pt
+            %th(title='会内ポイント') kpt
+            %th 入賞歴
+        %tbody
+          <% sum = {count:0,win:0,lose:0,point:0,point_local:0} %>
+          <% prize_count = 0 %>
+          <% _.each(data.aggr,function(x){ %>
+          <% _.each(["count","win","lose","point","point_local"],function(z){sum[z]+=x[z]}) %>
+          %tr
+            %td {{x.year}}
+            %td.value {{x.count}}
+            %td.value {{x.win}}
+            %td.value {{x.lose}}
+            %td.value {{x.win_percent+"%" }}
+            %td.value {{x.point}}
+            %td.value {{x.point_local}}
+            %td
+              <% prize_count += x.prize_contests.length %>
+              <% _.each(x.prize_contests,function(e){ %>
+              <% pr = data.prizes[e] %>
+              <% dt=new Date(data.events[e].date);md=(dt.getMonth()+1)+"月"+(dt.getDate())+"日" %>
+              %div
+                {{ md }}
+                %a(href='result#contest/{{e}}') {- data.events[e].name -}
+                %span(class='{{pr.promotion}}') {- data.class_info[e].class_name + " " + _.show_prize(pr) -}
+              <% }) %>
+          <% }) %>
+          %tr.sum
+            %td 合計
+            %td.value {{sum.count}}
+            %td.value {{sum.win}}
+            %td.value {{sum.lose}}
+            <% ave_win_percent = 100*((sum.win+sum.lose)==0?0:sum.win/(sum.win+sum.lose)) %>
+            %td.value {{ave_win_percent.toFixed(1)+"%" }}
+            %td.value {{sum.point}}
+            %td.value {{sum.point_local}}
+            %td 入賞: {{prize_count}} 回
+
+%script#templ-record-detail(type='text/template')
+  .row
+    .large-12.columns
+      = haml :pagination
+  .row
+    .large-12.columns
       %table.chunk-body
         %tbody
-          <% _.each(data.events,function(ev){ %>
+          <% _.each(data.event_details,function(eid){ %>
+          <% einfo = data.events[eid] %>
           %tr
-            <% cinfo = data.class_info[ev[0]] %>
-            %td.leftmost.row-info(class='{{ev[1].is_op?"is-opponent":""}}')
+            <% cinfo = data.class_info[eid] %>
+            %td.leftmost.row-info(class='{{einfo.is_op?"is-opponent":""}}')
               %div
-                %a(href='result#contest/{{ev[0]}}') {{ ev[1].name }}
-              %div @ {{ ev[1].date }}
-              %div {{ cinfo.class_name }} {{ data.my_belongs[ev[0]] }}
-              <% if(data.prizes[ev[0]]){ %>
-              %div.prize {- _.show_prize(data.prizes[ev[0]]) -}
+                %a(href='result#contest/{{eid}}') {{ einfo.name }}
+              %div @ {{ einfo.date }}
+              %div {{ cinfo.class_name }} {{ data.my_belongs[eid] }}
+              <% if(data.prizes[eid]){ %>
+              %div.prize {- _.show_prize(data.prizes[eid]) -}
               <% } %>
-            <% games = data.games[ev[0]] %>
+            <% games = data.games[eid] %>
             <% max_round = _.max(_.keys(games)) %>
             <% for(i=1;i<=max_round;i++){ %>
             <% if(!_.isUndefined(games[i])){ %>

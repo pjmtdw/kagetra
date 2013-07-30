@@ -1,0 +1,20 @@
+葉隠から景虎への移行ガイド
+
+TODO: ファイル置き場のファイルについて書く
+
+(1) 葉隠の全データをダウンロードする．以下は仮に ~/hagakure/ に置いたときの説明
+(2) conf.rb の値を設定する
+CONF_HAGAKURE_BASE ... 葉隠のデータのあるディレクトリ．~/hagakure/ に設定する
+CONF_MEIBO_PASSWD ... 名簿用パスワード
+CONF_MEIBO_CSV ... ~/hagakure/javadir/MeiboDownloader.zip によって作られた csv ファイル
+CONF_USERNAME_CHANGED ... 結婚などの理由と途中で名前が変わったユーザ一覧
+
+CONF_MYTOMA_WIKI_FILE ... mytoma(葉隠の後継として作ろうとしたけど挫折したプロジェクト．ファイル置き場の代わりにこのwikiの添付ファイルを使うことにした)のsqliteファイルのパス
+(3) 取り込み開始．5〜10時間ぐらいかかる．
+$ bundle exec hagakure/import_data.rb を実行する
+
+(4) アルバムへのシンボリックリンクを張る 
+$ ln -s ~/hagakure/album storage/album/hagakure
+
+(5) mytomaのwikiの添付へのシンボリックリンクを張る
+$ ln -s ~/hagakure/mytoma/storage/wiki storage/attached/mytoma

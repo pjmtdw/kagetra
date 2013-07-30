@@ -72,10 +72,10 @@ define (require,exports,module) ->
     url: "api/event/list"
     set_comparator: (attr) ->
       @order = attr
-      sign = if attr in ["created_at","latest_comment_date","participant_count"] then -1 else 1
+      sign = if attr in ["created_at","last_comment_date","participant_count"] then -1 else 1
       ETERNAL_FUTURE = "9999-12-31_"
       ETERNAL_PAST = "0000-01-01_"
-      f = if attr in ["created_at","date","latest_comment_date"]
+      f = if attr in ["created_at","date","last_comment_date"]
             PREFIX = if sign == -1 then ETERNAL_PAST else ETERNAL_FUTURE
             (x)-> x.get(attr) || (PREFIX + x.get("name"))
           else if attr == "deadline_day"

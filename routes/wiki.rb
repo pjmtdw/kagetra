@@ -124,7 +124,8 @@ class MainApp < Sinatra::Base
       pages = chunks.size
       list = chunks[page-1].map{|x|
         x.select_attr(:id,:orig_name,:description,:size).merge({
-          date:x.created_at.to_date.strftime('%Y-%m-%d')
+          date:x.created_at.to_date.strftime('%Y-%m-%d'),
+          deletable: @user.admin || x.owner_id == @user.id
         })
       }
       {item_id:params[:id].to_i,list: list, pages: pages, cur_page: page}
@@ -150,34 +151,41 @@ class MainApp < Sinatra::Base
       }
 
     end
+    delete '/attached/:id' do
+      WikiAttachedFile.get(params[:id].to_i).update!(deleted:true)
+    end
   end
   comment_routes("/api/wiki",WikiItem,WikiComment,true)
   get '/wiki' do
     haml :wiki
   end
   get '/static/wiki/attached/:id', private:true do
+    attached_base = File.join(G_STORAGE_DIR,"attached")
     attached = WikiAttachedFile.get(params[:id].to_i)
-    send_file("../mytoma/storage/wiki/#{attached.path}",filename:attached.orig_name)
+    send_file(File.join(attached_base,attached.path),filename:attached.orig_name)
   end
   post '/wiki/attached/:id', private:true do
+    attached_base = File.join(G_STORAGE_DIR,"attached")
     tempfile = params[:file][:tempfile]
     filename = params[:file][:filename]
     date = Date.today
-    target_dir = File.join(G_STORAGE_DIR,"attached",date.year.to_s,date.month.to_s)
+    target_dir = File.join(attached_base,date.year.to_s,date.month.to_s)
     FileUtils.mkdir_p(target_dir)
     target_file = Tempfile.new(["attached-",".dat"],target_dir)
     res = begin
       WikiAttachedFile.transaction{
         item = WikiItem.get(params[:id].to_i)
         FileUtils.cp(tempfile.path,target_file)
-        item.attacheds.create(owner:@user,path:target_file,orig_name:filename,description:params[:description],size:File.size(target_file))
+        rel_path = Pathname.new(target_file).relative_path_from(Pathname.new(attached_base).realpath)
+        item.attacheds.create(owner:@user,path:rel_path,orig_name:filename,description:params[:description],size:File.size(target_file))
       }
       {result:"OK"}
-    rescue
+    rescue Exception=>e
       FileUtils.rm(target_file)
+      logger.warn e.message
+      $stderr.puts e.message
       {_error_:"送信失敗"}
     end
-
     "<div id='response'>#{res.to_json}</div>"
   end
 end

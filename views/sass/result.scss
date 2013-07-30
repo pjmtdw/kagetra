@@ -1,8 +1,14 @@
 @import "result_common";
-.class-name{
-  margin-top: 8px;
+.class-info{
   margin-bottom: 8px;
-  background-color: maroon;
+  .class-name{
+    background-color: maroon;
+  }
+  .num-person{
+    margin-left: .5em;
+    background-color: rgb(180,132,43);
+    border: 1px dotted silver;
+  }
 }
 
 #contest-group{

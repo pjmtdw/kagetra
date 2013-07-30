@@ -146,6 +146,12 @@ define (require,exports,module) ->
     events:
       "click .page": "change_page"
       "click  #toggle-attached" : "toggle_attached"
+      "click .delete-attached" : "delete_attached"
+    delete_attached: (ev)->
+      if prompt("削除するにはdeleteと入れて下さい") == "delete"
+        id = $(ev.currentTarget).data("id")
+        aj = $.ajax("api/wiki/attached/#{id}",{type: "DELETE"}).done(->alert("削除しました"))
+
     submit_done: ->
       try
         res = JSON.parse($("#dummy-iframe").contents().find("#response").html())

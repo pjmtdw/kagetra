@@ -90,13 +90,32 @@ module MiscHelpers
       w = Math.sqrt(ag.daily_choose_count).to_i
       [ag] * w
     }.flatten.sample
+    return if ag.nil?
     a = ag.items.to_a.sample
     t = a.thumb
     MyConf.update_or_create({name:DAILY_ALBUM_PHOTO_KEY},{value:{id:a.id,thumb:t.select_attr(:id,:width,:height)}})
   end
 
   def update_event_done_flag
-    Event.all(:date.lte => Date.today, done:false).update(done: true)
+    Kagetra::Utils.dm_debug{
+      events = Event.all(:date.lte => Date.today, done:false)
+      (events & Event.all(kind: :contest)).each{|ev|
+        # ContestUser と ContestClass を作る
+        value2klass = {}
+        ev.aggregate_attr.values.each{|v|
+          next if ev.forbidden_attrs.include?(v.id)
+          value2klass[v.id] = ContestClass.create(event_id:ev.id,class_name:v.value,index:v.index)
+        }
+        ev.choices.all(positive: true).each{|c|
+          c.user_choices.each{|uc|
+            klass = value2klass[uc.attr_value.id]
+            next if klass.nil?
+            ContestUser.create(event_id:ev.id,contest_class_id:klass.id,user:uc.user,name:uc.user_name)
+          }
+        }
+      }
+      events.update(done: true)
+    }
   end
 
   # 古いログイン履歴を削除

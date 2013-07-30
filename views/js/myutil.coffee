@@ -218,7 +218,7 @@ define (require, exports, module) ->
       nextstate ^= true
     if curstate == nextstate
       return
-    if not curstate
+    if not nextstate
       @data("toggle-state","toggled")
     t = @data("toggle-text")
     @data("toggle-text",@text())

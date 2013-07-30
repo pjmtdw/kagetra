@@ -1033,7 +1033,7 @@ def import_album_stage2(old_ids)
           rescue Exception => e
           end
         end
-        klass.create(album_item:item,path:path,format:format,width:width,height:height)
+        klass.create(album_item:item,path:File.join("hagakure",path),format:format,width:width,height:height)
       }
       item.photo = create.call(item,AlbumPhoto,"#{prefix}.jpg")
       item.thumb = create.call(item,AlbumThumbnail,"#{prefix}_SMALL.jpg")
@@ -1174,6 +1174,7 @@ end
 
 # MyToma の Wiki から import する
 def import_wiki
+  puts "import_wiki started"
   # kagetraやhagakure の user_id と mytoma の user_id は別物なので注意
   # kagetraやhagakure の user_id は mytoma の auth_user の username に格納されてある
   Kagetra::Utils.dm_debug{
@@ -1193,7 +1194,8 @@ def import_wiki
       orig_name = Base64.strict_decode64(base)
       abs_path = "../mytoma/storage/wiki/#{file}"
       size = if File.exist?(abs_path) then File.size(abs_path) else 0 end
-      WikiAttachedFile.create(wiki_item_id:page_id,created_at:DateTime.parse(uploaded_datetime),owner_id:user_id,path:file,orig_name:orig_name,description:description,deleted:deleted,size:size)
+      target_path = if file.to_s.empty? then nil else File.join("mytoma",file) end
+      WikiAttachedFile.create(wiki_item_id:page_id,created_at:DateTime.parse(uploaded_datetime),owner_id:user_id,path:target_path,orig_name:orig_name,description:description,deleted:deleted,size:size)
     }
   }
 end
@@ -1206,9 +1208,9 @@ end
 #import_meibo
 #import_bbs
 #import_schedule
-#import_wiki
-#import_album
-import_shurui
+import_wiki
+import_album
+#import_shurui
 #import_event
-import_endtaikai
-import_event_comment
+#import_endtaikai
+#import_event_comment

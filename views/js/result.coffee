@@ -43,6 +43,11 @@ define (require,exports,module) ->
       @render()
     render: ->
       @$el.html(@template(data:_.extend(@model.toJSON(),team_size:window.result_view.collection.team_size)))
+
+  ContestResultEditView = Backbone.View.extend
+    el: '#contest-result-body'
+    events:
+      'click td' : -> alert("hoge")
   ContestResultCollection = Backbone.Collection.extend
     url: -> 'api/result/contest/' + (@id or "latest")
     model: ContestChunkModel
@@ -59,6 +64,16 @@ define (require,exports,module) ->
       "click .contest-link": "contest_link"
       "click #show-event-group": "show_event_group"
       "click #contest-add": "contest_add"
+      "click #toggle-edit-mode" : "toggle_edit_mode"
+    toggle_edit_mode: ->
+      if window.contest_result_edit_view?
+        window.contest_result_edit_view.remove()
+        delete window.contest_result_edit_view
+        @collection.fetch()
+      else
+        $("#toggle-edit-mode").toggleBtnText(false)
+        $("#edit-class-info").hide()
+        window.contest_result_edit_view = new ContestResultEditView()
     show_event_group: _.wrap_submit ->
       $ed.show_event_group(@collection.event_group_id)
       false
@@ -81,8 +96,12 @@ define (require,exports,module) ->
       col.each (m)->
         if m.get("class_id") != cur_class
           cur_class = m.get("class_id")
-          class_name = col.contest_classes[cur_class]
-          $("#contest-result-body").append($("<div>",{class:"class-name label round",text:class_name}))
+          cinfo = col.contest_classes[cur_class]
+          c = $("<div>",{class:"class-info"})
+          c.append($("<span>",{class:"class-name label round",text:cinfo.class_name}))
+          if cinfo.num_person
+            c.append($("<span>",{class:"num-person label",text:cinfo.num_person + "人"}))
+          $("#contest-result-body").append(c)
         v = new ContestChunkView(model:m)
         $("#contest-result-body").append(v.$el)
 

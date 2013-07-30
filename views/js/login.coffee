@@ -24,7 +24,9 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
     events:
       "submit #shared-pass" : "on_shared_pass_submit"
     initialize: -> @render()
-    render: -> @$el.html($("#templ-shared-pass").html())
+    render: ->
+      @$el.html($("#templ-shared-pass").html())
+      $("#shared-pass input[type=password]").focus()
 
     on_shared_pass_submit: _.wrap_submit ->
       elem = $("#shared-pass input[type=password]")
@@ -56,6 +58,7 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
         v = new UserListView()
         $("#user-list").append(v.$el)
         $("#initials").trigger("change")
+      $("#login input[type=password]").focus()
 
     on_login_submit: _.wrap_submit ->
       user_id =

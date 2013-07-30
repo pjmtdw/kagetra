@@ -276,13 +276,9 @@ class MainApp < Sinatra::Base
     "<div id='response'>#{res.to_json}</div>"
   end
   def send_photo(p)
-    p1 = File.join(G_STORAGE_DIR,"album",p.path)
-    p2 = File.join(CONF_HAGAKURE_BASE,"album",p.path)
     content_type "image/#{p.format.downcase}"
-    [p1,p2].each{|path|
-      send_file(path) if File.exist?(path)
-    }
-    halt 404 
+    path = File.join(G_STORAGE_DIR,"album",p.path)
+    send_file(path)
   end
 
   namespace '/static/album' do

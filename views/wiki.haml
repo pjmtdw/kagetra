@@ -127,7 +127,11 @@
             {{_.show_size(x.size)}}
           %td.date
             {{x.date}}
-          %td {{x.description}}
+          %td
+            {{x.description}}
+            <% if(x.deletable){ %>
+            %button.tiny.alert.delete-attached(data-id='{{x.id}}') 削除
+            <% } %>
         <% }) %>
 
 %script#templ-wiki-log(type='text/template')

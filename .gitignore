@@ -2,6 +2,7 @@
 .vendor/
 .sass-cache/
 .rbenv-version
+.ruby-version
 db/
 node_modules/
 public/css/

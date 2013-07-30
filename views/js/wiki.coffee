@@ -147,12 +147,18 @@ define (require,exports,module) ->
       "click .page": "change_page"
       "click  #toggle-attached" : "toggle_attached"
     submit_done: ->
-      res = JSON.parse($("#dummy-iframe").contents().find("#response").html())
-      if res._error_
-        alert(res._error_)
-      else if res.result == "OK"
-        alert("送信しました")
-        @model.fetch()
+      try
+        res = JSON.parse($("#dummy-iframe").contents().find("#response").html())
+        if res._error_
+          alert(res._error_)
+        else if res.result == "OK"
+          alert("送信しました")
+          @model.fetch()
+        else
+          alert("エラー")
+      catch e
+        console.log e.message
+        alert("エラー")
     toggle_attached: ->
       $("#toggle-attached").toggleBtnText()
       if $("#attached-form").is(":visible")

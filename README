@@ -46,9 +46,7 @@ for Ubuntu ->
 (1) Install bundler
   $ gem install bundler
 (2) Install Sinatra and other Ruby modules
-  $ cd kagetra && bundle install
-  NOTE: Since `path '.vendor/bundle'` is in Gemfile,
-        we do not have to specify --path
+  $ cd kagetra && bundle install --path .vendor/bundle
 (3) Install JavaScript runtime for ExecJS
   $ apt-get install nodejs
 (4) Run web app
@@ -70,7 +68,7 @@ for Ubuntu ->
   $ ln -s /etc/nginx/sites-available/kagetra /etc/nginx/sites-enabled/
 (5) Start unicorn and nginx
   $ service start nginx
-  $ bundle exec unicorn -E production -c deploy/unicorn.rb -D
+  $ ./scripts/unicorn_ctl.sh start
 
 [For Development]
 - Start interactive console for Sinatra

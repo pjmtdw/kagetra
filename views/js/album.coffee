@@ -457,15 +457,21 @@ define (require,exports,module)->
       obj.after($("<div>",id:"now-uploading-message",text:"アップロード中..."))
       obj.hide()
     submit_done: ->
-      res = JSON.parse($("#dummy-iframe").contents().find("#response").html())
-      if res._error_
-        alert(res._error_)
-        obj = @$el.find("input[type='submit']")
-        obj.show()
-        obj.next("#now-uploading-message").remove()
-      else if res.result == "OK"
-        window.album_router.navigate("group/#{res.group_id}", trigger:true)
-        $("#container-album-upload").foundation("reveal","close")
+      try
+        res = JSON.parse($("#dummy-iframe").contents().find("#response").html())
+        if res._error_
+          alert(res._error_)
+          obj = @$el.find("input[type='submit']")
+          obj.show()
+          obj.next("#now-uploading-message").remove()
+        else if res.result == "OK"
+          window.album_router.navigate("group/#{res.group_id}", trigger:true)
+          $("#container-album-upload").foundation("reveal","close")
+        else
+          alert("エラー")
+      catch e
+        console.log e.message
+        alert("エラー")
 
     initialize: ->
       _.bindAll(@,"submit_done")

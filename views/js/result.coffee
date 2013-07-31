@@ -56,6 +56,90 @@ define (require,exports,module) ->
         "contest_classes","group","team_size","event_group_id"]
         @[x] = data[x]
       data.contest_results
+  ContestPlayerModel = Backbone.Model.extend
+    urlRoot: 'api/result/players'
+  ContestSinglePlayerView = Backbone.View.extend
+    template: _.template_braces($('#templ-single-player').html())
+    events:
+      "click .delete-player" : "delete_player"
+      "click .delete-class" : "delete_class"
+      "click .add-player" : "add_player"
+      "click .move-player" : "move_player"
+      "click .add-class" : "add_class"
+      "click .apply-edit" : "apply_edit"
+    apply_edit: ->
+      that = this
+      @model.save().done(->
+        alert("更新しました")
+        window.result_view.collection.fetch()
+      )
+    get_checked: ->
+      $.makeArray(@$el.find("form :checked").map(->$(@).data("id")))
+    delete_player: ->
+      checked = @get_checked()
+      users = @model.get('users')
+      user_classes = @model.get('user_classes')
+      for k,v of user_classes
+        user_classes[k] = _.difference(v,checked)
+      for c in checked
+        @model.get("deleted_users").push(c) if c.toString().indexOf("new_") != 0
+        delete users[c]
+      @render()
+    delete_class: ->
+      cl = @$el.find(".class-to-delete select").val()
+      kls = @model.get('user_classes')
+      if not _.isEmpty(kls[cl])
+        alert("空でない級は削除できません")
+        return
+      @model.get("deleted_classes").push(cl) if cl.toString().indexOf("new_") != 0
+      delete kls[cl]
+      nclass = ([k,v] for [k,v] in @model.get('classes') when k.toString() != cl.toString())
+      @model.set('classes',nclass)
+      @render()
+    add_player: ->
+      players = @$el.find(".player-to-add").val().split(/\s+/)
+      cl = @$el.find(".player-to-add-class select").val()
+      for p in players
+        nid = "new_#{@newid}"
+        @newid += 1
+        @model.get('user_classes')[cl].push(nid)
+        @model.get('users')[nid] = p
+      @render()
+    move_player: ->
+      checked = @get_checked()
+      cl = @$el.find(".player-to-move-class select").val()
+      ucs = @model.get('user_classes')
+      for k,v of ucs
+        ucs[k] = _.difference(v,checked)
+      ucs[cl] = ucs[cl].concat(checked)
+      @render()
+    add_class: ->
+      classes = @$el.find(".class-to-add").val().split(/\s+/)
+      classes.reverse()
+      target = @$el.find(".add-class-target select").val()
+      position = @$el.find(".add-class-position").val()
+      kls = @model.get('classes')
+      index = (i.toString() for [i,j] in kls).indexOf(target)
+      if position == "after"
+        index += 1
+      for c in classes
+        nid = "new_#{@newid}"
+        @newid += 1
+        kls.splice(index,0,[nid,c])
+        @model.get("user_classes")[nid] = []
+      @render()
+
+    initialize: ->
+      @newid = 1
+      @model = new ContestPlayerModel(id:@options.id)
+      @model.set('deleted_classes',[])
+      @model.set('deleted_users',[])
+      @listenTo(@model,'sync',@render)
+      @model.fetch()
+    render: ->
+      @$el.html(@template(data:@model.toJSON()))
+      @$el.appendTo(@options.target)
+
   # TODO: split this view to ContestInfoView which has name, date, group, list  and ContestResultView which only has result
   ContestResultView = Backbone.View.extend
     el: '#contest-result'
@@ -65,6 +149,12 @@ define (require,exports,module) ->
       "click #show-event-group": "show_event_group"
       "click #contest-add": "contest_add"
       "click #toggle-edit-mode" : "toggle_edit_mode"
+      "click #edit-player" : "edit_player"
+    edit_player : ->
+      target = "#container-result-edit"
+      v = new ContestSinglePlayerView(target:target,id:@collection.id)
+      _.reveal_view(target,v)
+
     toggle_edit_mode: ->
       if window.contest_result_edit_view?
         window.contest_result_edit_view.remove()
@@ -99,8 +189,11 @@ define (require,exports,module) ->
           cinfo = col.contest_classes[cur_class]
           c = $("<div>",{class:"class-info"})
           c.append($("<span>",{class:"class-name label round",text:cinfo.class_name}))
-          if cinfo.num_person
-            c.append($("<span>",{class:"num-person label",text:cinfo.num_person + "人"}))
+          np = cinfo.num_person || 0
+          cl = $("<span>",{class:"num-person label",text:np + "人"})
+          c.append(cl)
+          cl.hide() if np == 0
+
           $("#contest-result-body").append(c)
         v = new ContestChunkView(model:m)
         $("#contest-result-body").append(v.$el)

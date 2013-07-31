@@ -6,7 +6,7 @@
   }
   .num-person{
     margin-left: .5em;
-    background-color: rgb(180,132,43);
+    background-color: rgb(146,139,126);
     border: 1px dotted silver;
   }
 }
@@ -18,5 +18,15 @@
   .leftmost{
     max-width: 128px;
     min-width: 76px;
+  }
+}
+#single-player{
+  .player{
+    display: inline-block;
+    margin-left: 0.5em;;
+  }
+  input,select{
+    width: auto;
+    display: inline;
   }
 }

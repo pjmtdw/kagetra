@@ -48,7 +48,7 @@
           .row
             .large-12.columns
               %button.small.round#toggle-edit-mode(data-toggle-text='編集完了') 編集開始
-              %button.small.round#edit-class-info 出場者編集
+              %button.small.round#edit-player 出場者編集
           #contest-result-body.row
       %section
         %p.title(data-section-title)
@@ -97,3 +97,62 @@
         <% }) %>
 
 = haml :event_detail
+
+%script#templ-select-class(type='text/template')
+  %select(name='contest_class')
+    <% _.each(classes,function(x){ %>
+    %option(value='{{x[0]}}') {-x[1]-}
+    <% }) %>
+
+%script#templ-single-player(type='text/template')
+  .row#single-player
+    %button.small.success.apply-edit 反映
+    .columns
+      <% select_classes = _.template_braces($("#templ-select-class").html())({classes:data.classes}) %>
+      %form
+        <% _.each(data.classes,function(x){ %>
+        %fieldset
+          %legend {- x[1] -}
+          <% _.each(data.user_classes[x[0]],function(y){ %>
+          %span.player
+            %input(type='checkbox' data-id='{{y}}')
+            {- data.users[y] -}
+          <% }) %>
+        <% }) %>
+      .panel
+        %input.player-to-add(type='text' placeholder='選手名') を
+        %span.player-to-add-class
+          {{select_classes}}
+        に
+        %button.small.round.add-player 追加
+        ※ 複数追加する場合は空白で区切る
+      .panel
+        チェックした選手を 
+        %span.player-to-move-class
+          {{select_classes}}
+        に
+        %button.small.round.move-player 移動
+      .panel
+        チェックした選手を
+        %button.small.round.alert.delete-player 削除
+      .panel
+        %input.class-to-add(type='text' placeholder='クラス名') を
+        %span.add-class-target
+          {{select_classes}}
+        の
+        %select.add-class-position
+          %option(value='before') 前
+          %option(value='after') 後
+        に
+        %button.small.round.add-class 追加
+        ※ 複数追加する場合は空白で区切る
+
+      .panel
+        %span.class-to-delete
+          {{select_classes}}
+        を
+        %button.small.round.alert.delete-class 削除
+        
+        
+
+#container-result-edit.reveal-modal

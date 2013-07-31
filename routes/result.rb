@@ -217,6 +217,60 @@ class MainApp < Sinatra::Base
       }
       r.merge({list:list,cur_page:page,pages:chunks.size})
     end
+    get '/players/:id' do
+      ev = Event.get(params[:id].to_i)
+      if ev.team_size == 1 then
+        users = Hash[ev.result_users.map{|x|[x.id,x.name]}]
+        cc = ev.result_classes.all(order:[:index.asc])
+        classes = cc.map{|x|[x.id,x.class_name]}
+        user_classes = Hash[cc.map{|x|[x.id,x.users.map{|y|y.id}]}]
+        {users:users,classes:classes,user_classes:user_classes}
+      end
+    end
+    put '/players/:id' do
+      Kagetra::Utils.dm_debug{
+        ContestUser.transaction{
+          ev = Event.get(params[:id].to_i)
+          if ev.team_size == 1 then
+            @json["deleted_users"].each{|x|
+              ContestUser.get(x).destroy
+            }
+            @json["deleted_classes"].each{|x|
+              ContestClass.get(x).destroy
+            }
+            @json["classes"].each_with_index{|(k,v),i|
+              if k.to_s.start_with?("new_")
+                kl = ContestClass.create(class_name:v,event:ev,index:i)
+                @json["user_classes"] = Hash[@json["user_classes"].map{|p,q|
+                  [if p == k then kl.id else p end,q]
+                }]
+              else
+                ContestClass.get(k).update(index:i)
+              end 
+            }
+            @json["users"].each{|k,v|
+              kid = nil
+              @json["user_classes"].each{|p,q|
+                kid = p if q.map{|x|x.to_s}.include?(k.to_s)
+              }
+              raise Exception.new("class id #{k.inspect} not found in #{@json['user_classes'].inspect}") if kid.nil?
+              klass = ContestClass.get(kid)
+              raise Exception.new("class id #{kid} not found") if klass.nil?
+              if k.to_s.start_with?("new_")
+                ContestUser.create(name:v,event:ev,contest_class:klass)
+              else
+                u = ContestUser.get(k)
+                u.games.update(contest_class:klass)
+                if u.prize then
+                  u.prize.update(contest_class:klass)
+                end
+                u.update(contest_class:klass)
+              end
+            }
+          end
+        }
+      }
+    end
   end
   get '/result' do
     haml :result

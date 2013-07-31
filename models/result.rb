@@ -63,11 +63,11 @@ end
 # 大会の各級の情報
 class ContestClass
   include ModelBase
-  property :event_id, Integer, unique_index: [:u1,:u2], required: true
+  property :event_id, Integer, unique_index: :u1, required: true
   belongs_to :event
   property :class_name, TrimString, length: 16, required: true, unique_index: :u1 # 級の名前
   property :class_rank, Enum[:a,:b,:c,:d,:e,:f,:g] # 実際の級のランク(団体戦や非公認大会の場合はnil)
-  property :index, Integer, unique_index: :u2 # 順番
+  property :index, Integer # 順番
   property :num_person, Integer # その級の他の会の人も含む大会自体の全参加人数(個人戦)
   property :round_name, Json, default: {} # 順位決定戦の名前(個人戦), {"4":"順決勝","5":"決勝"} のような形式
   has n, :single_games,'ContestGame' # 試合結果(個人戦)

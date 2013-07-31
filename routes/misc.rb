@@ -96,4 +96,7 @@ class MainApp < Sinatra::Base
     delete_permanent("uid")
     redirect '/'
   end
+  get '/etc' do
+    redirect '/top'
+  end
 end

@@ -5,6 +5,9 @@ define (require, exports, module) ->
   # メールアドレスにマッチする部分は PEAR::Mail_RFC822::isValidInetAddress()
   pat_url = new RegExp("((https?://[a-zA-Z0-9/:%#$&?()~.=+_-]+)|(([*+!.&#\$|\'\\%\/0-9a-z^_`{}=?~:-]+)@(([0-9a-z-]+\.)+[0-9a-z]{2,})))","gi")
   _.mixin
+    to_int_if_digit: (s)->
+      # $("hoge").val() は String を返すのでそれを Int にする
+      if isNaN(s) then s else parseInt(s)
     show_prize: (s) ->
       r = []
       ss = s.prize

@@ -30,3 +30,17 @@
     display: inline;
   }
 }
+#team-player{
+  .team legend{
+    font-weight: normal;
+    color: #006;
+  }
+  .player{
+    display: inline-block;
+    margin-left: 0.5em;;
+  }
+  input,select{
+    width: auto;
+    display: inline;
+  }
+}

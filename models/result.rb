@@ -182,7 +182,7 @@ class ContestTeamMember
   belongs_to :contest_user
   property :contest_team_id, Integer, unique_index: :u1, required: true
   belongs_to :contest_team
-  property :order_num, Integer, unique_index: :u1, required: true # 将順
+  property :order_num, Integer, required: true # 将順
 end
 
 # どのチームがどの級に出場しているか(団体戦)

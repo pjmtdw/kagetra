@@ -7,6 +7,11 @@ define (require,exports,module) ->
   $rc = require("result_common")
 
   _.mixin
+    order_to_ja: (x)->
+      switch x
+        when 1 then "主将"
+        when 2 then "副将"
+        else "#{x}将"
     show_opponent_belongs: (team_size,s) ->
       return "" unless s
       r = []
@@ -14,10 +19,7 @@ define (require,exports,module) ->
         r.push s
       else
         r.push s.opponent_belongs if s.opponent_belongs
-        r.push(switch s.opponent_order
-          when 1 then "主将"
-          when 2 then "副将"
-          else "#{s.opponent_order}将") if s.opponent_order?
+        r.push(_.order_to_ja(s.opponent_order)) if s.opponent_order?
       "(#{r.join(" / ")})" if r.length > 0
     show_header_left: (s) ->
       if not s?
@@ -58,15 +60,18 @@ define (require,exports,module) ->
       data.contest_results
   ContestPlayerModel = Backbone.Model.extend
     urlRoot: 'api/result/players'
-  ContestSinglePlayerView = Backbone.View.extend
-    template: _.template_braces($('#templ-single-player').html())
+    defaults: ->
+      deleted_classes: []
+      deleted_users: []
+      deleted_teams: []
+  ContestPlayerView = Backbone.View.extend
     events:
-      "click .delete-player" : "delete_player"
+      "click .apply-edit" : "apply_edit"
+      "click .add-class" : "add_class"
       "click .delete-class" : "delete_class"
+      "click .delete-player" : "delete_player"
       "click .add-player" : "add_player"
       "click .move-player" : "move_player"
-      "click .add-class" : "add_class"
-      "click .apply-edit" : "apply_edit"
     apply_edit: ->
       that = this
       @model.save().done(->
@@ -75,44 +80,14 @@ define (require,exports,module) ->
       )
     get_checked: ->
       $.makeArray(@$el.find("form :checked").map(->$(@).data("id")))
-    delete_player: ->
-      checked = @get_checked()
-      users = @model.get('users')
-      user_classes = @model.get('user_classes')
-      for k,v of user_classes
-        user_classes[k] = _.difference(v,checked)
-      for c in checked
-        @model.get("deleted_users").push(c) if c.toString().indexOf("new_") != 0
-        delete users[c]
-      @render()
-    delete_class: ->
-      cl = @$el.find(".class-to-delete select").val()
-      kls = @model.get('user_classes')
-      if not _.isEmpty(kls[cl])
-        alert("空でない級は削除できません")
-        return
-      @model.get("deleted_classes").push(cl) if cl.toString().indexOf("new_") != 0
-      delete kls[cl]
-      nclass = ([k,v] for [k,v] in @model.get('classes') when k.toString() != cl.toString())
-      @model.set('classes',nclass)
-      @render()
-    add_player: ->
-      players = @$el.find(".player-to-add").val().split(/\s+/)
-      cl = @$el.find(".player-to-add-class select").val()
-      for p in players
-        nid = "new_#{@newid}"
-        @newid += 1
-        @model.get('user_classes')[cl].push(nid)
-        @model.get('users')[nid] = p
-      @render()
-    move_player: ->
-      checked = @get_checked()
-      cl = @$el.find(".player-to-move-class select").val()
-      ucs = @model.get('user_classes')
-      for k,v of ucs
-        ucs[k] = _.difference(v,checked)
-      ucs[cl] = ucs[cl].concat(checked)
-      @render()
+    initialize: ->
+      @newid = 1
+      @model = new ContestPlayerModel(id:@options.id)
+      @listenTo(@model,'sync',@render)
+      @model.fetch()
+    render: ->
+      @$el.html(@template(data:@model.toJSON()))
+      @$el.appendTo(@options.target)
     add_class: ->
       classes = @$el.find(".class-to-add").val().split(/\s+/)
       classes.reverse()
@@ -126,20 +101,107 @@ define (require,exports,module) ->
         nid = "new_#{@newid}"
         @newid += 1
         kls.splice(index,0,[nid,c])
-        @model.get("user_classes")[nid] = []
+        for s in ["user_classes","team_classes"]
+          if @model.has(s)
+            @model.get(s)[nid] = []
+      @render()
+    delete_class_common: (cs...)->
+      cl = @$el.find(".class-to-delete select").val()
+      for c in cs
+        kls = @model.get(c)
+        if not _.isEmpty(kls[cl])
+          alert("空でない級は削除できません")
+          return
+      for c in cs
+        kls = @model.get(c)
+        delete kls[cl]
+      @model.get("deleted_classes").push(cl) if cl.toString().indexOf("new_") != 0
+      nclass = ([k,v] for [k,v] in @model.get('classes') when k.toString() != cl.toString())
+      @model.set('classes',nclass)
+      @render()
+    add_player_common: (belongs)->
+      players = @$el.find(".player-to-add").val().split(/\s+/)
+      cl = @$el.find(".player-to-add-belong select").val()
+      for p in players
+        nid = "new_#{@newid}"
+        @newid += 1
+        @model.get(belongs)[cl].push(nid)
+        @model.get('users')[nid] = p
+      @render()
+    move_player_common: (belongs)->
+      checked = @get_checked()
+      cl = @$el.find(".player-to-move-belong select").val()
+      @remove_player_belong(checked)
+      ucs = @model.get(belongs)
+      ucs[cl] = ucs[cl].concat(checked)
+      @render()
+    delete_player: ->
+      checked = @get_checked()
+      users = @model.get('users')
+      @remove_player_belong(checked)
+      for c in checked
+        @model.get("deleted_users").push(c) if c.toString().indexOf("new_") != 0
+        delete users[c]
+      @render()
+    remove_player_belong_common: (checked, belongs...)->
+      for b in belongs
+        belong = @model.get(b)
+        for k,v of belong
+          belong[k] = _.difference(v,checked)
+
+  class ContestSinglePlayerView extends ContestPlayerView
+    template: _.template_braces($('#templ-single-player').html())
+    remove_player_belong: (checked)->
+      @remove_player_belong_common(checked,'user_classes')
+    delete_class: ->
+      @delete_class_common('user_classes')
+    add_player: ->
+      @add_player_common('user_classes')
+    move_player: ->
+      @move_player_common('user_classes')
+
+  class ContestTeamPlayerView extends ContestPlayerView
+    template: _.template_braces($('#templ-team-player').html())
+    events:
+      _.extend(ContestPlayerView.prototype.events,
+        "click .delete-team" : "delete_team"
+        "click .add-team" : "add_team"
+      )
+    delete_class: ->
+      @delete_class_common('team_classes','neutral')
+    add_player: ->
+      @add_player_common('user_teams')
+    move_player: ->
+      @move_player_common('user_teams')
+    remove_player_belong: (checked)->
+      @remove_player_belong_common(checked,'user_teams','neutral')
+    add_team: ->
+      team = @$el.find(".team-to-add").val().split(/\s+/)
+      cl = @$el.find(".team-to-add-class select").val()
+      for t in team
+        nid = "new_#{@newid}"
+        @newid += 1
+        @model.get('team_classes')[cl].push(nid)
+        @model.get('teams')[nid] = t
+        @model.get('user_teams')[nid] = []
       @render()
 
-    initialize: ->
-      @newid = 1
-      @model = new ContestPlayerModel(id:@options.id)
-      @model.set('deleted_classes',[])
-      @model.set('deleted_users',[])
-      @listenTo(@model,'sync',@render)
-      @model.fetch()
-    render: ->
-      @$el.html(@template(data:@model.toJSON()))
-      @$el.appendTo(@options.target)
+    delete_team: ->
+      tid = _.to_int_if_digit(@$el.find(".team-to-delete select").val())
+      team = @model.get('user_teams')
+      if not _.isEmpty(team[tid])
+        alert("空でないチームは削除できません")
+        return
+      delete team[tid]
+      delete @model.get("teams")[tid]
+      @model.get("deleted_teams").push(tid) if tid.toString().indexOf("new_") != 0
+      team_classes = @model.get('team_classes')
+      for k,v of team_classes
+        team_classes[k] = _.without(v,tid)
+      @render()
 
+
+    
   # TODO: split this view to ContestInfoView which has name, date, group, list  and ContestResultView which only has result
   ContestResultView = Backbone.View.extend
     el: '#contest-result'
@@ -152,7 +214,8 @@ define (require,exports,module) ->
       "click #edit-player" : "edit_player"
     edit_player : ->
       target = "#container-result-edit"
-      v = new ContestSinglePlayerView(target:target,id:@collection.id)
+      klass = if @collection.team_size == 1 then ContestSinglePlayerView else ContestTeamPlayerView
+      v = new klass(target:target,id:@collection.id)
       _.reveal_view(target,v)
 
     toggle_edit_mode: ->

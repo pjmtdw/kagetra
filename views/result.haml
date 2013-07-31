@@ -98,9 +98,9 @@
 
 = haml :event_detail
 
-%script#templ-select-class(type='text/template')
-  %select(name='contest_class')
-    <% _.each(classes,function(x){ %>
+%script#templ-select(type='text/template')
+  %select
+    <% _.each(data,function(x){ %>
     %option(value='{{x[0]}}') {-x[1]-}
     <% }) %>
 
@@ -108,7 +108,7 @@
   .row#single-player
     %button.small.success.apply-edit 反映
     .columns
-      <% select_classes = _.template_braces($("#templ-select-class").html())({classes:data.classes}) %>
+      <% select_classes = _.template_braces($("#templ-select").html())({data:data.classes}) %>
       %form
         <% _.each(data.classes,function(x){ %>
         %fieldset
@@ -119,16 +119,16 @@
             {- data.users[y] -}
           <% }) %>
         <% }) %>
+      %div ※ 選手名および級名を複数追加する場合は空白で区切る
       .panel
         %input.player-to-add(type='text' placeholder='選手名') を
-        %span.player-to-add-class
+        %span.player-to-add-belong
           {{select_classes}}
         に
         %button.small.round.add-player 追加
-        ※ 複数追加する場合は空白で区切る
       .panel
         チェックした選手を 
-        %span.player-to-move-class
+        %span.player-to-move-belong
           {{select_classes}}
         に
         %button.small.round.move-player 移動
@@ -136,7 +136,7 @@
         チェックした選手を
         %button.small.round.alert.delete-player 削除
       .panel
-        %input.class-to-add(type='text' placeholder='クラス名') を
+        %input.class-to-add(type='text' placeholder='級名') を
         %span.add-class-target
           {{select_classes}}
         の
@@ -145,7 +145,6 @@
           %option(value='after') 後
         に
         %button.small.round.add-class 追加
-        ※ 複数追加する場合は空白で区切る
 
       .panel
         %span.class-to-delete
@@ -153,6 +152,72 @@
         を
         %button.small.round.alert.delete-class 削除
         
-        
+%script#templ-team-player(type='text/template')
+  .row#team-player
+    %button.small.success.apply-edit 反映
+    .columns
+      <% select_classes = _.template_braces($("#templ-select").html())({data:data.classes}) %>
+      <% select_teams = _.template_braces($("#templ-select").html())({data:_.pairs(data.teams)}) %>
+      %form
+        <% _.each(data.classes,function(x){ %>
+        %fieldset
+          %legend {- x[1] -}
+          <% _.each(data.team_classes[x[0]],function(y){ %>
+          %fieldset.team
+            %legend {- data.teams[y] -}
+            <% _.each(data.user_teams[y],function(z,i){ %>
+            %span.player
+              {{ _.make_checkbox(null,_.extend({'data-id':z},data.editable[z]?{}:{disabled:true})) }}
+              {- data.users[z] -}({{_.order_to_ja(i+1)}})
+            <% }) %>
+          <% }) %>
+          <% _.each(data.neutral[x[0]],function(z){ %>
+          %span.player
+            %input(type='checkbox' data-id='{{z}}')
+            {- data.users[z] -}
+          <% }) %>
+        <% }) %>
+      %div ※ 選手名,チーム名,級名を複数追加する場合は空白で区切る
+      .panel
+        %input.player-to-add(type='text' placeholder='選手名') を
+        %span.player-to-add-belong
+          {{select_teams}}
+        に
+        %button.small.round.add-player 追加
+      .panel
+        チェックした選手を
+        %span.player-to-move-belong
+          {{select_teams}}
+        に
+        %button.small.round.move-player 移動
+      .panel
+        チェックした選手を
+        %button.small.round.delete-player.alert 削除
+      .panel
+        %input.team-to-add(type='text' placeholder='チーム名') を
+        %span.team-to-add-class
+          {{select_classes}}
+        に
+        %button.small.round.add-team 追加
+      .panel
+        %span.team-to-delete
+          {{select_teams}}
+        を
+        %button.small.round.delete-team.alert 削除
+      .panel
+        %input.class-to-add(type='text' placeholder='級名') を
+        %span.add-class-target
+          {{select_classes}}
+        の
+        %select.add-class-position
+          %option(value='before') 前
+          %option(value='after') 後
+        に
+        %button.small.round.add-class 追加
+      .panel
+        %span.class-to-delete
+          {{select_classes}}
+        を
+        %button.small.round.alert.delete-class 削除
 
 #container-result-edit.reveal-modal

@@ -219,54 +219,109 @@ class MainApp < Sinatra::Base
     end
     get '/players/:id' do
       ev = Event.get(params[:id].to_i)
+      cc = ev.result_classes.all(order:[:index.asc])
+      classes = cc.map{|x|[x.id,x.class_name]}
+      users = Hash[ev.result_users.map{|x|[x.id,x.name]}]
+      editable = Hash[ev.result_users.map{|x|[x.id,x.games.empty?]}]
+      base = {users:users,classes:classes,editable:editable}
       if ev.team_size == 1 then
-        users = Hash[ev.result_users.map{|x|[x.id,x.name]}]
-        cc = ev.result_classes.all(order:[:index.asc])
-        classes = cc.map{|x|[x.id,x.class_name]}
         user_classes = Hash[cc.map{|x|[x.id,x.users.map{|y|y.id}]}]
-        {users:users,classes:classes,user_classes:user_classes}
+        base.merge({user_classes:user_classes})
+      else
+        tt = cc.teams
+        teams = Hash[tt.map{|x|[x.id,x.name]}]
+        team_classes = Hash[cc.map{|x|[x.id,x.teams.map{|y|y.id}]}]
+        user_teams = Hash[tt.map{|x|[x.id,x.members.all(order:[:order_num.asc]).map{|y|y.contest_user_id}]}]
+        # どのチームにも所属していない選手
+        uu = user_teams.map{|x,y|y}.flatten
+        neutral = Hash[cc.map{|x|[x.id,x.users.map{|y|y.id}-uu]}]
+        base.merge({teams:teams,team_classes:team_classes,user_teams:user_teams,neutral:neutral})
       end
+    end
+    def update_result_users(ev,json)
+      new_ids = {}
+      json["users"].each{|k,v|
+        kid = nil
+        json["user_classes"].each{|p,q|
+          kid = p if q.map{|x|x.to_s}.include?(k.to_s)
+        }
+        raise Exception.new("class id #{k.inspect} not found in #{json['user_classes'].inspect}") if kid.nil?
+        klass = ContestClass.get(kid)
+        raise Exception.new("class id #{kid} not found") if klass.nil?
+        if k.to_s.start_with?("new_")
+          u = ContestUser.create(name:v,event:ev,contest_class:klass)
+          new_ids[k] = u.id
+        else
+          u = ContestUser.get(k)
+          if ev.team_size == 1 then
+            u.games.update(contest_class:klass)
+          end
+          if u.prize then
+            u.prize.update(contest_class:klass)
+          end
+          u.update(contest_class:klass)
+        end
+      }
+      new_ids
     end
     put '/players/:id' do
       Kagetra::Utils.dm_debug{
         ContestUser.transaction{
           ev = Event.get(params[:id].to_i)
-          if ev.team_size == 1 then
-            @json["deleted_users"].each{|x|
-              ContestUser.get(x).destroy
-            }
-            @json["deleted_classes"].each{|x|
-              ContestClass.get(x).destroy
-            }
-            @json["classes"].each_with_index{|(k,v),i|
-              if k.to_s.start_with?("new_")
-                kl = ContestClass.create(class_name:v,event:ev,index:i)
-                @json["user_classes"] = Hash[@json["user_classes"].map{|p,q|
-                  [if p == k then kl.id else p end,q]
-                }]
-              else
-                ContestClass.get(k).update(index:i)
-              end 
-            }
-            @json["users"].each{|k,v|
-              kid = nil
-              @json["user_classes"].each{|p,q|
-                kid = p if q.map{|x|x.to_s}.include?(k.to_s)
-              }
-              raise Exception.new("class id #{k.inspect} not found in #{@json['user_classes'].inspect}") if kid.nil?
-              klass = ContestClass.get(kid)
-              raise Exception.new("class id #{kid} not found") if klass.nil?
-              if k.to_s.start_with?("new_")
-                ContestUser.create(name:v,event:ev,contest_class:klass)
-              else
-                u = ContestUser.get(k)
-                u.games.update(contest_class:klass)
-                if u.prize then
-                  u.prize.update(contest_class:klass)
+          @json["deleted_users"].each{|x|
+            ContestUser.get(x).destroy
+          }
+          @json["deleted_classes"].each{|x|
+            ContestClass.get(x).destroy
+          }
+          @json["classes"].each_with_index{|(k,v),i|
+            if k.to_s.start_with?("new_")
+              kl = ContestClass.create(class_name:v,event:ev,index:i)
+              ["user_classes","team_classes"].each{|key|
+                if @json.has_key?(key) then
+                  @json[key] = Hash[@json[key].map{|p,q|
+                    [if p == k then kl.id else p end,q]
+                  }]
                 end
-                u.update(contest_class:klass)
-              end
+              }
+            else
+              ContestClass.get(k).update(index:i)
+            end 
+          }
+          if ev.team_size > 1 then
+            @json["deleted_teams"].each{|x|
+              ContestTeam.get(x).destroy
             }
+            @json["user_classes"] = Hash[@json["team_classes"].map{|k,v|
+              [k,v.map{|x|@json['user_teams'][x.to_s]}.flatten+@json["neutral"][k]]
+            }]
+            new_ids = update_result_users(ev,@json)
+            @json["teams"].each{|tid,tname|
+              kid = nil
+              @json["team_classes"].each{|p,q|
+                kid = p if q.map{|x|x.to_s}.include?(tid.to_s)
+              }
+              klass = ContestClass.get(kid)
+              members = @json["user_teams"][tid]
+
+              team =  if tid.to_s.start_with?("new_")
+                        ContestTeam.create(name:tname,contest_class:klass)
+                      else
+                        t = ContestTeam.get(tid)
+                        t.update(contest_class:klass)
+                        t
+                      end
+              team.members.destroy
+              members.to_enum.with_index(1){|uid,i|
+                if uid.to_s.start_with?("new_")
+                  uid = new_ids[uid]
+                end
+                team.members << ContestTeamMember.new(contest_user_id:uid,contest_team_id:team.id,order_num:i)
+              }
+              team.save
+            }
+          else
+            update_result_users(ev,@json)
           end
         }
       }

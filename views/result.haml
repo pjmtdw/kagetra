@@ -64,14 +64,14 @@
           #event-comment.row
 
 %script#templ-contest-chunk(type='text/template')
-  .row
+  .row(data-class-id='{{data.class_id}}' data-team-id='{{data.team_id}}')
     .columns
       %table.chunk-body
         %thead.chunk-header
           %tr 
             %th.leftmost {{ _.show_header_left(data.header_left) }}
-            <% _.each(data.rounds,function(xs){ %>
-            %th.result
+            <% _.each(data.rounds,function(xs,i){ %>
+            %th.result.round-name(data-round='{{i+1}}')
               <% _.each(xs,function(x){ %>
               %div {- x -}
               <% }) %>
@@ -79,7 +79,7 @@
         %tbody
         <% _.each(data.user_results,function(x){ %>
         %tr
-          %td.leftmost.row-info
+          %td.leftmost.row-info(data-cuid='{{x.cuid}}')
             %div
               %a(href='result_record#show/{{encodeURIComponent(x.user_name)}}') {- x.user_name -}
             %div
@@ -93,6 +93,9 @@
               %a(href='result_record#show/{{encodeURIComponent(y.opponent_name)}}') {- y.opponent_name -}
             %div
               {- _.show_opponent_belongs(data.team_size,y.opponent_belongs) -}
+              <% if(y.comment){ %>
+              %span.result-comment.has-tip(data-tooltip title='{- y.comment -}') ※
+              <% } %>
           <% }) %>
         <% }) %>
 

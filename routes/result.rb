@@ -66,7 +66,7 @@ class MainApp < Sinatra::Base
     def contest_results_single(evt)
       # 後で少しずつ取得するのは遅いのでまとめて取得
       cls = evt.result_classes
-      ugattrs = [:result,:opponent_name,:opponent_belongs,:score_str]
+      ugattrs = [:result,:opponent_name,:opponent_belongs,:score_str,:comment]
       user_games = cls.single_games.all(fields:[:contest_user_id,*ugattrs]).map{|gm|
         [gm.contest_user_id,gm.select_attr(*ugattrs)]
       }.each_with_object(Hash.new{[]}){|(uid,attrs),h|
@@ -157,36 +157,40 @@ class MainApp < Sinatra::Base
         ops = team.opponents(order: :round.asc)
         round_ops = Hash[ops.map{|o|[o.round,o]}]
         max_round = ops.size
-        user_results = ops.games.group_by{|game| game.contest_user}
-          .map{|user,results|
-            res = Hash[results.map{|game|
-              [game.contest_team_opponent.round,game]
-            }]
-            game_results = (1..max_round).map{|round|
-              game = res[round]
-              if game then
-                game.select_attr(:opponent_name,:result,:score_str).merge({
-                  opponent_belongs: game.select_attr(:opponent_order,:opponent_belongs)
-                })
-              else
-                {result: "break"}
-              end
-            }
-            r = {
-              user_name: user.name,
-              game_results: game_results
-            }
-            if user.prize.nil?.! then
-              r[:prize] = user.prize.select_attr(:prize,:point_local)
+        members = team.members.all(order:[:order_num.asc]).map{|x|x.contest_user}
+        games = ops.games.group_by{|game| game.contest_user}
+        user_results = members.map{|user|
+          results = games[user] || []
+          res = Hash[results.map{|game|
+            [game.contest_team_opponent.round,game]
+          }]
+          game_results = (1..max_round).map{|round|
+            game = res[round]
+            if game then
+              game.select_attr(:opponent_name,:result,:score_str,:comment).merge({
+                opponent_belongs: game.select_attr(:opponent_order,:opponent_belongs)
+              })
+            else
+              {result: "break"}
             end
-            r
           }
+          r = {
+            user_name: user.name,
+            cuid: user.id,
+            game_results: game_results
+          }
+          if user.prize.nil?.! then
+            r[:prize] = user.prize.select_attr(:prize,:point_local)
+          end
+          r
+        }
         hl = {team_name: team.name}
         if team.prize then
           hl[:team_prize] = team.prize
         end
         {
           class_id: team.contest_class_id,
+          team_id: team.id,
           header_left: hl, 
           rounds: ops.to_enum.with_index(1).map{|x,i|[
             x.round_name  || "#{i}回戦",
@@ -249,7 +253,9 @@ class MainApp < Sinatra::Base
         klass = ContestClass.get(kid)
         raise Exception.new("class id #{kid} not found") if klass.nil?
         if k.to_s.start_with?("new_")
-          u = ContestUser.create(name:v,event:ev,contest_class:klass)
+          us = User.first(name:v)
+          user_id = if us then us.id end
+          u = ContestUser.create(name:v,event:ev,contest_class:klass,user_id:user_id)
           new_ids[k] = u.id
         else
           u = ContestUser.get(k)
@@ -268,12 +274,6 @@ class MainApp < Sinatra::Base
       Kagetra::Utils.dm_debug{
         ContestUser.transaction{
           ev = Event.get(params[:id].to_i)
-          @json["deleted_users"].each{|x|
-            ContestUser.get(x).destroy
-          }
-          @json["deleted_classes"].each{|x|
-            ContestClass.get(x).destroy
-          }
           @json["classes"].each_with_index{|(k,v),i|
             if k.to_s.start_with?("new_")
               kl = ContestClass.create(class_name:v,event:ev,index:i)
@@ -289,11 +289,8 @@ class MainApp < Sinatra::Base
             end 
           }
           if ev.team_size > 1 then
-            @json["deleted_teams"].each{|x|
-              ContestTeam.get(x).destroy
-            }
             @json["user_classes"] = Hash[@json["team_classes"].map{|k,v|
-              [k,v.map{|x|@json['user_teams'][x.to_s]}.flatten+@json["neutral"][k]]
+              [k,v.map{|x|@json['user_teams'][x.to_s]}.flatten+(@json["neutral"][k]||[])]
             }]
             new_ids = update_result_users(ev,@json)
             @json["teams"].each{|tid,tname|
@@ -320,9 +317,19 @@ class MainApp < Sinatra::Base
               }
               team.save
             }
+            @json["deleted_teams"].each{|x|
+              ContestTeam.get(x).destroy
+            }
           else
             update_result_users(ev,@json)
           end
+          @json["deleted_users"].each{|x|
+            ContestUser.get(x).destroy
+          }
+          @json["deleted_classes"].each{|x|
+            p "destroy class: #{x}"
+            ContestClass.get(x).destroy
+          }
         }
       }
     end

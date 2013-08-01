@@ -49,7 +49,24 @@ define (require,exports,module) ->
   ContestResultEditView = Backbone.View.extend
     el: '#contest-result-body'
     events:
-      'click td' : -> alert("hoge")
+      'click .round-name' : 'edit_round'
+      'cilck .row-info' : 'edit_player'
+      'click .num-person' : 'edit_num_person'
+    edit_round: ->
+      
+    edit_player: ->
+
+    initialize: ->
+      @render()
+    render: ->
+      @$el.find(".round-name").addClass("editable")
+      @$el.find(".row-info").addClass("editable")
+      $("#edit-player").after($("<ul>",{id:"edit-help"}))
+      $("#edit-help").append($("<li>",{text:"名前をクリックするとその選手の成績を編集できます"}))
+      $("#edit-help").append($("<li>",{text:"〜回戦をクリックするとその回戦の成績を編集できます"}))
+      $("#edit-help").append($("<li>",{text:"級の参加人数をクリックするとそれを編集できます"}))
+      $("#edit-player").hide()
+      @$el.find(".num-person").show().addClass("editable")
   ContestResultCollection = Backbone.Collection.extend
     url: -> 'api/result/contest/' + (@id or "latest")
     model: ContestChunkModel
@@ -77,6 +94,7 @@ define (require,exports,module) ->
       @model.save().done(->
         alert("更新しました")
         window.result_view.collection.fetch()
+        $("#container-result-edit").foundation("reveal","close")
       )
     get_checked: ->
       $.makeArray(@$el.find("form :checked").map(->$(@).data("id")))
@@ -261,7 +279,7 @@ define (require,exports,module) ->
         v = new ContestChunkView(model:m)
         $("#contest-result-body").append(v.$el)
 
-      this.$el.foundation('section','reflow')
+      @$el.foundation('section','reflow')
       $co.section_comment(
         "event",
         "#event-comment",

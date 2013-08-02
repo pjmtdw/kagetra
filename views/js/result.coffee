@@ -46,27 +46,88 @@ define (require,exports,module) ->
     render: ->
       @$el.html(@template(data:_.extend(@model.toJSON(),team_size:window.result_view.collection.team_size)))
 
-  ContestResultEditView = Backbone.View.extend
+  ContestEditViewBase = Backbone.View.extend
     el: '#contest-result-body'
     events:
       'click .round-name' : 'edit_round'
-      'cilck .row-info' : 'edit_player'
-      'click .num-person' : 'edit_num_person'
-    edit_round: ->
-      
-    edit_player: ->
+    initialize: ->
+      @render()
+    render: ->
+      $("#edit-player").hide()
+      @$el.find(".round-name").addClass("editable")
+    show_help: (helps)->
+      $("#edit-player").after($("<ul>",{id:"edit-help"}))
+      for h in helps
+        $("#edit-help").append($("<li>",{text:h}))
+    reveal_view: (klass)->
+      target = "#container-result-edit"
+      v = new klass(target:target,collection:@collection)
+      _.reveal_view(target,v)
+
+  ContestEditSingleRoundView = Backbone.View.extend {}
+  ContestEditSinglePlayerView = Backbone.View.extend {}
+  ContestEditNumPersonView = Backbone.View.extend
+    template: _.template_braces($('#templ-edit-num-person').html())
+    events:
+      "click .apply-edit" : "apply_edit"
+    apply_edit: ->
+      cid2num = {}
+      data = $.makeArray(@$el.find("[data-class-id]").map(->
+        {
+          class_id: $(@).data('class-id')
+          num_person: $(@).val()
+        }
+      ))
+      kls = @collection.contest_classes
+      $.ajax("api/result/num_person",{
+        data: JSON.stringify({data:data})
+        contentType: "application/json"
+        type: "POST"
+      }).done((data)->
+        alert("更新しました")
+        for k,v of kls
+          kls[k].num_person = data[k]
+        window.result_view.render()
+      )
 
     initialize: ->
       @render()
     render: ->
-      @$el.find(".round-name").addClass("editable")
+      col = @collection
+      data = col.map((x)->
+        kid = x.get('class_id')
+        _.extend(col.contest_classes[kid],{class_id:kid})
+      )
+      @$el.html(@template(data:data))
+      @$el.appendTo(@options.target)
+
+
+  class ContestEditTeamView extends ContestEditViewBase
+    events: _.extend(ContestEditViewBase.prototype.events,
+      'click .hoge' : 'edit_num_person'
+    )
+  
+
+  class ContestEditSingleView extends ContestEditViewBase
+    events: _.extend(ContestEditViewBase.prototype.events,
+      'click .num-person' : 'edit_num_person'
+      'click .row-info' : 'edit_player'
+    )
+    edit_round: -> @reveal_view(ContestEditSingleRoundView)
+    edit_player: -> @reveal_view(ContestEditSinglePlayerView)
+    edit_num_person: -> @reveal_view(ContestEditNumPersonView)
+
+    render: ->
+      super()
       @$el.find(".row-info").addClass("editable")
-      $("#edit-player").after($("<ul>",{id:"edit-help"}))
-      $("#edit-help").append($("<li>",{text:"名前をクリックするとその選手の成績を編集できます"}))
-      $("#edit-help").append($("<li>",{text:"〜回戦をクリックするとその回戦の成績を編集できます"}))
-      $("#edit-help").append($("<li>",{text:"級の参加人数をクリックするとそれを編集できます"}))
-      $("#edit-player").hide()
       @$el.find(".num-person").show().addClass("editable")
+      @$el.find("a").removeAttr("href")
+      @show_help([
+        "名前をクリックするとその選手の結果を編集できます",
+        "〜回戦をクリックするとその回戦の結果を編集できます",
+        "級の参加人数をクリックするとそれを編集できます"
+      ])
+
   ContestResultCollection = Backbone.Collection.extend
     url: -> 'api/result/contest/' + (@id or "latest")
     model: ContestChunkModel
@@ -217,8 +278,6 @@ define (require,exports,module) ->
       for k,v of team_classes
         team_classes[k] = _.without(v,tid)
       @render()
-
-
     
   # TODO: split this view to ContestInfoView which has name, date, group, list  and ContestResultView which only has result
   ContestResultView = Backbone.View.extend
@@ -244,7 +303,8 @@ define (require,exports,module) ->
       else
         $("#toggle-edit-mode").toggleBtnText(false)
         $("#edit-class-info").hide()
-        window.contest_result_edit_view = new ContestResultEditView()
+        klass = if @collection.team_size == 1 then ContestEditSingleView else ContestEditTeamView
+        window.contest_result_edit_view = new klass(collection:@collection)
     show_event_group: _.wrap_submit ->
       $ed.show_event_group(@collection.event_group_id)
       false

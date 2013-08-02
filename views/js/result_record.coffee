@@ -60,8 +60,8 @@ define (require,exports,module) ->
         span: span
       }
       aj = $.ajax("api/result_misc/record",{
-        data: JSON.stringify(obj),
-        contentType: "application/json",
+        data: JSON.stringify(obj)
+        contentType: "application/json"
         type: "POST"
       }).done((data)->
         that.render_result(data:data)

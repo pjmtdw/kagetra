@@ -223,4 +223,25 @@
         を
         %button.small.round.alert.delete-class 削除
 
+
+%script#templ-edit-num-person(type='text/template')
+  #edit-num-person
+    %span 各級の出場人数
+    %button.small.round.apply-edit 更新
+    <% _.each(data,function(x){ %>
+    .row
+      .small-3.columns
+        %label.right.inline {- x.class_name -}
+      .small-9.columns
+        %input(type='text' data-class-id='{{x.class_id}}' value='{{x.num_person}}')
+    <% }) %>
+
+%script#templ-edit-single-player(type='text/template')
+  
+%script#templ-edit-single-round(type='text/template')
+
+%script#templ-edit-team-round(type='text/template')
+
+%script#templ-edit-team-prize(type='text/template')
+
 #container-result-edit.reveal-modal

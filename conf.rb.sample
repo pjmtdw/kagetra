@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# SecrueRandom.base64(48) で作ること
+# SecrueRandom.base64(48) で作ること，これを設定しておけばサーバを再起動してもユーザのセッションが保持される
 # CONF_SESSION_SECRET = ""
 
 CONF_APP_NAME = "景虎"
@@ -9,9 +9,8 @@ CONF_APP_NAME = "景虎"
 CONF_DB_PATH = "mysql://root:hogefuga@localhost/test"
 CONF_LOG_SIZE = 24 # deploy/logに置かれるログの最大サイズ(MB)
 
-
-CONF_DB_DEBUG = true
-CONF_DB_RAISE_SAVE_FAILURE = true
+CONF_DB_DEBUG = false # DataMapperが発行するクエリを表示する
+CONF_DB_RAISE_SAVE_FAILURE = true # DataMapperのsaveが失敗したときに例外を発生する
 
 # 葉隠からのデータ取り込み用
 CONF_HAGAKURE_BASE = '/path/to/hagakure/'
@@ -30,3 +29,5 @@ CONF_USERNAME_CHANGED = {
   '高橋次郎' => '高橋次郎'
 }
 
+# mytomaのsqliteファイルのパス
+CONF_MYTOMA_WIKI_FILE = ""

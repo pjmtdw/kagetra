@@ -327,10 +327,18 @@ class MainApp < Sinatra::Base
             ContestUser.get(x).destroy
           }
           @json["deleted_classes"].each{|x|
-            p "destroy class: #{x}"
             ContestClass.get(x).destroy
           }
         }
+      }
+    end
+    post '/num_person' do
+      ContestClass.transaction{
+        Hash[@json["data"].map{|x|
+          c = ContestClass.get(x["class_id"])
+          c.update(num_person: x["num_person"])
+          [c.id,c.num_person]
+        }]
       }
     end
   end

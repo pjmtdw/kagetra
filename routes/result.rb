@@ -78,17 +78,21 @@ class MainApp < Sinatra::Base
       }]
 
       cls.map{|klass|
-        round_num = klass.single_games.aggregate(:round.max) || 0
+        rounds = get_klass_rounds(klass)
+        round_num = rounds.size
         {
           class_id: klass.id,
-          rounds: (1..round_num).map{|x| rn = klass.round_name
-            [if rn and rn[x.to_s] then
-              rn[x.to_s]
-            else
-              "#{x}回戦"
-            end]
-          },
+          rounds: rounds,
           user_results: result_sort(klass,user_games,round_num,prizes)
+        }
+      }
+    end
+
+    def get_klass_rounds(klass)
+      round_num = klass.single_games.aggregate(:round.max) || 0
+      (1..round_num).map{|x| rn = klass.round_name
+        {
+          name: if rn and rn[x.to_s] then rn[x.to_s] end
         }
       }
     end
@@ -111,6 +115,7 @@ class MainApp < Sinatra::Base
               when :win then ["A","A"]
               when :default_win then ["A","B"]
               when :lose then ["C","C"]
+              when :now then ["A","B"]
             end
             temp_res[uid] = {
               score: score,
@@ -192,10 +197,11 @@ class MainApp < Sinatra::Base
           class_id: team.contest_class_id,
           team_id: team.id,
           header_left: hl, 
-          rounds: ops.to_enum.with_index(1).map{|x,i|[
-            x.round_name  || "#{i}回戦",
-            if x.kind == :single then "(個人戦)" else x.name end
-          ]},
+          rounds: ops.to_enum.with_index(1).map{|x,i|{
+            name: x.round_name,
+            kind: x.kind,
+            op_team_name: x.name
+        }},
           user_results: user_results 
         }
       }
@@ -339,6 +345,40 @@ class MainApp < Sinatra::Base
           c.update(num_person: x["num_person"])
           [c.id,c.num_person]
         }]
+      }
+    end
+    post '/update_round_single' do
+      fields = ["score_str","opponent_name","opponent_belongs","comment","result"]
+      Kagetra::Utils.dm_debug{
+        ContestGame.transaction{
+          klass = ContestClass.get(@json["class_id"])
+          round = @json["round"].to_i
+          if @json["round_name"].to_s.empty?.! then
+            klass.round_name[round.to_s] = @json["round_name"]
+          else
+            klass.round_name.delete(round.to_s)
+          end
+          condbase = {
+                   type: :single,
+                   contest_class_id: klass.id,
+                   round: round 
+                 }
+          @json["results"].each{|x|
+            cond = condbase.merge({contest_user_id: x["cuid"]})
+            if x["result"].nil? then
+              ContestGame.first(cond).tap{|y|if y then y.destroy() end}
+            else
+              ContestGame.update_or_create(
+                cond,
+                x.select_attr(*fields)
+              )
+            end
+          }
+          {
+            results: Hash[ContestGame.all(condbase.merge({fields:["contest_user_id"]+fields})).map{|x|[x.contest_user_id,x.select_attr(*fields)]}],
+            rounds: get_klass_rounds(klass)
+          } 
+        }
       }
     end
   end

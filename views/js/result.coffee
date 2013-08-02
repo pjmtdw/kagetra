@@ -7,6 +7,13 @@ define (require,exports,module) ->
   $rc = require("result_common")
 
   _.mixin
+    make_result_select: (d)->
+      res = []
+      for [k,v] in [["","--"],["win","勝ち"],["lose","負け"],["default_win","不戦"],["now","途中"]]
+        s = if k == d then "selected" else ""
+        res.push("<option value='#{k}' #{s}>#{v}</option>")
+      "<select name='result'>#{res.join('')}</select>"
+
     order_to_ja: (x)->
       switch x
         when 1 then "主将"
@@ -44,28 +51,73 @@ define (require,exports,module) ->
     initialize: ->
       @render()
     render: ->
-      @$el.html(@template(data:_.extend(@model.toJSON(),team_size:window.result_view.collection.team_size)))
+      @$el.html(@template(data:_.extend(@model.toJSON(),chunk_index:@options.chunk_index,team_size:window.result_view.collection.team_size)))
 
-  ContestEditViewBase = Backbone.View.extend
-    el: '#contest-result-body'
+  ContestEditSingleRoundView = Backbone.View.extend
+    template: _.template_braces($('#templ-edit-single-round').html())
     events:
-      'click .round-name' : 'edit_round'
+      "click .show-loser" : "show_loser"
+      "click .apply-edit" : "apply_edit"
+    apply_edit: ->
+      results = $.makeArray(@$el.find("form").map(->
+        obj = $(@).serializeObj()
+        _.extend(obj,{cuid:$(@).data('cuid')})
+      ))
+      cindex = @options.chunk_index
+      result = @collection.at(cindex)
+      data = {
+        results: results
+        class_id: result.get('class_id')
+        round: @options.round
+        round_name: @$el.find(".round-name").val()
+      }
+      that = this
+      $.ajax("api/result/update_round_single",{
+        data: JSON.stringify(data)
+        contentType: "application/json"
+        type: "POST"
+      }).done((data)->
+        $("#container-result-edit").foundation("reveal","close")
+        for r in that.collection.at(cindex).get('user_results')
+          if data.results[r.cuid]
+            r.game_results[that.options.round-1] = data.results[r.cuid] 
+          else
+            delete r.game_results[that.options.round-1]
+        result.set("rounds",data.rounds)
+        window.result_view.refresh_chunk(cindex)
+      )
+    show_loser: ->
+      @$el.find(".each-result.hide").show()
+      @$el.find(".show-loser").remove()
     initialize: ->
       @render()
     render: ->
-      $("#edit-player").hide()
-      @$el.find(".round-name").addClass("editable")
-    show_help: (helps)->
-      $("#edit-player").after($("<ul>",{id:"edit-help"}))
-      for h in helps
-        $("#edit-help").append($("<li>",{text:h}))
-    reveal_view: (klass)->
-      target = "#container-result-edit"
-      v = new klass(target:target,collection:@collection)
-      _.reveal_view(target,v)
+      round = @options.round
+      cindex = @options.chunk_index
+      result = @collection.at(cindex)
+      klass = @collection.contest_classes[result.get('class_id')]
+      round_name = (result.get('rounds')[round-1] || {name:null}).name
+      has_prev_lose = false
+      games = result.get('user_results').map((x)->
+        prev_win = if round == 1
+                     true
+                   else
+                     c1 = x.game_results[round-1]
+                     c2 = ["win","default_win"].indexOf((x.game_results[round-2]||{result:"lose"}).result) >= 0
+                     c1 || c2
+        if not prev_win
+          has_prev_lose = true
+        _.extend(x.game_results[round-1]||{},_.pick(x,"cuid","user_name"),{prev_win:prev_win})
+      )
+      @$el.html(@template(data:
+        round_name: round_name
+        round_num: round
+        klass: klass
+        games: games
+        has_prev_lose: has_prev_lose
+      ))
+      @$el.appendTo(@options.target)
 
-  ContestEditSingleRoundView = Backbone.View.extend {}
-  ContestEditSinglePlayerView = Backbone.View.extend {}
   ContestEditNumPersonView = Backbone.View.extend
     template: _.template_braces($('#templ-edit-num-person').html())
     events:
@@ -87,7 +139,7 @@ define (require,exports,module) ->
         alert("更新しました")
         for k,v of kls
           kls[k].num_person = data[k]
-        window.result_view.render()
+        window.result_view.render_edit_mode()
       )
 
     initialize: ->
@@ -101,6 +153,27 @@ define (require,exports,module) ->
       @$el.html(@template(data:data))
       @$el.appendTo(@options.target)
 
+  ContestEditViewBase = Backbone.View.extend
+    el: '#contest-result-body'
+    events:
+      'click .round-name' : 'edit_round'
+    initialize: ->
+      @render()
+    render: ->
+      $("#edit-player").hide()
+      @$el.find("a").removeAttr("href")
+      @$el.find(".round-name.hide").show()
+      @$el.find(".round-name").addClass("editable")
+    show_help: (helps)->
+      return if $("#edit-help").length > 0
+      $("#edit-player").after($("<ul>",{id:"edit-help"}))
+      for h in helps
+        $("#edit-help").append($("<li>",{text:h}))
+    reveal_view: (klass,options)->
+      options ||= {}
+      target = "#container-result-edit"
+      v = new klass(_.extend(options,{target:target,collection:@collection}))
+      _.reveal_view(target,v)
 
   class ContestEditTeamView extends ContestEditViewBase
     events: _.extend(ContestEditViewBase.prototype.events,
@@ -111,19 +184,18 @@ define (require,exports,module) ->
   class ContestEditSingleView extends ContestEditViewBase
     events: _.extend(ContestEditViewBase.prototype.events,
       'click .num-person' : 'edit_num_person'
-      'click .row-info' : 'edit_player'
     )
-    edit_round: -> @reveal_view(ContestEditSingleRoundView)
-    edit_player: -> @reveal_view(ContestEditSinglePlayerView)
+    edit_round: (ev)->
+      obj = $(ev.currentTarget)
+      round = obj.data("round")
+      chunk_index = obj.closest("[data-chunk-index]").data("chunk-index")
+      @reveal_view(ContestEditSingleRoundView,{round:round,chunk_index:chunk_index})
     edit_num_person: -> @reveal_view(ContestEditNumPersonView)
 
     render: ->
       super()
-      @$el.find(".row-info").addClass("editable")
       @$el.find(".num-person").show().addClass("editable")
-      @$el.find("a").removeAttr("href")
       @show_help([
-        "名前をクリックするとその選手の結果を編集できます",
         "〜回戦をクリックするとその回戦の結果を編集できます",
         "級の参加人数をクリックするとそれを編集できます"
       ])
@@ -301,10 +373,12 @@ define (require,exports,module) ->
         delete window.contest_result_edit_view
         @collection.fetch()
       else
-        $("#toggle-edit-mode").toggleBtnText(false)
-        $("#edit-class-info").hide()
-        klass = if @collection.team_size == 1 then ContestEditSingleView else ContestEditTeamView
-        window.contest_result_edit_view = new klass(collection:@collection)
+        @start_edit_mode()
+    start_edit_mode: ->
+      $("#toggle-edit-mode").toggleBtnText(false)
+      $("#edit-class-info").hide()
+      klass = if @collection.team_size == 1 then ContestEditSingleView else ContestEditTeamView
+      window.contest_result_edit_view = new klass(collection:@collection)
     show_event_group: _.wrap_submit ->
       $ed.show_event_group(@collection.event_group_id)
       false
@@ -320,11 +394,18 @@ define (require,exports,module) ->
       _.bindAll(this,"render","refresh","contest_link","show_event_group")
       @collection = new ContestResultCollection()
       @listenTo(@collection,"sync",@render)
+    render_edit_mode: ->
+      window.contest_result_edit_view.remove()
+      @render()
+      @start_edit_mode()
+
     render: ->
       col = @collection
       @$el.html(@template(_.pick(@collection,"id","recent_list","group","name","date")))
       cur_class = null
-      col.each (m)->
+      @chunks = []
+      that = this
+      col.each (m,index)->
         if m.get("class_id") != cur_class
           cur_class = m.get("class_id")
           cinfo = col.contest_classes[cur_class]
@@ -336,7 +417,8 @@ define (require,exports,module) ->
           cl.hide() if np == 0
 
           $("#contest-result-body").append(c)
-        v = new ContestChunkView(model:m)
+        v = new ContestChunkView(model:m,chunk_index:index)
+        that.chunks.push(v)
         $("#contest-result-body").append(v.$el)
 
       @$el.foundation('section','reflow')
@@ -349,6 +431,10 @@ define (require,exports,module) ->
     refresh: (id) ->
       @collection.id = id
       @collection.fetch()
+    refresh_chunk: (cindex) ->
+      @chunks[cindex].render()
+      window.contest_result_edit_view.render()
+
   ContestInfoView = Backbone.View.extend
     el: "#contest-info"
     initialize: ->

@@ -64,18 +64,21 @@
           #event-comment.row
 
 %script#templ-contest-chunk(type='text/template')
-  .row(data-class-id='{{data.class_id}}' data-team-id='{{data.team_id}}')
+  .row(data-chunk-index='{{data.chunk_index}}')
     .columns
       %table.chunk-body
         %thead.chunk-header
           %tr 
             %th.leftmost {{ _.show_header_left(data.header_left) }}
-            <% _.each(data.rounds,function(xs,i){ %>
-            %th.result.round-name(data-round='{{i+1}}')
-              <% _.each(xs,function(x){ %>
-              %div {- x -}
-              <% }) %>
-              <% }) %>
+            <% _.each(data.rounds.concat([{hide:true}]),function(x,i){ %>
+            %th.result.round-name(data-round='{{i+1}}' class='{{x.hide?"hide":""}}')
+              %div {- x.name?x.name:((i+1)+"回戦") -}
+              <% if(x.kind == "single"){ %>
+              %div (個人戦)
+              <% }else if(x.kind == "team"){ %>
+              %div {- x.op_team_name -}
+              <% } %>
+            <% }) %>
         %tbody
         <% _.each(data.user_results,function(x){ %>
         %tr
@@ -236,12 +239,43 @@
         %input(type='text' data-class-id='{{x.class_id}}' value='{{x.num_person}}')
     <% }) %>
 
-%script#templ-edit-single-player(type='text/template')
+%script#templ-edit-single-prize(type='text/template')
   
 %script#templ-edit-single-round(type='text/template')
+  #edit-single-round
+    .row.collapse
+      .small-5.columns
+        .label.round {- data.klass.class_name -} {- data.round_num -}回戦
+      .small-2.columns
+        %label.inline.right 回戦名 :
+      .small-5.columns
+        %input.round-name(type='text' placeholder='決勝or準決勝' value='{- data.round_name -}')
+    <% _.each(data.games,function(g){ %>
+    %form(data-cuid='{{g.cuid}}')
+      .row.collapse.each-result(class='{{g.prev_win?"":"hide"}}')
+        .large-2.small-2.columns
+          %label.inline.right {- g.user_name -} : 
+        .large-1.small-1.columns
+          {{ _.make_result_select(g.result) }}
+        .large-1.small-1.columns
+          %input(type='text' name='score_str' value='{- g.score_str -}' placeholder='枚数')
+        .large-2.small-4.columns
+          %input(type='text' name='opponent_name' value='{- g.opponent_name -}' placeholder='対戦相手')
+        .large-3.small-4.columns
+          %input(type='text' name='opponent_belongs' value='{- g.opponent_belongs -}' placeholder='所属会')
+        .large-3.small-10.columns.right
+          %input(type='text' name='comment' value='{- g.comment -}' placeholder='コメント')
+    <% }) %>
+    .row
+      %button.small.apply-edit 送信
+      <% if(data.has_prev_lose){ %>
+      %button.small.round.right.success.show-loser 負けた人も表示
+      <% } %>
 
 %script#templ-edit-team-round(type='text/template')
 
 %script#templ-edit-team-prize(type='text/template')
+
+
 
 #container-result-edit.reveal-modal

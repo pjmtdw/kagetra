@@ -630,7 +630,7 @@ def import_contest_result_dantai(evt,sankas)
       end
       # 原因不明: ここでreloadしないとContestResultCacheのupdate_prizesのc.teamsの内容がおかしいことになる
       klass.reload
-      team = klass.teams.create(name: team_name, prize: pr, rank: Kagetra::Utils.rank_from_prize(pr), promotion: promtype)
+      team = klass.teams.create(name: team_name, prize: pr, promotion: promtype)
       team_members[team] = []
       puts "dantai result #{evt.name} of #{team_name}"
       handle_opponents.call(ss[2..-1])

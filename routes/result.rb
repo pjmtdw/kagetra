@@ -381,6 +381,31 @@ class MainApp < Sinatra::Base
         }
       }
     end
+    post '/update_prize_single' do
+      Kagetra::Utils.dm_debug{
+        klass = ContestClass.get(@json["class_id"])
+        ContestPrize.transaction{
+          @json["prizes"].each{|p|
+            cond = {contest_class_id:klass.id,contest_user_id:p["cuid"]}
+            if p["prize"].to_s.empty? then
+              p = ContestPrize.first(cond)
+              if p.nil?.! then
+                p.destroy
+              end
+            else
+              ContestPrize.update_or_create(
+                cond,
+                p.select_attr("point","point_local","prize")
+              )
+            end
+          }
+        }
+        prizes = Hash[klass.prizes.map{|x|
+          [x.contest_user_id,x.select_attr("prize","point","point_local")]
+        }]
+        {prizes: prizes}
+      }
+    end
   end
   get '/result' do
     haml :result

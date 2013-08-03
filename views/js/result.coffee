@@ -7,6 +7,20 @@ define (require,exports,module) ->
   $rc = require("result_common")
 
   _.mixin
+    make_point_select: (name,key,d)->
+      pts = JSON.parse(g_points_str)[key]
+      found = false
+      res = []
+      for p in [0].concat(pts)
+        s = ""
+        if p == d
+          s = "selected"
+          found = true
+        res.push("<option value='#{p}' #{s}>#{p}</option>")
+      if not found
+        res.push("<option value='#{d}' selected>#{d}</option>")
+      "<select name='#{name}'>#{res.join('')}</select>"
+
     make_result_select: (d)->
       res = []
       for [k,v] in [["","--"],["win","勝ち"],["lose","負け"],["default_win","不戦"],["now","途中"]]
@@ -78,9 +92,9 @@ define (require,exports,module) ->
         type: "POST"
       }).done((data)->
         $("#container-result-edit").foundation("reveal","close")
-        for r in that.collection.at(cindex).get('user_results')
+        for r in result.get('user_results')
           if data.results[r.cuid]
-            r.game_results[that.options.round-1] = data.results[r.cuid] 
+            r.game_results[that.options.round-1] = data.results[r.cuid]
           else
             delete r.game_results[that.options.round-1]
         result.set("rounds",data.rounds)
@@ -157,6 +171,7 @@ define (require,exports,module) ->
     el: '#contest-result-body'
     events:
       'click .round-name' : 'edit_round'
+      'click th.leftmost' : 'edit_prize'
     initialize: ->
       @render()
     render: ->
@@ -164,6 +179,7 @@ define (require,exports,module) ->
       @$el.find("a").removeAttr("href")
       @$el.find(".round-name.hide").show()
       @$el.find(".round-name").addClass("editable")
+      @$el.find("th.leftmost").text("入賞編集").addClass("editable")
     show_help: (helps)->
       return if $("#edit-help").length > 0
       $("#edit-player").after($("<ul>",{id:"edit-help"}))
@@ -179,17 +195,64 @@ define (require,exports,module) ->
     events: _.extend(ContestEditViewBase.prototype.events,
       'click .hoge' : 'edit_num_person'
     )
-  
+  ContestEditSinglePrizeView = Backbone.View.extend
+    template: _.template_braces($('#templ-edit-single-prize').html())
+    events:
+      "click .apply-edit" : "apply_edit"
+    apply_edit: ->
+      prizes = $.makeArray(@$el.find("form").map(->
+        obj = $(@).serializeObj()
+        _.extend(obj,{cuid:$(@).data('cuid')})))
+      cindex = @options.chunk_index
+      result = @collection.at(cindex)
+      data = {
+        class_id: result.get('class_id')
+        prizes: prizes
+      }
+      that = this
+      $.ajax("api/result/update_prize_single",{
+        data: JSON.stringify(data)
+        contentType: "application/json"
+        type: "POST"
+      }).done((data)->
+        $("#container-result-edit").foundation("reveal","close")
+        for r in result.get('user_results')
+          if data.prizes[r.cuid]
+            r.prize = data.prizes[r.cuid]
+          else
+            delete r.prize
+
+        window.result_view.refresh_chunk(cindex)
+      )
+
+
+    initialize: -> @render()
+    render: ->
+      cindex = @options.chunk_index
+      result = @collection.at(cindex)
+      klass = @collection.contest_classes[result.get('class_id')]
+      list = (for r in result.get('user_results')
+               _.pick(r,"cuid","prize","user_name"))
+      data = {
+        klass: klass
+        list:list
+      }
+      @$el.html(@template(data:data))
+      @$el.appendTo(@options.target)
 
   class ContestEditSingleView extends ContestEditViewBase
     events: _.extend(ContestEditViewBase.prototype.events,
       'click .num-person' : 'edit_num_person'
     )
-    edit_round: (ev)->
+    get_chunk_data: (ev)->
       obj = $(ev.currentTarget)
       round = obj.data("round")
       chunk_index = obj.closest("[data-chunk-index]").data("chunk-index")
-      @reveal_view(ContestEditSingleRoundView,{round:round,chunk_index:chunk_index})
+      {round:round,chunk_index:chunk_index}
+    edit_round: (ev)->
+      @reveal_view(ContestEditSingleRoundView,@get_chunk_data(ev))
+    edit_prize: (ev)->
+      @reveal_view(ContestEditSinglePrizeView,@get_chunk_data(ev))
     edit_num_person: -> @reveal_view(ContestEditNumPersonView)
 
     render: ->

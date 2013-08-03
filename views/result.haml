@@ -240,6 +240,28 @@
     <% }) %>
 
 %script#templ-edit-single-prize(type='text/template')
+  .row
+    .columns
+      .label.round {- data.klass.class_name -}入賞
+      %div ※ &quot;優勝(昇級)&quot; のように昇級やダッシュは括弧でくくって下さい
+  <% _.each(data.list,function(x){ %>
+  %form(data-cuid='{{x.cuid}}')
+    .row.collapse
+      .large-2.small-3.columns
+        %label.inline.right {- x.user_name -} :
+      .large-4.small-9.columns
+        %input(type='text' placeholder='入賞' name='prize' value='{- x.prize?x.prize.prize:"" -}')
+      .large-2.small-4.columns
+        %label.inline.right ポイント
+      .large-1.small-2.columns
+        {{ _.make_point_select('point','single_point',x.prize?x.prize.point:0) }}
+      .large-2.small-4.columns
+        %label.inline.right 会内ポイント
+      .large-1.small-2.columns
+        {{ _.make_point_select('point_local','single_point_local',x.prize?x.prize.point_local:0) }}
+  <% }) %>
+  .row
+    %button.small.apply-edit 送信
   
 %script#templ-edit-single-round(type='text/template')
   #edit-single-round
@@ -276,6 +298,7 @@
 
 %script#templ-edit-team-prize(type='text/template')
 
-
+%script
+  var g_points_str = '#{{single_point:G_SINGLE_POINT,single_point_local:G_SINGLE_POINT_LOCAL,team_point_local:G_TEAM_POINT_LOCAL}.to_json}';
 
 #container-result-edit.reveal-modal

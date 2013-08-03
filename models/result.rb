@@ -107,6 +107,7 @@ class ContestPrize
       if self.prize == "優勝" and self.contest_class.class_rank == :a then
         self.promotion = :a_champ
       end
+      self.rank = Kagetra::Utils.rank_from_prize(self.prize)
     end
   end
   after :save do

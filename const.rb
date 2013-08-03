@@ -37,3 +37,7 @@ G_SESSION_COOKIE_NAME = "kagetra.session" # ブラウザが閉じられると消
 G_PERMANENT_COOKIE_NAME = "kagetra.permanent" # 3ヶ月保存される
 
 G_NEWLY_DAYS_MAX = 75 # 新着コメントとして表示される最大の日数
+
+G_SINGLE_POINT = [1,2,4,8,16,32,64] # 個人戦でもらえるA級ポイント
+G_SINGLE_POINT_LOCAL = [1,2,4,8,16,32,64,128,256] # 個人戦でもらえる会内ポイント
+G_TEAM_POINT_LOCAL = [10,20,30,40,50] # 団体戦でもらえる会内ポイント

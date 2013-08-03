@@ -12,6 +12,8 @@ deploy/log/
 deploy/sock/
 deploy/pid/
 scripts/wikipedia_name/tmp/
+scripts/periodic_mysqldump.sh
+scripts/dump/
 storage/
 
 Gemfile.lock

@@ -151,7 +151,8 @@ class MainApp < Sinatra::Base
         next if res.any?{|x|x[:cuid] == uid}
         {
           user_name: uname,
-          cuid: uid
+          cuid: uid,
+          game_results: []
         }
       }.compact
     end
@@ -381,7 +382,7 @@ class MainApp < Sinatra::Base
         }
       }
     end
-    post '/update_prize_single' do
+    post '/update_prize' do
       Kagetra::Utils.dm_debug{
         klass = ContestClass.get(@json["class_id"])
         ContestPrize.transaction{
@@ -403,7 +404,13 @@ class MainApp < Sinatra::Base
         prizes = Hash[klass.prizes.map{|x|
           [x.contest_user_id,x.select_attr("prize","point","point_local")]
         }]
-        {prizes: prizes}
+        res = {prizes: prizes}
+        if @json.has_key?("team_id")
+          team = ContestTeam.get(@json["team_id"])
+          team.update(prize:@json["team_prize"])
+          res[:team_prize] = team.prize
+        end
+        res
       }
     end
   end

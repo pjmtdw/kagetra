@@ -230,7 +230,6 @@
 %script#templ-edit-num-person(type='text/template')
   #edit-num-person
     %span 各級の出場人数
-    %button.small.round.apply-edit 更新
     <% _.each(data,function(x){ %>
     .row
       .small-3.columns
@@ -238,30 +237,49 @@
       .small-9.columns
         %input(type='text' data-class-id='{{x.class_id}}' value='{{x.num_person}}')
     <% }) %>
+    %button.small.apply-edit 送信
 
-%script#templ-edit-single-prize(type='text/template')
-  .row
-    .columns
-      .label.round {- data.klass.class_name -}入賞
-      %div ※ &quot;優勝(昇級)&quot; のように昇級やダッシュは括弧でくくって下さい
-  <% _.each(data.list,function(x){ %>
-  %form(data-cuid='{{x.cuid}}')
+%script#templ-edit-prize(type='text/template')
+  #edit-prize
+    .row
+      .columns
+        .label.round {- data.klass.class_name -} {- data.team_name -} 入賞／順位
+    <% if(data.message){ %>
+    .row
+      .columns
+        .message {- data.message -}
+    <% } %>
+    <% if(data.team_prize){ %>
     .row.collapse
       .large-2.small-3.columns
-        %label.inline.right {- x.user_name -} :
-      .large-4.small-9.columns
-        %input(type='text' placeholder='入賞' name='prize' value='{- x.prize?x.prize.prize:"" -}')
-      .large-2.small-4.columns
-        %label.inline.right ポイント
-      .large-1.small-2.columns
-        {{ _.make_point_select('point','single_point',x.prize?x.prize.point:0) }}
-      .large-2.small-4.columns
-        %label.inline.right 会内ポイント
-      .large-1.small-2.columns
-        {{ _.make_point_select('point_local','single_point_local',x.prize?x.prize.point_local:0) }}
-  <% }) %>
-  .row
-    %button.small.apply-edit 送信
+        %label.inline.right チーム成績 :
+      .large-4.small-9.columns.left
+        %input.team-prize(type='text' placeholder='入賞／順位' value='{- data.team_prize -}')
+    %hr
+    .row
+      .columns
+        %div 個人賞
+    <% } %>
+    <% _.each(data.list,function(x){ %>
+    %form(data-cuid='{{x.cuid}}')
+      .row.collapse
+        .large-2.small-3.columns
+          %label.inline.right {- x.user_name -} :
+        .large-4.small-9.columns
+          %input(type='text' placeholder='入賞' name='prize' value='{- x.prize?x.prize.prize:"" -}')
+        <% if(!data.no_point){ %>
+        .large-2.small-4.columns
+          %label.inline.right ポイント
+        .large-1.small-2.columns
+          {{ _.make_point_select('point','single_point',x.prize?x.prize.point:0) }}
+        <% } %>
+        .large-2.small-4.columns
+          %label.inline.right 会内ポイント
+        .large-1.small-2.columns.left
+          {{ _.make_point_select('point_local',data.point_local_key,x.prize?x.prize.point_local:0) }}
+    <% }) %>
+    .row
+      %button.small.apply-edit 送信
   
 %script#templ-edit-single-round(type='text/template')
   #edit-single-round

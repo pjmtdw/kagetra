@@ -620,17 +620,9 @@ def import_contest_result_dantai(evt,sankas)
         pr.sub!('）',')')
         pr.sub!('（','(')
       end
-      promtype = nil
-      if /\((.+)\)/ =~ pr then
-        prom = $1
-        promtype =  case prom
-                      when "陥落" then :rank_down
-                      when "昇級" then :rank_up
-                    end
-      end
       # 原因不明: ここでreloadしないとContestResultCacheのupdate_prizesのc.teamsの内容がおかしいことになる
       klass.reload
-      team = klass.teams.create(name: team_name, prize: pr, promotion: promtype)
+      team = klass.teams.create(name: team_name, prize: pr)
       team_members[team] = []
       puts "dantai result #{evt.name} of #{team_name}"
       handle_opponents.call(ss[2..-1])

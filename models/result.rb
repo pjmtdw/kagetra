@@ -198,6 +198,18 @@ class ContestTeam
   property :promotion, Enum[:rank_up,:rank_down] # 昇級, 陥落
   has n, :members, 'ContestTeamMember'
   has n, :opponents, 'ContestTeamOpponent'
+  before :save do
+    if self.prize.to_s.empty?.! then
+      self.prize = Kagetra::Utils.zenkaku_to_hankaku(self.prize.strip)
+      if /\((.+)\)/ =~ self.prize then
+        self.promotion = case $1
+        when '昇級' then :rank_up
+        when '陥落' then :rank_down
+        end
+      end
+      self.rank = Kagetra::Utils.rank_from_prize(self.prize)
+    end
+  end
   after :save do
     self.contest_class.event.update_cache_prizes
   end

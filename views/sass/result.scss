@@ -12,14 +12,15 @@
 }
 
 .editable{
-  text-decoration: underline;
-  color: white !important;
-  background-color: gray !important;
+  * {
+    color: white !important;
+    text-decoration: underline;
+  }
+  background-color: #333 !important;
   border: 3px outset silver !important;
-  text-shadow: 1px 1px 1px gray;
   cursor: pointer;
   &:hover{
-    background-color: #333 !important;
+    background-color: gray !important;
   }
 }
 
@@ -59,5 +60,11 @@
 #edit-single-round{
   select[name='result']{
     min-width: 42px;
+  }
+}
+#edit-prize{
+  .message{
+    margin-top: 8px;
+    margin-bottom: 8px;
   }
 }

@@ -56,6 +56,9 @@ define (require,exports,module) ->
       "contest/:id": "contest"
       "": "contest"
     contest: (id)->
+      if window.contest_result_edit_view?
+        window.contest_result_edit_view.remove()
+        delete window.contest_result_edit_view
       window.result_view.refresh(id)
 
   ContestChunkModel = Backbone.Model.extend {}
@@ -150,10 +153,10 @@ define (require,exports,module) ->
         contentType: "application/json"
         type: "POST"
       }).done((data)->
-        alert("更新しました")
         for k,v of kls
           kls[k].num_person = data[k]
         window.result_view.render_edit_mode()
+        $("#container-result-edit").foundation("reveal","close")
       )
 
     initialize: ->
@@ -179,7 +182,6 @@ define (require,exports,module) ->
       @$el.find("a").removeAttr("href")
       @$el.find(".round-name.hide").show()
       @$el.find(".round-name").addClass("editable")
-      @$el.find("th.leftmost").text("入賞編集").addClass("editable")
     show_help: (helps)->
       return if $("#edit-help").length > 0
       $("#edit-player").after($("<ul>",{id:"edit-help"}))
@@ -190,13 +192,29 @@ define (require,exports,module) ->
       target = "#container-result-edit"
       v = new klass(_.extend(options,{target:target,collection:@collection}))
       _.reveal_view(target,v)
+    get_chunk_data: (ev)->
+      obj = $(ev.currentTarget)
+      round = obj.data("round")
+      chunk_index = obj.closest("[data-chunk-index]").data("chunk-index")
+      {round:round,chunk_index:chunk_index}
 
   class ContestEditTeamView extends ContestEditViewBase
-    events: _.extend(ContestEditViewBase.prototype.events,
-      'click .hoge' : 'edit_num_person'
-    )
-  ContestEditSinglePrizeView = Backbone.View.extend
-    template: _.template_braces($('#templ-edit-single-prize').html())
+    render: ->
+      super()
+      @$el.find("th.leftmost").addClass("editable")
+      @show_help([
+        "〜回戦をクリックするとその回戦の結果を編集できます",
+        "自チーム名をクリックするとチーム入賞，個人賞を編集できます"
+      ])
+    edit_round: (ev)->
+      @reveal_view(ContestEditTeamRoundView,@get_chunk_data(ev))
+    edit_prize: (ev)->
+      @reveal_view(ContestEditTeamPrizeView,@get_chunk_data(ev))
+  ContestEditTeamRoundView = Backbone.View.extend
+    template: _.template_braces($('#templ-edit-team-round').html())
+
+  ContestEditPrizeBase = Backbone.View.extend
+    template: _.template_braces($('#templ-edit-prize').html())
     events:
       "click .apply-edit" : "apply_edit"
     apply_edit: ->
@@ -205,12 +223,12 @@ define (require,exports,module) ->
         _.extend(obj,{cuid:$(@).data('cuid')})))
       cindex = @options.chunk_index
       result = @collection.at(cindex)
-      data = {
+      data = _.extend({
         class_id: result.get('class_id')
         prizes: prizes
-      }
+      },@additional_send?(result))
       that = this
-      $.ajax("api/result/update_prize_single",{
+      $.ajax("api/result/update_prize",{
         data: JSON.stringify(data)
         contentType: "application/json"
         type: "POST"
@@ -221,11 +239,9 @@ define (require,exports,module) ->
             r.prize = data.prizes[r.cuid]
           else
             delete r.prize
-
+        that.do_after_apply?(result,data)
         window.result_view.refresh_chunk(cindex)
       )
-
-
     initialize: -> @render()
     render: ->
       cindex = @options.chunk_index
@@ -233,22 +249,46 @@ define (require,exports,module) ->
       klass = @collection.contest_classes[result.get('class_id')]
       list = (for r in result.get('user_results')
                _.pick(r,"cuid","prize","user_name"))
-      data = {
+      data = _.extend({
         klass: klass
         list:list
-      }
+      },@additional_render(result))
       @$el.html(@template(data:data))
       @$el.appendTo(@options.target)
+
+  class ContestEditSinglePrizeView extends ContestEditPrizeBase
+    additional_render: (result)->
+      {
+        message: "※ \"優勝(昇級)\" のように昇級やダッシュなどは()で囲って下さい"
+        point_local_key: "single_point_local"
+      }
+
+
+  class ContestEditTeamPrizeView extends ContestEditPrizeBase
+    additional_render: (result)->
+      hl = result.get('header_left')
+      {
+        message: "※ \"優勝(昇級)\" のように昇級や陥落などは()で囲って下さい"
+        team_prize: hl.team_prize
+        no_point: true
+        point_local_key: "team_point_local"
+        team_name: hl.team_name
+      }
+    additional_send: (result) ->
+      {
+        team_id: result.get("team_id")
+        team_prize: @$el.find(".team-prize").val() || null
+      }
+    do_after_apply: (result,data)->
+      result.get('header_left')["team_prize"] = data.team_prize
+
+
+  #template: _.template_braces($('#templ-edit-team-prize').html())
 
   class ContestEditSingleView extends ContestEditViewBase
     events: _.extend(ContestEditViewBase.prototype.events,
       'click .num-person' : 'edit_num_person'
     )
-    get_chunk_data: (ev)->
-      obj = $(ev.currentTarget)
-      round = obj.data("round")
-      chunk_index = obj.closest("[data-chunk-index]").data("chunk-index")
-      {round:round,chunk_index:chunk_index}
     edit_round: (ev)->
       @reveal_view(ContestEditSingleRoundView,@get_chunk_data(ev))
     edit_prize: (ev)->
@@ -257,6 +297,7 @@ define (require,exports,module) ->
 
     render: ->
       super()
+      @$el.find("th.leftmost").html("<div>入賞編集</div>").addClass("editable")
       @$el.find(".num-person").show().addClass("editable")
       @show_help([
         "〜回戦をクリックするとその回戦の結果を編集できます",
@@ -288,7 +329,6 @@ define (require,exports,module) ->
     apply_edit: ->
       that = this
       @model.save().done(->
-        alert("更新しました")
         window.result_view.collection.fetch()
         $("#container-result-edit").foundation("reveal","close")
       )

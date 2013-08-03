@@ -7,6 +7,15 @@ define (require,exports,module) ->
   $rc = require("result_common")
 
   _.mixin
+    make_order_num_select: (cur)->
+      res = ["<option value=''>--</option>"]
+      for num in [1..8]
+        ja = _.order_to_ja(num)
+        s = if cur && cur.opponent_order == num then "selected" else ""
+        res.push("<option value='#{num}' #{s}>#{ja}</option>")
+      "<select name='opponent_order'>#{res.join('')}</select>"
+      
+
     make_point_select: (name,key,d)->
       pts = JSON.parse(g_points_str)[key]
       found = false
@@ -36,10 +45,8 @@ define (require,exports,module) ->
     show_opponent_belongs: (team_size,s) ->
       return "" unless s
       r = []
-      if team_size == 1
-        r.push s
-      else
-        r.push s.opponent_belongs if s.opponent_belongs
+      r.push s.opponent_belongs if s.opponent_belongs
+      if team_size > 1
         r.push(_.order_to_ja(s.opponent_order)) if s.opponent_order?
       "(#{r.join(" / ")})" if r.length > 0
     show_header_left: (s) ->
@@ -70,10 +77,9 @@ define (require,exports,module) ->
     render: ->
       @$el.html(@template(data:_.extend(@model.toJSON(),chunk_index:@options.chunk_index,team_size:window.result_view.collection.team_size)))
 
-  ContestEditSingleRoundView = Backbone.View.extend
-    template: _.template_braces($('#templ-edit-single-round').html())
+  ContestEditRoundBase = Backbone.View.extend
+    template: _.template_braces($('#templ-edit-round').html())
     events:
-      "click .show-loser" : "show_loser"
       "click .apply-edit" : "apply_edit"
     apply_edit: ->
       results = $.makeArray(@$el.find("form").map(->
@@ -86,26 +92,27 @@ define (require,exports,module) ->
         results: results
         class_id: result.get('class_id')
         round: @options.round
-        round_name: @$el.find(".round-name").val()
+        round_name: @$el.find(".round-name").val() || null
       }
       that = this
-      $.ajax("api/result/update_round_single",{
-        data: JSON.stringify(data)
+      $.ajax("api/result/update_round",{
+        data: JSON.stringify(_.extend(data,@additional_send?(result)))
         contentType: "application/json"
         type: "POST"
       }).done((data)->
-        $("#container-result-edit").foundation("reveal","close")
-        for r in result.get('user_results')
-          if data.results[r.cuid]
-            r.game_results[that.options.round-1] = data.results[r.cuid]
-          else
-            delete r.game_results[that.options.round-1]
-        result.set("rounds",data.rounds)
-        window.result_view.refresh_chunk(cindex)
+        if data._error_?
+          alert(data._error_)
+        else
+          $("#container-result-edit").foundation("reveal","close")
+          for r in result.get('user_results')
+            if data.results[r.cuid]
+              r.game_results[that.options.round-1] = data.results[r.cuid]
+            else
+              delete r.game_results[that.options.round-1]
+          result.set("rounds",data.rounds)
+          that.do_after_apply?(result,data)
+          window.result_view.refresh_chunk(cindex)
       )
-    show_loser: ->
-      @$el.find(".each-result.hide").show()
-      @$el.find(".show-loser").remove()
     initialize: ->
       @render()
     render: ->
@@ -113,10 +120,12 @@ define (require,exports,module) ->
       cindex = @options.chunk_index
       result = @collection.at(cindex)
       klass = @collection.contest_classes[result.get('class_id')]
-      round_name = (result.get('rounds')[round-1] || {name:null}).name
+      round_info = (result.get('rounds')[round-1] || {name:null})
+      round_name = round_info.name
       has_prev_lose = false
+      that = this
       games = result.get('user_results').map((x)->
-        prev_win = if round == 1
+        prev_win = if round == 1 or that.round_kind?
                      true
                    else
                      c1 = x.game_results[round-1]
@@ -126,14 +135,54 @@ define (require,exports,module) ->
           has_prev_lose = true
         _.extend(x.game_results[round-1]||{},_.pick(x,"cuid","user_name"),{prev_win:prev_win})
       )
-      @$el.html(@template(data:
+      data = {
         round_name: round_name
         round_num: round
         klass: klass
         games: games
         has_prev_lose: has_prev_lose
-      ))
+      }
+      @$el.html(@template(data:_.extend(data,@additional_render?(result,round_info))))
       @$el.appendTo(@options.target)
+
+  class ContestEditTeamRoundView extends ContestEditRoundBase
+    events: _.extend(ContestEditRoundBase.prototype.events,
+      "click #round-kind .choice" : "change_round_kind"
+    )
+    change_round_kind: (ev)->
+      @round_kind = $(ev.currentTarget).data("kind")
+      @render()
+    additional_render: (result,round_info) ->
+      hl = result.get('header_left')
+      {
+        team_name: hl.team_name
+        op_team_name: round_info.op_team_name
+        round_kind: @round_kind
+        mode: "team"
+      }
+    additional_send: (result)->
+      {
+        op_team_name: @$el.find(".op-team-name").val() or null
+        round_kind: @round_kind
+        team_id: result.get("team_id")
+      }
+    do_after_apply: ->
+    initialize: ->
+      round = @options.round
+      cindex = @options.chunk_index
+      result = @collection.at(cindex)
+      @round_kind = (result.get('rounds')[round-1] || {kind:"team"}).kind
+      super()
+
+      
+
+  class ContestEditSingleRoundView extends ContestEditRoundBase
+    events: _.extend(ContestEditRoundBase.prototype.events,
+      "click .show-loser" : "show_loser"
+    )
+    show_loser: ->
+      @$el.find(".each-result.hide").show()
+      @$el.find(".show-loser").remove()
 
   ContestEditNumPersonView = Backbone.View.extend
     template: _.template_braces($('#templ-edit-num-person').html())
@@ -210,8 +259,6 @@ define (require,exports,module) ->
       @reveal_view(ContestEditTeamRoundView,@get_chunk_data(ev))
     edit_prize: (ev)->
       @reveal_view(ContestEditTeamPrizeView,@get_chunk_data(ev))
-  ContestEditTeamRoundView = Backbone.View.extend
-    template: _.template_braces($('#templ-edit-team-round').html())
 
   ContestEditPrizeBase = Backbone.View.extend
     template: _.template_braces($('#templ-edit-prize').html())
@@ -223,24 +270,28 @@ define (require,exports,module) ->
         _.extend(obj,{cuid:$(@).data('cuid')})))
       cindex = @options.chunk_index
       result = @collection.at(cindex)
-      data = _.extend({
+      data = {
         class_id: result.get('class_id')
         prizes: prizes
-      },@additional_send?(result))
+      }
       that = this
       $.ajax("api/result/update_prize",{
-        data: JSON.stringify(data)
+        data: JSON.stringify(_.extend(data,@additional_send?(result)))
         contentType: "application/json"
         type: "POST"
       }).done((data)->
-        $("#container-result-edit").foundation("reveal","close")
-        for r in result.get('user_results')
-          if data.prizes[r.cuid]
-            r.prize = data.prizes[r.cuid]
-          else
-            delete r.prize
-        that.do_after_apply?(result,data)
-        window.result_view.refresh_chunk(cindex)
+        if data._error_?
+          alert(data._error_)
+        else
+          $("#container-result-edit").foundation("reveal","close")
+          for r in result.get('user_results')
+            if data.prizes[r.cuid]
+              r.prize = data.prizes[r.cuid]
+            else
+              delete r.prize
+          that.do_after_apply?(result,data)
+          window.result_view.refresh_chunk(cindex)
+
       )
     initialize: -> @render()
     render: ->
@@ -249,11 +300,11 @@ define (require,exports,module) ->
       klass = @collection.contest_classes[result.get('class_id')]
       list = (for r in result.get('user_results')
                _.pick(r,"cuid","prize","user_name"))
-      data = _.extend({
+      data = {
         klass: klass
         list:list
-      },@additional_render(result))
-      @$el.html(@template(data:data))
+      }
+      @$el.html(@template(data:_.extend(data,@additional_render?(result))))
       @$el.appendTo(@options.target)
 
   class ContestEditSinglePrizeView extends ContestEditPrizeBase

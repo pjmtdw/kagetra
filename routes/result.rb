@@ -97,6 +97,16 @@ class MainApp < Sinatra::Base
       }
     end
 
+    def get_team_rounds(team)
+      ops = team.opponents(order: :round.asc)
+      ops.to_enum.with_index(1).map{|x,i|{
+        name: x.round_name,
+        kind: x.kind,
+        op_team_name: x.name
+      }}
+    end
+    
+
     # 勝ち数の多い順に並べる
     def result_sort(klass,user_games,round_num,prizes)
       games = klass.single_games
@@ -173,9 +183,7 @@ class MainApp < Sinatra::Base
           game_results = (1..max_round).map{|round|
             game = res[round]
             if game then
-              game.select_attr(:opponent_name,:result,:score_str,:comment).merge({
-                opponent_belongs: game.select_attr(:opponent_order,:opponent_belongs)
-              })
+              game.select_attr(:opponent_name,:result,:score_str,:comment,:opponent_order,:opponent_belongs)
             else
               {result: "break"}
             end
@@ -198,11 +206,7 @@ class MainApp < Sinatra::Base
           class_id: team.contest_class_id,
           team_id: team.id,
           header_left: hl, 
-          rounds: ops.to_enum.with_index(1).map{|x,i|{
-            name: x.round_name,
-            kind: x.kind,
-            op_team_name: x.name
-        }},
+          rounds: get_team_rounds(team),
           user_results: user_results 
         }
       }
@@ -348,22 +352,46 @@ class MainApp < Sinatra::Base
         }]
       }
     end
-    post '/update_round_single' do
+    post '/update_round' do
       fields = ["score_str","opponent_name","opponent_belongs","comment","result"]
-      Kagetra::Utils.dm_debug{
+      dm_response{
         ContestGame.transaction{
           klass = ContestClass.get(@json["class_id"])
           round = @json["round"].to_i
-          if @json["round_name"].to_s.empty?.! then
-            klass.round_name[round.to_s] = @json["round_name"]
+          if not @json.has_key?("team_id")
+            # 個人戦
+            if @json["round_name"].to_s.empty?.! then
+              klass.round_name[round.to_s] = @json["round_name"]
+            else
+              klass.round_name.delete(round.to_s)
+            end
+            klass.save
+            condbase = {
+                     type: :single,
+                     contest_class_id: klass.id,
+                     round: round 
+                   }
           else
-            klass.round_name.delete(round.to_s)
+            # 団体戦
+            fields << "opponent_order"
+            team = ContestTeam.get(@json["team_id"])
+            rname = @json["round_name"]
+            rkind = @json["round_kind"].to_sym
+            opname = @json["op_team_name"]
+            p opname
+            if opname == "delete" then
+              team.opponents.first(round:round).destroy()
+              return
+            else
+              op_team = ContestTeamOpponent.update_or_create(
+                {contest_team_id:team.id,round:round},
+                {name: opname,round_name: rname ,kind: rkind})
+              condbase = {
+                       type: :team,
+                       contest_team_opponent_id: op_team.id,
+                     }
+            end
           end
-          condbase = {
-                   type: :single,
-                   contest_class_id: klass.id,
-                   round: round 
-                 }
           @json["results"].each{|x|
             cond = condbase.merge({contest_user_id: x["cuid"]})
             if x["result"].nil? then
@@ -375,15 +403,21 @@ class MainApp < Sinatra::Base
               )
             end
           }
+
+          rounds = if @json.has_key?("team_id")
+                     get_team_rounds(team)
+                    else
+                     get_klass_rounds(klass)
+                    end
           {
             results: Hash[ContestGame.all(condbase.merge({fields:["contest_user_id"]+fields})).map{|x|[x.contest_user_id,x.select_attr(*fields)]}],
-            rounds: get_klass_rounds(klass)
+            rounds: rounds
           } 
         }
       }
     end
     post '/update_prize' do
-      Kagetra::Utils.dm_debug{
+      dm_response{
         klass = ContestClass.get(@json["class_id"])
         ContestPrize.transaction{
           @json["prizes"].each{|p|

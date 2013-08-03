@@ -128,7 +128,7 @@ class ContestGame
   # 親クラスと子クラスの間のunique_indexを作れないので自分で切り変える
   property :type, Enum[:single,:team] , index: true # 個人戦, 団体戦
   # belongs_to does not support unique_index so we do this ugly hack.
-  property :contest_user_id, Integer, unique_index: [:u1,:u2], required: true
+  property :contest_user_id, Integer, unique_index: [:u1], required: true
   belongs_to :contest_user
   property :result, Enum[:now,:win,:lose,:default_win], required: true # 勝敗 => 対戦中, 勝ち, 負け, 不戦勝,
   property :score_str, TrimString, length: 8 # 枚数(文字) "棄" とか "3+1" とかあるので文字列として用意しておく
@@ -152,9 +152,9 @@ class ContestGame
   validates_absence_of :opponent_order, if: is_single
 
   # 団体戦用
-  property :contest_team_opponent_id, Integer, unique_index: :u2, index: true
+  property :contest_team_opponent_id, Integer, index: true
   belongs_to :contest_team_opponent
-  property :opponent_order, Integer, unique_index: :u2 # 将順
+  property :opponent_order, Integer # 将順
 
   validates_presence_of :contest_team_opponent_id, if: is_team
   validates_absence_of :contest_class_id, if: is_team
@@ -223,6 +223,8 @@ class ContestTeamOpponent
   property :name, TrimString, length: 48 # 対戦相手のチーム名
   property :round, Integer, unique_index: :u1, required: true # n回戦
   property :round_name, TrimString, length: 36 # 決勝, 順位決定戦など
-  property :kind, Enum[:team, :single] # 団体戦, 個人戦 (大会としては団体戦だけど各自が別々のチーム相手に対戦)
+  property :kind, Enum[:team, :single], required: true # 団体戦, 個人戦 (大会としては団体戦だけど各自が別々のチーム相手に対戦)
   has n, :games, 'ContestGame' # 試合結果(団体戦)
+  validates_presence_of :name, if: ->(x){x.kind == :team}
+  validates_absence_of :name, if: ->(x){x.kind == :single}
 end

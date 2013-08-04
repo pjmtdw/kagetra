@@ -58,8 +58,15 @@
   }
 }
 #edit-round{
-  select[name='result']{
-    min-width: 42px;
+  .header{
+    background-color: black;
+    color: white;
+    font-size: 90%;
+    padding: 4px;
+    display: inline-block;
+  }
+  #round-kind{
+    font-size: 90%;
   }
 }
 #edit-prize{

@@ -546,13 +546,11 @@ def import_contest_result_dantai(evt,sankas)
               else
                 raise Exception("unknown result: #{result}")
               end
-    score_int = Kagetra::Utils.eval_score_char(maisuu)
     op_team.games.create(
       type: :team,
       contest_user:user,
       result:result,
       score_str:maisuu,
-      score_int:score_int,
       opponent_name:op_name,
       opponent_belongs:opponent_belongs,
       opponent_order:shojun,

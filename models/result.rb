@@ -162,6 +162,7 @@ class ContestGame
 
   before :save do
     self.event = self.contest_user.event if self.event.nil?
+    self.score_int = Kagetra::Utils.eval_score_char(self.score_str)
   end
 
   # TODO: 複数の勝ち負けの一括更新に対応

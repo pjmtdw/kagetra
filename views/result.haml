@@ -263,20 +263,28 @@
     <% _.each(data.list,function(x){ %>
     %form(data-cuid='{{x.cuid}}')
       .row.collapse
-        .large-2.small-3.columns
-          %label.inline.right {- x.user_name -} :
-        .large-4.small-9.columns
-          %input(type='text' placeholder='入賞' name='prize' value='{- x.prize?x.prize.prize:"" -}')
-        <% if(!data.no_point){ %>
-        .large-2.small-4.columns
-          %label.inline.right ポイント
-        .large-1.small-2.columns
-          {{ _.make_point_select('point','single_point',x.prize?x.prize.point:0) }}
-        <% } %>
-        .large-2.small-4.columns
-          %label.inline.right 会内ポイント
-        .large-1.small-2.columns.left
-          {{ _.make_point_select('point_local',data.point_local_key,x.prize?x.prize.point_local:0) }}
+        .large-6.small-12.columns
+          .row.collapse
+            .small-5.columns
+              %label.inline.right {- x.user_name -} :
+            .small-7.columns
+              %input(type='text' placeholder='入賞' name='prize' value='{- x.prize?x.prize.prize:"" -}')
+        .large-6.small-12.columns
+          .row.collapse
+            <% if(!data.no_point){ %>
+            .small-6.columns
+              .row.collapse
+                .small-6.columns
+                  %label.inline.right ポイント
+                .small-6.columns
+                  {{ _.make_point_select('point','single_point',x.prize?x.prize.point:0) }}
+            <% } %>
+            .small-6.columns
+              .row.collapse
+                .small-6.columns
+                  %label.inline.right 会内ポイント
+                .small-6.columns
+                  {{ _.make_point_select('point_local',data.point_local_key,x.prize?x.prize.point_local:0) }}
     <% }) %>
     .row
       %button.small.apply-edit 送信
@@ -284,56 +292,62 @@
 %script#templ-edit-round(type='text/template')
   #edit-round
     .row.collapse
-      .large-3.small-4.columns
-        .label.success {- data.klass.class_name -} {- data.team_name -} {- data.round_num -}回戦
-      .large-5.small-8.columns
-        <% if(data.mode=="team"){ %>
-        .row.collapse
-          .small-4.columns
-            %dl#round-kind.sub-nav
-              %dd.choice(data-kind='team' class='{{data.round_kind=="team"?"active":""}}')
-                %a 団体
-              %dd.choice(data-kind='single' class='{{data.round_kind=="single"?"active":""}}')
-                %a 個人
-          <% if(data.round_kind=="team"){ %>
-          .small-3.columns
-            %label.inline.right 相手チーム :
-          .small-5.columns
-            %input.op-team-name(type='text' placeholder='チーム名' value='{{ data.op_team_name  }}')
-          <% } %>
-        <% }else{ %>
-        &nbsp;
-        <% }%>
-      .large-4.small-12.columns.right
+      .large-3.small-12.columns
+        %span.header {- data.team_name || data.klass.class_name -} {- data.round_num -}回戦
+      .large-4.small-12.columns
         .row.collapse
           .small-5.columns
             %label.inline.right 回戦名 :
           .small-7.columns
             %input.round-name(type='text' placeholder='{{ data.mode=="team"?"決勝／順位決定戦など":"決勝or準決勝" }}' value='{- data.round_name -}')
+      .large-5.small-12.columns
+        <% if(data.mode=="team"){ %>
+        .row.collapse
+          .small-3.columns
+            %dl#round-kind.sub-nav.right
+              %dd.choice(data-kind='team' class='{{data.round_kind=="team"?"active":""}}')
+                %a 団体
+              %dd.choice(data-kind='single' class='{{data.round_kind=="single"?"active":""}}')
+                %a 個人
+          <% if(data.round_kind=="team"){ %>
+          .small-9.columns
+            .row.collapse
+              .small-4.columns
+                %label.inline.right 相手チーム :
+              .small-8.columns
+                %input.op-team-name(type='text' placeholder='チーム名' value='{{ data.op_team_name  }}')
+          <% } %>
+        <% }else{ %>
+        &nbsp;
+        <% }%>
     <% _.each(data.games,function(g){ %>
     %form(data-cuid='{{g.cuid}}')
       .row.collapse.each-result(class='{{g.prev_win?"":"hide"}}')
-        .large-2.small-2.columns
-          %label.inline.right {- g.user_name -} : 
-        .large-1.small-1.columns
-          {{ _.make_result_select(g.result) }}
-        .large-1.small-1.columns
-          %input(type='text' name='score_str' value='{- g.score_str -}' placeholder='枚数')
-        .large-2.small-4.columns
-          %input(type='text' name='opponent_name' value='{- g.opponent_name -}' placeholder='対戦相手')
-        <% if(data.round_kind == "team"){ %>
-        .large-3.small-4.columns
-          {{ _.make_order_num_select(g) }}
-        <% }else if(data.round_kind == "single"){ %>
-        .large-2.small-2.columns
-          %input(type='text' name='opponent_belongs' value='{- g.opponent_belongs -}' placeholder='チーム名')
-        .large-1.small-2.columns
-          {{ _.make_order_num_select(g) }}
-        <% }else{ %>
-        .large-3.small-4.columns
-          %input(type='text' name='opponent_belongs' value='{- g.opponent_belongs -}' placeholder='所属会')
-        <% } %>
-        .large-3.small-10.columns.right
+        .large-4.small-12.columns
+          .row.collapse
+            .small-4.columns
+              %label.inline.right {- g.user_name -} : 
+            .small-4.columns
+              {{ _.make_result_select(g.result) }}
+            .small-4.columns
+              %input(type='text' name='score_str' value='{- g.score_str -}' placeholder='枚数')
+        .large-4.small-12.columns
+          .row.collapse
+            .small-5.columns
+              %input(type='text' name='opponent_name' value='{- g.opponent_name -}' placeholder='対戦相手')
+            <% if(data.round_kind == "team"){ %>
+            .small-7.columns
+              {{ _.make_order_num_select(g) }}
+            <% }else if(data.round_kind == "single"){ %>
+            .small-4.columns
+              %input(type='text' name='opponent_belongs' value='{- g.opponent_belongs -}' placeholder='チーム名')
+            .small-3.columns
+              {{ _.make_order_num_select(g) }}
+            <% }else{ %>
+            .small-7.columns
+              %input(type='text' name='opponent_belongs' value='{- g.opponent_belongs -}' placeholder='所属会')
+            <% } %>
+        .large-4.small-12.columns
           %input(type='text' name='comment' value='{- g.comment -}' placeholder='コメント')
     <% }) %>
     .row

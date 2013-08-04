@@ -144,6 +144,12 @@ define (require,exports,module) ->
       }
       @$el.html(@template(data:_.extend(data,@additional_render?(result,round_info))))
       @$el.appendTo(@options.target)
+      # モバイル端末などで大会結果がbodyの幅をはみ出た箇所で回戦の編集をしようとすると
+      # Foundation の reveal は body の中 (モバイル端末の画面外) に表示される
+      # なのであらかじめ body の中まで scroll しておく
+      # TODO: scroll するのではなく reveal をモバイル端末の画面内に表示されるようにする
+      if window.scrollTo? and window.pageYOffset?
+        window.scrollTo(0,window.pageYOffset)
 
   class ContestEditTeamRoundView extends ContestEditRoundBase
     events: _.extend(ContestEditRoundBase.prototype.events,

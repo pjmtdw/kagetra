@@ -3,8 +3,6 @@
 # SecrueRandom.base64(48) で作ること，これを設定しておけばサーバを再起動してもユーザのセッションが保持される
 # CONF_SESSION_SECRET = ""
 
-CONF_APP_NAME = "景虎"
-
 #CONF_DB_PATH = "sqlite3://#{Dir.pwd}/db/data.db"
 CONF_DB_PATH = "mysql://root:hogefuga@localhost/test"
 CONF_LOG_SIZE = 24 # deploy/logに置かれるログの最大サイズ(MB)

@@ -43,7 +43,7 @@ class MainApp < Sinatra::Base
       dm_response{
         BbsItem.transaction{
           title = @json["title"]
-          public = @public_mode || @json["public"].to_s.empty?.!
+          public = @public_mode || @json["public"]
           thread = BbsThread.create(title: title, public: public)
           create_item(thread)
         }

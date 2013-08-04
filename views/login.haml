@@ -3,6 +3,10 @@
 - content_for :js_start do
   login
 
+.row
+  .columns
+    %a(href='/mobile') [携帯版]
+
 #container-shared-pass
 #container-login
 
@@ -57,4 +61,4 @@
 
 /[if lt IE 9]
   %script
-    alert("Internet Explorer 8以下のブラウザは未対応です");
+    alert("Internet Explorer 8以下のブラウザは未対応です．携帯版を使用して下さい．");

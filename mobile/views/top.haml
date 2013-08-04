@@ -1,0 +1,16 @@
+%div ユーザ名: #{@user.name}
+%div 最終ログイン: #{@newly["last_login"]}
+%div 今月ログイン: #{@newly["log_mon"]}
+%ul
+  %li
+    %a(href='events') 大会情報
+  %li
+    %a(href='bbs/1') 掲示板
+  %li
+    %a(href='result') 大会結果
+  %li
+    %a(href='schedule') 予定表
+  %li
+    %a(href='wiki') Wiki
+  %li
+    %a(href='event_done') 過去の行事

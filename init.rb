@@ -43,3 +43,4 @@ require './helpers/init'
 require './routes/init'
 require './utils'
 
+require './mobile/init'

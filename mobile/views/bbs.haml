@@ -1,0 +1,30 @@
+%div
+  %a(href="top") [TOP]
+  %a(href="bbs/#{params[:page].to_i+1}") [次のページ]
+%hr
+  %form(method='post' action='bbs/thread')
+    %div
+      タイトル:
+      %input(type='text' name='title' size='40')
+    %div
+      %input(type='checkbox' name='public') 外部公開
+    %textarea(rows='5' cols='60' name='body')
+    %div
+      %input(type='submit' value='新スレッド作成')
+
+- @threads.each do |t|
+  %hr
+  %h3 ◆ #{t["title"]} #{if t["public"] then "&lt;公開スレッド&gt;" end}
+  - t["items"].each do |item|
+    %div
+      %b [#{item["user_name"].escape_html}@#{item["date"]}]
+      - if item["is_new"]
+        (new!)
+    %pre #{item["body"].escape_html}
+  %form(method='post' action='bbs/item/#{t["id"]}')
+    %textarea(rows='5' cols='60' name='body')
+    %div
+      %input(type='submit' value='コメント書き込み')
+%div
+  %a(href="top") [TOP]
+  %a(href="bbs/#{params[:page].to_i+1}") [次のページ]

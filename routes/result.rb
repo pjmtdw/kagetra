@@ -21,7 +21,7 @@ class MainApp < Sinatra::Base
 
       contest_classes = Hash[evt.result_classes.map{|c| [c.id,c.select_attr(:class_name,:num_person)]}]
 
-      evt.select_attr(:id,:name,:team_size,:date,:event_group_id).merge({
+      evt.select_attr(:id,:name,:team_size,:date,:event_group_id,:kind,:official).merge({
         recent_list: recent_list,
         group: group,
         team_size: evt.team_size,

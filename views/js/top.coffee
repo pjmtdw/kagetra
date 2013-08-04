@@ -13,15 +13,6 @@ define (require,exports,module) ->
         rs.push("<a href='#{hr}'>#{x[attr]}</a>")
       buf += rs.join(" / ")
       buf
-    show_kind_symbol: (kind,official) ->
-      s = switch kind
-            when "contest"
-              if official then "spades" else "clubs"
-            when "party"
-              "hearts"
-            else
-              "diams"
-      "<span class='event-symbol #{s}'>&#{s};</span>"
     show_date: (s) ->
       return "なし" unless s
       today = new Date()

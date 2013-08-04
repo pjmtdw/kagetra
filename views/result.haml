@@ -12,33 +12,34 @@
   .row
     .large-8.columns
       %ul.pagination
-        <% _.each(recent_list,function(x,i){ %>
-        %li.contest-link(data-id='{-x.id-}' class='{{x.id==id?"current":""}}')
-          <% if(i == 0 && x.id != id) { %>
+        <% _.each(data.recent_list,function(x,i){ %>
+        %li.contest-link(data-id='{-x.id -}' class='{{x.id==data.id?"current":""}}')
+          <% if(i == 0 && x.id != data.id) { %>
           %a &lsaquo;
-          <% }else if(i == recent_list.length - 1 && x.id != id) { %>
+          <% }else if(i == data.recent_list.length - 1 && x.id != data.id) { %>
           %a &rsaquo;
           <% }else{ %>
           %a {- x.name -}
           <% } %>
         <% }) %>
     .large-4.columns
-      <% if(!_.isEmpty(group)){ %>
+      <% if(!_.isEmpty(data.group)){ %>
       %a.small.button.split.dropdown
         %div#show-event-group 過去の結果
         %span(data-dropdown='contest-group')
       %ul#contest-group.f-dropdown
-        <% _.each(group,function(x){ %>
+        <% _.each(data.group,function(x){ %>
         %li.contest-link(data-id='{-x.id-}')
           %a.ellipsis {- x.date -} {- x.name -}
         <% }) %>
       <% } %>
       %button.small.round#contest-add 大会追加
-      %a(href='result/excel/{{id}}') 印刷用
+      %a(href='result/excel/{{data.id}}') 印刷用
   .row
     %div.contest-name-date
-      %span.contest-name {- name -} 
-      %span.contest-date @ {- date -}
+      %span.event-symbol {{_.show_kind_symbol(data.kind,data.official) }} 
+      %span.contest-name {- data.name -} 
+      %span.contest-date @ {- data.date -}
   .row
     .section-container.tabs(data-section="tabs")
       %section

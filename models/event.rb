@@ -120,6 +120,7 @@ class EventUserChoice
   belongs_to :user, required: false # Userにない人を登録できるようにするため required: false にしておく
   property :attr_value_id, Integer, allow_nil: false
   belongs_to :attr_value, 'UserAttributeValue'
+  property :cancel, Boolean, default: false # 登録取り消し
 
   before :save do
     if self.user then
@@ -129,7 +130,11 @@ class EventUserChoice
           self.attr_value = self.user.attrs.values.first(attr_key: ev.aggregate_attr)
         end
         # 一つの行事を複数選択することはできない
-        ev.choices.user_choices(user:self.user).destroy
+        ucs = ev.choices.user_choices(user:self.user)
+        if ucs.empty?.! and ucs.first.event_choice.positive then
+          self.cancel = true
+        end
+        ucs.destroy
       }
     end
   end

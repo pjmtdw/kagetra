@@ -5,6 +5,15 @@ define (require, exports, module) ->
   # メールアドレスにマッチする部分は PEAR::Mail_RFC822::isValidInetAddress()
   pat_url = new RegExp("((https?://[a-zA-Z0-9/:%#$&?()~.=+_-]+)|(([*+!.&#\$|\'\\%\/0-9a-z^_`{}=?~:-]+)@(([0-9a-z-]+\.)+[0-9a-z]{2,})))","gi")
   _.mixin
+    show_kind_symbol: (kind,official) ->
+      s = switch kind
+            when "contest"
+              if official then "spades" else "clubs"
+            when "party"
+              "hearts"
+            else
+              "diams"
+      "<span class='event-symbol #{s}'>&#{s};</span>"
     to_int_if_digit: (s)->
       # $("hoge").val() は String を返すのでそれを Int にする
       if isNaN(s) then s else parseInt(s)

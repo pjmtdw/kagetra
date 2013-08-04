@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
-  namespace '/mobile' do
-    get '/bbs/:page' do
+  namespace '/mobile/bbs' do
+    get '/:page' do
       @threads = call_api(:get,"/api/bbs/threads",{page:params[:page]})
       mobile_haml :bbs
     end
@@ -15,12 +15,12 @@ class MainApp < Sinatra::Base
         HEREDOC
       end
     end
-    post '/bbs/thread' do
+    post '/thread' do
       para = params.select_attr("body","title").merge(public:params[:public].to_s.empty?.!)
       res = call_api(:post,"/api/bbs/thread",para)
       mobile_bbs_response(res)
     end
-    post '/bbs/item/:thread_id' do
+    post '/item/:thread_id' do
       para = params.select_attr("thread_id","body")
       res = call_api(:post,"/api/bbs/item",para)
       mobile_bbs_response(res)

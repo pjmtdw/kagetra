@@ -68,10 +68,15 @@ module UserEnv
       property :user_agent, p::TrimString, length: 255, lazy: true
     end
     def set_env(req)
-      # TODO: DRY way to get the length of property ?
-      host = req.env["REMOTE_HOST"]
       addr = req.ip
       agent = req.user_agent
+      host =
+        begin
+          Resolv.getname(addr)
+        rescue Resolv::ResolvError => e
+          nil
+        end
+      # TODO: DRY way to get the length of property ?
       self.remote_host = host[0...72] if host
       self.remote_addr = addr[0...48] if addr
       self.user_agent = agent[0...255] if agent

@@ -6,5 +6,7 @@
     %link(rel="shortcut icon" href="/img/favicon.ico")
     %title #{G_APP_NAME} for mobile
   %body
+    %a(name="top")
     = yield
+    %a(href="#{env["REQUEST_URI"]}#top") [一番上へ]
 

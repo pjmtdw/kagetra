@@ -45,6 +45,7 @@ class MainApp < Sinatra::Base
     get "#{namespace}/comment/list/:id",private:private do
       page = if params[:page] then params[:page].to_i else 1 end
       thread = klass.get(params[:id].to_i)
+      return [] if thread.nil?
       chunks = thread.comments(order: [:created_at.desc,:id.desc]).chunks(COMMENTS_PER_PAGE)
       uidmap = {}
       

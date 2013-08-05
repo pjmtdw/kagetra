@@ -31,6 +31,15 @@ G_STORAGE_DIR = "./storage"
 
 G_DIMAPA = DiffPatchMatch.new
 
+# scripts/initial_config.rbで作られる属性
+G_INITIAL_ATTRIBUTES = {
+  "全員" => ["全員"],
+  "性" => ["男","女"],
+  "学年" => ["1年","2年","3年","4年","院生","社会人"],
+  "級" => ["A級","B級","C級","D級","E級"],
+  "段位" => ["0","1","2","3","4","5","6","7","8","9"],
+  "全日協" => ["○","×"]
+}
 G_CONTEST_DEFAULT_AGGREGATE_ATTR = "級" # 大会のデフォルトの集計属性
 G_CONTEST_DEFAULT_FORBIDDEN_ATTRS = {"全日協" => ["×"]} # 大会のデフォルトの参加不能属性
 G_PARTY_DEFAULT_AGGREGATE_ATTR = "学年" # 大会以外の行事のデフォルトの集計属性

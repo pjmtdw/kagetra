@@ -7,7 +7,17 @@ class MainApp < Sinatra::Base
   namespace '/api/result' do
     get '/contest/:id' do
       (evt,recent_list) = recent_contests(params[:id])
-
+      if evt.nil?
+        return {
+          name: "(大会結果はありません)",
+          recent_list: [],
+          group: [],
+          team_size: 1,
+          contest_classes: [],
+          contest_results: [],
+          id: -1,
+        }
+      end
       gr = evt.event_group
       group = if gr then 
                 fdate = if evt.date.nil? then Date.today else evt.date + 365*5 end
@@ -42,6 +52,8 @@ class MainApp < Sinatra::Base
                 {id: id.to_i}
               end
             )).first
+      return [nil,[]] if evt.nil?
+
       (pre,post) = [[:lt,:desc],[:gt,:asc]].map{|p,q|
         (cond & (Event.all(date:evt.date, :id.send(p) => evt.id) | Event.all(:date.send(p) => evt.date)))
         .all(order: [:date.send(q), :id.send(q)])[0...EVENTS_PER_PAGE]

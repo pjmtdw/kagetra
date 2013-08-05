@@ -37,6 +37,7 @@ end
 require 'openssl'
 require 'securerandom'
 require 'tempfile'
+require 'resolv'
 
 require './const'
 require './models/init'

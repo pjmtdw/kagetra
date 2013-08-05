@@ -3,9 +3,11 @@
 - content_for :js_start do
   login
 
-.row
+.row(style='padding-top:8px;')
   .columns
-    %a(href='/mobile/') [携帯版]
+    %a(href='/mobile/') [携帯用]
+    - G_TOP_BAR_ROUTE.select{|x|x[:public]}.each do |p|
+      %a(href='public/#{p[:route]}') [公開#{p[:name]}]
 
 #container-shared-pass
 #container-login
@@ -61,4 +63,4 @@
 
 /[if lt IE 9]
   %script
-    alert("Internet Explorer 8以下のブラウザは未対応です．携帯版を使用して下さい．");
+    alert("Internet Explorer 8以下のブラウザは未対応です．携帯用ページを使用して下さい．");

@@ -105,6 +105,7 @@ class MainApp < Sinatra::Base
     end
     get '/item/:id' do
       ev = Event.get(params[:id].to_i)
+      return {} if ev.nil?
       opts = Hash[[:detail,:edit,:no_participant].map{|x|[x,params[x]=="true"]}]
       event_info(ev,@user,opts)
     end
@@ -167,14 +168,18 @@ class MainApp < Sinatra::Base
     end
     get '/list' do
       events = Event.all(done:false)
+      if events.empty?
+        # BackboneのCollectionのsyncをtriggerするために空ではない配列を返す
+        [{name:"(大会／行事はありません)",choices:[],editable:false,comment_count:0,participant_count:0,id:-1,public:false}]
+      else
+        # 各eventごとに取得するのは遅いのでまとめて取得しておく
+        user_choices = @user.event_user_choices.event_choice(event:events).to_enum.with_object({}){|x,h|h[x.event_id]=x.id}
+        user_attr_values = @user.attrs.value.map{|v|v.id}
 
-      # 各eventごとに取得するのは遅いのでまとめて取得しておく
-      user_choices = @user.event_user_choices.event_choice(event:events).to_enum.with_object({}){|x,h|h[x.event_id]=x.id}
-      user_attr_values = @user.attrs.value.map{|v|v.id}
-
-      events.map{|ev|
-        event_info(ev,@user,{user_choices:user_choices,user_attr_values:user_attr_values})
-      }
+        events.map{|ev|
+          event_info(ev,@user,{user_choices:user_choices,user_attr_values:user_attr_values})
+        }
+      end
     end
     put '/choose/:cid' do
       Kagetra::Utils.dm_debug{

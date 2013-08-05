@@ -10,12 +10,10 @@
   %div
     %input(type='submit' value='コメント書き込み')
 %div
-  - if @info["pages"] > 1
-    - (1..@info["pages"]).each do |p|
-      - if (params[:page] or 1).to_i == p
-        %b [#{p}]
-      - else
-        %a(href='#{env["PATH_INFO"]}?page=#{p}') [#{p}]
+  = mobile_haml :pagination, locals: {info:@info}
 - @info["list"].each do |t|
   %b [ #{t["user_name"].escape_html}@#{t["date"]} ]
+  - if t["is_new"]
+    %b
+      %font(color='green') (new!)
   %pre #{t["body"].escape_html}

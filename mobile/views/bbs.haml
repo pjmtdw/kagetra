@@ -19,7 +19,9 @@
     %div
       %b [ #{item["user_name"].escape_html}@#{item["date"]} ]
       - if item["is_new"]
-        (new!)
+        %b
+          %font(color="green")
+            (new!)
     %pre #{item["body"].escape_html}
   %form(method='post' action='bbs/item/#{t["id"]}')
     %textarea(rows='5' cols='60' name='body')

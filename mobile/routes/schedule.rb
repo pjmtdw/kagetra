@@ -1,19 +1,6 @@
 # -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
   namespace '/mobile/schedule' do
-    def mobile_emphasis(item,key)
-      s = (item[key]||"").escape_html
-      if (item["emphasis"] || []).include?(key) then
-        s = "<b>#{s}</b>"
-      end
-      s
-    end
-    def mobile_paren_private(item,s)
-      if not item["public"] then
-        s = "(#{s})"
-      end
-      s
-    end
     get '/detail/:year-:month-:day' do
       @year = params[:year].to_i
       @month = params[:month].to_i

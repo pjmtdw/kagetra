@@ -39,5 +39,11 @@ class MainApp < Sinatra::Base
     @list = call_api(:get,"/api/event/list").sort_by{|x|x["date"] || "9999-12-31"}
     mobile_haml :event
   end
+  get '/mobile/event_done' do
+    qs = if params.has_key?("page") then {page:params[:page]} else {} end
+    @info = call_api(:get,"/api/schedule/ev_done",qs)
+    p @info
+    mobile_haml :event_done
+  end
   mobile_comment_routes("event")
 end

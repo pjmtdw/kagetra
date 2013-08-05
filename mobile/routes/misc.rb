@@ -1,5 +1,18 @@
 # -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
+  def mobile_emphasis(item,key)
+    s = (item[key]||"").escape_html
+    if (item["emphasis"] || []).include?(key) then
+      s = "<b>#{s}</b>"
+    end
+    s
+  end
+  def mobile_paren_private(item,s)
+    if not item["public"] then
+      s = "(#{s})"
+    end
+    s
+  end
   def self.mobile_comment_routes(namespace)
     get "/mobile/#{namespace}/comment/list/:from/:id" do
       qs = if params.has_key?("page") then {page:params[:page]} else {} end
@@ -16,8 +29,8 @@ class MainApp < Sinatra::Base
       HEREDOC
     end
   end
-  def mobile_haml(sym)
-    haml sym, views:"mobile/views", format: :xhtml
+  def mobile_haml(sym,rest={})
+    haml sym, rest.merge(views:"mobile/views", format: :xhtml)
   end
   def call_api(method,path,params={},content_type=:json)
     base = {
@@ -45,6 +58,8 @@ class MainApp < Sinatra::Base
   namespace '/mobile' do
     get '/top' do
       @newly = call_api(:get,"/api/user/newly_message")
+      @panel = call_api(:get,"/api/schedule/panel")
+      @deadline = call_api(:get,"/api/event/deadline_alert")
       mobile_haml :top
     end
     get '/' do

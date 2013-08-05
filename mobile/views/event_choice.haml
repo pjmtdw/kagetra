@@ -1,0 +1,11 @@
+- if ev["forbidden"]
+  %font(color='gray') 貴方は登録不可です
+- else
+  - ev["choices"].each_with_index do |c,i|
+    - if c["id"] == ev["choice"]
+      %b #{c["name"].escape_html}
+    - else
+      %a(href='event/choose/#{c["id"]}')
+        %font(color='maroon') #{c["name"].escape_html}
+    - if i < ev["choices"].size - 1
+      ／

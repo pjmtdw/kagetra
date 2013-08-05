@@ -223,6 +223,14 @@ class MainApp < Sinatra::Base
         EventGroup.get(params[:id].to_i).update(@json)
       }
     end
+    get '/deadline_alert' do
+      uav = @user.attrs.value.map{|v|v.id}
+      today = Date.today
+      Event.all(fields:[:id,:name,:deadline,:forbidden_attrs],:deadline.gte => today, :deadline.lt => today+G_DEADLINE_ALERT).map{|ev|
+        next if (ev.forbidden_attrs & uav).empty?.!
+        next if EventUserChoice.first(user_id:@user.id,EventUserChoice.event_choice.event_id => ev.id).nil?.!
+        ev.select_attr(:id,:name).merge(deadline_day:(ev.deadline-today).to_i)}.compact
+    end
   end
   comment_routes("/api/event",Event,EventComment,true)
 end

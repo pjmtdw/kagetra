@@ -2,6 +2,9 @@
   %a(href='top') [TOP]
   %a(href='#{params["from"]}') [戻る]
 %div
+  [ 選択肢 ]:
+  = mobile_haml :event_choice, locals:{ev:@res}
+%div
   [ 大会/行事名 ]: #{@res["name"].escape_html}
   - if @res["formal_name"]
     (#{@res["formal_name"].escape_html})

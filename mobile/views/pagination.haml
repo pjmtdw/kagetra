@@ -1,0 +1,6 @@
+- if info["pages"] > 1
+  - (1..info["pages"]).each do |p|
+    - if info["cur_page"]== p
+      %b [#{p}]
+    - else
+      %a(href='#{env["PATH_INFO"]}?page=#{p}') [#{p}]

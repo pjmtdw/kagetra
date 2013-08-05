@@ -3,24 +3,4 @@
 %a(href='schedule/cal/#{@date.prev_month(-1).strftime("%Y-%m")}') [来月]
 %h3 #{@year}年#{@month}月の予定表
 - (1..@info["month_day"]).each do |day|
-  - date = Date.new(@year,@month,day)
-  - dinfo = @info["day_infos"][day.to_s]
-  - event = @info["events"][day.to_s] || []
-  - item = @info["items"][day.to_s] || []
-  - color = if date.wday == 0 then 'red' elsif date.wday == 6 then 'blue' elsif dinfo and dinfo["is_holiday"] then 'red' else 'black' end
-  %div
-    %a(href='schedule/detail/#{@year}-#{@month}-#{day}')
-      %font(color='#{color}') #{day}(#{G_WEEKDAY_JA[date.wday]})
-    %i= if dinfo then dinfo["names"].join(" / ") end
-
-  - if event.empty?.! or item.empty?.!
-    %div
-      - event.each do |ev|
-        %div &nbsp;&nbsp;#{mobile_paren_private(ev,ev["name"].escape_html)}
-      - item.each do |it|
-        %div
-          &nbsp;&nbsp;#{mobile_paren_private(it,mobile_emphasis(it,"name"))}@#{mobile_emphasis(it,"place")}
-          = if it["start_at"] or it["end_at"] then "=&gt; #{mobile_emphasis(it,'start_at')}-#{mobile_emphasis(it,'end_at')}" end
-
-
-    
+  = mobile_haml :schedule_item, locals: {info:@info,year:@year,month:@month,day:day}

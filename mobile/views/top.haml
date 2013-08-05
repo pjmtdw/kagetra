@@ -1,6 +1,33 @@
 %div ユーザ名: #{@user.name}
 %div 最終ログイン: #{@newly["last_login"]}
 %div 今月ログイン: #{@newly["log_mon"]}
+
+- [["new_events","大会行事%d件追加","event/detail/top/%d"],
+   ["event_comment","大会行事に新着コメント%d件","event/comment/list/top/%d"],
+   ["bbs","掲示板に新着%d件","bbs"],
+   ["result_comment","大会結果に新着コメント%d件","event/comment/list/top/%d"],
+   ["ev_done_comment","過去の行事に新着コメント%d件","event/comment/list/top/%d"],
+   ["wiki","Wikiに新着コメント%d件","wiki/comment/list/top/%d"]].each do |key,prefix,url|
+  - list = @newly[key]
+  - next unless list.empty?.!
+  %div
+    #{prefix%(list.size)}:
+    - list.each do |x|
+      %a(href='#{url%x["id"]}') #{x["name"] || x["title"]}
+- if @deadline.empty?.!
+  %div
+    締切が迫っています:
+    - @deadline.each do |ev|
+      %div
+        - dd = ev["deadline_day"]
+        &nbsp;&nbsp;
+        = if dd == 0 then "今日" elsif dd == 1 then "明日" else "あと#{dd}日" end
+        \=&gt;
+        %a(href="event/detail/top/#{ev['id']}") #{ev['name']}
+%hr
+- @panel.each do |p|
+  = mobile_haml :schedule_item, locals: {info:p,year:p["year"],month:p["mon"],day:p["day"]}
+%hr
 %ul
   %li
     %a(href='event') 大会行事情報

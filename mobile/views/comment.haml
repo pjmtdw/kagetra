@@ -1,0 +1,13 @@
+%div
+  %a(href='top') [TOP]
+  %a(href='#{@prev_url}/#{params[:id]}') [戻る]
+%form(method='post' action='#{@namesp}/comment/item')
+  %input(type='hidden' name='thread_id' value='#{params[:id]}')
+  %div
+    %textarea(rows='5' cols='60' name='body')
+  %div
+    %input(type='submit' value='コメント書き込み')
+%h3= @info["thread_name"]
+- @info["list"].each do |t|
+  %b #{t["user_name"].escape_html}@#{t["date"]}
+  %pre #{t["body"].escape_html}

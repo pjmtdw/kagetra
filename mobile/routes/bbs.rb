@@ -11,7 +11,7 @@ class MainApp < Sinatra::Base
       else
         mobile_haml <<-HEREDOC
 書き込みました
-%a(href='bbs/1') [戻る]
+%a(href='bbs') [戻る]
         HEREDOC
       end
     end
@@ -25,5 +25,8 @@ class MainApp < Sinatra::Base
       res = call_api(:post,"/api/bbs/item",para)
       mobile_bbs_response(res)
     end
+  end
+  get '/mobile/bbs' do
+    call env.merge("PATH_INFO" => "/mobile/bbs/1")
   end
 end

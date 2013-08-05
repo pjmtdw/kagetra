@@ -47,9 +47,13 @@ class MainApp < Sinatra::Base
       thread = klass.get(params[:id].to_i)
       chunks = thread.comments(order: [:created_at.desc,:id.desc]).chunks(COMMENTS_PER_PAGE)
       uidmap = {}
+      
+      tsym = [:name,:title].find{|s|thread.respond_to?(s)}
+      tname = tsym && thread.send(tsym)
+
       list = chunks[page-1].map{|x|x.show(@user,@public_mode)}
       {
-        thread_name: if thread.respond_to?(:name) then thread.name end,
+        thread_name: tname,
         list: list,
         comment_count: thread.comment_count,
         has_new_comment: thread.has_new_comment(@user),

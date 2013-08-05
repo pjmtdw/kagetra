@@ -14,13 +14,14 @@ end
 # 掲示板の書き込み
 class BbsItem
   include ModelBase
-  include CommentBase
   belongs_to :thread, 'BbsThread'
+  # Hookは定義された順に実行されるので include CommentBase より前にこの Hook を入れないといけない
   before :save do
-    if self.user_name.empty? and self.thread.public and self.user and self.user.bbs_public_name.to_s.empty?.! then
+    if self.user_name.to_s.empty? and self.thread.public and self.user and self.user.bbs_public_name.to_s.empty?.! then
       self.user_name = self.user.bbs_public_name
     end
   end
+  include CommentBase
   after :create do
     th = self.thread
     if th.first_item.nil? then

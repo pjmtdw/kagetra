@@ -12,6 +12,8 @@ gem 'compass','0.12.2' # css authoring framework
 gem 'redcarpet','3.0.0' # markdown to (x)html converter
 gem 'spreadsheet','0.8.7' # make Microsoft Excel files
 
+gem 'nokogiri','1.6.0' # HTML parser
+
 # you have to `apt-get install libmagickwand-dev` to install rmagick
 # as for CentOS, do `yum install ImageMagick-devel`
 gem 'rmagick','2.13.2' # ImageMagick interface
@@ -20,8 +22,9 @@ gem 'rubyzip','0.9.9' # zip/unzip archive
 
 gem 'data_mapper','1.2.0' # ORM
 
-# you have to install mysql client library
+# you have to install mysql client library to install mysql-adapter
 gem 'dm-mysql-adapter','1.2.0'
+
 gem 'dm-chunked_query','0.3.1'
 
 # only used in hagakure scripts

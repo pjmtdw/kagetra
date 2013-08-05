@@ -1,5 +1,20 @@
 # -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
+  def self.mobile_comment_routes(namespace,prev_url)
+    get "/mobile/#{namespace}/comment/list/:id" do
+      @info = call_api(:get,"/api/#{namespace}/comment/list/#{params[:id]}")
+      @namesp = namespace
+      @prev_url = prev_url
+      mobile_haml :comment
+    end
+    post "/mobile/#{namespace}/comment/item" do
+      res = call_api(:post,"/api/#{namespace}/comment/item",params)
+      mobile_haml <<-HEREDOC
+書き込みました
+%a(href='#{namespace}/comment/list/#{params["thread_id"]}') [戻る]
+      HEREDOC
+    end
+  end
   def mobile_haml(sym)
     haml sym, views:"mobile/views", format: :xhtml
   end

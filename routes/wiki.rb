@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base 
   ATTACHED_LIST_PER_PAGE = 50
-  WIKI_ALL_PER_PAGE = 50
+  WIKI_ALL_PER_PAGE = 30
   WIKI_LOG_PER_PAGE = 10
   WIKI_LOG_MAX_PAGE = 20 # 現在過去ログは遅いのでページ制限を設ける TODO: ページ制限をなくす
   MARKDOWN = Redcarpet::Markdown.new(

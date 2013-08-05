@@ -203,10 +203,10 @@ define (require,exports,module) ->
 
   init: ->
     window.wiki_router = new WikiRouter()
-    # id が 1 のものは StartPage として特別扱い
+    # id が 1 のものは Home として特別扱い
     window.wiki_viewlog = []
     if not _.is_public_mode()
-      window.wiki_viewlog.push(["1","StartPage"])
+      window.wiki_viewlog.push(["1","Home"])
     Backbone.history.start()
 
 

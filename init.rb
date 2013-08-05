@@ -21,6 +21,8 @@ require './libs/diff_match_patch-ruby/diff_match_patch.rb'
 require 'RMagick'
 require 'zip/zip' # RubyZip
 
+require 'nokogiri'
+
 require 'data_mapper'
 require 'dm-chunked_query'
 require 'spreadsheet'

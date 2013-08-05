@@ -1,0 +1,17 @@
+%div
+  %a(href='top') [TOP]
+  %a(href='wiki') [Index]
+  %a(href='wiki/item/1') [Home]
+  %a(href='wiki/item/#{params[:id]}') [ページ]
+  %a(href='wiki/comment/list/#{params[:id]}') [コメント]
+%div
+- (1..@info["pages"]).each do |p|
+  %a(href='wiki/attached_list/#{params[:id]}?page=#{p}') [#{p}]
+%table(border=1 cellspacing=0 cellpadding=3)
+  - @info["list"].each do |x|
+    %tr
+      %td
+        %a(href='/static/wiki/attached/#{x["id"]}')= x["orig_name"]
+      %td= mobile_show_bytes(x["size"])
+      %td= x["date"]
+      %td= (x["description"]||"").escape_html

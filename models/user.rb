@@ -11,7 +11,7 @@ class User
   property :admin,          Boolean, default: false # 管理者
   property :loginable,      Boolean, default: true # ログインできるか
   property :permission, Flag[:sub_admin]
-  property :bbs_public_name, TrimString, length: 24, lazy: true
+  property :bbs_public_name, TrimString, length: 24, lazy: true # 掲示板に書き込むときの名前(公開スレッド)
   property :show_new_from, DateTime # 掲示板, コメントなどの新着メッセージはこれ以降の日時のものを表示
 
   has n, :attrs, 'UserAttribute'

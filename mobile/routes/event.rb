@@ -16,16 +16,6 @@ class MainApp < Sinatra::Base
       HEREDOC
     end
   end
-  def mobile_event_symbol(kind,official)
-    case kind
-    when "contest"
-      if official then "★" else "<font color='green'>■</font>" end
-    when "party"
-      "<font color='#FF6666'>●</font>"
-    when "etc"
-      "<font color='#187CB4'>◆</font>"
-    end
-  end
   def mobile_show_event_date(s)
     dt = Date.parse(s)
     today = Date.today

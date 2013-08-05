@@ -1,5 +1,15 @@
 # -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
+  def mobile_event_symbol(kind,official)
+    case kind
+    when "contest"
+      if official then "★" else "<font color='green'>■</font>" end
+    when "party"
+      "<font color='#FF6666'>●</font>"
+    when "etc"
+      "<font color='#187CB4'>◆</font>"
+    end
+  end
   def mobile_emphasis(item,key)
     s = (item[key]||"").escape_html
     if (item["emphasis"] || []).include?(key) then

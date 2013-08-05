@@ -1,0 +1,20 @@
+- model["user_results"].each do |r|
+  %div
+    [ #{r["user_name"].escape_html} ]
+    - if r["prize"]
+      - p = r["prize"]
+      入賞:
+      %b
+        = p["prize"].escape_html
+        = if p["point"] then p["point"].to_s+"pt" end
+        = if p["point_local"] then p["point_local"].to_s+"kpt" end
+  %table
+    - r["game_results"].each_with_index do |g,i|
+      %tr
+        %td= model["rounds"][i]["name"] || (i+1).to_s + "回戦"
+        %td= mobile_result_string(g["result"])
+        %td(align='right')= g["score_str"].to_s.escape_html
+        %td= g["opponent_name"].to_s.escape_html
+        %td= if g["opponent_belongs"] then "(#{g['opponent_belongs'].escape_html})" end
+        %td= g["comment"].to_s.escape_html
+

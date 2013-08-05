@@ -58,7 +58,7 @@ class MainApp < Sinatra::Base
         (pre[0...HALF_PAGE].reverse + [evt] + post[0...HALF_PAGE]).reverse
       end
 
-      list = all.map{|x| x.select_attr(:id,:name)}
+      list = all.map{|x| x.select_attr(:id,:name,:date)}
       [evt,list]
     end
 

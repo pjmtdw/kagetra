@@ -1,0 +1,28 @@
+%a(href='top') [TOP]
+%ul
+  - @info["recent_list"].each do |ev|
+    %li
+      %a(href='result/contest/#{ev["id"]}') #{ev["name"].escape_html}
+      @#{ev["date"]}
+%h3
+  #{mobile_event_symbol(@info["kind"],@info["official"])} #{@info["name"].escape_html}@#{@info["date"]}
+%a(href='event/detail/result.contest.#{@info["id"]}/#{@info["id"]}') [詳細]
+%a(href='event/comment/list/result.contest.#{@info["id"]}/#{@info["id"]}') [コメント]
+
+- cur_class = nil
+- @info["contest_results"].each do |m|
+  %div
+    - if m["class_id"] != cur_class
+      - cur_class = m["class_id"]
+      - p "hoge"
+      - cinfo = @info["contest_classes"][cur_class.to_s]
+      %hr
+      %h4
+        \= #{cinfo["class_name"]}
+        - if cinfo["num_person"]
+          \: #{cinfo["num_person"]}人
+        \=
+    - if @info["team_size"] == 1
+      = mobile_haml :result_single, locals:{model:m}
+    - else
+      = mobile_haml :result_team, locals:{model:m}

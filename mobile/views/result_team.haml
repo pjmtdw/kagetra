@@ -1,0 +1,28 @@
+%div
+  [チーム名]: #{model["header_left"]["team_name"].to_s.escape_html}
+%div
+  [入賞/順位]: #{model["header_left"]["team_prize"].to_s.escape_html}
+  - prize = model["user_results"].map{|x|if x["prize"] then {"user_name" => x["user_name"]}.merge(x["prize"]) end}.compact
+  - if prize.empty?.!
+    %div
+      [個人賞]:
+      - prize.each do |p|
+        %div &nbsp;&nbsp;#{p["user_name"]} #{p["prize"]} #{p["point_local"]}kpt
+
+
+- model["rounds"].each_with_index do |round,i|
+  %div
+    {#{round["name"] || (i+1).to_s + "回戦"}} =&gt;
+    = if round["kind"] == "team" then round["op_team_name"] else "(個人戦)" end
+  %table
+    - res = model["user_results"].map{|x|{"user_name" => x["user_name"]}.merge(x["game_results"][i])}
+    - res.each do |g|
+      - next if g["result"] == "break"
+      %tr
+        %td= g["user_name"].escape_html
+        %td= mobile_result_string(g["result"])
+        %td(align='right')= g["score_str"].to_s.escape_html
+        %td= g["opponent_name"].to_s.escape_html
+        %td= mobile_show_opponent_belongs(g)
+        %td= g["comment"].to_s.escape_html
+%br

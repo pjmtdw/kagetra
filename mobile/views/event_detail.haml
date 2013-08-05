@@ -1,0 +1,37 @@
+%div
+  %a(href='top') [TOP]
+  %a(href='#{params["from"]}') [戻る]
+%div
+  [ 大会/行事名 ]: #{@res["name"].escape_html}
+  - if @res["formal_name"]
+    (#{@res["formal_name"].escape_html})
+%div
+  [ 種別 ]:
+  - if @res["kind"] == "contest" then
+    #{if @res["official"] then "公認" else "非公認" end} #{if @res["team_size"] == 1 then "個人戦" else "#{@res['team_size']}人団体戦" end}
+  - else
+    #{G_EVENT_KINDS[@res["kind"].to_sym]}
+%div
+  [ 場所 ]: #{@res["place"].to_s.escape_html}
+%div
+  [ 日時 ]: #{@res["date"]}
+  - if @res["start_at"] or @res["end_at"]
+    #{@res["start_at"]} - #{@res["end_at"]}
+%div
+  [ 締切日 ]: #{@res["deadline"]}
+%div
+  [ 備考 ]:
+  %pre #{@res["description"].to_s.escape_html}
+%div
+  [ 登録者 ]:
+  - choices = if @res["participant"].has_key?("-1") then [{"name"=>"登録者","positive"=>true,"id"=>-1}] else @res["choices"] end
+  - choices.select{|c|c["positive"]}.each do |c|
+    - p = if @res["participant"] then @res["participant"][c["id"].to_s] else [] end
+    - pattrs = Hash[@res["participant_attrs"]]
+    %div
+      ・#{c["name"].escape_html} (#{p.map{|x|x[1]}.flatten.size})
+      - p.each do |q|
+        %div
+          &nbsp;&nbsp;&nbsp;&nbsp;{#{pattrs[q[0]]}} =&gt;
+          = q[1].map{|x| @res["participant_names"][x.to_s]}.join(", ").escape_html
+

@@ -1,0 +1,26 @@
+%a(href='top') [TOP]
+- @list.each do |ev|
+  %hr
+  %div
+    - if ev["date"]
+      %b #{mobile_show_event_date(ev["date"])}
+    #{mobile_event_symbol(ev["kind"],ev["official"])} #{ev["name"].escape_html}
+    - if ev["deadline"]
+      %i (締切: #{mobile_show_event_date(ev["deadline"])})
+  %div
+    &nbsp;&nbsp;&nbsp;
+    %a(href='event/detail/event/#{ev["id"]}') [詳細(#{ev["participant_count"]}人)]
+    %a(href='event/comment/list/event/#{ev["id"]}') [コメント(#{ev["comment_count"]})]
+    &lt;
+    - if ev["forbidden"]
+      %font(color='gray') 貴方は登録不可です
+    - else
+      - ev["choices"].each_with_index do |c,i|
+        - if c["id"] == ev["choice"]
+          %b #{c["name"].escape_html}
+        - else
+          %a(href='event/choose/#{c["id"]}')
+            %font(color='maroon') #{c["name"].escape_html}
+        - if i < ev["choices"].size - 1
+          ／
+    &gt;

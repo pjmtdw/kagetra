@@ -1,13 +1,21 @@
 %div
   %a(href='top') [TOP]
-  %a(href='#{@prev_url}/#{params[:id]}') [戻る]
-%form(method='post' action='#{@namesp}/comment/item')
+  - if @prev_url.empty?.!
+    %a(href='#{@prev_url}') [戻る]
+%h3= @info["thread_name"]
+%form(method='post' action='#{@namesp}/comment/#{params[:from]}/item')
   %input(type='hidden' name='thread_id' value='#{params[:id]}')
   %div
     %textarea(rows='5' cols='60' name='body')
   %div
     %input(type='submit' value='コメント書き込み')
-%h3= @info["thread_name"]
+%div
+  - if @info["pages"] > 1
+    - (1..@info["pages"]).each do |p|
+      - if (params[:page] or 1).to_i == p
+        %b [#{p}]
+      - else
+        %a(href='#{env["PATH_INFO"]}?page=#{p}') [#{p}]
 - @info["list"].each do |t|
-  %b #{t["user_name"].escape_html}@#{t["date"]}
+  %b [ #{t["user_name"].escape_html}@#{t["date"]} ]
   %pre #{t["body"].escape_html}

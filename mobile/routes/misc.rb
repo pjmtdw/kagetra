@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
-  def self.mobile_comment_routes(namespace,prev_url)
-    get "/mobile/#{namespace}/comment/list/:id" do
-      @info = call_api(:get,"/api/#{namespace}/comment/list/#{params[:id]}")
+  def self.mobile_comment_routes(namespace)
+    get "/mobile/#{namespace}/comment/list/:from/:id" do
+      qs = if params.has_key?("page") then {page:params[:page]} else {} end
+      @info = call_api(:get,"/api/#{namespace}/comment/list/#{params[:id]}",qs)
       @namesp = namespace
-      @prev_url = prev_url
+      @prev_url = params[:from].to_s.gsub(".","/")
       mobile_haml :comment
     end
-    post "/mobile/#{namespace}/comment/item" do
+    post "/mobile/#{namespace}/comment/:from/item" do
       res = call_api(:post,"/api/#{namespace}/comment/item",params)
       mobile_haml <<-HEREDOC
 書き込みました
-%a(href='#{namespace}/comment/list/#{params["thread_id"]}') [戻る]
+%a(href='#{namespace}/comment/list/#{params[:from]}/#{params[:thread_id]}') [戻る]
       HEREDOC
     end
   end
@@ -26,7 +27,7 @@ class MainApp < Sinatra::Base
     case method
     when :get
       base["QUERY_STRING"] = build_query(params)
-    when :post
+    when :post,:put
       if content_type == :json
         base["CONTENT_TYPE"] = "application/json"
         base["rack.input"] = StringIO.new(params.to_json)

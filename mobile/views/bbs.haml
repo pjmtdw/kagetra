@@ -17,7 +17,7 @@
   %h3 ◆ #{t["title"]} #{if t["public"] then "&lt;公開スレッド&gt;" end}
   - t["items"].each do |item|
     %div
-      %b [#{item["user_name"].escape_html}@#{item["date"]}]
+      %b [ #{item["user_name"].escape_html}@#{item["date"]} ]
       - if item["is_new"]
         (new!)
     %pre #{item["body"].escape_html}

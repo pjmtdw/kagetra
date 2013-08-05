@@ -2,10 +2,10 @@
 %h3 #{@year}年#{@month}月#{@day}日
 - @info["events"].each do |ev|
   %div
-    [#{ev['start_at']}-#{ev['end_at']}] #{ev['name'].escape_html}@#{(ev['place']||"").escape_html}
+    [#{ev['start_at']}-#{ev['end_at']}] #{ev['name'].escape_html}@#{ev['place'].to_s.escape_html}
 - @info['list'].each do |it|
   %div
-    [#{it['start_at']}-#{it['end_at']}] #{it['name'].escape_html}@#{(it['place']||"").escape_html}
+    [#{it['start_at']}-#{it['end_at']}] #{it['name'].escape_html}@#{it['place'].to_s.escape_html}
   - if it['description']
     %pre= it['description'].escape_html
 

@@ -34,5 +34,5 @@ class MainApp < Sinatra::Base
   get '/mobile/wiki' do
     call env.merge("PATH_INFO" => "/mobile/wiki/item/all")
   end
-  mobile_comment_routes("wiki","wiki/item")
+  mobile_comment_routes("wiki")
 end

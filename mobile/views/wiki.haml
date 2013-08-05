@@ -4,6 +4,6 @@
   %a(href='wiki/item/1') [Home]
   -if params[:id] != "all"
     %a(href='wiki/attached_list/#{params[:id]}') [添付ファイル]
-    %a(href='wiki/comment/list/#{params[:id]}') [コメント]
+    %a(href='wiki/comment/list/wiki.item.#{params[:id]}/#{params[:id]}') [コメント]
 %h3 #{@title.escape_html}
 = @html

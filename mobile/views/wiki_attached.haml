@@ -3,7 +3,7 @@
   %a(href='wiki') [Index]
   %a(href='wiki/item/1') [Home]
   %a(href='wiki/item/#{params[:id]}') [ページ]
-  %a(href='wiki/comment/list/#{params[:id]}') [コメント]
+  %a(href='wiki/comment/list/wiki.item.#{params[:id]}/#{params[:id]}') [コメント]
 %div
 - (1..@info["pages"]).each do |p|
   %a(href='wiki/attached_list/#{params[:id]}?page=#{p}') [#{p}]
@@ -14,4 +14,4 @@
         %a(href='/static/wiki/attached/#{x["id"]}')= x["orig_name"]
       %td= mobile_show_bytes(x["size"])
       %td= x["date"]
-      %td= (x["description"]||"").escape_html
+      %td= x["description"].to_s.escape_html

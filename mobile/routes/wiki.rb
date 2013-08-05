@@ -27,7 +27,6 @@ class MainApp < Sinatra::Base
     get '/attached_list/:id' do
       qs = if params.has_key?("page") then {page:params[:page]} else {} end
       @info = call_api(:get,"/api/wiki/attached_list/#{params[:id]}",qs)
-      p @info
       mobile_haml :wiki_attached
     end 
   end

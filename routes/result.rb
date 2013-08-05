@@ -378,7 +378,6 @@ class MainApp < Sinatra::Base
             rname = @json["round_name"]
             rkind = @json["round_kind"].to_sym
             opname = @json["op_team_name"]
-            p opname
             if opname == "delete" then
               team.opponents.first(round:round).destroy()
               return

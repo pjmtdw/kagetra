@@ -11,7 +11,6 @@ requirejs.config
     "foundation.dropdown": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/foundation/foundation.dropdown.min"
     "foundation.section": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/foundation/foundation.section.min"
     "foundation.alerts": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/foundation/foundation.alerts.min"
-    "foundation.forms": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/foundation/foundation.forms.min"
     "foundation.magellan": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/foundation/foundation.magellan.min"
     "foundation.tooltips": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/foundation/foundation.tooltips.min"
     modernizr: "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/vendor/custom.modernizr.min"
@@ -41,7 +40,6 @@ requirejs.config
     "foundation.dropdown": deps: ["foundation"]
     "foundation.section": deps: ["foundation"]
     "foundation.alerts": deps: ["foundation"]
-    "foundation.forms": deps: ["foundation"]
     "foundation.magellan": deps: ["foundation"]
     "foundation.tooltips": deps: ["foundation"]
     "crypto-hmac": deps: ["crypto"]
@@ -50,7 +48,7 @@ requirejs.config
     "crypto-aes": deps: ["crypto"]
 
 require ["zep_or_jq","myutil","backbone","select2"
-     "foundation.reveal","foundation.topbar","foundation.dropdown","foundation.section","foundation.alerts","foundation.forms","foundation.magellan","foundation.tooltips"], ->
+     "foundation.reveal","foundation.topbar","foundation.dropdown","foundation.section","foundation.alerts","foundation.magellan","foundation.tooltips"], ->
   # simply-deferred を使う場合は下記が必要
   # 現在は jquery の select2 プラグインを使用しているため zepto は使わない方針
   # zep_or_jq は常にjqueryを返すようになっている 

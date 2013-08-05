@@ -168,7 +168,6 @@ define (require, exports, module) ->
     render_edit: ->
       @edit_mode = true
       @$el.html(@template_edit(data:@model.toJSON()))
-      @$el.foundation("forms","init")
   ScheduleDetailEventView = Backbone.View.extend
     events:
       "click .detail" : "show_detail"

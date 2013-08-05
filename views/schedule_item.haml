@@ -74,45 +74,45 @@
 %script#templ-schedule-detail-item-edit(type='text/template')
   %hr
   .detail-item-edit
-    %form.item-detail-form.left.custom
+    %form.item-detail-form.left
       .row
         .large-12.columns
           .row
             .large-6.columns
               .row
-                .large-9.columns
+                .large-9.small-6.columns
                   %input(type='text' name='name' value='{- data.name -}' placeholder='タイトル')
-                .large-3.columns
+                .large-3.small-6.columns
                   {{_.make_checkbox(data.emph_name,{name:'emph_name'})}} 強調
 
             .large-6.columns
               .row
-                .large-6.columns
+                .large-6.small-6.columns
                   %select(name='kind')
                     %option 練習
                     %option コンパ
                     %option その他 
-                .large-6.columns
+                .large-6.small-6.columns
                   {{_.make_checkbox(data.public,{name:'public'})}} 公開
       .row
         .large-12.columns
           .row
-            .large-9.columns
+            .large-9.small-6.columns
               %input(type='text' name='place' value='{- data.place -}' placeholder='場所' )
-            .large-3.columns
+            .large-3.small-6.columns
               {{_.make_checkbox(data.emph_place,{name:'emph_place'})}} 強調
       .row
-        .large-6.small-6.columns
+        .large-6.small-12.columns
           .row
-            .large-9.columns
+            .large-9.small-6.columns
               %input(type='text' name='start_at' value='{- data.start_at -}' placeholder='開始 ( hh:mm )' )
-            .large-3.columns
+            .large-3.small-6.columns
               {{_.make_checkbox(data.emph_start_at,{name:'emph_start_at'})}} 強調
-        .large-6.small-6.columns
+        .large-6.small-12.columns
           .row
-            .large-9.columns
+            .large-9.small-6.columns
               %input(type='text' name='end_at' value='{- data.end_at -}' placeholder='終了 ( hh:mm )' )
-            .large-3.columns
+            .large-3.small-6.columns
               {{_.make_checkbox(data.emph_end_at,{name:'emph_end_at'})}} 強調
       .row
         .large-12.small-12.columns

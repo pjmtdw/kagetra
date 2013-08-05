@@ -14,7 +14,6 @@
   %div
     - if m["class_id"] != cur_class
       - cur_class = m["class_id"]
-      - p "hoge"
       - cinfo = @info["contest_classes"][cur_class.to_s]
       %hr
       %h4

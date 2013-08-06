@@ -14,6 +14,9 @@
       .schedule-item(data-schedule-id='{{o.id}}')
         %span.title {{ _.show_name_public(o) }}
         {{ _.show_schedule_emphasis(o) }}
+        <% if(o.description){ %>
+        %span.has-tip(data-tooltip title='{- o.description -}') ※
+        <% } %>
       <% }) %>
 %script#templ-schedule-item-edit-info(type='text/template')
   .info-item-edit

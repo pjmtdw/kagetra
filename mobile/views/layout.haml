@@ -1,4 +1,4 @@
-!!! Mobile
+!!!
 %html
   %head
     %base(href='/mobile/')
@@ -8,5 +8,6 @@
   %body
     %a(name="top")
     = yield
-    %a(href="#{env["REQUEST_URI"]}#top") [一番上へ]
+    %div
+      %a(href="#{env["REQUEST_URI"]}#top") [一番上へ]
 

@@ -8,6 +8,8 @@
   #{mobile_event_symbol(@info["kind"],@info["official"])} #{@info["name"].escape_html}@#{@info["date"]}
 %a(href='event/detail/result.contest.#{@info["id"]}/#{@info["id"]}') [詳細]
 %a(href='event/comment/list/result.contest.#{@info["id"]}/#{@info["id"]}') [コメント]
+- if @info["team_size"] == 1 then
+  %a(href='result/edit_start/#{@info["id"]}') [結果編集]
 
 - cur_class = nil
 - @info["contest_results"].each do |m|

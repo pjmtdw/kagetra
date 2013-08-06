@@ -40,7 +40,7 @@ class MainApp < Sinatra::Base
     end
   end
   def mobile_haml(sym,rest={})
-    haml sym, rest.merge(views:"mobile/views", format: :xhtml)
+    haml sym, rest.merge(views:"mobile/views", format: :html4)
   end
   def call_api(method,path,params={},content_type=:json)
     base = {

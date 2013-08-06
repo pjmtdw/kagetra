@@ -1,0 +1,24 @@
+%h3 #{@info["name"]}
+%div
+  %a(href="result/contest/#{@info["id"]}") [戻る]
+%hr
+%form(method='post' action='result/update_num_person/#{params[:id]}')
+  %input(type='submit' value='人数送信')
+  - @info["contest_results"].each do |res|
+    - cl = @classes[res["class_id"].to_s]
+    %div
+      #{cl["class_name"]}:
+      %input(type='text' name='num_person_#{res["class_id"]}' size='4' value='#{cl["num_person"]}')人
+    %div
+      %div
+        - prizes = res["prizes"]
+        %a(href="result/edit_prize/#{@info["id"]}/#{res["class_id"]}") [入賞者]
+        #{res["user_results"].select{|x|x["prize"]}.size}人
+    - (1..res["rounds"].size+1).each do |round|
+      %div
+        - games = res["user_results"].map{|x|x["game_results"][round-1]}.compact.count
+        %a(href='result/edit_round/#{@info["id"]}/#{res["class_id"]}/#{round}') [#{round}回戦]
+        #{games}試合
+    %br
+ 
+

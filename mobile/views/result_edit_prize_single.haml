@@ -1,0 +1,26 @@
+%h3 #{@info["name"]} #{@classes[params[:class_id]]["class_name"]} 入賞者
+%a(href='result/edit_start/#{@info["id"]}') [戻る]
+%hr
+%div &quot;優勝(昇級)&quot; のように昇級やダッシュなどは()で囲って下さい
+%form(method='post' action='result/edit_prize/#{@info["id"]}/#{params[:class_id]}')
+  %input(type='submit' value='入賞送信')
+  - @info["contest_results"].each do |res|
+    - next unless res["class_id"].to_s == params[:class_id]
+    - cl = @classes[res["class_id"].to_s]
+    %div
+      %b [ #{cl["class_name"]} ]
+    - res["user_results"].each do |r|
+      - pr = r["prize"]
+      %div
+        #{r["user_name"]} =&gt;入賞:
+        %input(name='prize_#{r["cuid"]}' type='text' size='10' value='#{pr && pr["prize"]}')
+        ポイント:
+        %select(name='point_#{r["cuid"]}')
+          %option(value='0') 0
+          - G_SINGLE_POINT.each do |p|
+            %option{value:p,selected:p==(pr && pr["point"])}= p
+        会内ポイント:
+        %select(name='point_local_#{r["cuid"]}')
+          %option(value='0') 0
+          - G_SINGLE_POINT_LOCAL.each do |p|
+            %option{value:p,selected:p==(pr && pr["point_local"])}= p

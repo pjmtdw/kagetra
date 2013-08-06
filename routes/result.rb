@@ -78,12 +78,17 @@ class MainApp < Sinatra::Base
     def contest_results_single(evt)
       # 後で少しずつ取得するのは遅いのでまとめて取得
       cls = evt.result_classes
-      ugattrs = [:result,:opponent_name,:opponent_belongs,:score_str,:comment]
-      user_games = cls.single_games.all(fields:[:contest_user_id,*ugattrs]).map{|gm|
+      ugattrs = [:result,:opponent_name,:opponent_belongs,:score_str,:comment,:round]
+      user_games = cls.single_games.all(order:[:round.asc],fields:[:contest_user_id,*ugattrs]).map{|gm|
         [gm.contest_user_id,gm.select_attr(*ugattrs)]
       }.each_with_object(Hash.new{[]}){|(uid,attrs),h|
+        if h[uid].empty?.! and attrs[:round] != h[uid].last[:round] +1 then
+          # 回戦に抜けがあった場合は休みを入れる
+          h[uid] += [{result: :break}] * (attrs[:round]-h[uid].last[:round]-1)
+        end
         h[uid] <<= attrs
       }
+
       prattrs = [:prize, :point, :point_local]
       prizes = Hash[cls.prizes.all(fields:[:contest_user_id,*prattrs]).map{|p|
         [p.contest_user_id, p.select_attr(*prattrs)]
@@ -135,9 +140,8 @@ class MainApp < Sinatra::Base
           (score[index],score_opt[index]) =
             case m[:result]
               when :win then ["A","A"]
-              when :default_win then ["A","B"]
               when :lose then ["C","C"]
-              when :now then ["A","B"]
+              else ["A","B"]
             end
             temp_res[uid] = {
               score: score,
@@ -405,7 +409,7 @@ class MainApp < Sinatra::Base
           end
           @json["results"].each{|x|
             cond = condbase.merge({contest_user_id: x["cuid"]})
-            if x["result"].nil? then
+            if x["result"].to_s.empty? then
               ContestGame.first(cond).tap{|y|if y then y.destroy() end}
             else
               ContestGame.update_or_create(

@@ -96,7 +96,7 @@ class MainApp < Sinatra::Base
     end
     def make_item(x)
       return unless x
-      base = x.select_attr(:id,:kind,:name,:place,:start_at,:end_at,:public)
+      base = x.select_attr(:id,:kind,:name,:place,:start_at,:end_at,:public,:description)
       base[:emphasis] = x.emphasis if x.emphasis.empty?.!
       base
     end

@@ -106,6 +106,10 @@ define (require,exports,module) ->
           $("#container-result-edit").foundation("reveal","close")
           for r in result.get('user_results')
             if data.results[r.cuid]
+              # 回戦に抜けがある場合は休みを入れる
+              if r.game_results.length < that.options.round - 1
+                for i in [1..(that.options.round - r.game_results.length - 1)]
+                  r.game_results.push({result:"break"})
               r.game_results[that.options.round-1] = data.results[r.cuid]
             else
               delete r.game_results[that.options.round-1]
@@ -316,7 +320,7 @@ define (require,exports,module) ->
   class ContestEditSinglePrizeView extends ContestEditPrizeBase
     additional_render: (result)->
       {
-        message: "※ \"優勝(昇級)\" のように昇級やダッシュなどは()で囲って下さい"
+        message: "※ &quot;優勝(昇級)&quot; のように昇級やダッシュなどは()で囲って下さい"
         point_local_key: "single_point_local"
       }
 
@@ -325,7 +329,7 @@ define (require,exports,module) ->
     additional_render: (result)->
       hl = result.get('header_left')
       {
-        message: "※ \"優勝(昇級)\" のように昇級や陥落などは()で囲って下さい"
+        message: "※ &quot;優勝(昇級)&quot; のように昇級や陥落などは()で囲って下さい"
         team_prize: hl.team_prize
         no_point: true
         point_local_key: "team_point_local"

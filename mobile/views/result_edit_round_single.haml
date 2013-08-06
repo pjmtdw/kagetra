@@ -1,0 +1,27 @@
+%h3 #{@info["name"]} #{@classes[params[:class_id]]["class_name"]} #{params[:round]}回戦
+%a(href='result/edit_start/#{@info["id"]}') [戻る]
+%hr
+%form(method='post' action='result/edit_round/#{@info["id"]}/#{params[:class_id]}/#{params[:round]}')
+  %input(type='submit' value='結果送信')
+  %div
+  - @info["contest_results"].each do |res|
+    - next unless res["class_id"].to_s == params[:class_id]
+    回戦名:
+    %input(type='text' name='round_name' value='#{(res["rounds"][params[:round].to_i-1]||{'name'=>''})["name"]}')
+    - res["user_results"].each do |r|
+      %div
+        - cuid = r["cuid"]
+        - game = r["game_results"][params[:round].to_i-1]
+        #{r["user_name"]} =&gt;
+        %select(name='result_#{cuid}')
+          %option(value='') --
+          - MOBILE_RESULT_STRINGS.each do |k,v|
+            %option{value:k,selected:(game and game["result"]==k.to_s)}= v
+        枚数:
+        %input(type='text' size='4' name='score_str_#{cuid}' value='#{game && game["score_str"]}')
+        対戦相手:
+        %input(type='text' size='12' name='opponent_name_#{cuid}' value='#{game && game["opponent_name"]}')
+        所属会:
+        %input(type='text' name='opponent_belongs_#{cuid}' value='#{game && game["opponent_belongs"]}')
+        コメント:
+        %input(type='text' name='comment_#{cuid}' value='#{game && game["comment"]}')

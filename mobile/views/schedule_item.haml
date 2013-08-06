@@ -17,3 +17,4 @@
       %div
         &nbsp;&nbsp;#{mobile_paren_private(it,mobile_emphasis(it,"name"))}@#{mobile_emphasis(it,"place")}
         = if it["start_at"] or it["end_at"] then "=&gt; #{mobile_emphasis(it,'start_at')}-#{mobile_emphasis(it,'end_at')}" end
+        = if it["description"] then "※" end

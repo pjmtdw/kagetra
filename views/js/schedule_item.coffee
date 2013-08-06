@@ -134,7 +134,7 @@ define (require, exports, module) ->
     refresh_day: ->
       window.schedule_detail_view.options.parent_model.fetch()
     delete_item: ->
-      if prompt('削除するにはdeleteと入れて下さい') == "delete"
+      if prompt('削除するにはdeleteと入れて下さい','') == "delete"
         that = this
         @model.destroy().done(->
           window.schedule_detail_view.refresh()

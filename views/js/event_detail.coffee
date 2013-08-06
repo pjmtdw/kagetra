@@ -53,7 +53,7 @@ define (require,exports,module)->
       "change #cur-group-list" : "copy_info"
       "click #add-contest-group" : "add_contest_group"
     add_contest_group: ->
-      if r = prompt("追加する恒例大会名:")
+      if r = prompt("追加する恒例大会名:","")
         $.post("api/event/group/new",name:r).done((data)->
           $("#event-groups").append($($.parseHTML(_.make_option(data.id,{value:data.id,text:data.name}))))
         )
@@ -70,12 +70,12 @@ define (require,exports,module)->
           "team_size", "aggregate_attr_id","start_at","end_at"
         ))
         that.model.set("event_group_id",gid)
-
         ev = new EventEditInfoView(model:that.model)
         ev.render()
         that.$el.find("#event-edit-info").empty()
         that.$el.find("#event-edit-info").append(ev.$el)
         that.group_change(id)
+        ev.$el.find("[name='forbidden_attrs']").select2()
       )
     group_change: (optdef)->
       # 大会の新規作成時のみ有効
@@ -94,7 +94,7 @@ define (require,exports,module)->
         $(ev.currentTarget).text(r)
 
     add_choice: _.wrap_submit (ev) ->
-      if r = prompt("選択肢名:")
+      if r = prompt("選択肢名:","")
         o = $("<div>",html:@template_choice(x:{positive:true,name:r,id:-1}))
         $("#edit-choice-list").find("[data-positive='false']").first().before(o)
 
@@ -152,7 +152,7 @@ define (require,exports,module)->
       @edit_log[name]=["delete",attr,choice]
       item.remove()
     add_participant: (ev) ->
-      name = prompt("名前")
+      name = prompt("名前","")
       if name
         item = $(ev.currentTarget)
         newi = $($.parseHTML(@template_item(name:name)))
@@ -212,7 +212,7 @@ define (require,exports,module)->
         _.save_model_alert(@model,{done:true})
       false
     delete_event: ->
-      if prompt("削除するにはdeleteと入れて下さい") == "delete"
+      if prompt("削除するにはdeleteと入れて下さい","") == "delete"
         @model.destroy().done(-> alert("削除しました"))
       false
     do_submit: ->

@@ -265,7 +265,7 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
       "submit #change-passwd": "change_passwd"
       "click #delete-user": "delete_user"
     delete_user: _.wrap_submit ->
-      return unless (prompt("削除するにはdeleteと入れて下さい") == "delete")
+      return unless (prompt("削除するにはdeleteと入れて下さい","") == "delete")
       uids = @get_uids()
       $.ajax("api/user/delete_users",
         data: JSON.stringify(uids: uids)

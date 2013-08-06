@@ -35,12 +35,12 @@ define ->
         type: "POST").done(-> alert("編集しました"))
 
     add_key: (ev) ->
-      if r = prompt("属性追加")
+      if r = prompt("属性追加","")
         t = @template_table(data:{id:"new",name:r})
         $("#after-last-key").before(t)
         alert("一番最後に追加しました")
     add_value: (ev)->
-      if r = prompt("属性追加")
+      if r = prompt("属性追加","")
         t = @template_row(data:{id:"new",value:r})
         $(ev.currentTarget).closest("table").find(".after-last-value").before(t)
         

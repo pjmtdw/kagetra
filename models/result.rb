@@ -226,6 +226,5 @@ class ContestTeamOpponent
   property :round_name, TrimString, length: 36 # 決勝, 順位決定戦など
   property :kind, Enum[:team, :single], required: true # 団体戦, 個人戦 (大会としては団体戦だけど各自が別々のチーム相手に対戦)
   has n, :games, 'ContestGame' # 試合結果(団体戦)
-  validates_presence_of :name, if: ->(x){x.kind == :team}
   validates_absence_of :name, if: ->(x){x.kind == :single}
 end

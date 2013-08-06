@@ -132,7 +132,7 @@ define (require,exports,module)->
       that = this
       @model.fetch().done(-> that.edit_mode = false)
     album_delete: ->
-      if prompt("削除するにはdeleteと入れて下さい") == "delete"
+      if prompt("削除するにはdeleteと入れて下さい","") == "delete"
         year = @model.get('year')
         @model.destroy().done(->
           alert('削除しました')
@@ -280,7 +280,7 @@ define (require,exports,module)->
       _.reveal_view(target,v)
 
     album_delete: ->
-      if prompt("削除するにはdeleteと入れて下さい") == "delete"
+      if prompt("削除するにはdeleteと入れて下さい","") == "delete"
         group_id = @model.get('group').id
         @model.destroy().done(->
           alert('削除しました')
@@ -344,7 +344,7 @@ define (require,exports,module)->
     append_tag: (ev) ->
       obj = $(ev.currentTarget)
       hide_tag()
-      if name = prompt("タグ名")
+      if name = prompt("タグ名","")
         o = $($.parseHTML(@template_tag(tag:{name:name,id:@new_tag_id})))
         [x,y] = @get_pos(ev)
         nw = {id:@new_tag_id,name:name,coord_x:x,coord_y:y,radius:50}

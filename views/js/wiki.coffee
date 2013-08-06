@@ -35,9 +35,10 @@ define (require,exports,module) ->
       "click #edit-cancel" : "edit_cancel"
       "click #edit-preview" :"edit_preview"
       "click #edit-done" : "edit_done"
+      "submit #wiki-edit-form" : "edit_done"
       "click #delete-wiki" : "delete_wiki"
     delete_wiki:->
-      if prompt("削除するにはdeleteと入れて下さい") == "delete"
+      if prompt("削除するにはdeleteと入れて下さい","") == "delete"
         @model.destroy().done(->alert("削除しました"))
     edit_done:->
       obj = $("#wiki-edit-form").serializeObj()
@@ -48,13 +49,16 @@ define (require,exports,module) ->
           window.wiki_edit_view.remove()
           window.wiki_router.navigate("page/#{that.model.get('id')}", {trigger:true})
         else
+          that.changed = false
           that.edit_cancel()
 
       _.save_model_alert(@model,obj,["revision"]).done(->
         that.model.fetch().done(on_done)
       )
+      false
     edit_cancel: ->
       return if @changed and !confirm("内容が変更されています．キャンセルして良いですか？")
+      @changed = false
       window.wiki_item_view.$el.show()
       window.wiki_edit_view.remove()
     edit_preview: ->
@@ -148,23 +152,27 @@ define (require,exports,module) ->
       "click  #toggle-attached" : "toggle_attached"
       "click .delete-attached" : "delete_attached"
     delete_attached: (ev)->
-      if prompt("削除するにはdeleteと入れて下さい") == "delete"
+      if prompt("削除するにはdeleteと入れて下さい","") == "delete"
         id = $(ev.currentTarget).data("id")
         aj = $.ajax("api/wiki/attached/#{id}",{type: "DELETE"}).done(->alert("削除しました"))
 
     submit_done: ->
+      html = $("#dummy-iframe").contents().find("#response").html()
+      return if _.isUndefined(html) # IEの場合は最初の読み込み時にもloadがtriggerされる．そのときのhtmlはundefined
       try
-        res = JSON.parse($("#dummy-iframe").contents().find("#response").html())
+        res = JSON.parse(html)
         if res._error_
           alert(res._error_)
         else if res.result == "OK"
           alert("送信しました")
           @model.fetch()
         else
-          alert("エラー")
+          alert("エラー: 送信失敗")
+          console.log html
       catch e
+        alert("エラー: "+e.message)
+        console.log html
         console.log e.message
-        alert("エラー")
     toggle_attached: ->
       $("#toggle-attached").toggleBtnText()
       if $("#attached-form").is(":visible")

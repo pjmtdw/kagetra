@@ -26,7 +26,7 @@ class MainApp < Sinatra::Base
       }.flatten.sort_by{|x|
         x[:event][:date]
       }.reverse
-      attrs = UserAttributeKey.all(name:G_PROMOTION_ATTRS,order:[:index.asc]).map{|x|
+      attrs = UserAttributeKey.all(name:CONF_PROMOTION_ATTRS,order:[:index.asc]).map{|x|
         [x.name,x.values.map{|y|[y.value,y.id]}]
       }
       {list:list,attrs:attrs}

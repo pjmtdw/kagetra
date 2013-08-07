@@ -2,6 +2,7 @@
 class MainApp < Sinatra::Base
   namespace '/api/event' do
     get '/item/contest' do
+      # 大会を新規作成するときのデフォルトの値
       {
         public:true,
         team_size: 1,
@@ -12,11 +13,12 @@ class MainApp < Sinatra::Base
         owners_str: @user.name,
         all_attrs: get_all_attrs,
         all_event_groups: get_all_event_groups,
-        aggregate_attr_id: UserAttributeKey.first(name:G_CONTEST_DEFAULT_AGGREGATE_ATTR).id,
-        forbidden_attrs: G_CONTEST_DEFAULT_FORBIDDEN_ATTRS.map{|k,v|UserAttributeKey.first(name:k).values(value:v).map{|x|x.id}}.flatten
+        aggregate_attr_id: UserAttributeKey.first(name:CONF_CONTEST_DEFAULT_AGGREGATE_ATTR).id,
+        forbidden_attrs: CONF_CONTEST_DEFAULT_FORBIDDEN_ATTRS.map{|k,v|UserAttributeKey.first(name:k).values(value:v).map{|x|x.id}}.flatten
       }
     end
     get '/item/party' do
+      # 行事を新規作成するときのデフォルトの値
       {
         public:true,
         choices:[
@@ -24,7 +26,7 @@ class MainApp < Sinatra::Base
           {name: "参加しない", positive: false, id: -1}],
         owners_str: @user.name,
         all_attrs: get_all_attrs,
-        aggregate_attr_id: UserAttributeKey.first(name:G_PARTY_DEFAULT_AGGREGATE_ATTR).id
+        aggregate_attr_id: UserAttributeKey.first(name:CONF_PARTY_DEFAULT_AGGREGATE_ATTR).id
       }
     end
 

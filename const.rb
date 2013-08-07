@@ -2,19 +2,27 @@
 
 G_APP_NAME = "景虎"
 
+G_DIMAPA = DiffPatchMatch.new
+
+G_DB_RAISE_SAVE_FAILURE = true # DataMapperがsave失敗したときにErrorをraiseする
+
+G_STORAGE_DIR = "./storage" # Wikiの添付ファイルとアルバムの写真が置かれるディレクトリ
+
 G_WEEKDAY_JA = ['日','月','火','水','木','金','土']
 
 G_ADDRBOOK_CONFIRM_STR = 'kagetra_addrbook' # 名簿でパスワードが正しいかの確認用
 
-G_ADDRBOOK_KEYS = ['名前','ふりがな','E-Mail','生年月日','所属','出身高校','電話番号','郵便番号1','住所1','郵便番号2','住所2','メモ1','メモ2']
+# 一つのサーバで複数のkagetraを起動する場合はこの辺を変更すること
+G_SESSION_COOKIE_NAME = "kagetra.session" # ブラウザが閉じられると消える
+G_PERMANENT_COOKIE_NAME = "kagetra.permanent" # 3ヶ月保存される
 
+G_NEWLY_DAYS_MAX = 75 # 新着コメントとして表示される最大の日数
 G_DEADLINE_ALERT = 7 # 締切が迫っていますを表示する日数
+G_LOGIN_LOG_DAYS = 10 # ログイン履歴を残す日数
 
 G_EVENT_KINDS = {party:"コンパ/合宿/アフター等",etc:"アンケート/購入/その他"}
 
 G_TEAM_SIZES = {"1"=>"個人戦","3"=>"三人団体戦","5"=>"五人団体戦"}
-
-G_LOGIN_LOG_DAYS = 10 # ログイン履歴を残す日数
 
 # public は外部公開されているかどうか
 G_TOP_BAR_ROUTE = [
@@ -27,30 +35,7 @@ G_TOP_BAR_ROUTE = [
   {route:"addrbook", name:"名簿",     public: false},
 ]
 
-G_STORAGE_DIR = "./storage"
-
-G_DIMAPA = DiffPatchMatch.new
-
-# scripts/initial_config.rbで作られる属性
-G_INITIAL_ATTRIBUTES = {
-  "全員" => ["全員"],
-  "性" => ["男","女"],
-  "学年" => ["1年","2年","3年","4年","院生","社会人"],
-  "級" => ["A級","B級","C級","D級","E級"],
-  "段位" => ["0","1","2","3","4","5","6","7","8","9"],
-  "全日協" => ["○","×"]
-}
-G_CONTEST_DEFAULT_AGGREGATE_ATTR = "級" # 大会のデフォルトの集計属性
-G_CONTEST_DEFAULT_FORBIDDEN_ATTRS = {"全日協" => ["×"]} # 大会のデフォルトの参加不能属性
-G_PARTY_DEFAULT_AGGREGATE_ATTR = "学年" # 大会以外の行事のデフォルトの集計属性
-
-G_PROMOTION_ATTRS = ["級","段位"] # 昇級履歴で編集できる属性
-
-G_SESSION_COOKIE_NAME = "kagetra.session" # ブラウザが閉じられると消える
-G_PERMANENT_COOKIE_NAME = "kagetra.permanent" # 3ヶ月保存される
-
-G_NEWLY_DAYS_MAX = 75 # 新着コメントとして表示される最大の日数
-
 G_SINGLE_POINT = [1,2,4,8,16,32,64] # 個人戦でもらえるA級ポイント
 G_SINGLE_POINT_LOCAL = [1,2,4,8,16,32,64,128,256] # 個人戦でもらえる会内ポイント
 G_TEAM_POINT_LOCAL = [10,20,30,40,50] # 団体戦でもらえる会内ポイント
+

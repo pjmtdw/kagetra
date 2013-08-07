@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
-  EVENTS_PER_PAGE = 6
-  HALF_PAGE = EVENTS_PER_PAGE/2
-  DROPDOWN_EVENT_GROUP_MAX = 20
-  EVENT_GROUP_PER_PAGE = 20
+  EVENTS_PER_PAGE = 6 # 大会結果に表示される前後の大会の数
+  EVENT_HALF_PAGE = EVENTS_PER_PAGE/2
+  EVENT_GROUP_PER_PAGE = 20 # 過去の結果に表示される一ページあたりの大会数
+  DROPDOWN_EVENT_GROUP_MAX = 20 # 過去の結果のドロップダウンに表示される大会数
   namespace '/api/result' do
     get '/contest/:id' do
       (evt,recent_list) = recent_contests(params[:id])
       if evt.nil?
+        # 一つも大会結果がないときに表示
         return {
           name: "(大会結果はありません)",
           recent_list: [],
@@ -62,12 +63,12 @@ class MainApp < Sinatra::Base
       pre = pre.to_a
       post = post.to_a
 
-      all = if pre.size <= HALF_PAGE then
+      all = if pre.size <= EVENT_HALF_PAGE then
         (pre + [evt] + post)[0..EVENTS_PER_PAGE].reverse
-      elsif post.size <= HALF_PAGE then
+      elsif post.size <= EVENT_HALF_PAGE then
         (post.reverse + [evt] + pre)[0..EVENTS_PER_PAGE]
       else
-        (pre[0...HALF_PAGE].reverse + [evt] + post[0...HALF_PAGE]).reverse
+        (pre[0...EVENT_HALF_PAGE].reverse + [evt] + post[0...EVENT_HALF_PAGE]).reverse
       end
 
       list = all.map{|x| x.select_attr(:id,:name,:date)}

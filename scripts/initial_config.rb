@@ -25,7 +25,7 @@ MyConf.transaction{
     puts "saved address book password to db"
   end
   if UserAttributeKey.all.count == 0 then
-    G_INITIAL_ATTRIBUTES.each_with_index{|(k,v),i|
+    CONF_INITIAL_ATTRIBUTES.each_with_index{|(k,v),i|
       key = UserAttributeKey.create(name:k,index:i)
       v.each_with_index{|x,idx|
         key.values.create(index:idx,value:x)

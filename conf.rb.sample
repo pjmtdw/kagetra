@@ -3,14 +3,32 @@
 # SecrueRandom.base64(48) で作ること，これを設定しておけばサーバを再起動してもユーザのセッションが保持される
 # CONF_SESSION_SECRET = ""
 
+# DBのパス
 #CONF_DB_PATH = "sqlite3://#{Dir.pwd}/db/data.db"
 CONF_DB_PATH = "mysql://root:hogefuga@localhost/test"
-CONF_LOG_SIZE = 24 # deploy/logに置かれるログの最大サイズ(MB)
 
 CONF_DB_DEBUG = false # DataMapperが発行するクエリを表示する
-CONF_DB_RAISE_SAVE_FAILURE = true # DataMapperのsaveが失敗したときに例外を発生する
+CONF_LOG_SIZE = 32 # deploy/logに置かれるログの最大サイズ(MB)
 
-# 葉隠からのデータ取り込み用
+# scripts/initial_config.rbで作られる属性, 最初の要素は必ず「全員」にすること
+CONF_INITIAL_ATTRIBUTES = {
+  "全員" => ["全員"],
+  "性" => ["男","女"],
+  "学年" => ["1年","2年","3年","4年","院生","社会人"],
+  "級" => ["A級","B級","C級","D級","E級"],
+  "段位" => ["0","1","2","3","4","5","6","7","8","9"],
+  "全日協" => ["○","×"]
+}
+CONF_CONTEST_DEFAULT_AGGREGATE_ATTR = "級" # 大会のデフォルトの集計属性
+CONF_CONTEST_DEFAULT_FORBIDDEN_ATTRS = {"全日協" => ["×"]} # 大会のデフォルトの参加不能属性
+CONF_PARTY_DEFAULT_AGGREGATE_ATTR = "学年" # 大会以外の行事のデフォルトの集計属性
+CONF_PROMOTION_ATTRS = ["級","段位"] # 昇級履歴で編集できる属性
+
+# 名簿の各項目名,「名前」と「ふりがな」は必須
+CONF_ADDRBOOK_KEYS = ['名前','ふりがな','E-Mail','生年月日','所属','出身高校','電話番号','郵便番号1','住所1','郵便番号2','住所2','メモ1','メモ2']
+
+# == 以下は葉隠からのデータ取り込み用 ==
+# 葉隠のrootディレクトリ
 CONF_HAGAKURE_BASE = '/path/to/hagakure/'
 
 # 名簿暗号化用パスワード
@@ -22,10 +40,12 @@ CONF_MEIBO_PASSWD = "password_of_meibo"
 # MeiboDownloaderによって作られたCSV
 CONF_MEIBO_CSV = "/path/to/hagakure/meibo.csv"
 
+# 結婚などで名前が変わった人一覧
 CONF_USERNAME_CHANGED = {
   '佐藤太郎' => '鈴木太郎',
   '高橋次郎' => '高橋次郎'
 }
 
 # mytomaのsqliteファイルのパス
-CONF_MYTOMA_WIKI_FILE = ""
+CONF_MYTOMA_WIKI_FILE = "/path/to/mytoma/database/db.sqlite3"
+

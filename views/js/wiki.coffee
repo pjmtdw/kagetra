@@ -81,8 +81,11 @@ define (require,exports,module) ->
       that = this
       $.post("api/wiki/preview",{body:body}).done((data)->that.render(data))
     render: (data)->
-      @$el.html(@template(data:data))
-      @$el.appendTo(@options.target)
+      try
+        @$el.html(@template(data:data))
+        @$el.appendTo(@options.target)
+      catch e
+        console.log "Error: " + e.message
   WikiBaseView = Backbone.View.extend
     events:
       "click .link-page" : "link_page"
@@ -139,8 +142,12 @@ define (require,exports,module) ->
       @model = new WikiItemModel()
       @listenTo(@model,"sync",@render)
     render: ->
-      @$el.html(@template(data:@model.toJSON()))
-      @$el.appendTo("#wiki-item")
+      try
+        @$el.html(@template(data:@model.toJSON()))
+        @$el.appendTo("#wiki-item")
+      catch e
+        console.log "Error: " + e.message
+        
       window.wiki_panel_view?.remove()
       window.wiki_panel_view = new WikiPanelView(model:@model)
   WikiAttachedListModel = Backbone.Model.extend

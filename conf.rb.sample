@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-# SecrueRandom.base64(48) で作ること，これを設定しておけばサーバを再起動してもユーザのセッションが保持される
+# これを設定しておけばサーバを再起動してもユーザのセッションが保持される．
+# require 'securerandom';SecureRandom.base64(48) で作ること，
 # CONF_SESSION_SECRET = ""
 
 # DBのパス

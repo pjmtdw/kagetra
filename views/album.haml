@@ -259,6 +259,9 @@
 
 %script#templ-album-all-log(type='text/template')
   .row
+    <% if(data.prev_page){ %>
+    %a.button.small.round(href="album#all_log/{{data.prev_page}}") 前のページ
+    <% } %>
     %a.button.small.round(href="album#all_log/{{data.next_page}}") 次のページ
   .row
     .large-12.columns

@@ -125,7 +125,7 @@
         %input(name='name' type='text' value='{- data.name -}')
       .large-1.columns
         {{ _.make_checkbox(data.public,{name:'public'}) }} 公開
-        %a(href="#" data-dropdown="help-public") [?]
+        %span.has-tip(data-tooltip title="外部公開版の予定表や大会行事案内に表示されます．ただし参加者一覧およびコメントは公開されません．") [?]
 
       .large-3.columns
         %label 管理者(半角コンマ区切り)
@@ -190,7 +190,7 @@
         %button#add-choice.left.tiny.success 追加
       .large-3.columns
         {{ _.make_checkbox(data.hide_choice,{name:'hide_choice'}) }} 選択結果を隠す
-        %a(href="#" data-dropdown="help-hide-choice") [?]
+        %span.has-tip(data-tooltip title="誰がどの選択肢を選んだかを管理者以外には分からないようにします．Tシャツ注文のサイズなどのプライバシーの保護にお使い下さい．") [?]
     <% } %>
     .row
       .large-12.columns
@@ -246,14 +246,6 @@
 
 
 = haml :comment
-
-%ul(id="help-public" class="f-dropdown" data-dropdown-content)
-  %div 外部公開版の予定表や大会行事案内に表示されます．
-  %div ただし参加者一覧およびコメントは公開されません．
-
-%ul(id="help-hide-choice" class="f-dropdown" data-dropdown-content)
-  %div 誰がどの選択肢を選んだかを管理者以外には分からないようにします．
-  %div Tシャツ注文のサイズなどのプライバシーの保護にお使い下さい．
 
 %script
   -# Rubyの連想配列は順番が保持されるけどJavaScriptは保持されないので配列に変換

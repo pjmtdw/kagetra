@@ -58,11 +58,15 @@ class MainApp < Sinatra::Base
       # chunksを使うときはorderに同じ物がある可能性があるものを指定するとバグるので:id.descも一緒に指定すること
       cond = if @public_mode then {public:true} else {} end
       chunks = WikiItem.all(cond.merge({order:[:updated_at.desc,:id.desc]})).chunks(WIKI_ALL_PER_PAGE)
-      html = "<ul>" + chunks[page-1].map{|x|
+      html = ""
+      if page > 1 then
+        html += "<a class='goto-page' data-page-num='#{page-1}'>前のページ</a>"
+      end
+      html += "<ul>" + chunks[page-1].map{|x|
           "<li>[#{x.updated_at.to_date}] <a data-link-id='#{x.id}' class='link-page'>#{x.title}</a></li>"
       }.join() + "</ul>"
       if page < chunks.size then
-        html += "<a class='next-page' data-page-num='#{page+1}'>次のページ</a>"
+        html += "<a class='goto-page' data-page-num='#{page+1}'>次のページ</a>"
       end
       {
         title: "全一覧",

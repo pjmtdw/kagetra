@@ -59,7 +59,8 @@ define (require,exports,module) ->
     edit_cancel: ->
       return if @changed and !confirm("内容が変更されています．キャンセルして良いですか？")
       @changed = false
-      window.wiki_item_view.$el.show()
+      window.wiki_item_view = new WikiItemView(model:@model)
+      window.wiki_item_view.render()
       window.wiki_edit_view.remove()
     edit_preview: ->
       target = "#container-wiki-preview"
@@ -90,8 +91,8 @@ define (require,exports,module) ->
     events:
       "click .link-page" : "link_page"
     edit_common: (m) ->
-      window.wiki_item_view.$el.hide()
       window.wiki_edit_view = new WikiEditView(model:m)
+      window.wiki_item_view.remove()
     link_page: (ev)->
       obj = $(ev.currentTarget)
       id = obj.data('link-id')
@@ -124,10 +125,10 @@ define (require,exports,module) ->
       _.extend(WikiBaseView.prototype.events,
       "click #edit-start" : "edit_start"
       "click .link-new" : "link_new"
-      "click .next-page" : "next_page"
+      "click .goto-page" : "goto_page"
       "submit #wiki-edit-form" : -> false
       )
-    next_page: (ev)->
+    goto_page: (ev)->
       obj = $(ev.currentTarget)
       page = obj.data("page-num")
       @model.fetch(data:{page:page})
@@ -139,7 +140,7 @@ define (require,exports,module) ->
       title = obj.data('link-new')
       @edit_common(new WikiItemModel(title:title))
     initialize: ->
-      @model = new WikiItemModel()
+      @model ||= new WikiItemModel()
       @listenTo(@model,"sync",@render)
     render: ->
       try

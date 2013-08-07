@@ -199,7 +199,11 @@ class MainApp < Sinatra::Base
         }
         r
       }.compact
-      {list:res,next_page:page+1}
+      data = {list:res,next_page:page+1}
+      if page > 1 then
+        data[:prev_page] = page-1
+      end
+      data
     end
   end
   get '/album' do

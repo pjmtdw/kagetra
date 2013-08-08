@@ -2,7 +2,7 @@ class WikiItem
   include ModelBase
   include ThreadBase
   property :deleted, ParanoidBoolean, lazy: false
-  property :title, TrimString, length: 64, required: true, unique: true
+  property :title, TrimString, length: 72, required: true, unique: true
   property :public, Boolean, default: false # 外部公開されているか
   property :body, TrimText, required: true
   property :revision, Integer, default: 0

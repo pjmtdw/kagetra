@@ -169,7 +169,9 @@ define (require, exports, module) ->
     # ensure that view is removed when reveal is closed
     reveal_view: (target,view) ->
       $(target).one("closed", ->
-        view.remove())
+        view.remove()
+        $(target).empty()
+      )
       $(target).foundation("reveal","open")
     
     make_checkbox: (checked,opts) ->

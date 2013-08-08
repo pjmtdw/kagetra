@@ -59,9 +59,17 @@ define (require,exports,module) ->
     edit_cancel: ->
       return if @changed and !confirm("内容が変更されています．キャンセルして良いですか？")
       @changed = false
-      window.wiki_item_view = new WikiItemView(model:@model)
-      window.wiki_item_view.render()
       window.wiki_edit_view.remove()
+      if @model.isNew()
+        # 新規作成の場合は直前に閲覧していたページを表示
+        previd = window.wiki_viewlog[0][0]
+        @model.set('id',previd)
+        window.wiki_item_view = new WikiItemView(model:@model)
+        @model.fetch()
+      else
+        window.wiki_item_view = new WikiItemView(model:@model)
+        window.wiki_item_view.render()
+
     edit_preview: ->
       target = "#container-wiki-preview"
       v = new WikiPreviewView(target:target)
@@ -85,6 +93,7 @@ define (require,exports,module) ->
       try
         @$el.html(@template(data:data))
         @$el.appendTo(@options.target)
+        @$el.find("a").attr("target","_blank")
       catch e
         console.log "Error: " + e.message
   WikiBaseView = Backbone.View.extend
@@ -93,6 +102,8 @@ define (require,exports,module) ->
     edit_common: (m) ->
       window.wiki_edit_view = new WikiEditView(model:m)
       window.wiki_item_view.remove()
+      $("#edit-new").hide()
+
     link_page: (ev)->
       obj = $(ev.currentTarget)
       id = obj.data('link-id')
@@ -110,12 +121,12 @@ define (require,exports,module) ->
       @edit_common(new WikiItemModel())
     render: ->
       id = @model.get("id")
-      # 最近の閲覧履歴を残しておく
-      window.wiki_viewlog = (x for x in window.wiki_viewlog when x[0].toString() not in [id.toString(),"all"])
-      window.wiki_viewlog.unshift([id,@model.get("title")])
-      window.wiki_viewlog = window.wiki_viewlog[0..3]
-      if id != "all" then window.wiki_viewlog.push(["all","全一覧"])
-
+      if id
+        # 最近の閲覧履歴を残しておく
+        window.wiki_viewlog = (x for x in window.wiki_viewlog when x[0].toString() not in [id.toString(),"all"])
+        window.wiki_viewlog.unshift([id,@model.get("title")])
+        window.wiki_viewlog = window.wiki_viewlog[0..3]
+        if id != "all" then window.wiki_viewlog.push(["all","全一覧"])
       @$el.html(@template(data:@model.toJSON(),viewlog:window.wiki_viewlog))
       @$el.appendTo("#wiki-panel")
 

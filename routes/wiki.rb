@@ -90,7 +90,8 @@ class MainApp < Sinatra::Base
     delete '/item/:id' do
       item = WikiItem.get(params[:id].to_i)
       # destory するには関連するmodelを削除しないといけないけどそれはイヤなので deleted フラグを付けるだけ
-      item.update(deleted:true)
+      # ただし title が unique なので削除したはずのものと同じ名前ページを作ろうとするとエラーが出るのを防ぐ
+      item.update(deleted:true,title:"__DELETED__:" + item.title)
     end
 
     def update_or_create_item(item)

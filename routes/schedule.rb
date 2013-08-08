@@ -78,6 +78,7 @@ class MainApp < Sinatra::Base
       (year,mon,day) = [:year,:mon,:day].map{|x|params[x].to_i}
       date = Date.new(year,mon,day)
       cond = if @public_mode then {public:true} else {} end
+      cond[:order] = [:start_at.asc,:end_at.asc]
       list = ScheduleItem.all(cond.merge({date:date})).map{|x|
         make_detail_item(x)
       }
@@ -112,7 +113,7 @@ class MainApp < Sinatra::Base
         mon: mon,
         day: day,
         info: make_info(ScheduleDateInfo.first(date:date)),
-        item: ScheduleItem.all(date:date).map{|x|make_item(x)}
+        item: ScheduleItem.all(date:date,order:[:start_at.asc,:end_at.asc]).map{|x|make_item(x)}
       }
     end
 
@@ -120,16 +121,17 @@ class MainApp < Sinatra::Base
     get '/panel',private:true do
       today = Date.today
       cond = {:date.gte => today, :date.lt => today + SCHEDULE_PANEL_DAYS}
+      order = {order:[:start_at.asc,:end_at.asc]}
       arr = (0...SCHEDULE_PANEL_DAYS).map{|i|
         d = today + i
         {year: d.year, mon: d.mon, day: d.day}
       }
       [
-        [ScheduleDateInfo,:info,:make_info,Hash],
-        [ScheduleItem,:item,:make_item,Array],
-        [Event,:event,:make_event,Array]
-      ].each{|klass,sym,func,obj|
-        klass.all(cond).each{|x|
+        [ScheduleDateInfo,:info,:make_info,Hash,{}],
+        [ScheduleItem,:item,:make_item,Array,order],
+        [Event,:event,:make_event,Array,order]
+      ].each{|klass,sym,func,obj,acond|
+        klass.all(cond.merge(acond)).each{|x|
           p = arr[x.date-today]
           p[sym] ||= obj.new
           if obj == Array then 
@@ -152,6 +154,7 @@ class MainApp < Sinatra::Base
       today = Date.today.day
 
       cbase = if @public_mode then {public:true} else {} end
+      cbase[:order] = [:start_at.asc,:end_at.asc]
 
       (day_infos,items,events) = [
         [ScheduleDateInfo,:info,:make_info,Hash,{}],

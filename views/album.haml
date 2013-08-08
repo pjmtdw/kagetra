@@ -248,9 +248,14 @@
   .row
     .large-12.columns
       -# %input(type='checkbox') どのフォルダにも属さない写真にする
-      %input(type='file' name='file')
-      %input.button.small.round(type='submit' value='送信')
+      .row.collapse
+        .small-2.columns
+          %label.inline.right ファイル :
+        .small-10.columns
+          %input(type='file' name='file')
+        .small-2.columns
       %ul
+        %input.button.small.round(type='submit' value='送信')
         %li 各画像ファイルの拡張子はpng,jpg,gifのどれかにして下さい．
         %li 画像ファイルを複数圧縮したzipファイルにも対応しています．
         -# %li ファイルに何も指定しないと空のフォルダを作ります．

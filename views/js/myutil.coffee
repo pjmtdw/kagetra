@@ -5,6 +5,24 @@ define (require, exports, module) ->
   # メールアドレスにマッチする部分は PEAR::Mail_RFC822::isValidInetAddress()
   pat_url = new RegExp("((https?://[a-zA-Z0-9/:%#$&?()~.=+_-]+)|(([*+!.&#\$|\'\\%\/0-9a-z^_`{}=?~:-]+)@(([0-9a-z-]+\.)+[0-9a-z]{2,})))","gi")
   _.mixin
+    iframe_submit: (when_success,when_error)->
+      html = $("#dummy-iframe").contents().find("#response").html()
+      return if _.isUndefined(html) # IEの場合は最初の読み込み時にもloadがtriggerされる．そのときのhtmlはundefined
+      try
+        res = JSON.parse(html)
+        if res._error_
+          alert(res._error_)
+          when_error?()
+        else if res.result == "OK"
+          alert("送信しました")
+          when_success?(res)
+        else
+          alert("エラー: 送信失敗")
+          console.log "Error HTML: #{html}"
+      catch e
+        alert("エラー: #{e.message}")
+        console.log "Error HTML: #{html}"
+
     show_kind_symbol: (kind,official) ->
       s = switch kind
             when "contest"

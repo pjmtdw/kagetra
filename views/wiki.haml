@@ -100,21 +100,34 @@
       .large-12.columns
         %textarea(name='body' rows=60 placeholder='本文') {- data.body -}
 
+%script#templ-wiki-attached-upload(type='text/template')
+  %form#attached-form(action='wiki/attached/{{data.item_id}}' method='post' enctype='multipart/form-data' target='dummy-iframe')
+    <% if(data.attached_id){ %>
+    %input(type='hidden' name='attached_id' value='{{data.attached_id}}')
+    <% } %>
+    %fieldset
+      %legend ファイル添付
+      <% if(data.orig_name){ %>
+      %label ファイル名
+      %input(type='text' name='orig_name' value='{- data.orig_name -}')
+      <% } %>
+      %label ファイル
+      %input(type='file' name='file')
+      %label 説明
+      %input(type='text' name='description' value='{- data.description -}')
+      %div
+        %input.button.small.round(type='submit' value='送信')
+        <% if(data.id){ %>
+        %input(type='hidden' name='attached_id' value='{- data.id -}')
+        %button.delete-attached.small.round.alert 削除
+        <% } %>
+  %iframe(name='dummy-iframe' id='dummy-iframe' style='display:none;')
+
 
 %script#templ-wiki-attached(type='text/template')
   .row
     .large-12.columns
-      %button#toggle-attached.small.round(data-toggle-text='キャンセル') ファイル添付
-      %form#attached-form.hide(action='wiki/attached/{{data.item_id}}' method='post' enctype='multipart/form-data' target='dummy-iframe')
-        %fieldset
-          %legend ファイル添付
-          %label ファイル
-          %input(type='file' name='file')
-          %label 説明
-          %input(type='text' name='description')
-          %input(type='submit' value='送信')
-      %iframe(name='dummy-iframe' id='dummy-iframe' style='display:none;')
-
+      %button#show-attached-upload.small.round ファイル添付
   .row
     .large-12.columns
       = haml :pagination
@@ -129,8 +142,8 @@
             {{x.date}}
           %td
             {{x.description}}
-            <% if(x.deletable){ %>
-            %button.tiny.alert.delete-attached(data-id='{{x.id}}') 削除
+            <% if(x.editable){ %>
+            %button.tiny.edit-attached(data-id='{{x.id}}') 編集
             <% } %>
         <% }) %>
 
@@ -185,5 +198,6 @@
 
 
 #container-wiki-preview.wiki-page.reveal-modal
+#container-attached-upload.reveal-modal
 
 = haml :comment

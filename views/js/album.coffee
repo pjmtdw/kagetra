@@ -1,5 +1,6 @@
 define (require,exports,module)->
   _.mixin
+    
     show_date: (data)->
       if data.date?
         data.date
@@ -457,21 +458,15 @@ define (require,exports,module)->
       obj.after($("<div>",id:"now-uploading-message",text:"アップロード中..."))
       obj.hide()
     submit_done: ->
-      try
-        res = JSON.parse($("#dummy-iframe").contents().find("#response").html())
-        if res._error_
-          alert(res._error_)
-          obj = @$el.find("input[type='submit']")
-          obj.show()
-          obj.next("#now-uploading-message").remove()
-        else if res.result == "OK"
-          window.album_router.navigate("group/#{res.group_id}", trigger:true)
-          $("#container-album-upload").foundation("reveal","close")
-        else
-          alert("エラー")
-      catch e
-        console.log e.message
-        alert("エラー")
+      that = this
+      when_success = (res)->
+        window.album_router.navigate("group/#{res.group_id}", trigger:true)
+        $("#container-album-upload").foundation("reveal","close")
+      when_error = ->
+        obj = that.$el.find("input[type='submit']")
+        obj.show()
+        obj.next("#now-uploading-message").remove()
+      _.iframe_submit(when_success,when_error)
 
     initialize: ->
       _.bindAll(@,"submit_done")

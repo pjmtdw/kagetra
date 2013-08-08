@@ -20,7 +20,8 @@ module Kagetra
       @min = min.to_i
     end
     def self.parse(str)
-      if /^(\d\d):(\d\d)$/ =~ str then
+      case str
+      when /^(\d?\d):(\d\d)$/,/^(\d?\d)(\d\d)$/
         HourMin.new($1,$2)
       else
         raise Exception.new("invalid HourMin: '#{str}'")
@@ -31,6 +32,15 @@ module Kagetra
     end
   end
   module Utils
+    def self.unique_file(user,ar,dir)
+      # 一意なファイルを作る．Tempfileは自動的に消されてしまうので使えない．いつかTempfileにsaveとかpersistとかそういうのが実装されるまでこれを使う
+      # TODO: これは極少確率でuniqueでないファイルを作ってしまう
+      (prefix,postfix) = ar
+      loop{
+        fn = File.join(dir,prefix+user.id.to_s(36)+"-"+$$.to_s(36)+"-"+(Time.now.to_f*1000000).to_i.to_s(36)+"-"+rand(1000000000).to_s(36)+postfix)
+        return fn if not File.exist?(fn)
+      }
+    end
     def self.set_addrbook_password(pass)
       # パスワード確認用
       MyConf.update_or_create({name: "addrbook_confirm_enc"},{value: {text:Kagetra::Utils.openssl_enc(G_ADDRBOOK_CONFIRM_STR,pass)}})

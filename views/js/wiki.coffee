@@ -162,54 +162,61 @@ define (require,exports,module) ->
         
       window.wiki_panel_view?.remove()
       window.wiki_panel_view = new WikiPanelView(model:@model)
+  WikiAttachedUploadView = Backbone.View.extend
+    template: _.template_braces($("#templ-wiki-attached-upload").html())
+    events:
+      "click .delete-attached" : 'delete_attached'
+    delete_attached: _.wrap_submit ->
+      if prompt("削除するにはdeleteと入れて下さい","") == "delete"
+        that = this
+        aj = $.ajax("api/wiki/attached/#{@options.data.id}",{type: "DELETE"}).done(->
+          alert("削除しました")
+          that.options.when_success()
+        )
+    initialize: ->
+      _.bindAll(@,"submit_done")
+      @render()
+    render: ->
+      @$el.html(@template(data:@options.data))
+      @$el.appendTo(@options.target)
+      $("#dummy-iframe").load(@submit_done)
+    submit_done: ->
+      that = this
+      _.iframe_submit(@options.when_success)
+
   WikiAttachedListModel = Backbone.Model.extend
     urlRoot: "api/wiki/attached_list"
   WikiAttachedListView = Backbone.View.extend
     template: _.template_braces($("#templ-wiki-attached").html())
     events:
       "click .page": "change_page"
-      "click  #toggle-attached" : "toggle_attached"
-      "click .delete-attached" : "delete_attached"
-    delete_attached: (ev)->
-      if prompt("削除するにはdeleteと入れて下さい","") == "delete"
-        id = $(ev.currentTarget).data("id")
-        aj = $.ajax("api/wiki/attached/#{id}",{type: "DELETE"}).done(->alert("削除しました"))
+      "click  #show-attached-upload" : "show_attached_upload"
+      "click .edit-attached" : "edit_attached"
+    reveal_it: (data)->
+      console.log data
+      target = "#container-attached-upload"
+      that = this
+      when_success = ->
+        that.model.fetch()
+        $(target).foundation("reveal","close")
+      v = new WikiAttachedUploadView(target:target,data:data,when_success:when_success)
+      _.reveal_view(target,v)
+    edit_attached: (ev)->
+      attached_id = $(ev.currentTarget).data("id")
+      @reveal_it(_.extend(@model.pick('item_id'),_.find(@model.get('list'),(x)->x.id==attached_id)))
 
-    submit_done: ->
-      html = $("#dummy-iframe").contents().find("#response").html()
-      return if _.isUndefined(html) # IEの場合は最初の読み込み時にもloadがtriggerされる．そのときのhtmlはundefined
-      try
-        res = JSON.parse(html)
-        if res._error_
-          alert(res._error_)
-        else if res.result == "OK"
-          alert("送信しました")
-          @model.fetch()
-        else
-          alert("エラー: 送信失敗")
-          console.log html
-      catch e
-        alert("エラー: "+e.message)
-        console.log html
-        console.log e.message
-    toggle_attached: ->
-      $("#toggle-attached").toggleBtnText()
-      if $("#attached-form").is(":visible")
-        $("#attached-form").hide()
-      else
-        $("#attached-form").show()
+    show_attached_upload: ->
+      @reveal_it(@model.pick('item_id'))
     change_page: (ev)->
       obj = $(ev.currentTarget)
       page = obj.data("page")
       @model.fetch(data:{page:page})
     initialize: ->
-      _.bindAll(@,"submit_done")
       @model = new WikiAttachedListModel()
       @listenTo(@model,"sync",@render)
     render: ->
       @$el.html(@template(data:@model.toJSON()))
       @$el.appendTo("#wiki-attached")
-      $("#dummy-iframe").load(@submit_done)
   WikiLogModel = Backbone.Model.extend
     urlRoot: "api/wiki/log"
   WikiLogView = Backbone.View.extend

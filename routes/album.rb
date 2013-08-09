@@ -214,9 +214,9 @@ class MainApp < Sinatra::Base
     item = AlbumItem.create(group.select_attr(:place,:name,:owner).merge({group_id:group.id,date:group.start_at,group_index:index}))
     rel_path = Pathname.new(abs_path).relative_path_from(Pathname.new(File.join(G_STORAGE_DIR,"album")).realpath)
     img = Magick::Image::read(abs_path).first
-    new_img = img.resize_to_fit(800,800)
+    new_img = img.resize_to_fit(CONF_ALBUM_LARGE_SIZE,CONF_ALBUM_LARGE_SIZE)
     if new_img.columns != img.columns or new_img.rows != img.rows
-      new_img.write(abs_path){self.quality = 95}
+      new_img.write(abs_path){self.quality = CONF_ALBUM_LARGE_QUALITY}
     end
 
     item.update(photo:AlbumPhoto.create(
@@ -226,8 +226,8 @@ class MainApp < Sinatra::Base
       width: new_img.columns,
       height: new_img.rows
     ))
-    thumb = img.resize_to_fit(200,200)
-    thumb.write(abs_path+"_thumb"){self.quality = 80}
+    thumb = img.resize_to_fit(CONF_ALBUM_THUMB_SIZE,CONF_ALBUM_THUMB_SIZE)
+    thumb.write(abs_path+"_thumb"){self.quality = CONF_ALBUM_THUMB_QUALITY}
     item.update(thumb:AlbumThumbnail.create(
       album_item:item,
       path:rel_path.to_s+"_thumb",

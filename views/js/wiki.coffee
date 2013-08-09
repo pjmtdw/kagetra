@@ -127,7 +127,7 @@ define (require,exports,module) ->
         window.wiki_viewlog.unshift([id,@model.get("title")])
         window.wiki_viewlog = window.wiki_viewlog[0..4]
         if id != "all" then window.wiki_viewlog.push(["all","全一覧"])
-      @$el.html(@template(data:@model.toJSON(),viewlog:window.wiki_viewlog))
+      @$el.html(@template(data:@model.toJSON(),viewlog:window.wiki_viewlog.slice().reverse()))
       @$el.appendTo("#wiki-panel")
 
   class WikiItemView extends WikiBaseView

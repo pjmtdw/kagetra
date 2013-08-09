@@ -53,7 +53,7 @@ class AlbumItem
   property :group_id, Integer,  required: true, index: true
   belongs_to :group, 'AlbumGroup'
   property :group_index, Integer, allow_nil: false # グループの中での表示順
-  property :rotate, Integer # 回転 (右向き, 度数法)
+  property :rotate, Integer, default:0 # 回転 (右向き, 0,90,180,270のどれか)
   property :orig_filename, String, length: 128, lazy: true # アップロードされた元のファイル名
 
   property :tag_count, Integer, default: 0

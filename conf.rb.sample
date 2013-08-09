@@ -28,6 +28,13 @@ CONF_PROMOTION_ATTRS = ["級","段位"] # 昇級履歴で編集できる属性
 # 名簿の各項目名,「名前」と「ふりがな」は必須
 CONF_ADDRBOOK_KEYS = ['名前','ふりがな','E-Mail','生年月日','所属','出身高校','電話番号','郵便番号1','住所1','郵便番号2','住所2','メモ1','メモ2']
 
+# アルバム写真のサイズ(px)と画質
+CONF_ALBUM_LARGE_SIZE = 800
+CONF_ALBUM_LARGE_QUALITY = 92
+# アルバムサムネイルのサイズ(px)と画質
+CONF_ALBUM_THUMB_SIZE = 200
+CONF_ALBUM_THUMB_QUALITY = 73
+
 # == 以下は葉隠からのデータ取り込み用 ==
 # 葉隠のrootディレクトリ
 CONF_HAGAKURE_BASE = '/path/to/hagakure/'

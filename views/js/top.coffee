@@ -16,7 +16,8 @@ define (require,exports,module) ->
     show_date: (s) ->
       return "なし" unless s
       today = new Date()
-      [y,m,d] = (parseInt(x) for x in s.split('-'))
+      # parseIntの二つ目の引数を与えないと "08", "09" が 0 になってしまう．
+      [y,m,d] = (parseInt(x,10) for x in s.split('-'))
       date = new Date(y,m-1,d)
       sa = "<span class='event-date'>"
       sb = "</span>"

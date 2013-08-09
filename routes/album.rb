@@ -268,7 +268,7 @@ class MainApp < Sinatra::Base
             }
           {result:"OK",group_id:group.id}
         when /\.jpg$/, /\.png$/, /\.gif$/
-          tfile = Kagetra::Utils.unique_file(@user,["img","dat"],target_dir)
+          tfile = Kagetra::Utils.unique_file(@user,["img-",".dat"],target_dir)
           FileUtils.cp(tempfile.path,tfile)
           abs_path = Pathname.new(tfile).realpath.to_s
           process_image(group,group.item_count,filename,abs_path)

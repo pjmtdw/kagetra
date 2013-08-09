@@ -48,7 +48,6 @@
   .row.wiki-panel
     .large-10.columns
       .viewlog
-        .left.wiki-title {- data.title -}
         <% _.each(viewlog,function(x){ if(x[0]!=data.id){ %>
         %a.left(href='wiki#page/{{x[0]}}') {- x[1] -}
         <% }}) %>
@@ -60,9 +59,13 @@
 %script#templ-wiki-item(type='text/template')
   .row
     .large-12.columns
-      <% if(data.id != "all" && ! _.is_public_mode() ){ %>
-      %button#edit-start.small.round 編集
-      <% } %>
+      .wiki-header
+        .wiki-title {- data.title -}
+        <% if(data.id != "all" && ! _.is_public_mode() ){ %>
+        #edit-start.right [編集]
+        <% } %>
+  .row
+    .large-12.columns
       - if not @public_mode then
         <% if(data.public){ %>
         .public-message

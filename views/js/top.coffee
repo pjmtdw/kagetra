@@ -96,7 +96,9 @@ define (require,exports,module) ->
       json = @model.toJSON()
       json.deadline_str = show_deadline(json.deadline_day)
       @$el.html(@template(data:json))
-      if not json.forbidden
+      if json.deadline_day? and json.deadline_day < 0
+        # 締切を過ぎているので何も表示しない 
+      else if not json.forbidden
         cm =
           if @options.choice_model
             @options.choice_model

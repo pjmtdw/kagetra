@@ -1,4 +1,6 @@
-- if ev["forbidden"]
+- if ev["deadline_day"] and ev["deadline_day"] < 0
+  %font(color='gray') 締切を過ぎました
+- elsif ev["forbidden"]
   %font(color='gray') 貴方は登録不可です
 - else
   - ev["choices"].each_with_index do |c,i|

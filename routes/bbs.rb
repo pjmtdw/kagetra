@@ -31,10 +31,12 @@ class MainApp < Sinatra::Base
       }
     end
     def create_item(thread)
-      thread.comments.create(
+      c = thread.comments.create(
         body: @json["body"],
         user: @user,
         user_name: @json["user_name"])
+      c.set_env(request)
+      c.save()
       if @public_mode then
         set_permanent("bbs_name",@json["user_name"])
       end

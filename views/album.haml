@@ -241,7 +241,8 @@
 
 %script#templ-album-empty-form(type='text/template')
   %form#album-item-form
-    %div {-data.name-} @ {{data.start_at}} に写真追加
+    .row
+      %div {-data.name-} @ {{data.start_at}} に写真追加
     %input(type='hidden' name='group_id' value='{{data.id}}')
 
 %script#templ-album-upload(type='text/template')

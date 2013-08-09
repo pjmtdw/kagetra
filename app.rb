@@ -7,9 +7,11 @@ class MainApp < Sinatra::Base
     ((if defined?(CONF_SESSION_SECRET) then CONF_SESSION_SECRET end) or ENV["RACK_SESSION_SECRET"] or SecureRandom.base64(48)) 
   
   set :sessions, key:G_SESSION_COOKIE_NAME
-  # for Internet Explorer 8, 9 (and maybe also 10?) protection session hijacking refuses the session.
+  # for Internet Explorer 8, 9 (and maybe also 10?) session_hijacking protection refuses the session.
   # https://github.com/rkh/rack-protection/issues/11
-  set :protection, except: :session_hijacking
+  # disable frame_options protection to allow <iframe>
+  set :protection, except: [:session_hijacking,:frame_options]
+
 
   def logger
     env['mainapp.logger'] || env['rack.logger']

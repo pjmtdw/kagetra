@@ -1,8 +1,20 @@
-.wiki-title{
-  color: purple;
-  padding: 3px;
-  display: inline;
-  font-weight: bold;
+.wiki-header{
+  border-bottom: 1px solid silver;
+  padding: 0.3em;
+  margin-bottom: 0.6em;
+  .wiki-title{
+    color: #003;
+    display: inline-block;
+    font-weight: bold;
+    font-size: 130%;
+  }
+  #edit-start{
+    display: inline-block;
+    margin-left: 1em;
+    color: teal;
+    text-decoration: underline;
+    cursor: pointer;
+  }
 }
 .viewlog{
   a{
@@ -72,10 +84,6 @@
     white-space: nowrap;
     color: maroon;
   }
-}
-#edit-start{
-  position:absolute;
-  right: 1em;
 }
 .public-message{
   font-weight: bold;

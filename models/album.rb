@@ -72,11 +72,25 @@ class AlbumItem
   has n, :relations_l, self, through: :album_relations_l, via: :source
 
   has n, :comment_logs, 'AlbumCommentLog' # コメントの編集履歴
+
+
+  validates_with_block(:rotate){
+    if not [0,90,180,270].include?(self.rotate.to_i) then
+      [false, "rotate must be one of 0,90,180,270 not #{self.rotate}"]
+    else
+      true
+    end
+  }
+
   before :create do
     if self.group_index.nil? then
       ag = self.group
       self.group_index = ag.items.count
     end
+  end
+
+  def id_with_thumb
+    self.select_attr(:id,:rotate).merge({thumb:self.thumb.select_attr(:id,:width,:height)})
   end
 
   # 本来 tag_count や tag_names の更新は AlbumTag の :create, :destroy, :save Hookで行うべきだが

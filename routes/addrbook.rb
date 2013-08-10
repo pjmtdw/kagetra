@@ -43,7 +43,8 @@ class MainApp < Sinatra::Base
           AddrBook.all.each{|x|
             # 古いパスワードでデコードし，新しいパスワードでエンコードする
             plain = Kagetra::Utils.openssl_dec(x.text,cpass)
-            x.update(text:Kagetra::Utils.openssl_enc(plain,npass))
+            # updated_atを更新しないように update! を使用する
+            x.update!(text:Kagetra::Utils.openssl_enc(plain,npass))
           }
           Kagetra::Utils.set_addrbook_password(npass)
         }

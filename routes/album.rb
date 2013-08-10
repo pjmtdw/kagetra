@@ -24,18 +24,21 @@ class MainApp < Sinatra::Base
       {list:groups+items} 
     end
     get '/group/:gid' do
+      item_fields = [:id,:tag_count,:comment,:tag_names]
+      if params.has_key?("detail")
+        item_fields += [:name,:place,:date,:daily_choose]
+      end
       group = AlbumGroup.get(params[:gid].to_i)
       r = group.select_attr(:name,:year,:place,:comment,:start_at,:end_at)
       tags = {}
-      r[:items] = group.items(order:[:group_index.asc]).map{|x|
+      r[:items] = group.items(fields:item_fields,order:[:group_index.asc]).map{|x|
         if x.tag_names then
           JSON.parse(x.tag_names).each{|t|
             tags[t] ||= []
             tags[t] << x.id
           }
         end
-        x.select_attr(:id,:name).merge({
-          thumb: x.thumb.select_attr(:id,:width,:height),
+        x.id_with_thumb.merge({
           no_tag: x.tag_count == 0,
           no_comment: x.comment.to_s.empty?
         })
@@ -56,21 +59,50 @@ class MainApp < Sinatra::Base
       group = AlbumGroup.get(params[:gid].to_i)
       dm_response{
         AlbumGroup.transaction{
-          @json["item_order"].each_with_index{|item,i|
-            AlbumItem.get(item).update(group_index:i)
-          }
-          @json.delete("item_order")
+          if @json.has_key?("item_order") then
+            @json["item_order"].each_with_index{|item,i|
+              AlbumItem.get(item).update(group_index:i)
+            }
+            @json.delete("item_order")
+          end
+          if @json.has_key?("add_rotate") then
+            @json["add_rotate"].each{|k,v|
+              item = AlbumItem.get(k)
+              item.update(rotate:(item.rotate.to_i+v)%360)
+              update_thumbnail(item)
+            }
+            @json.delete("add_rotate")
+          end
           group.update(@json)
         }
       }
     end
     get '/item/:id' do
       item = AlbumItem.get(params[:id].to_i)
-      r = item.select_attr(:id,:name,:place,:date,:comment,:daily_choose,:comment_revision)
-      r.merge!({photo:item.photo.select_attr(:id,:width,:height)})
+      r = item.select_attr(:id,:rotate,:name,:place,:date,:comment,:daily_choose,:comment_revision)
+      photo = item.photo
+      (width,height) = case item.rotate.to_i
+                       when 0,180 then [photo.width,photo.height]
+                       else [photo.height,photo.width]
+                       end
+      r.merge!(photo:photo.select_attr(:id).merge(width:width,height:height))
       r[:group] = item.group.select_attr(:dummy,:year,:id,:name)
-      r[:tags] = item.tags.map{|x|x.select_attr(:id,:name,:coord_x,:coord_y,:radius)}
-      r[:relations] = item.relations.map{|x| x.select_attr(:id).merge({thumb:x.thumb.select_attr(:id,:width,:height)})}
+      r[:tags] = item.tags.map{|t|
+        rr = t.select_attr(:id,:name,:radius)
+        (xx,yy) = [t.coord_x,t.coord_y]
+        (cx,cy) = case item.rotate.to_i
+                when 0
+                  [xx,yy]     
+                when 90
+                  [width-yy,xx]
+                when 180
+                  [width-xx,height-yy]
+                when 270
+                  [yy,height-xx]
+                end
+        rr.merge({coord_x:cx,coord_y:cy})
+      }
+      r[:relations] = item.relations.map{|x|x.id_with_thumb}
       r[:deletable] = @user.admin || item.owner_id == @user.id
       r
     end
@@ -83,6 +115,20 @@ class MainApp < Sinatra::Base
               (cmd,obj) = v
               case cmd
               when "update_or_create"
+                (xx,yy) = [obj["coord_x"],obj["coord_y"]]
+                (width,height) = [item.photo.width,item.photo.height]
+                (cx,cy) = case item.rotate.to_i
+                        when 0
+                          [xx,yy]
+                        when 90
+                          [yy,height-xx]
+                        when 180
+                          [width-xx,height-yy]
+                        when 270
+                          [width-yy,xx]
+                        end
+                obj["coord_x"] = cx
+                obj["coord_y"] = cy
                 if k.to_i < 0 then
                   obj.delete("id")
                   obj["album_item_id"] = item.id
@@ -170,9 +216,7 @@ class MainApp < Sinatra::Base
         qx |= q
       }
       chunks = qx.all(order:[:date.desc]).chunks(ALBUM_SEARCH_PER_PAGE)
-      list = chunks[page-1].map{|x|
-        {id:x.id,thumb:x.thumb.select_attr(:id,:width,:height)}
-      }
+      list = chunks[page-1].map{|x| x.id_with_thumb }
       {
         list: list,
         pages: chunks.size,
@@ -181,7 +225,7 @@ class MainApp < Sinatra::Base
     end
     get '/thumb_info/:id' do
       item = AlbumItem.get(params[:id].to_i)
-      item.select_attr(:id).merge({thumb:item.thumb.select_attr(:id,:width,:height)})
+      item.id_with_thumb
     end
     ALBUM_COMMENTS_PER_PAGE = 40
     get '/all_comment_log' do
@@ -189,8 +233,7 @@ class MainApp < Sinatra::Base
       chunks = AlbumItem.all(fields:[:comment,:id],:comment_revision.gte => 1,:comment_updated_at.not=>nil,order:[:comment_updated_at.desc,:id.desc]).chunks(ALBUM_COMMENTS_PER_PAGE)
       res = chunks[page-1].map{|x|
         dff = x.each_diff_htmls_until(1).to_a.last
-        r = x.select_attr(:id)
-        r[:thumb] = x.thumb.select_attr(:width,:height,:id)
+        r = x.id_with_thumb
         r[:diff_html] = dff[:html]
         log = dff[:log]
         r[:log] = {
@@ -219,23 +262,32 @@ class MainApp < Sinatra::Base
       new_img.write(abs_path){self.quality = CONF_ALBUM_LARGE_QUALITY}
     end
 
-    item.update(photo:AlbumPhoto.create(
-      album_item:item,
+    AlbumPhoto.create(
+      album_item_id:item.id,
       path:rel_path,
       format: new_img.format,
       width: new_img.columns,
       height: new_img.rows
-    ))
+    )
     thumb = img.resize_to_fit(CONF_ALBUM_THUMB_SIZE,CONF_ALBUM_THUMB_SIZE)
     thumb.write(abs_path+"_thumb"){self.quality = CONF_ALBUM_THUMB_QUALITY}
-    item.update(thumb:AlbumThumbnail.create(
-      album_item:item,
+    AlbumThumbnail.create(
+      album_item_id:item.id,
       path:rel_path.to_s+"_thumb",
       format: thumb.format,
       width: thumb.columns,
       height: thumb.rows
-    ))
+    )
 
+  end
+
+  def update_thumbnail(item)
+    base = File.join(G_STORAGE_DIR,"album")
+    img = Magick::Image::read(File.join(base,item.photo.path)).first
+    thumb = img.resize_to_fit(CONF_ALBUM_THUMB_SIZE,CONF_ALBUM_THUMB_SIZE)
+    thumb.rotate!(item.rotate.to_i)
+    thumb.write(File.join(base,item.thumb.path)){self.quality = CONF_ALBUM_THUMB_QUALITY}
+    item.thumb.update(width:thumb.columns,height:thumb.rows)
   end
 
   post '/album/upload' do
@@ -280,20 +332,29 @@ class MainApp < Sinatra::Base
     }
     "<div id='response'>#{res.to_json}</div>"
   end
-  def send_photo(p)
+  def send_photo(p,rotate)
     content_type "image/#{p.format.downcase}"
     path = File.join(G_STORAGE_DIR,"album",p.path)
-    send_file(path)
+    if rotate == 0
+      send_file(path)
+    else
+      last_modified p.updated_at
+      img = Magick::Image::read(path).first
+      new_img = img.rotate(rotate)
+      new_img.to_blob
+    end
   end
 
   namespace '/static/album' do
-    get '/thumb/:id' do
+    # キャッシュを防ぐために回転の度数ごとに別URLにする
+    get '/thumb/:id.?:rotate?' do
       p = AlbumThumbnail.get(params[:id].to_i)
-      send_photo(p)
+      # サムネイルは作成時にrotate済みなのでそのまま送る
+      send_photo(p,0)
     end
-    get '/photo/:id' do
+    get '/photo/:id.?:rotate?' do
       p = AlbumPhoto.get(params[:id].to_i)
-      send_photo(p)
+      send_photo(p,params[:rotate].to_i)
     end
   end
 end

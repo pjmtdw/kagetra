@@ -124,6 +124,12 @@ define (require,exports,module)->
       "click #cancel-edit" : "cancel_edit"
       "click #apply-edit" : "apply_edit"
       "click #album-delete" : "album_delete"
+      "click #click-mode .choice" : "click_mode"
+    click_mode: (ev)->
+      obj = $(ev.currentTarget)
+      $("#click-mode .active").removeClass("active")
+      obj.addClass("active")
+      @click_mode = obj.data("mode")
     add_picture: ->
       target = "#container-album-upload"
       t = _.template_braces($("#templ-album-empty-form").html())
@@ -143,6 +149,7 @@ define (require,exports,module)->
     apply_edit: ->
       obj = $("#album-item-form").serializeObj()
       obj["item_order"] = $.makeArray($(".album-item").map((i,x)->$(x).data("id")))
+      obj["add_rotate"] = @add_rotate
       that = this
       _.save_model(@model,obj).done(->
         that.model.fetch().done(->
@@ -163,13 +170,22 @@ define (require,exports,module)->
     thumb_click: (ev)->
       return unless @edit_mode
       obj = $(ev.currentTarget)
-      if not @move_from
-        @move_from = obj
-        obj.addClass("move-from")
+      if @click_mode == "move"
+        if not @move_from
+          @move_from = obj
+          obj.addClass("move-from")
+        else
+          @$el.find(".album-item.move-from").removeClass("move-from")
+          _.swap_elem(obj,@move_from)
+          @move_from = null
       else
-        @$el.find(".album-item.move-from").removeClass("move-from")
-        _.swap_elem(obj,@move_from)
-        @move_from = null
+        id = obj.data("id")
+        @add_rotate[id] ||= 0
+        rot = @add_rotate[id]
+        img = obj.find("img")
+        img.removeClass("rotate-#{rot}")
+        @add_rotate[id] = (rot + 90)%360
+        img.addClass("rotate-#{@add_rotate[id]}")
     show_all: ->
       @$el.find(".tag-selected").removeClass("tag-selected")
       for x in @model.get("items")
@@ -194,11 +210,13 @@ define (require,exports,module)->
         is_group:true
         data:@model.toJSON()
       ))
-      $("#album-items").before($("<div>",text:"写真をクリックすると順番を入れ替えることができます"))
+      $("#album-items").before($($.parseHTML($("#templ-album-click-mode").html())))
       $("#album-buttons").hide()
       $("#album-edit-buttons").show()
       @edit_mode = true
+      @click_mode = "move"
       $("#album-items a").removeAttr("href")
+      @add_rotate = {}
 
 
   AlbumItemModel = Backbone.Model.extend

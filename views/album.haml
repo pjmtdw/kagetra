@@ -139,7 +139,7 @@
   .row#canvas-container
     .large-12.columns
       #container.left(style="height:{{data.photo.height}}px;width:{{data.photo.width}}px")
-        %img#photo(style="" src='/static/album/photo/{{data.photo.id}}')
+        %img#photo(src='/static/album/photo/{{data.photo.id}}.{{data.rotate}}')
         %img#marker-r.marker.hide(src='/img/album_marker/red.gif')
         %img#marker-b.marker.hide(src='/img/album_marker/blue.gif')
         %img#marker-y.marker.hide(src='/img/album_marker/yellow.gif')
@@ -285,6 +285,13 @@
             {{ x.diff_html }}
       <% }) %>
 
+%script#templ-album-click-mode(type='text/template')
+  %dl#click-mode.sub-nav
+    %dt 写真をクリックしたとき:
+    %dd.choice.active(data-mode='move')
+      %a 移動
+    %dd.choice(data-mode='rotate')
+      %a 回転
 
 #container-album-relation.reveal-modal
 #container-album-upload.reveal-modal

@@ -91,9 +91,8 @@ module MiscHelpers
       [ag] * w
     }.flatten.sample
     return if ag.nil?
-    a = ag.items.to_a.sample
-    t = a.thumb
-    MyConf.update_or_create({name:DAILY_ALBUM_PHOTO_KEY},{value:{id:a.id,thumb:t.select_attr(:id,:width,:height)}})
+    item = ag.items.to_a.sample
+    MyConf.update_or_create({name:DAILY_ALBUM_PHOTO_KEY},{value:item.id_with_thumb})
   end
 
   def update_event_done_flag

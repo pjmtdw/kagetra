@@ -2,6 +2,7 @@ requirejs.config
   paths:
     zep_or_jq: "libs/zepto_or_jquery"
     jquery: "http://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min"
+    jquery_placeholder: "http://cdnjs.cloudflare.com/ajax/libs/jquery-placeholder/2.0.7/jquery.placeholder.min"
     zepto: "http://cdnjs.cloudflare.com/ajax/libs/zepto/1.0/zepto.min"
     backbone: "http://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.0.0/backbone-min"
     underscore: "http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min"
@@ -25,6 +26,7 @@ requirejs.config
     "crypto-core": "libs/CryptoJS/components/core"
 
   shim:
+    jquery_placeholder: deps: ["zep_or_jq"]
     myutil: deps: ["underscore","zep_or_jq"]
     select2: deps: ["zep_or_jq"]
     schedule_item: deps: ["backbone"]
@@ -47,7 +49,7 @@ requirejs.config
     "crypto-pbkdf2": deps: ["crypto"]
     "crypto-aes": deps: ["crypto"]
 
-require ["zep_or_jq","myutil","backbone","select2"
+require ["zep_or_jq","myutil","backbone","select2","jquery_placeholder"
      "foundation.reveal","foundation.topbar","foundation.dropdown","foundation.section","foundation.alerts","foundation.magellan","foundation.tooltips"], ->
   # simply-deferred を使う場合は下記が必要
   # 現在は jquery の select2 プラグインを使用しているため zepto は使わない方針

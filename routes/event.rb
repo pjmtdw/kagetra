@@ -91,7 +91,10 @@ class MainApp < Sinatra::Base
               }
               {-1 => sort_and_map.call(res)}
             else
-              choices.each_with_object({}){|c,obj|
+              # DataMapperをeach_with_objectと一緒に使うとき(?)はto_aしておかないと
+              # 時々 c.hash が同じものが出現する(?)
+              # 原因不明だが一応.to_aを付けておく
+              choices.to_a.each_with_object({}){|c,obj|
                 ucs = c.user_choices
                 add_participant_names.call(ucs,c.hide_result)
                 obj[c.id] = sort_and_map.call(

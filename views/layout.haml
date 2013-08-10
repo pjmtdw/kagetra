@@ -32,3 +32,6 @@
     .row
       %a.right(href="javascript:window.scrollTo(0,0);") &uArr; 一番上へ
     %script(src="/js/libs/require.js" data-main="/js/main" data-start="#{yield_content(:js_start)}")
+    /[if IE 9]
+      %script
+        var g_is_ie9 = true

@@ -193,7 +193,6 @@ define (require,exports,module) ->
       "click  #show-attached-upload" : "show_attached_upload"
       "click .edit-attached" : "edit_attached"
     reveal_it: (data)->
-      console.log data
       target = "#container-attached-upload"
       that = this
       when_success = ->

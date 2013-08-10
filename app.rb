@@ -27,6 +27,15 @@ class MainApp < Sinatra::Base
     logger.puts err.backtrace.join("\t\n")
   end
 
+  set(:auth) do |*roles|
+    condition do
+      if roles.any?{|role| role == :admin } and not @user.admin
+        halt 403
+      end
+    end
+  end
+
+
   configure :development do
     register Sinatra::Reloader
 

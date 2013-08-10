@@ -5,6 +5,12 @@ define (require, exports, module) ->
   # メールアドレスにマッチする部分は PEAR::Mail_RFC822::isValidInetAddress()
   pat_url = new RegExp("((https?://[a-zA-Z0-9/:%#$&?()~.=+_-]+)|(([*+!.&#\$|\'\\%\/0-9a-z^_`{}=?~:-]+)@(([0-9a-z-]+\.)+[0-9a-z]{2,})))","gi")
   _.mixin
+    ie9_placeholder: (target)->
+      return unless g_is_ie9?
+      # Internet Explorer 9 does not support placeholder
+      for s in ["input[type='text']","input[type='password']","textarea"]
+        $(target).find(s).placeholder()
+
     iframe_submit: (when_success,when_error)->
       html = $("#dummy-iframe").contents().find("#response").html()
       return if _.isUndefined(html) # IEの場合は最初の読み込み時にもloadがtriggerされる．そのときのhtmlはundefined

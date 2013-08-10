@@ -25,9 +25,10 @@ class MainApp < Sinatra::Base
     end
     get '/group/:gid' do
       item_fields = [:id,:tag_count,:comment,:tag_names]
-      if params.has_key?("detail")
-        item_fields += [:name,:place,:date,:daily_choose]
-      end
+      # TODO: 一括編集にこれを使う
+      #if params.has_key?("detail")
+      #  item_fields += [:name,:place,:date,:daily_choose]
+      #end
       group = AlbumGroup.get(params[:gid].to_i)
       r = group.select_attr(:name,:year,:place,:comment,:start_at,:end_at)
       tags = {}

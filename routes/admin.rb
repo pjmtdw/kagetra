@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
   namespace '/api/admin' do
+    before do
+      halt 403 unless @user.admin
+    end
     get '/list' do
       # UserAttribute.all(fields:[:user_id,:value_id]).map{|x|[x.user_id,x.value_id]} が遅いので手動でクエリする
       # TODO: 上記が遅い原因を探り, 手動クエリを使わない方法を見つける
@@ -135,16 +138,16 @@ class MainApp < Sinatra::Base
       {list:list}
     end
   end
-  get '/admin' do
+  get '/admin', auth: :admin do
     @new_salt = Kagetra::Utils.gen_salt
     haml :admin
   end
-  get '/admin_config' do
+  get '/admin_config',auth: :admin do
     @cur_shared_salt = MyConf.first(name: "shared_password").value["salt"]
     @new_shared_salt = Kagetra::Utils.gen_salt
     haml :admin_config
   end
-  get '/admin_attr' do
+  get '/admin_attr',auth: :admin do
     haml :admin_attr
   end
 end

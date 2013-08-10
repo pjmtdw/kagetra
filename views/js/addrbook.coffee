@@ -47,6 +47,7 @@ define ["crypto-aes", "crypto-hmac","crypto-pbkdf2","crypto-base64"], ->
     render: ->
       $("#panel-users").html(@template(data:@model.toJSON()))
       $("#panel-users").scrollTop(0,0)
+      _.ie9_placeholder(@el)
     refresh: (ev)->
       v = $(ev.currentTarget).val()
       @model.set("id",v)

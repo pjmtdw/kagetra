@@ -33,7 +33,7 @@ class MainApp < Sinatra::Base
       r
     end
     # TODO: パスワードを平文で送るのは危険
-    post '/change_pass' do
+    post '/change_pass',auth: :admin do
       cpass = @json["cur_password"]
       npass = @json["new_password"]
       Kagetra::Utils.single_exec{

@@ -168,6 +168,7 @@ define (require, exports, module) ->
     render_edit: ->
       @edit_mode = true
       @$el.html(@template_edit(data:@model.toJSON()))
+      _.ie9_placeholder(@el)
   ScheduleDetailEventView = Backbone.View.extend
     events:
       "click .detail" : "show_detail"

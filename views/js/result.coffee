@@ -148,6 +148,8 @@ define (require,exports,module) ->
       }
       @$el.html(@template(data:_.extend(data,@additional_render?(result,round_info))))
       @$el.appendTo(@options.target)
+      _.ie9_placeholder(@options.target)
+
       # モバイル端末などで大会結果がbodyの幅をはみ出た箇所で回戦の編集をしようとすると
       # Foundation の reveal は body の中 (モバイル端末の画面外) に表示される
       # なのであらかじめ body の中まで scroll しておく
@@ -403,6 +405,7 @@ define (require,exports,module) ->
     render: ->
       @$el.html(@template(data:@model.toJSON()))
       @$el.appendTo(@options.target)
+      _.ie9_placeholder(@options.target)
     add_class: ->
       classes = @$el.find(".class-to-add").val().split(/\s+/)
       classes.reverse()

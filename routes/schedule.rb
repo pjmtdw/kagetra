@@ -161,7 +161,9 @@ class MainApp < Sinatra::Base
         [ScheduleItem,:item,:make_item,Array,cbase],
         [Event,:event,:make_event,Array,cbase]
       ].map{|klass,sym,func,obj,cond|
-        klass.all_month(:date,year,mon,cond)
+        # 原因不明: DataMapperに対して.each_with_object を使うとき(?)は .to_a しないと x に同じものが出現する
+        # TODO: 原因の探求
+        klass.all_month(:date,year,mon,cond).to_a
         .each_with_object(if obj == Array then Hash.new{[]} else {} end){|x,h|
           if obj == Array then
             h[x.date.day] <<= send(func,x)

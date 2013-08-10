@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # 名簿
 class MainApp < Sinatra::Base 
+  ADDRBOOK_RECENT_MAX =50
   namespace '/api/addrbook' do
     post '/item/:uid' do
       AddrBook.update_or_create({user_id:params[:uid]},{text:@json["text"]})
@@ -20,9 +21,13 @@ class MainApp < Sinatra::Base
           }
         }
       else
-        ab.select_attr(:text).merge({found:true,uid:uid})
+        ab.select_attr(:text).merge({
+          found:true,
+          uid:uid,
+          updated_date: ab.updated_at.strftime("%Y-%m-%d %H:%M")
+        })
       end
-      if uid == @user.id then
+      if @user.admin or uid == @user.id then
         r[:editable] = true
       end
       r
@@ -43,6 +48,14 @@ class MainApp < Sinatra::Base
           Kagetra::Utils.set_addrbook_password(npass)
         }
       }
+    end
+    get '/recent' do
+      recents = AddrBook.all(fields:[:user_id,:updated_at],order:[:updated_at.desc])[0...ADDRBOOK_RECENT_MAX].map{|x|
+        next unless (x.user.nil?.! and x.updated_at)
+        [x.user.id,x.updated_at.strftime("%Y-%m-%d")+": "+x.user.name]
+      }.compact
+      list = [[@user.id,"自分"]]
+      {list:list+recents}
     end
   end
   get '/addrbook' do

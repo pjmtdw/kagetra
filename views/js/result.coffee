@@ -446,12 +446,18 @@ define (require,exports,module) ->
     move_player_common: (belongs)->
       checked = @get_checked()
       cl = @$el.find(".player-to-move-belong select").val()
-      @remove_player_belong(checked)
       ucs = @model.get(belongs)
+      get_belong_from_id = (id)->
+        for k,v of ucs
+          return k if v.indexOf(id) >= 0
+      # 移動不可でも同チーム内での順番変更は可能
+      checked = (c for c in checked when ((not @model.get('not_movable')[c]) or get_belong_from_id(c) == cl))
+      @remove_player_belong(checked)
       ucs[cl] = ucs[cl].concat(checked)
       @render()
     delete_player: ->
       checked = @get_checked()
+      checked = (c for c in checked when not @model.get('not_movable')[c])
       users = @model.get('users')
       @remove_player_belong(checked)
       for c in checked

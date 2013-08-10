@@ -174,7 +174,7 @@
             %legend {- data.teams[y] -}
             <% _.each(data.user_teams[y],function(z,i){ %>
             %span.player
-              {{ _.make_checkbox(null,_.extend({'data-id':z},data.editable[z]?{}:{disabled:true})) }}
+              {{ _.make_checkbox(null,{'data-id':z})}}
               {- data.users[z] -}({{_.order_to_ja(i+1)}})
             <% }) %>
           <% }) %>
@@ -250,7 +250,7 @@
       .columns
         .message {{ data.message }}
     <% } %>
-    <% if(data.team_prize){ %>
+    <% if(data.team_name){ %>
     .row.collapse
       .large-2.small-3.columns
         %label.inline.right チーム成績 :

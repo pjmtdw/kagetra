@@ -254,8 +254,9 @@ class MainApp < Sinatra::Base
       cc = ev.result_classes.all(order:[:index.asc])
       classes = cc.map{|x|[x.id,x.class_name]}
       users = Hash[ev.result_users.map{|x|[x.id,x.name]}]
-      editable = Hash[ev.result_users.map{|x|[x.id,x.games.empty?]}]
-      base = {users:users,classes:classes,editable:editable}
+      # 個人戦の場合は自由に移動できる
+      not_movable = Hash[ev.result_users.map{|x|[x.id,ev.team_size > 1 && x.games.empty?.!]}]
+      base = {users:users,classes:classes,not_movable:not_movable}
       if ev.team_size == 1 then
         user_classes = Hash[cc.map{|x|[x.id,x.users.map{|y|y.id}]}]
         base.merge({user_classes:user_classes})

@@ -13,7 +13,11 @@ define ["crypto-aes", "crypto-hmac","crypto-pbkdf2","crypto-base64"], ->
     user: (uid) ->
       window.addrbook_view.refresh(uid)
   AddrBookPanelModel = Backbone.Model.extend
-    urlRoot: "api/user/auth/list"
+    url: ->
+      if @get('id') == "recent"
+        "api/addrbook/recent"
+      else
+        "api/user/auth/list/#{@get('id')}"
   AddrBookPanelView = Backbone.View.extend
     el: "#addrbook-panel"
     template: _.template_braces($("#templ-addrbook-panel").html())
@@ -34,7 +38,7 @@ define ["crypto-aes", "crypto-hmac","crypto-pbkdf2","crypto-base64"], ->
       _.bindAll(this,"render","refresh")
       @model = new AddrBookPanelModel()
       @listenTo(@model,"sync", @render)
-      @model.set("id",0)
+      @model.set("id","recent")
       @model.fetch()
       $("#panel-users").attr("size","1") if window.is_small
     refresh_body: (ev) ->
@@ -104,15 +108,15 @@ define ["crypto-aes", "crypto-hmac","crypto-pbkdf2","crypto-base64"], ->
       else
         res = _.clone(@model.get("default"))
 
-      data = []
+      info = []
       for k in window.addrbook_keys
-        data.push [k,res[k]]
+        info.push [k,res[k]]
         delete res[k]
       for k,v of res
-        data.push [k,v]
+        info.push [k,v]
       
       templ = if @model.get("editable") then @template_edit else @template
-      @$el.html(templ(data:data))
+      @$el.html(templ(data:_.extend(@model.toJSON(),info:info)))
       @decode_success = true
     refresh: (id) ->
       @model.clear()

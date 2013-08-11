@@ -96,6 +96,7 @@ class ContestPrize
   property :point_local, Integer, default: 0 # 会内ポイント
   property :rank, Integer # 順位(1=優勝, 2=準優勝, 3=三位, 4=四位, ...)
   before :save do
+    self.contest_class_id = self.contest_user.contest_class_id
     if self.prize.to_s.empty?.! then
       self.prize = Kagetra::Utils.zenkaku_to_hankaku(self.prize.strip)
       if /\((.+)\)/ =~ self.prize then
@@ -161,6 +162,9 @@ class ContestGame
   validates_absence_of :round, if: is_team
 
   before :save do
+    if is_single.call(self) then
+      self.contest_class_id = self.contest_user.contest_class_id
+    end
     self.event = self.contest_user.event if self.event.nil?
     self.score_int = Kagetra::Utils.eval_score_char(self.score_str)
   end

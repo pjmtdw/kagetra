@@ -78,12 +78,12 @@ class MainApp < Sinatra::Base
     # 個人戦の結果
     def contest_results_single(evt)
       # 後で少しずつ取得するのは遅いのでまとめて取得
-      cls = evt.result_classes
+      cls = evt.result_classes(order:[:index.asc])
       ugattrs = [:result,:opponent_name,:opponent_belongs,:score_str,:comment,:round]
       user_games = cls.single_games.all(order:[:round.asc],fields:[:contest_user_id,*ugattrs]).map{|gm|
         [gm.contest_user_id,gm.select_attr(*ugattrs)]
       }.each_with_object(Hash.new{[]}){|(uid,attrs),h|
-        if h[uid].empty?.! and attrs[:round] != h[uid].last[:round] +1 then
+        if h[uid].empty?.! and attrs[:round] > h[uid].last[:round] +1 then
           # 回戦に抜けがあった場合は休みを入れる
           h[uid] += [{result: :break}] * (attrs[:round]-h[uid].last[:round]-1)
         end
@@ -186,7 +186,7 @@ class MainApp < Sinatra::Base
     
     # 団体戦の結果
     def contest_results_team(evt)
-      evt.result_classes.teams.map{|team|
+      evt.result_classes(order:[:index.asc]).teams.map{|team|
         ops = team.opponents(order: :round.asc)
         round_ops = Hash[ops.map{|o|[o.round,o]}]
         max_round = ops.size
@@ -284,17 +284,17 @@ class MainApp < Sinatra::Base
         if k.to_s.start_with?("new_")
           us = User.first(name:v)
           user_id = if us then us.id end
-          u = ContestUser.create(name:v,event:ev,contest_class:klass,user_id:user_id)
+          u = ContestUser.create(name:v,event_id:ev.id,contest_class_id:klass.id,user_id:user_id)
           new_ids[k] = u.id
         else
           u = ContestUser.get(k)
+          u.update(contest_class:klass)
           if ev.team_size == 1 then
-            u.games.update(contest_class:klass)
+            u.games.update(contest_class_id:klass.id)
           end
           if u.prize then
-            u.prize.update(contest_class:klass)
+            u.prize.update(contest_class_id:klass.id)
           end
-          u.update(contest_class:klass)
         end
       }
       new_ids
@@ -305,7 +305,7 @@ class MainApp < Sinatra::Base
           ev = Event.get(params[:id].to_i)
           @json["classes"].each_with_index{|(k,v),i|
             if k.to_s.start_with?("new_")
-              kl = ContestClass.create(class_name:v,event:ev,index:i)
+              kl = ContestClass.create(class_name:v,event_id:ev.id,index:i)
               ["user_classes","team_classes"].each{|key|
                 if @json.has_key?(key) then
                   @json[key] = Hash[@json[key].map{|p,q|
@@ -331,10 +331,10 @@ class MainApp < Sinatra::Base
               members = @json["user_teams"][tid]
 
               team =  if tid.to_s.start_with?("new_")
-                        ContestTeam.create(name:tname,contest_class:klass)
+                        ContestTeam.create(name:tname,contest_class_id:klass.id)
                       else
                         t = ContestTeam.get(tid)
-                        t.update(contest_class:klass)
+                        t.update(contest_class_id:klass.id)
                         t
                       end
               team.members.destroy

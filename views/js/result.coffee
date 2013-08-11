@@ -82,7 +82,7 @@ define (require,exports,module) ->
     events:
       "click .apply-edit" : "apply_edit"
     apply_edit: ->
-      results = $.makeArray(@$el.find("form").map(->
+      results = $.makeArray(@$el.find("form.changed").map(->
         obj = $(@).serializeObj()
         _.extend(obj,{cuid:$(@).data('cuid')})
       ))
@@ -149,6 +149,9 @@ define (require,exports,module) ->
       @$el.html(@template(data:_.extend(data,@additional_render?(result,round_info))))
       @$el.appendTo(@options.target)
       _.ie9_placeholder(@options.target)
+      func = (ev)-> $(ev.currentTarget).closest("form").addClass("changed")
+      @$el.find("input[type='text']").one('change',func)
+      @$el.find("select").one('change',func)
 
       # モバイル端末などで大会結果がbodyの幅をはみ出た箇所で回戦の編集をしようとすると
       # Foundation の reveal は body の中 (モバイル端末の画面外) に表示される
@@ -277,7 +280,7 @@ define (require,exports,module) ->
     events:
       "click .apply-edit" : "apply_edit"
     apply_edit: ->
-      prizes = $.makeArray(@$el.find("form").map(->
+      prizes = $.makeArray(@$el.find("form.changed").map(->
         obj = $(@).serializeObj()
         _.extend(obj,{cuid:$(@).data('cuid')})))
       cindex = @options.chunk_index
@@ -318,6 +321,9 @@ define (require,exports,module) ->
       }
       @$el.html(@template(data:_.extend(data,@additional_render?(result))))
       @$el.appendTo(@options.target)
+      func = (ev)-> $(ev.currentTarget).closest("form").addClass("changed")
+      @$el.find("input[type='text']").one('change',func)
+      @$el.find("select").one('change',func)
 
   class ContestEditSinglePrizeView extends ContestEditPrizeBase
     additional_render: (result)->

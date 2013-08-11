@@ -77,7 +77,7 @@
       <% if(!data.done){ %>
       %section
         %p.title(data-section-title)
-          %a 参加者
+          %a 登録者 
         .content(data-section-content)
           #event-edit-participant
       <% } %>
@@ -125,7 +125,7 @@
         %input(name='name' type='text' value='{- data.name -}')
       .large-1.columns
         {{ _.make_checkbox(data.public,{name:'public'}) }} 公開
-        %span.has-tip(data-tooltip title="外部公開版の予定表や大会行事案内に表示されます．ただし参加者一覧およびコメントは公開されません．") [?]
+        %span.has-tip(data-tooltip title="外部公開版の予定表や大会行事案内に表示されます．ただし登録者一覧およびコメントは公開されません．") [?]
 
       .large-3.columns
         %label 管理者(半角コンマ区切り)

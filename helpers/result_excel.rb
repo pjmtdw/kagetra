@@ -53,7 +53,7 @@ module ResultExcelHelpers
       format = sheet.default_format.clone
       format.horizontal_align = :right
       row.set_format(6,format)
-      row[6] = ev.result_classes.all(order:[:index.asc]).map{|c| "#{c.class_name.sub(/級/,'')}:#{c.num_person}"}.join(" ")
+      row[6] = ev.result_classes.all(order:[:index.asc]).map{|c| if c.num_person.to_i > 0 then "#{c.class_name.sub(/級/,'')}:#{c.num_person}" end}.compact.join(" ")
       sheet.merge_cells(num,6,num,10)
     end
 

@@ -14,7 +14,7 @@
       %ul.pagination
         <% _.each(data.recent_list,function(x,i){ %>
         %li.contest-link(title='{{x.date}}' data-id='{{x.id}}' class='{{x.id==data.id?"current":""}}')
-          <% if(i == 0 && x.id != data.id) { %>
+          <% if(!x.most_recent && i == 0 && x.id != data.id) { %>
           %a &lsaquo;
           <% }else if(i == data.recent_list.length - 1 && x.id != data.id) { %>
           %a &rsaquo;

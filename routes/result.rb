@@ -62,6 +62,8 @@ class MainApp < Sinatra::Base
       # 実際にクエリ実行する(この行を入れないとうまく動かない)
       pre = pre.to_a
       post = post.to_a
+      
+      first_is_most_recent = (post.size <= EVENT_HALF_PAGE)
 
       all = if pre.size <= EVENT_HALF_PAGE then
         (pre + [evt] + post)[0..EVENTS_PER_PAGE].reverse
@@ -71,7 +73,13 @@ class MainApp < Sinatra::Base
         (pre[0...EVENT_HALF_PAGE].reverse + [evt] + post[0...EVENT_HALF_PAGE]).reverse
       end
 
-      list = all.map{|x| x.select_attr(:id,:name,:date)}
+      list = all.to_enum.with_index(0).map{|x,i|
+        r = x.select_attr(:id,:name,:date)
+        if first_is_most_recent and i == 0 then
+          r[:most_recent] = true
+        end
+        r
+      }
       [evt,list]
     end
 
@@ -362,12 +370,16 @@ class MainApp < Sinatra::Base
       }
     end
     post '/num_person' do
-      ContestClass.transaction{
-        Hash[@json["data"].map{|x|
-          c = ContestClass.get(x["class_id"])
-          c.update(num_person: x["num_person"])
-          [c.id,c.num_person]
-        }]
+      Kagetra::Utils.dm_debug{
+        ContestClass.transaction{
+          Hash[@json["data"].map{|x|
+            np = x["num_person"]
+            np = if np.to_i == 0 then nil else np.to_i end
+            c = ContestClass.get(x["class_id"])
+            c.update(num_person: np)
+            [c.id,c.num_person]
+          }]
+        }
       }
     end
     post '/update_round' do

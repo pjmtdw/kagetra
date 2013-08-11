@@ -55,12 +55,11 @@
               %canvas.percent(title='コメント無し: {{x.no_comment}}%' width=21 height=13 data-percent='{{x.no_comment}}' data-color='olive')
             <% } %>
             .count.right {- x.item_count -}
-            
-          %div {- x.name -}
+          %div {- x.name || "(タイトル無し)" -}
         <% }else{ %>
         .gbase.item(data-item-id='{-x.id-}')
           .date {- x.date -}
-          %div {- x.name -}
+          %div {- x.name || "(タイトル無し)" -}
         <% } %>
       <% }) %>
 
@@ -68,7 +67,7 @@
   .row
     .large-4.columns
       %a(href='album#') TOP - 
-      %a(href='album#year/{{data.year}}') {{data.year}}年
+      %a(href='album#year/{{data.year || "_else_"}}') {{data.year || "(不明)"}}年
     .large-8.columns
       .right#album-buttons
         %button.small.round#add-picture 写真追加
@@ -110,9 +109,9 @@
     .large-12.columns
       .left
         %a(href='album#') TOP - 
-        %a(href='album#year/{{data.group.year}}') {{data.group.year}}年 -
+        %a(href='album#year/{{data.group.year || "_else_"}}') {{data.group.year || "(不明)"}}年 -
         <% if(!data.group.dummy){ %>
-        %a(href='album{{"#group/"+data.group.id}}') {- data.group.name -}
+        %a(href='album{{"#group/"+data.group.id}}') {- data.group.name || "(タイトルなし)" -}
         <% } %>
       .right#album-buttons
         %button.small.round#start-edit 編集開始

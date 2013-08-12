@@ -1,6 +1,5 @@
 define (require,exports,module)->
-  _.mixin
-    
+  _.mixin    
     show_date: (data)->
       if data.date?
         data.date
@@ -120,11 +119,31 @@ define (require,exports,module)->
       "click .album-tag" : "filter_tag"
       "click #start-edit" : "start_edit"
       "click #add-picture" : "add_picture"
-      "click .album-item" : "thumb_click"
+      "click .album-item img" : "thumb_click"
       "click #cancel-edit" : "cancel_edit"
       "click #apply-edit" : "apply_edit"
       "click #album-delete" : "album_delete"
       "click #click-mode .choice" : "click_mode"
+      "click #multi-edit" : "multi_edit"
+      "click #remove-checked" : "remove_checked"
+      "click #reverse-checked" : "reverse_checked"
+    get_checked: ->
+      @$el.find(".album-item input[type='checkbox']:checked")
+    remove_checked: ->
+      @get_checked().prop("checked",false)
+    reverse_checked: ->
+      checked = @get_checked()
+      @$el.find(".album-item input[type='checkbox']").prop("checked",true)
+      checked.prop("checked",false)
+    multi_edit: ->
+      checked = @get_checked()
+      if checked.length == 0
+        alert("チェックボックスにチェックを入れて下さい")
+        return
+      target = "#container-album-multi-edit"
+      arr = $.makeArray(checked.map(->$(@).closest(".album-item").data("id")))
+      v = new AlbumMultiEditView(target:target,checked:arr,model:@model)
+      _.reveal_view(target,v)
     click_mode: (ev)->
       obj = $(ev.currentTarget)
       $("#click-mode .active").removeClass("active")
@@ -133,7 +152,7 @@ define (require,exports,module)->
     add_picture: ->
       target = "#container-album-upload"
       t = _.template_braces($("#templ-album-empty-form").html())
-      v = new AlbumUploadView(target:target,tform:t(data:@model.toJSON()))
+      v = new AlbumUploadView(target:target,is_add_mode:true,tform:t(data:@model.toJSON()))
       _.reveal_view(target,v)
     cancel_edit: ->
       that = this
@@ -169,14 +188,14 @@ define (require,exports,module)->
       $("#album-items").html(@template_items(data:@model.toJSON()))
     thumb_click: (ev)->
       return unless @edit_mode
-      obj = $(ev.currentTarget)
+      obj = $(ev.currentTarget).closest(".album-item")
       if @click_mode == "move"
         if not @move_from
           @move_from = obj
           obj.addClass("move-from")
         else
           @$el.find(".album-item.move-from").removeClass("move-from")
-          _.swap_elem(obj,@move_from)
+          _.swap_elem(@move_from,obj)
           @move_from = null
       else
         id = obj.data("id")
@@ -210,12 +229,13 @@ define (require,exports,module)->
         is_group:true
         data:@model.toJSON()
       ))
-      $("#album-items").before($($.parseHTML($("#templ-album-click-mode").html())))
+      $("#album-items").before($($.parseHTML($("#templ-album-edit-menu").html())))
       $("#album-buttons").hide()
       $("#album-edit-buttons").show()
       @edit_mode = true
       @click_mode = "move"
       $("#album-items a").removeAttr("href")
+      $("#album-items .album-item").prepend($("<input>",{type:"checkbox",style:"display:block"}))
       @add_rotate = {}
 
 
@@ -478,7 +498,11 @@ define (require,exports,module)->
     submit_done: ->
       that = this
       when_success = (res)->
-        window.album_router.navigate("group/#{res.group_id}", trigger:true)
+        if that.options.is_add_mode
+          # 現在のページをリロード
+          Backbone.history.loadUrl( Backbone.history.fragment )
+        else
+          window.album_router.navigate("group/#{res.group_id}", trigger:true)
         $("#container-album-upload").foundation("reveal","close")
       when_error = ->
         obj = that.$el.find("input[type='submit']")
@@ -511,6 +535,75 @@ define (require,exports,module)->
     render: ->
       @$el.html(@template(data:@model.toJSON()))
       @$el.appendTo("#album-all-log")
+
+  AlbumMultiEditView = Backbone.View.extend
+    template: _.template_braces($("#templ-album-multi-edit").html())
+    events:
+      "click .do-move" : "do_move"
+      "click .delete-items" : "delete_items"
+      "submit .multi-edit-form" : "update_attrs"
+    delete_items: ->
+      return unless prompt("削除するにはdeleteと入れて下さい","") == "delete"
+      checked = @options.checked
+      obj = {item_ids:checked}
+      $.ajax("api/album/delete_items/#{@model.get('id')}",{
+        data: JSON.stringify(obj),
+        contentType: "application/json",
+        type: "DELETE"
+      }).done((data)->
+        alert("削除しました")
+        for c in checked
+          $("#album-items .album-item[data-id='#{c}']").remove()
+      )
+
+    update_attrs: _.wrap_submit (ev)->
+      obj = $(ev.currentTarget).serializeObj()
+      obj["item_ids"] = @options.checked
+      $.ajax("api/album/update_attrs",{
+        data: JSON.stringify(obj),
+        contentType: "application/json",
+        type: "POST"
+      }).done((data)->
+        if data._error_
+          alert(data._error_)
+        else
+          alert("更新しました")
+      )
+
+    do_move: ->
+      group_id = @$el.find(".move-folder-target").select2("val")
+      return unless group_id
+      checked = @options.checked
+      obj = {
+        group_id: group_id
+        item_ids: checked
+      }
+      $.ajax("api/album/move_group",{
+        data: JSON.stringify(obj),
+        contentType: "application/json",
+        type: "POST"
+      }).done(-> 
+        alert("移動しました")
+        for c in checked
+          $("#album-items .album-item[data-id='#{c}']").remove()
+      )
+    initialize: ->
+      @render()
+    render: ->
+      group_id = @model.get('id')
+      @$el.html(@template(data:@model.toJSON(),count:@options.checked.length))
+      @$el.appendTo(@options.target)
+      @$el.find(".move-folder-target").select2(
+        minimumInputLength: 1
+        ajax:
+          url: "api/album/search_group"
+          type: "POST"
+          data: (term,page)->
+            q: term
+            exclude: group_id
+          results: (data,page) ->
+            data
+      )
 
   init: ->
     window.album_router = new AlbumRouter()

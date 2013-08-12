@@ -25,10 +25,6 @@ class MainApp < Sinatra::Base
     end
     get '/group/:gid' do
       item_fields = [:id,:tag_count,:comment,:tag_names]
-      # TODO: 一括編集にこれを使う
-      #if params.has_key?("detail")
-      #  item_fields += [:name,:place,:date,:daily_choose]
-      #end
       group = AlbumGroup.get(params[:gid].to_i)
       r = group.select_attr(:name,:year,:place,:comment,:start_at,:end_at)
       tags = {}
@@ -172,16 +168,6 @@ class MainApp < Sinatra::Base
         }
       }
     end
-    delete '/item/:id' do
-      item = AlbumItem.get(params[:id].to_i)
-      if item.nil?.! then
-        AlbumItem.transaction{
-          ag = item.group
-          item.update!(deleted:true)
-          ag.update_count
-        }
-      end
-    end
     get '/years' do
       aggr = AlbumGroup.aggregate(:item_count.sum, fields:[:year], unique: true, order: [:year.desc])
       total = aggr.map{|x|x[1]}.sum
@@ -249,6 +235,58 @@ class MainApp < Sinatra::Base
       end
       data
     end
+
+    post '/search_group' do
+      query = params[:q]
+      qs = query.split(/\s+/)
+      res = AlbumGroup.all(:id.not => params[:exclude].to_i)
+      qs.each{|q|
+        if /^\d{4}$/=~ q then
+          res &= AlbumGroup.all(year:q.to_i)
+        else
+          res &= AlbumGroup.all(:name.like => "%#{q}%")
+        end
+      }
+      results = res.all(order:[:start_at.desc]).map{|x|
+        {
+          id:x.id,
+          text:x.name.to_s + "@#{x.start_at}"
+        }
+      }
+      {results:results}
+    end
+    post '/move_group' do
+      index = AlbumGroup.get(@json["group_id"].to_i).items.aggregate(fields:[:group_index.max]) || -1
+      AlbumItem.all(id:@json["item_ids"],order:[:group_index.asc]).each{|item|
+        index += 1
+        item.update(group_id:@json["group_id"].to_i, group_index:index)
+      }
+    end
+    post '/update_attrs' do
+      item_ids = @json["item_ids"]
+      @json.delete("item_ids")
+      dm_response{
+        AlbumItem.all(id:item_ids).update(@json)
+      }
+    end
+    delete '/item/:id' do
+      item = AlbumItem.get(params[:id].to_i)
+      if item.nil?.! then
+        AlbumItem.transaction{
+          ag = item.group
+          item.update!(deleted:true)
+          ag.update_count
+        }
+      end
+    end
+    delete '/delete_items/:group_id' do
+      item_ids = @json["item_ids"]
+      AlbumItem.transaction{
+        ag = AlbumGroup.get(params[:group_id])
+        AlbumItem.all(id:item_ids).update!(deleted:true)
+        ag.update_count
+      }
+    end
   end
   get '/album' do
     haml :album
@@ -293,8 +331,6 @@ class MainApp < Sinatra::Base
 
   post '/album/upload' do
     res = dm_response{
-      tempfile = params[:file][:tempfile]
-      filename = params[:file][:filename]
       AlbumItem.transaction{
         group = if params[:group_id] then
           AlbumGroup.get(params[:group_id])
@@ -305,29 +341,37 @@ class MainApp < Sinatra::Base
           attrs["owner"] = @user
           AlbumGroup.create(attrs)
         end
-        date = Date.today
-        target_dir = File.join(G_STORAGE_DIR,"album",date.year.to_s,date.month.to_s)
-        FileUtils.mkdir_p(target_dir)
-        case filename.downcase
-        when /\.zip$/
-          tmp = Dir.mktmpdir(nil,target_dir)
-          Zip::ZipFile.new(tempfile).select{|x|x.file? and [".jpg",".png",".gif"].any?{|s|x.name.downcase.end_with?(s)}}
-            .to_enum.with_index(group.item_count){|entry,i|
-              fn = File.join(tmp,i.to_s)
-              File.open(fn,"w"){|f|
-                f.write(entry.get_input_stream.read)
-              }
-              process_image(group,i,entry.name,fn)
-            }
-          {result:"OK",group_id:group.id}
-        when /\.jpg$/, /\.png$/, /\.gif$/
-          tfile = Kagetra::Utils.unique_file(@user,["img-",".dat"],target_dir)
-          FileUtils.cp(tempfile.path,tfile)
-          abs_path = Pathname.new(tfile).realpath.to_s
-          process_image(group,group.item_count,filename,abs_path)
+        pfile = params[:file]
+        if pfile.nil? then
           {result:"OK",group_id:group.id}
         else
-          {_error_:"ファイルの拡張子が間違いです: #{filename.downcase}"}
+          tempfile = pfile[:tempfile]
+          filename = pfile[:filename]
+          min_index = 1 + (group.items.aggregate(fields:[:group_index.max]) || -1)
+          date = Date.today
+          target_dir = File.join(G_STORAGE_DIR,"album",date.year.to_s,date.month.to_s)
+          FileUtils.mkdir_p(target_dir)
+          case filename.downcase
+          when /\.zip$/
+            tmp = Dir.mktmpdir(nil,target_dir)
+            Zip::ZipFile.new(tempfile).select{|x|x.file? and [".jpg",".png",".gif"].any?{|s|x.name.downcase.end_with?(s)}}
+              .to_enum.with_index(min_index){|entry,i|
+                fn = File.join(tmp,i.to_s)
+                File.open(fn,"w"){|f|
+                  f.write(entry.get_input_stream.read)
+                }
+                process_image(group,i,entry.name,fn)
+              }
+            {result:"OK",group_id:group.id}
+          when /\.jpg$/, /\.png$/, /\.gif$/
+            tfile = Kagetra::Utils.unique_file(@user,["img-",".dat"],target_dir)
+            FileUtils.cp(tempfile.path,tfile)
+            abs_path = Pathname.new(tfile).realpath.to_s
+            process_image(group,min_index,filename,abs_path)
+            {result:"OK",group_id:group.id}
+          else
+            {_error_:"ファイルの拡張子が間違いです: #{filename.downcase}"}
+          end
         end
       }
     }

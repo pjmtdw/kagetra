@@ -63,9 +63,15 @@ define (require, exports, module) ->
       )
         
     swap_elem: (a,b) ->
+      ai = a.index()
+      bi = b.index()
+      return if ai == bi
       tmp = a.clone()
-      a.replaceWith(b.clone())
-      b.replaceWith(tmp)
+      if ai > bi
+        b.before(tmp)
+      else
+        b.after(tmp)
+      a.remove()
 
     user_name_with_real_name: (data)->
       un = _.escape(data.user_name)

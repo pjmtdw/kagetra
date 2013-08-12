@@ -48,7 +48,7 @@ define (require,exports,module) ->
       $("[data-dropdown='year-list']").click()
     search: (obj)->
       that = this
-      aj = $.ajax("api/result_ranking/search",{
+      $.ajax("api/result_ranking/search",{
         data: JSON.stringify(obj),
         contentType: "application/json",
         type: "POST"

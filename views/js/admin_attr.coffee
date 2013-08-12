@@ -70,7 +70,7 @@ define ->
         $(ev.currentTarget).find(".show-key-button").append($("<button>",{text:"削除",class:"tiny alert delete-key"}))
       else
         @move_from.find(".show-key-button button").remove()
-        _.swap_elem(table,@move_from)
+        _.swap_elem(@move_from,table)
         @move_from = null
         $(".key-mark").removeClass("key-mark")
         @mode = null
@@ -90,7 +90,7 @@ define ->
         table = $(ev.currentTarget).closest("table")
         return if @move_from_tr.closest("table").data("key-id") != table.data("key-id")
         $(".value-mark").removeClass("value-mark")
-        _.swap_elem($(ev.currentTarget),@move_from_tr)
+        _.swap_elem(@move_from_tr,$(ev.currentTarget))
         @move_from_tr = null
         @mode = null
     initialize: ->

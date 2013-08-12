@@ -257,9 +257,9 @@
       %ul
         %input.button.small.round(type='submit' value='送信')
         %li 各画像ファイルの拡張子はpng,jpg,gifのどれかにして下さい．
-        %li 画像ファイルを複数圧縮したzipファイルにも対応しています．
-        -# %li ファイルに何も指定しないと空のフォルダを作ります．
-        %li 写真のアップロードは一枚につき1〜2秒かかります．気長にお待ち下さい．
+        %li 一括送信する場合は画像をzipファイルにまとめて下さい．
+        %li ファイルに何も指定しないと空のフォルダを作ります．
+        %li アップロードは画像一枚につき1〜2秒かかります．気長にお待ち下さい．
       %iframe(name='dummy-iframe' id='dummy-iframe' style='display:none;')
 
 %script#templ-album-all-log(type='text/template')
@@ -284,13 +284,52 @@
             {{ x.diff_html }}
       <% }) %>
 
-%script#templ-album-click-mode(type='text/template')
-  %dl#click-mode.sub-nav
-    %dt 写真をクリックしたとき:
-    %dd.choice.active(data-mode='move')
-      %a 移動
-    %dd.choice(data-mode='rotate')
-      %a 回転
+%script#templ-album-edit-menu(type='text/template')
+  .row
+    .large-6.columns
+      %dl#click-mode.sub-nav.left
+        %dt 写真をクリックしたとき:
+        %dd.choice.active(data-mode='move')
+          %a 移動
+        %dd.choice(data-mode='rotate')
+          %a 回転
+    .large-6.columns
+      %button#multi-edit.small.round.right 一括編集
+      %button#remove-checked.small.round.right 選択解除
+      %button#reverse-checked.small.round.right 選択反転
+
+%script#templ-album-multi-edit(type='text/template')
+  チェックされた {{ count }} 枚の写真を編集
+  .row
+    .large-6.columns
+      %fieldset
+        %legend フォルダ移動
+        .row.collapse
+          .large-2.columns
+            %label.inline.right 移動先 :
+          .large-10.columns
+            %input.move-folder-target(type='text')
+        %button.small.round.do-move 移動
+    .large-6.columns
+      %fieldset
+        %legend 項目編集
+        - {"name"=>"タイトル","place"=>"場所","date"=>"日付"}.each do |key,value|
+          - placeholder = if key == "date" then "YYYY-MM-DD" end
+          - item_key = if key == "date" then "start_at" else key end
+          %form.multi-edit-form
+            .row.collapse
+              .large-2.columns
+                %label.inline.right #{value} :
+              .large-8.columns
+                %input(type='text' name='#{key}' placeholder='#{placeholder}' value='{{data.#{item_key}}}')
+              .large-2.columns
+                %input.button.small.round(type='submit' value='更新')
+  .row
+    .large-6.columns
+      %fieldset
+        %legend 削除
+        %button.small.round.alert.delete-items 削除
 
 #container-album-relation.reveal-modal
 #container-album-upload.reveal-modal
+#container-album-multi-edit.reveal-modal

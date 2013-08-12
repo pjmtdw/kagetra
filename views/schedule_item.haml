@@ -69,10 +69,8 @@
       <%= _.show_item_detail(data) %>
     - if not @public_mode
       .right
-        %button.edit.small.round
-          編集
-        %button.delete.small.round.alert
-          削除
+        %button.edit.small.round 編集
+        %button.delete.small.round.alert 削除
 
 %script#templ-schedule-detail-item-edit(type='text/template')
   %hr

@@ -12,10 +12,20 @@
     color: #4028A4;
     text-shadow: 1px 1px 1px gray;
   }
-  &.group,&.years{
+  &.group{
     background-color: #FFE8D8;
     &:hover{
       background-color: #DFF;
+    }
+  }
+  &.years{
+    background-color: rgb(241,232,247);
+    &:hover{
+      background-color: #FFD;
+    }
+    .count{
+      color: maroon;
+      text-shadow: 1px 1px 1px gray;
     }
   }
   &.item{

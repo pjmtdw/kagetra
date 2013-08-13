@@ -64,11 +64,9 @@ define (require,exports,module)->
       # 次に render しようとしても #album-top がないためそれに append() できない
       # なので代わりに el には何も設定せず (デフォルトで <div> ) #album-top に appendTo する
       @$el.appendTo("#album-top")
+      new AlbumRecentView(data:@model.get('recent'))
 
-  AlbumYearModel =  Backbone.Model.extend
-    urlRoot: "api/album/year"
-
-  AlbumYearView = Backbone.View.extend
+  AlbumListViewBase = Backbone.View.extend
     events:
       "click .gbase.group": "goto_group"
       "click .gbase.item": "goto_item"
@@ -78,11 +76,7 @@ define (require,exports,module)->
     goto_item: (ev)->
       id = $(ev.currentTarget).data("item-id")
       window.album_router.navigate("item/#{id}", trigger:true)
-
-    template: _.template_braces($("#templ-album-year").html())
-    initialize: ->
-      @model = new AlbumYearModel()
-      @listenTo(@model,"sync",@render)
+    template: _.template_braces($("#templ-album-list").html())
     render_percent: ->
       $("canvas.percent").each(->
         o = $(@)
@@ -101,11 +95,27 @@ define (require,exports,module)->
         c.fillRect(1,1,barw,height-2)
         true
       )
+  AlbumYearModel =  Backbone.Model.extend
+    urlRoot: "api/album/year"
+  class AlbumYearView extends AlbumListViewBase
+    initialize: ->
+      @model = new AlbumYearModel()
+      @listenTo(@model,"sync",@render)
     render: ->
       @model.set("list",_.sortBy(@model.get("list"),(x)->x.start_at or x.date).reverse())
       @$el.html(@template(data:@model.toJSON()))
       @$el.appendTo("#album-year")
+      @$el.find("#album-list").before($("<a>",href:"album#",text:"TOP"))
       @render_percent()
+  class AlbumRecentView extends AlbumListViewBase
+    initialize: ->
+      @render()
+    render: ->
+      @$el.html(@template(data:@options.data))
+      @$el.appendTo("#album-recent")
+      @$el.find("#album-list").before($("<div>",text:"最近の更新"))
+      @render_percent()
+    
 
   AlbumGroupModel = Backbone.Model.extend
     urlRoot: "api/album/group"
@@ -551,8 +561,11 @@ define (require,exports,module)->
         contentType: "application/json",
         type: "DELETE"
       }).done((data)->
-        alert("削除しました")
-        for c in checked
+        if data.list.length != checked.length
+          alert("#{data.list.length}枚削除しました．残りは貴方の写真でないため削除できませんでした")
+        else
+          alert("削除しました")
+        for c in data.list
           $("#album-items .album-item[data-id='#{c}']").remove()
       )
 
@@ -582,7 +595,7 @@ define (require,exports,module)->
         data: JSON.stringify(obj),
         contentType: "application/json",
         type: "POST"
-      }).done(-> 
+      }).done(->
         alert("移動しました")
         for c in checked
           $("#album-items .album-item[data-id='#{c}']").remove()

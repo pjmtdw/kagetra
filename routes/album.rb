@@ -1,23 +1,27 @@
 # -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
   ALBUM_SEARCH_PER_PAGE = 50
+  ALBUM_RECENT_GROUPS = 6
+  def album_group_info(group)
+    r = group.select_attr(:id,:name,:start_at,:item_count).merge({type:"group"})
+    ic = group.item_count || 0
+    if ic > 0 then
+      cc = group.has_comment_count || 0
+      tc = group.has_tag_count || 0
+      if ic - cc > 0 then
+        r[:no_comment] = (((ic-cc)/ic.to_f)*100).to_i
+      end
+      if ic - tc > 0 then
+        r[:no_tag] = (((ic-tc)/ic.to_f)*100).to_i
+      end
+    end
+    r
+  end
   namespace '/api/album' do
     get '/year/:year' do
       year = if params[:year] == "_else_" then nil else params[:year] end
       groups = AlbumGroup.all(year:year, dummy:false).map{|x|
-        r = x.select_attr(:id,:name,:start_at,:item_count).merge({type:"group"})
-        ic = x.item_count || 0
-        if ic > 0 then
-          cc = x.has_comment_count || 0
-          tc = x.has_tag_count || 0
-          if ic - cc > 0 then
-            r[:no_comment] = (((ic-cc)/ic.to_f)*100).to_i
-          end
-          if ic - tc > 0 then
-            r[:no_tag] = (((ic-tc)/ic.to_f)*100).to_i
-          end
-        end
-        r
+        album_group_info(x)
       }
       items = AlbumGroup.all(year:year, dummy:true).items.map{|x|x.select_attr(:id,:name,:date).merge({type:"item"})}
 
@@ -131,7 +135,9 @@ class MainApp < Sinatra::Base
                   obj["album_item_id"] = item.id
                   AlbumTag.create(obj)
                 else
-                  AlbumTag.update(obj)
+                  tag = AlbumTag.get(obj["id"])
+                  obj.delete("id")
+                  tag.update(obj) if tag
                 end
               when "destroy"
                 if k.to_i >= 0 then
@@ -171,7 +177,10 @@ class MainApp < Sinatra::Base
     get '/years' do
       aggr = AlbumGroup.aggregate(:item_count.sum, fields:[:year], unique: true, order: [:year.desc])
       total = aggr.map{|x|x[1]}.sum
-      {list: aggr,total: total}
+      recent = AlbumGroup.all(order:[:created_at.desc],dummy:false)[0...ALBUM_RECENT_GROUPS].map{|x|
+        album_group_info(x)
+      }
+      {list: aggr,total: total,recent:{list:recent}}
     end
     post '/search' do
       cond = {}
@@ -271,6 +280,7 @@ class MainApp < Sinatra::Base
     end
     delete '/item/:id' do
       item = AlbumItem.get(params[:id].to_i)
+      halt 403 unless (@user.admin or item.owner_id == @user.id)
       if item.nil?.! then
         AlbumItem.transaction{
           ag = item.group
@@ -283,8 +293,12 @@ class MainApp < Sinatra::Base
       item_ids = @json["item_ids"]
       AlbumItem.transaction{
         ag = AlbumGroup.get(params[:group_id])
-        AlbumItem.all(id:item_ids).update!(deleted:true)
+        cond = if @user.admin then {} else {owner_id:@user.id} end
+        items = AlbumItem.all(cond.merge({id:item_ids}))
+        deleted_ids = items.map{|x|x.id}
+        items.update!(deleted:true)
         ag.update_count
+        {list:deleted_ids}
       }
     end
   end
@@ -292,11 +306,24 @@ class MainApp < Sinatra::Base
     haml :album
   end
 
+  # 縦横比は保持したまま画素数を増減する
+  def resize_to_pixels(img,pixels)
+    orig_px = img.columns * img.rows
+    scale = Math.sqrt(pixels.to_f / orig_px.to_f)
+    img.resize(scale)
+  end
+
   def process_image(group,index,orig_filename,abs_path)
-    item = AlbumItem.create(group.select_attr(:place,:name,:owner).merge({group_id:group.id,date:group.start_at,group_index:index}))
+    item = AlbumItem.create(
+      group.select_attr(:place,:name).merge({
+        group_id:group.id,
+        date:group.start_at,
+        group_index:index,
+        owner_id:@user.id
+    }))
     rel_path = Pathname.new(abs_path).relative_path_from(Pathname.new(File.join(G_STORAGE_DIR,"album")).realpath)
     img = Magick::Image::read(abs_path).first
-    new_img = img.resize_to_fit(CONF_ALBUM_LARGE_SIZE,CONF_ALBUM_LARGE_SIZE)
+    new_img = resize_to_pixels(img,CONF_ALBUM_LARGE_SIZE)
     if new_img.columns != img.columns or new_img.rows != img.rows
       new_img.write(abs_path){self.quality = CONF_ALBUM_LARGE_QUALITY}
     end
@@ -308,7 +335,7 @@ class MainApp < Sinatra::Base
       width: new_img.columns,
       height: new_img.rows
     )
-    thumb = img.resize_to_fit(CONF_ALBUM_THUMB_SIZE,CONF_ALBUM_THUMB_SIZE)
+    thumb = resize_to_pixels(img,CONF_ALBUM_THUMB_SIZE)
     thumb.write(abs_path+"_thumb"){self.quality = CONF_ALBUM_THUMB_QUALITY}
     AlbumThumbnail.create(
       album_item_id:item.id,
@@ -323,7 +350,7 @@ class MainApp < Sinatra::Base
   def update_thumbnail(item)
     base = File.join(G_STORAGE_DIR,"album")
     img = Magick::Image::read(File.join(base,item.photo.path)).first
-    thumb = img.resize_to_fit(CONF_ALBUM_THUMB_SIZE,CONF_ALBUM_THUMB_SIZE)
+    thumb = resize_to_pixels(img,CONF_ALBUM_THUMB_SIZE)
     thumb.rotate!(item.rotate.to_i)
     thumb.write(File.join(base,item.thumb.path)){self.quality = CONF_ALBUM_THUMB_QUALITY}
     item.thumb.update(width:thumb.columns,height:thumb.rows)
@@ -338,7 +365,7 @@ class MainApp < Sinatra::Base
           attrs = params.select_attr("start_at","end_at","place","name","comment")
           if attrs["start_at"].to_s.empty? then attrs["start_at"] = nil end
           if attrs["end_at"].to_s.empty? then attrs["end_at"] = nil end
-          attrs["owner"] = @user
+          attrs["owner_id"] = @user.id
           AlbumGroup.create(attrs)
         end
         pfile = params[:file]

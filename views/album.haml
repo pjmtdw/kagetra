@@ -25,7 +25,9 @@
       %button.small.round#album-new-upload 写真アップロード
     .large-4.columns
       {{ $("#templ-album-search-form").html() }}
+  #album-recent
   .row
+    %div 全一覧
     %ul.large-block-grid-7.small-block-grid-4
       <% _.each(data.list,function(x){ %>
       %li
@@ -36,10 +38,9 @@
               .count.right {- x[1] -}
       <% }) %>
 
-%script#templ-album-year(type='text/template')
+%script#templ-album-list(type='text/template')
   .row
-    %a(href="album#") TOP
-    %ul.large-block-grid-3.small-block-grid-2
+    %ul#album-list.large-block-grid-3.small-block-grid-2
       <% _.each(data.list,function(x){ %>
       %li
         <% if(x.type == "group"){ %>

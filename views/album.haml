@@ -172,6 +172,7 @@
 
 %script#templ-album-search-result(type='text/template')
   .row
+    {{ data.count }} 件ヒット
     .large-12.columns
       = haml :pagination
       <% _.each(data.list,function(x){ %>
@@ -258,7 +259,7 @@
       %ul
         %input.button.small.round(type='submit' value='送信')
         %li 各画像ファイルの拡張子はpng,jpg,gifのどれかにして下さい．
-        %li 一括送信する場合は画像をzipファイルにまとめて下さい．
+        %li 画像をzipファイルにまとめれば一度に複数送信できます．
         %li ファイルに何も指定しないと空のフォルダを作ります．
         %li アップロードは画像一枚につき1〜2秒かかります．気長にお待ち下さい．
       %iframe(name='dummy-iframe' id='dummy-iframe' style='display:none;')

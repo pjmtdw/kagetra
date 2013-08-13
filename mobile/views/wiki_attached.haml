@@ -1,12 +1,12 @@
 %div
-  %a(href='top') [TOP]
-  %a(href='wiki') [Index]
-  %a(href='wiki/item/1') [Home]
-  %a(href='wiki/item/#{params[:id]}') [ページ]
-  %a(href='wiki/comment/list/wiki.item.#{params[:id]}/#{params[:id]}') [コメント]
+  %a(href='#{G_MOBILE_BASE}/top') [TOP]
+  %a(href='#{G_MOBILE_BASE}/wiki') [Index]
+  %a(href='#{G_MOBILE_BASE}/wiki/item/1') [Home]
+  %a(href='#{G_MOBILE_BASE}/wiki/item/#{params[:id]}') [ページ]
+  %a(href='#{G_MOBILE_BASE}/wiki/comment/list/wiki.item.#{params[:id]}/#{params[:id]}') [コメント]
 %div
 - (1..@info["pages"]).each do |p|
-  %a(href='wiki/attached_list/#{params[:id]}?page=#{p}') [#{p}]
+  %a(href='#{G_MOBILE_BASE}/wiki/attached_list/#{params[:id]}?page=#{p}') [#{p}]
 %table(border=1 cellspacing=0 cellpadding=3)
   - @info["list"].each do |x|
     %tr

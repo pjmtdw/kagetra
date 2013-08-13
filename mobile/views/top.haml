@@ -13,7 +13,7 @@
   %div
     #{prefix%(list.size)}:
     - list.each do |x|
-      %a(href='#{url%x["id"]}') #{x["name"] || x["title"]}
+      %a(href='#{G_MOBILE_BASE}/#{url%x["id"]}') #{x["name"] || x["title"]}
 - if @deadline.empty?.!
   %div
     締切が迫っています:
@@ -23,21 +23,21 @@
         &nbsp;&nbsp;
         = if dd == 0 then "今日" elsif dd == 1 then "明日" else "あと#{dd}日" end
         \=&gt;
-        %a(href="event/detail/top/#{ev['id']}") #{ev['name']}
+        %a(href="#{G_MOBILE_BASE}/event/detail/top/#{ev['id']}") #{ev['name']}
 %hr
 - @panel.each do |p|
   = mobile_haml :schedule_item, locals: {info:p,year:p["year"],month:p["mon"],day:p["day"]}
 %hr
 %ul
   %li
-    %a(href='event') 大会行事情報
+    %a(href='#{G_MOBILE_BASE}/event') 大会行事情報
   %li
-    %a(href='bbs') 掲示板
+    %a(href='#{G_MOBILE_BASE}/bbs') 掲示板
   %li
-    %a(href='result') 大会結果
+    %a(href='#{G_MOBILE_BASE}/result') 大会結果
   %li
-    %a(href='schedule') 予定表
+    %a(href='#{G_MOBILE_BASE}/schedule') 予定表
   %li
-    %a(href='event_done') 過去の行事
+    %a(href='#{G_MOBILE_BASE}/event_done') 過去の行事
   %li
-    %a(href='wiki') Wiki
+    %a(href='#{G_MOBILE_BASE}/wiki') Wiki

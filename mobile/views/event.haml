@@ -1,4 +1,4 @@
-%a(href='top') [TOP]
+%a(href='#{G_MOBILE_BASE}/top') [TOP]
 - @list.each do |ev|
   %hr
   %div
@@ -9,8 +9,8 @@
       %i (締切: #{mobile_show_event_date(ev["deadline"])})
   %div
     &nbsp;&nbsp;&nbsp;
-    %a(href='event/detail/event/#{ev["id"]}') [詳細(#{ev["participant_count"]}人)]
-    %a(href='event/comment/list/event/#{ev["id"]}')
+    %a(href='#{G_MOBILE_BASE}/event/detail/event/#{ev["id"]}') [詳細(#{ev["participant_count"]}人)]
+    %a(href='#{G_MOBILE_BASE}/event/comment/list/event/#{ev["id"]}')
       [コメント(#{ev["comment_count"]}
       - if ev["has_new_comment"]
         %b

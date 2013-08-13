@@ -16,10 +16,10 @@ class MainApp < Sinatra::Base
       @title = res["title"]
       doc = Nokogiri::HTML(res["html"])
       doc.css("[data-link-id]").each{|x|
-        x["href"] = "wiki/item/#{x['data-link-id']}"
+        x["href"] = "#{G_MOBILE_BASE}/wiki/item/#{x['data-link-id']}"
       }
       doc.css("[data-page-num]").each{|x|
-        x["href"] = "wiki/item/#{params[:id]}?page=#{x['data-page-num']}"
+        x["href"] = "#{G_MOBILE_BASE}/wiki/item/#{params[:id]}?page=#{x['data-page-num']}"
       }
       @html = doc.serialize
       mobile_haml :wiki

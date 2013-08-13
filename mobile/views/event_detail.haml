@@ -1,6 +1,6 @@
 %div
-  %a(href='top') [TOP]
-  %a(href='#{params["from"].gsub(".","/")}') [戻る]
+  %a(href='#{G_MOBILE_BASE}/top') [TOP]
+  %a(href='#{G_MOBILE_BASE}/#{params["from"].gsub(".","/")}') [戻る]
 %div
   [ 選択肢 ]:
   = mobile_haml :event_choice, locals:{ev:@res}

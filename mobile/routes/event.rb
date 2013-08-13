@@ -12,7 +12,7 @@ class MainApp < Sinatra::Base
 %div
   「#{@res["event_name"]}」に登録完了 =&gt; #{@res["choice"]}
 %div
-  %a(href='event') [戻る]
+  %a(href='#{G_MOBILE_BASE}/event') [戻る]
       HEREDOC
     end
   end

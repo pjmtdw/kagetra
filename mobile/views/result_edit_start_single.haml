@@ -1,8 +1,8 @@
 %h3 #{@info["name"]}
 %div
-  %a(href="result/contest/#{@info["id"]}") [戻る]
+  %a(href="#{G_MOBILE_BASE}/result/contest/#{@info["id"]}") [戻る]
 %hr
-%form(method='post' action='result/update_num_person/#{params[:id]}')
+%form(method='post' action='#{G_MOBILE_BASE}/result/update_num_person/#{params[:id]}')
   %input(type='submit' value='人数送信')
   - @info["contest_results"].each do |res|
     - cl = @classes[res["class_id"].to_s]
@@ -12,12 +12,12 @@
     %div
       %div
         - prizes = res["prizes"]
-        %a(href="result/edit_prize/#{@info["id"]}/#{res["class_id"]}") [入賞者]
+        %a(href="#{G_MOBILE_BASE}/result/edit_prize/#{@info["id"]}/#{res["class_id"]}") [入賞者]
         #{res["user_results"].select{|x|x["prize"]}.size}人
     - (1..res["rounds"].size+1).each do |round|
       %div
         - games = res["user_results"].map{|x|x["game_results"][round-1]}.compact.count
-        %a(href='result/edit_round/#{@info["id"]}/#{res["class_id"]}/#{round}') [#{round}回戦]
+        %a(href='#{G_MOBILE_BASE}/result/edit_round/#{@info["id"]}/#{res["class_id"]}/#{round}') [#{round}回戦]
         #{games}試合
     %br
  

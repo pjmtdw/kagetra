@@ -1,7 +1,7 @@
 %h3 #{@info["name"]} #{@classes[params[:class_id]]["class_name"]} #{params[:round]}回戦
-%a(href='result/edit_start/#{@info["id"]}') [戻る]
+%a(href='#{G_MOBILE_BASE}/result/edit_start/#{@info["id"]}') [戻る]
 %hr
-%form(method='post' action='result/edit_round/#{@info["id"]}/#{params[:class_id]}/#{params[:round]}')
+%form(method='post' action='#{G_MOBILE_BASE}/result/edit_round/#{@info["id"]}/#{params[:class_id]}/#{params[:round]}')
   %input(type='submit' value='結果送信')
   %div
   - @info["contest_results"].each do |res|

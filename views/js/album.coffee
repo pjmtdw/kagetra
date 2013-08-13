@@ -113,7 +113,7 @@ define (require,exports,module)->
     render: ->
       @$el.html(@template(data:@options.data))
       @$el.appendTo("#album-recent")
-      @$el.find("#album-list").before($("<div>",text:"最近の更新"))
+      @$el.find("#album-list").before($("<div>",text:"新着"))
       @render_percent()
     
 

@@ -4,6 +4,8 @@ G_APP_NAME = "景虎"
 
 G_DIMAPA = DiffPatchMatch.new
 
+G_MOBILE_BASE = "/mobile"
+
 G_DB_RAISE_SAVE_FAILURE = true # DataMapperがsave失敗したときにErrorをraiseする
 
 G_STORAGE_DIR = "./storage" # Wikiの添付ファイルとアルバムの写真が置かれるディレクトリ

@@ -1,6 +1,6 @@
-%a(href='top') [TOP]
-%a(href='schedule/cal/#{@date.prev_month.strftime("%Y-%m")}') [先月]
-%a(href='schedule/cal/#{@date.prev_month(-1).strftime("%Y-%m")}') [来月]
+%a(href='#{G_MOBILE_BASE}/top') [TOP]
+%a(href='#{G_MOBILE_BASE}/schedule/cal/#{@date.prev_month.strftime("%Y-%m")}') [先月]
+%a(href='#{G_MOBILE_BASE}/schedule/cal/#{@date.prev_month(-1).strftime("%Y-%m")}') [来月]
 %h3 #{@year}年#{@month}月の予定表
 - (1..@info["month_day"]).each do |day|
   = mobile_haml :schedule_item, locals: {info:@info,year:@year,month:@month,day:day}

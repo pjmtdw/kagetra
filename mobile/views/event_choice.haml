@@ -7,7 +7,7 @@
     - if c["id"] == ev["choice"]
       %b #{c["name"].escape_html}
     - else
-      %a(href='event/choose/#{c["id"]}')
+      %a(href='#{G_MOBILE_BASE}/event/choose/#{c["id"]}')
         %font(color='maroon') #{c["name"].escape_html}
     - if i < ev["choices"].size - 1
       ／

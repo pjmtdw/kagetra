@@ -1,8 +1,8 @@
 %div
-  %a(href="top") [TOP]
-  %a(href="bbs/#{params[:page].to_i+1}") [次のページ]
+  %a(href="#{G_MOBILE_BASE}/top") [TOP]
+  %a(href="#{G_MOBILE_BASE}/bbs/#{params[:page].to_i+1}") [次のページ]
 %hr
-  %form(method='post' action='bbs/thread')
+  %form(method='post' action='#{G_MOBILE_BASE}/bbs/thread')
     %div
       タイトル:
       %input(type='text' name='title' size='40')
@@ -23,7 +23,7 @@
           %font(color="green")
             (new!)
     %pre #{item["body"].escape_html}
-  %form(method='post' action='bbs/item/#{t["id"]}')
+  %form(method='post' action='#{G_MOBILE_BASE}/bbs/item/#{t["id"]}')
     %textarea(rows='5' cols='60' name='body')
     %div
       %input(type='submit' value='コメント書き込み')

@@ -5,7 +5,7 @@
 - item = info["item"] || (info["items"]||{})[day.to_s] || []
 - color = if date.wday == 0 then 'red' elsif date.wday == 6 then 'blue' elsif dinfo and dinfo["is_holiday"] then 'red' else 'black' end
 %div
-  %a(href='schedule/detail/#{year}-#{month}-#{day}')
+  %a(href='#{G_MOBILE_BASE}/schedule/detail/#{year}-#{month}-#{day}')
     %font(color='#{color}') #{day}(#{G_WEEKDAY_JA[date.wday]})
   %i= if dinfo then dinfo["names"].join(" / ") end
 

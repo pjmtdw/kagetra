@@ -1,4 +1,4 @@
-%a(href='schedule/cal/#{@year}-#{@month}') [戻る]
+%a(href='#{G_MOBILE_BASE}/schedule/cal/#{@year}-#{@month}') [戻る]
 %h3 #{@year}年#{@month}月#{@day}日
 - @info["events"].each do |ev|
   %div

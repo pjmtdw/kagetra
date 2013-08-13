@@ -202,21 +202,21 @@ class MainApp < Sinatra::Base
         cond[:date.gte] = Date.new(year_s.to_i,1,1) unless year_s.nil?
         cond[:date.lt] = Date.new(year_e.to_i+1,1,1) unless year_e.nil?
       end
-      qx = AlbumItem.all(id:-1) # 存在しないクエリ
-      ss = qs.strip.split(/\s+/).map{|x| "%#{x}%" }
-      [:name,:place,:comment,:tag_names].each{|sym|
-        q = AlbumItem.all(cond)
-        ss.each{|x|
-          q &= AlbumItem.all(sym.like => x)
+      query = AlbumItem.all(cond)
+      qs.strip.split(/\s+/).each{|q|
+        qa = AlbumItem.all(id: -1) # 空のクエリ
+        [:name,:place,:comment,:tag_names].each{|sym|
+          qa |= AlbumItem.all(sym.like => "%#{q}%")
         }
-        qx |= q
+        query &= qa
       }
-      chunks = qx.all(order:[:date.desc]).chunks(ALBUM_SEARCH_PER_PAGE)
+      chunks = query.all(order:[:date.desc]).chunks(ALBUM_SEARCH_PER_PAGE)
       list = chunks[page-1].map{|x| x.id_with_thumb }
       {
         list: list,
         pages: chunks.size,
-        cur_page: page
+        cur_page: page,
+        count: chunks.count
       }
     end
     get '/thumb_info/:id' do

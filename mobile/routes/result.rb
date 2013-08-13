@@ -51,7 +51,7 @@ class MainApp < Sinatra::Base
 %div
   更新しました
 %div
-  %a(href='result/edit_start/#{params[:id]}') 戻る
+  %a(href='#{G_MOBILE_BASE}/result/edit_start/#{params[:id]}') 戻る
       HEREDOC
     end
 
@@ -70,7 +70,7 @@ class MainApp < Sinatra::Base
 %div
   更新しました
 %div
-  %a(href='result/edit_start/#{params[:id]}') 戻る
+  %a(href='#{G_MOBILE_BASE}/result/edit_start/#{params[:id]}') 戻る
       HEREDOC
     end
 
@@ -92,7 +92,7 @@ class MainApp < Sinatra::Base
 %div
   更新しました
 %div
-  %a(href='result/edit_start/#{params[:id]}') 戻る
+  %a(href='#{G_MOBILE_BASE}/result/edit_start/#{params[:id]}') 戻る
       HEREDOC
     end
     {

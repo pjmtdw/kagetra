@@ -1,9 +1,9 @@
 %div
-  %a(href='top') [TOP]
+  %a(href='#{G_MOBILE_BASE}/top') [TOP]
   - if @prev_url.empty?.!
-    %a(href='#{@prev_url}') [戻る]
+    %a(href='#{G_MOBILE_BASE}/#{@prev_url}') [戻る]
 %h3= @info["thread_name"]
-%form(method='post' action='#{@namesp}/comment/#{params[:from]}/item')
+%form(method='post' action='#{G_MOBILE_BASE}/#{@namesp}/comment/#{params[:from]}/item')
   %input(type='hidden' name='thread_id' value='#{params[:id]}')
   %div
     %textarea(rows='5' cols='60' name='body')

@@ -35,7 +35,7 @@ class MainApp < Sinatra::Base
       res = call_api(:post,"/api/#{namespace}/comment/item",params)
       mobile_haml <<-HEREDOC
 書き込みました
-%a(href='#{namespace}/comment/list/#{params[:from]}/#{params[:thread_id]}') [戻る]
+%a(href='#{G_MOBILE_BASE}/#{namespace}/comment/list/#{params[:from]}/#{params[:thread_id]}') [戻る]
       HEREDOC
     end
   end

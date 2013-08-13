@@ -1,10 +1,10 @@
-%a(href='top') [TOP]
+%a(href='#{G_MOBILE_BASE}/top') [TOP]
 = mobile_haml :pagination, locals: {info:@info}
 - @info["list"].each do |x|
   %div
     [#{x["date"]}] #{x["name"].escape_html}
-    %a(href="event/detail/event_done/#{x["id"]}") [詳細]
-    %a(href="event/comment/list/event_done/#{x["id"]}")
+    %a(href="#{G_MOBILE_BASE}/event/detail/event_done/#{x["id"]}") [詳細]
+    %a(href="#{G_MOBILE_BASE}/event/comment/list/event_done/#{x["id"]}")
       [コメント(#{x["comment_count"]}
       - if x["has_new_comment"]
         %b

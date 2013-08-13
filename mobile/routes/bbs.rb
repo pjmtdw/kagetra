@@ -11,7 +11,7 @@ class MainApp < Sinatra::Base
       else
         mobile_haml <<-HEREDOC
 書き込みました
-%a(href='bbs') [戻る]
+%a(href='#{G_MOBILE_BASE}/bbs') [戻る]
         HEREDOC
       end
     end

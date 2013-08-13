@@ -1,8 +1,8 @@
 %h3 #{@info["name"]} #{@classes[params[:class_id]]["class_name"]} 入賞者
-%a(href='result/edit_start/#{@info["id"]}') [戻る]
+%a(href='#{G_MOBILE_BASE}/result/edit_start/#{@info["id"]}') [戻る]
 %hr
 %div &quot;優勝(昇級)&quot; のように昇級やダッシュなどは()で囲って下さい
-%form(method='post' action='result/edit_prize/#{@info["id"]}/#{params[:class_id]}')
+%form(method='post' action='#{G_MOBILE_BASE}/result/edit_prize/#{@info["id"]}/#{params[:class_id]}')
   %input(type='submit' value='入賞送信')
   - @info["contest_results"].each do |res|
     - next unless res["class_id"].to_s == params[:class_id]

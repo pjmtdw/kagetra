@@ -102,7 +102,8 @@
     %a.close &times;
 
 %script#templ-newly-message(type='text/template')
-  %div 最終ログイン: {- data.last_login -}, 今月ログイン: {- data.log_mon -}
+  %div 最終ログイン: {{ data.last_login }}, 今月ログイン: {{ data.log_mon }}
+
   #event-new.link-detail
     {{ _.show_news(data.new_events,"name","新規大会行事追加%%件","top#event-detail/%%")  }}
   #bbs-new

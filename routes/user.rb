@@ -84,8 +84,11 @@ class MainApp < Sinatra::Base
     end
     post '/create_users' do
       User.transaction{
+        shared = MyConf.first(name: "shared_password").value 
+        hash = shared["hash"]
+        salt = shared["salt"]
         @json["list"].each{|x|
-          u = User.create(name:x["name"],furigana:x["furigana"])
+          u = User.create(name:x["name"],furigana:x["furigana"],password_hash:hash,password_salt:salt)
           # 同名のユーザがあったらuser_idを関連付ける
           EventUserChoice.all(user_name:u.name,user_id:nil).update(user_id:u.id)
           ContestUser.all(name:u.name,user_id:nil).update(user_id:u.id)

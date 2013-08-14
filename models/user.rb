@@ -31,25 +31,28 @@ class User
   before :save do
     self.furigana_row = Kagetra::Utils.gojuon_row_num(self.furigana)
   end
+  MIN_LOGIN_SPAN = 30 # これだけの分数経過したらログイン数を増やす
   # ログイン処理
-  MIN_LOGIN_SPAN = 30 # minutes
   def update_login(request)
     User.transaction{
-      latest = UserLoginLatest.first_or_new(user: self)
+      latest = UserLoginLatest.first(user: self)
+      is_first_login = false
+      if latest.nil? then
+        is_first_login = true
+        latest = UserLoginLatest.create(user:self)
+      end
       now = DateTime.now
-      if self.show_new_from.nil? or (now - self.show_new_from)*1440 >= MIN_LOGIN_SPAN then
+      if is_first_login or (now - latest.updated_at)*1440 >= MIN_LOGIN_SPAN then
         monthly = self.login_monthlies.first_or_new(year_month:UserLoginMonthly.year_month(now.year,now.month))
         monthly.count += 1
         monthly.save
-        self.show_new_from = latest.updated_at
+        self.show_new_from = if is_first_login then nil else latest.updated_at end
+        latest.set_env(request)
+        latest.touch
+        latest.save
       end
       self.change_token!
       self.save
-
-      latest.set_env(request)
-      latest.touch
-      latest.save
-
       log = self.login_logs.new
       log.set_env(request)
       log.save
@@ -72,7 +75,7 @@ class User
   def last_login_str
     pre = self.show_new_from
     if pre.nil? then
-      return "初ログイン"
+      return "初ログイン<br/>#{CONF_FIRST_LOGIN_MESSAGE}<br/>"
     end
     cur = DateTime.now
     days = (cur-pre).to_f

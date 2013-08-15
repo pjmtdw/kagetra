@@ -1,5 +1,5 @@
 %div ユーザ名: #{@user.name}
-%div 最終ログイン: #{@newly["last_login"]}
+%div 最終ログイン: #{@newly["last_login"][0]} #{if @newly["last_login"][1] >= 5 then "(+#{@newly['last_login'][1]}分)" end}
 %div 今月ログイン: #{@newly["log_mon"]}
 
 - [["new_events","大会行事%d件追加","event/detail/top/%d"],

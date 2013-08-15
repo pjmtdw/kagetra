@@ -8,7 +8,7 @@ class MainApp < Sinatra::Base
       # UserAttribute.all(fields:[:user_id,:value_id]).map{|x|[x.user_id,x.value_id]} が遅いので手動でクエリする
       # TODO: 上記が遅い原因を探り, 手動クエリを使わない方法を見つける
       user_attrs = Hash[repository(:default).adapter
-        .select('SELECT user_id, value_id FROM user_attributes')
+        .select('SELECT user_id, value_id FROM user_attributes WHERE deleted = false')
         .group_by{|x| x[:user_id]}.map{|xs|[xs[0],xs[1].map{|x|x[:value_id]}]}]
       attr_values = Hash[UserAttributeValue.all
         .map{|x| [x.id, x.select_attr(:index,:value,:default).merge({key_id:x.attr_key.id})]}]
@@ -21,7 +21,7 @@ class MainApp < Sinatra::Base
         [x.user_id,x.updated_at.to_date]
       }]
       fields = [:id,:name,:furigana,:admin,:loginable,:permission]
-      list = User.all(fields:fields).map{|u|
+      list = User.all(fields:fields,order:[:furigana.asc]).map{|u|
         r = u.select_attr(*fields)
         r[:login_latest] = login_latests[u.id]
         a = user_attrs[u.id].sort_by{|x|values_indexes[x]} if user_attrs[u.id]

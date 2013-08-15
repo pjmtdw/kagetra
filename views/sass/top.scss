@@ -129,3 +129,15 @@ $forbidden-color: gray !important;
     margin: 3px;
   }
 }
+#newly-message{
+  .last-login{
+    color: #003;
+  }
+  .log-mon{
+    color: #600;
+  }
+  .login-elapsed{
+    color: gray;
+    font-size: 90%;
+  }
+}

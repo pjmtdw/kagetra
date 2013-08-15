@@ -35,7 +35,7 @@ class User
   # ログイン処理
   def update_login(request)
     User.transaction{
-      latest = UserLoginLatest.first(user: self)
+      latest = self.login_latest
       is_first_login = false
       if latest.nil? then
         is_first_login = true
@@ -74,18 +74,21 @@ class User
   end
   def last_login_str
     pre = self.show_new_from
-    if pre.nil? then
-      return "初ログイン<br/>#{CONF_FIRST_LOGIN_MESSAGE}<br/>"
-    end
-    cur = DateTime.now
-    days = (cur-pre).to_f
-    if days < 2/24.0
-      "#{(days*1440).to_i}分前"
-    elsif days < 2.0
-      "#{(days*24).to_i}時間前"
+    last_count = self.login_latest.updated_at
+    r1 = if pre.nil? then
+      "初ログイン<br/>#{CONF_FIRST_LOGIN_MESSAGE}<br/>"
     else
-      "#{days.to_i}日前"
+      days = (last_count-pre).to_f
+      if days < 2/24.0
+        "#{(days*1440).to_i}分前"
+      elsif days < 2.0
+        "#{(days*24).to_i}時間前"
+      else
+        "#{days.to_i}日前"
+      end
     end
+    r2 = (1440*(DateTime.now-last_count).to_f).to_i
+    [r1,r2]
   end
 end
 

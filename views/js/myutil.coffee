@@ -12,8 +12,13 @@ define (require, exports, module) ->
         $(target).find(s).placeholder()
 
     iframe_submit: (when_success,when_error)->
-      html = $("#dummy-iframe").contents().find("#response").html()
-      return if _.isUndefined(html) # IEの場合は最初の読み込み時にもloadがtriggerされる．そのときのhtmlはundefined
+      contents = $("#dummy-iframe").contents()
+      return unless contents.find("body").html() # IEの場合は最初の読み込み時にもloadがtriggerされる
+      html = contents.find("#response").html()
+      if not html
+        alert("エラー: #{contents.find("title").text()}")
+        when_error?()
+        return
       try
         res = JSON.parse(html)
         if res._error_
@@ -23,11 +28,9 @@ define (require, exports, module) ->
           alert("送信しました")
           when_success?(res)
         else
-          alert("エラー: 送信失敗")
-          console.log "Error HTML: #{html}"
+          alert("エラー: 送信失敗(1)")
       catch e
-        alert("エラー: #{e.message}")
-        console.log "Error HTML: #{html}"
+        alert("エラー: 送信失敗(2)")
 
     show_kind_symbol: (kind,official) ->
       s = switch kind

@@ -100,6 +100,8 @@ class MainApp < Sinatra::Base
     redirect '/top'
   end
   get '/haml/:prefix' do
+    # ブラウザ側にキャッシュさせる
+    # 注意: キャッシュさせるhamlファイルに@userなどの動的な情報が含まれないようにすること
     last_modified File.mtime(File.join(settings.views,params[:prefix]+".haml"))
     haml params[:prefix].to_sym, layout: nil
   end

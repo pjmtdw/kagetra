@@ -81,7 +81,7 @@ require ["zep_or_jq","myutil","backbone","select2","jquery_placeholder"
           v = $("<div>")
           d["haml"] = b
           v.load("haml/#{b}",->
-            $("body").append(v)
+            $("#body-end").before(v)
             d.resolve()
           )
           deferreds.push(d.promise())

@@ -26,10 +26,12 @@
         = ".top-bar-section li a {background: #{public_top_bar_color} !important;}";
         = ".top-bar-section {background: #{public_top_bar_color} !important;}";
         = ".top-bar-section ul {background: #{public_top_bar_color} !important;}";
+  /注意: content_for :haml で読み込むhamlファイルはブラウザにキャッシュされるので
+  /      @userなどの動的な情報は含まれないようにすること(routesの 'get /haml/:prefix' 参照)
   %body(data-haml="#{yield_content(:haml)}")
     %a(name="anchor-top")
     = yield
-    .row
+    #body-end.row
       %a.right(href="javascript:window.scrollTo(0,0);") &uArr; 一番上へ
     /[if IE 9]
       %script

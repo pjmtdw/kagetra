@@ -4,7 +4,7 @@ require 'securerandom'
 worker_processes 4
 working_directory @dir
 
-timeout 300
+timeout 600
 
 listen "#{@cur}/sock/unicorn.sock", backlog: 64
 pid "#{@cur}/pid/unicorn.pid"

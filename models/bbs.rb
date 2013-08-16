@@ -8,7 +8,7 @@ class BbsThread
   property :title,         TrimString, length: 48, required: true
   property :public,        Boolean, default: false  # 公開されているか
   belongs_to :first_item, 'BbsItem', required: false # スレッドの最初の書き込み
-  has n, :comments, 'BbsItem', child_key: [:thread_id] 
+  has n, :comments, 'BbsItem', child_key: [:thread_id]
 end
 
 # 掲示板の書き込み

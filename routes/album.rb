@@ -25,7 +25,7 @@ class MainApp < Sinatra::Base
       }
       items = AlbumGroup.all(year:year, dummy:true).items.map{|x|x.select_attr(:id,:name,:date).merge({type:"item"})}
 
-      {list:groups+items} 
+      {list:groups+items}
     end
     get '/group/:gid' do
       item_fields = [:id,:tag_count,:comment,:tag_names]
@@ -93,7 +93,7 @@ class MainApp < Sinatra::Base
         (xx,yy) = [t.coord_x,t.coord_y]
         (cx,cy) = case item.rotate.to_i
                 when 0
-                  [xx,yy]     
+                  [xx,yy]
                 when 90
                   [width-yy,xx]
                 when 180

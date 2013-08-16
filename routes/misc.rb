@@ -73,8 +73,8 @@ class MainApp < Sinatra::Base
     uid = get_permanent("uid")
     user = User.get(uid.to_i)
     (login_uid,login_uname) =
-      if uid.nil? or user.nil? then nil 
-      else 
+      if uid.nil? or user.nil? then nil
+      else
         [uid,user.name]
       end
     haml :login, locals: {

@@ -23,7 +23,7 @@ class ContestUser
   before :save do
     self.class_rank = self.contest_class.class_rank
   end
-  
+
   after :create do
     ev = self.event
     ev.update(contest_user_count:ev.result_users.count)
@@ -144,7 +144,7 @@ class ContestGame
 
   is_single = ->(x){ x.type == :single }
   is_team = ->(x){ x.type == :team }
- 
+
   # 個人戦用
   property :contest_class_id, Integer, unique_index: :u1, index: true
   belongs_to :contest_class

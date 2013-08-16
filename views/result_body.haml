@@ -30,8 +30,8 @@
       %a(href='result/excel/{{data.id}}') 印刷用
   .row
     %div.contest-name-date
-      %span.event-symbol {{_.show_kind_symbol(data.kind,data.official) }} 
-      %span.contest-name {- data.name -} 
+      %span.event-symbol {{_.show_kind_symbol(data.kind,data.official) }}
+      %span.contest-name {- data.name -}
       %span.contest-date @ {- data.date -}
   .row
     .section-container.tabs(data-section="tabs")
@@ -62,7 +62,7 @@
     .columns
       %table.chunk-body
         %thead.chunk-header
-          %tr 
+          %tr
             %th.leftmost {{ _.show_header_left(data.header_left) }}
             <% _.each(data.rounds.concat([{hide:true}]),function(x,i){ %>
             %th.result.round-name(data-round='{{i+1}}' class='{{x.hide?"hide":""}}')
@@ -125,7 +125,7 @@
         に
         %button.small.round.add-player 追加
       .panel
-        チェックした選手を 
+        チェックした選手を
         %span.player-to-move-belong
           {{select_classes}}
         に
@@ -149,7 +149,7 @@
           {{select_classes}}
         を
         %button.small.round.alert.delete-class 削除
-        
+
 %script#templ-team-player(type='text/template')
   .row#team-player
     %button.small.success.apply-edit 反映
@@ -280,7 +280,7 @@
     <% }) %>
     .row
       %button.small.apply-edit 送信
-  
+
 %script#templ-edit-round(type='text/template')
   #edit-round
     .row.collapse
@@ -318,7 +318,7 @@
         .large-4.small-12.columns
           .row.collapse
             .small-4.columns
-              %label.inline.right {- g.user_name -} : 
+              %label.inline.right {- g.user_name -} :
             .small-4.columns
               {{ _.make_result_select(g.result) }}
             .small-4.columns

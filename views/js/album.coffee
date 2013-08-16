@@ -1,5 +1,5 @@
 define (require,exports,module)->
-  _.mixin    
+  _.mixin
     show_date: (data)->
       if data.date?
         data.date
@@ -115,7 +115,7 @@ define (require,exports,module)->
       @$el.appendTo("#album-recent")
       @$el.find("#album-list").before($("<div>",text:"新着"))
       @render_percent()
-    
+
 
   AlbumGroupModel = Backbone.Model.extend
     urlRoot: "api/album/group"
@@ -374,7 +374,7 @@ define (require,exports,module)->
 
       that = this
       $("#album-item-form").one("change",":input",->that.changed=true)
-    
+
     remove_relation: (ev)->
       if confirm("関連写真を解除してもいいですか？")
         id = $(ev.currentTarget).data("id")

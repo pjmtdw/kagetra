@@ -1,5 +1,5 @@
 - content_for :title do
-  管理画面 - 設定 
+  管理画面 - 設定
 - content_for :js_start do
   admin_config
 = haml :top_bar
@@ -12,11 +12,11 @@
         %fieldset
           %legend 共通パスワード変更
           %label 現在の共通パスワード
-          %input(name='old-shared-pass' type='password') 
+          %input(name='old-shared-pass' type='password')
           %label 新しい共通パスワード
-          %input(name='new-shared-pass-1' type='password') 
+          %input(name='new-shared-pass-1' type='password')
           %label 新しい共通パスワード(確認用)
-          %input(name='new-shared-pass-2' type='password') 
+          %input(name='new-shared-pass-2' type='password')
           %input.button.small.round(type='submit' value='送信')
   .row
     .large-12.columns
@@ -24,11 +24,11 @@
         %fieldset
           %legend 名簿パスワード変更
           %label 現在の名簿パスワード
-          %input(name='old-addrbook-pass' type='password') 
+          %input(name='old-addrbook-pass' type='password')
           %label 新しい名簿パスワード
-          %input(name='new-addrbook-pass-1' type='password') 
+          %input(name='new-addrbook-pass-1' type='password')
           %label 新しい名簿パスワード(確認用)
-          %input(name='new-addrbook-pass-2' type='password') 
+          %input(name='new-addrbook-pass-2' type='password')
           %input.button.small.round(type='submit' value='送信') ※パスワード変更には数秒〜数十秒かかります
 %script
   = addrbook_check_password_js

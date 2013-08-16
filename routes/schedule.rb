@@ -135,7 +135,7 @@ class MainApp < Sinatra::Base
         klass.all(cond.merge(acond)).each{|x|
           p = arr[x.date-today]
           p[sym] ||= obj.new
-          if obj == Array then 
+          if obj == Array then
             p[sym] <<= send(func,x)
           else
             p[sym] = send(func,x)

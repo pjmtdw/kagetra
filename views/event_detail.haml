@@ -77,7 +77,7 @@
       <% if(!data.done){ %>
       %section
         %p.title(data-section-title)
-          %a 登録者 
+          %a 登録者
         .content(data-section-content)
           #event-edit-participant
       <% } %>
@@ -202,7 +202,7 @@
     %span.choice-name {- x.name -}
     <% if(x.positive){ %>
     %span.cross.choice-delete &times;
-    <% } %> 
+    <% } %>
 
 %script#templ-event-group(type='text/template')
   .info
@@ -220,7 +220,7 @@
           %input(type='text' name='name' value='{-data.name-}' placeholder='名前')
         .right
           %button#apply-edit.small.round 送信
-          %button#cancel-edit.small.round キャンセル 
+          %button#cancel-edit.small.round キャンセル
 
       .div
         %textarea(name='description' placeholder='備考' rows='10' ) {{ data.description }}
@@ -249,7 +249,7 @@
 
 %script
   -# Rubyの連想配列は順番が保持されるけどJavaScriptは保持されないので配列に変換
-  var g_event_kinds_str='#{G_EVENT_KINDS.to_a.to_json}' 
+  var g_event_kinds_str='#{G_EVENT_KINDS.to_a.to_json}'
   var g_team_sizes_str='#{G_TEAM_SIZES.to_a.to_json}'
 
 #container-event-group.reveal-modal

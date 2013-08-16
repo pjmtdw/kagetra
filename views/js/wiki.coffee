@@ -108,7 +108,7 @@ define (require,exports,module) ->
       obj = $(ev.currentTarget)
       id = obj.data('link-id')
       window.wiki_router.navigate("/page/#{id}", trigger:true)
-  
+
   class WikiPanelView extends WikiBaseView
     template: _.template_braces($("#templ-wiki-panel").html())
     events: ->
@@ -159,7 +159,7 @@ define (require,exports,module) ->
         @$el.appendTo("#wiki-item")
       catch e
         console.log "Error: " + e.message
-        
+
       window.wiki_panel_view?.remove()
       window.wiki_panel_view = new WikiPanelView(model:@model)
   WikiAttachedUploadView = Backbone.View.extend

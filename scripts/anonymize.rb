@@ -129,7 +129,7 @@ BbsThread.transaction{
                 rest = feature.sub(/^名詞,固有名詞,/,"")
                 meisi = case rest
                 when "人名,名" then
-                  RandomName.choose_mei 
+                  RandomName.choose_mei
                 else
                   # TODO: 組織と地域には人名とは別のデータを使う
                   # 郵便局のページから全国一括ダウンロードできる郵便番号データが候補

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-class MainApp < Sinatra::Base 
+class MainApp < Sinatra::Base
   ATTACHED_LIST_PER_PAGE = 50
   WIKI_ALL_PER_PAGE = 30
   WIKI_LOG_PER_PAGE = 10
@@ -99,9 +99,9 @@ class MainApp < Sinatra::Base
         WikiItem.transaction{
           (updates,updates_patch) = make_comment_log_patch(item,@json,"body","revision")
           if updates then @json.merge!(updates) end
-          if item then 
+          if item then
             item.update(@json)
-          else 
+          else
             item = WikiItem.create(@json)
           end
           if updates_patch
@@ -125,7 +125,7 @@ class MainApp < Sinatra::Base
 
     get '/attached_list/:id', private:true do
       page = (params[:page] || 1).to_i
-      chunks = WikiAttachedFile.all(wiki_item_id:params[:id].to_i,order:[:created_at.desc,:id.desc]).chunks(ATTACHED_LIST_PER_PAGE) 
+      chunks = WikiAttachedFile.all(wiki_item_id:params[:id].to_i,order:[:created_at.desc,:id.desc]).chunks(ATTACHED_LIST_PER_PAGE)
       pages = chunks.size
       list = chunks[page-1].map{|x|
         x.select_attr(:id,:orig_name,:description,:size).merge({

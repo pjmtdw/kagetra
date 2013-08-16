@@ -98,7 +98,7 @@ define (require,exports,module) ->
       json.deadline_str = show_deadline(json.deadline_day)
       @$el.html(@template(data:json))
       if json.deadline_day? and json.deadline_day < 0
-        # 締切を過ぎているので何も表示しない 
+        # 締切を過ぎているので何も表示しない
       else if not json.forbidden
         cm =
           if @options.choice_model
@@ -110,7 +110,7 @@ define (require,exports,module) ->
         @$el.find(".event-choice").append(cv.$el)
       else
         @$el.find(".event-choice").append($("<span>",class:"forbidden",text:"貴方は登録不可です"))
-      
+
       @choice_model = cm
 
   EventItemView = EventItemBaseView.extend

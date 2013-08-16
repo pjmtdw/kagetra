@@ -25,7 +25,7 @@ define ->
       @render()
     render: ->
       @$el.html(@template(data:@model.toJSON()))
-  
+
   CommentThreadView = Backbone.View.extend
     template_response: _.template_braces($("#templ-response").html())
     events:

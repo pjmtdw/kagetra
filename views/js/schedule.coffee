@@ -161,7 +161,7 @@ define (require,exports,module) ->
         dt = new Date(x)
         if dt.getFullYear() == @collection.year and dt.getMonth() + 1 == @collection.mon
           $(".info-item[data-date='#{x}']").append(@multi_edit_item.clone())
-          
+
       @events = _.extend(@events,@multi_edit_events.stage_2)
       @delegateEvents()
 

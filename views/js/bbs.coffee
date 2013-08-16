@@ -81,7 +81,7 @@ define (require,exports,module) ->
         else
           g_user_name ? ""
     $("#new-thread-form [name='user_name']").val(v)
-    
+
 
   init: ->
     window.bbs_router = new BbsRouter()

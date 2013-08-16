@@ -48,4 +48,4 @@ define (require,exports,module) ->
   init: ->
     window["login_log_ranking"] = new LoginRankingView()
     $(".section-container.tabs a").on("click",switch_view)
-    
+

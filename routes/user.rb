@@ -17,7 +17,7 @@ class MainApp < Sinatra::Base
       post '/user' do
         uid = params[:user_id]
         user = User.first(id: uid)
-        hash = user.password_hash 
+        hash = user.password_hash
         res = Kagetra::Utils.check_password(params,hash)
         if res[:result] == "OK" then
           user.update_login(request)
@@ -47,7 +47,7 @@ class MainApp < Sinatra::Base
     end
     post '/confirm_password' do
       hash = @user.password_hash
-      Kagetra::Utils.check_password(params,hash) 
+      Kagetra::Utils.check_password(params,hash)
     end
     post '/change_password' do
       up = {password_hash: params[:hash], password_salt: params[:salt]}
@@ -84,7 +84,7 @@ class MainApp < Sinatra::Base
     end
     post '/create_users' do
       User.transaction{
-        shared = MyConf.first(name: "shared_password").value 
+        shared = MyConf.first(name: "shared_password").value
         hash = shared["hash"]
         salt = shared["salt"]
         @json["list"].each{|x|

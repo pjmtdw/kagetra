@@ -64,7 +64,7 @@ define (require, exports, module) ->
         for p in s.split('&')
          p.split('=')
       )
-        
+
     swap_elem: (a,b) ->
       ai = a.index()
       bi = b.index()
@@ -143,7 +143,7 @@ define (require, exports, module) ->
       r += _.escape(s.substring(offset))
       r
 
-      
+
     router_base: (prefix,arg) ->
       Backbone.Router.extend
         remove_all: ->
@@ -204,7 +204,7 @@ define (require, exports, module) ->
         $(target).empty()
       )
       $(target).foundation("reveal","open")
-    
+
     make_checkbox: (checked,opts) ->
       # underscore.jsのtemplateとしてHamlを使うと %input(type='checkbox' {{ checked?"checked":"" }}) みたいなことができない
       o = _.extend({type:'checkbox'},opts)
@@ -252,7 +252,7 @@ define (require, exports, module) ->
           defer.resolve()
       )
       defer.promise()
-  
+
   # b == true なら最初の状態, b == false なら裏状態
   # 指定されないならtoggle
   $.fn.toggleBtnText = (b)->
@@ -268,7 +268,7 @@ define (require, exports, module) ->
     t = @data("toggle-text")
     @data("toggle-text",@text())
     @text(t)
-  
+
   $.fn.fillForm = (obj)->
     for k,v of obj
       @.find("[name='#{k}']").val(v)

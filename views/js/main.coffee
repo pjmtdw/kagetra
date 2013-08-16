@@ -53,8 +53,8 @@ require ["zep_or_jq","myutil","backbone","select2","jquery_placeholder"
      "foundation.reveal","foundation.topbar","foundation.dropdown","foundation.section","foundation.alerts","foundation.magellan","foundation.tooltips"], ->
   # simply-deferred を使う場合は下記が必要
   # 現在は jquery の select2 プラグインを使用しているため zepto は使わない方針
-  # zep_or_jq は常にjqueryを返すようになっている 
-      
+  # zep_or_jq は常にjqueryを返すようになっている
+
   # Deferred.installInto(Zepto) if Zepto?
   $ = require("zep_or_jq")
   init_f = ->

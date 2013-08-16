@@ -15,7 +15,7 @@ class User
   property :show_new_from, DateTime # 掲示板, コメントなどの新着メッセージはこれ以降の日時のものを表示
 
   has n, :attrs, 'UserAttribute'
-  
+
   has n, :event_user_choices
 
   has 1, :login_latest, 'UserLoginLatest'
@@ -64,7 +64,7 @@ class User
 
     }
   end
-  def change_token! 
+  def change_token!
     self.token = SecureRandom.base64(24)
   end
   # 今月のログイン数
@@ -149,7 +149,7 @@ class UserAttribute
     self.user.attrs(value: values).destroy!
   end
 end
-  
+
 
 # ユーザ属性の名前
 class UserAttributeKey

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-class MainApp < Sinatra::Base 
+class MainApp < Sinatra::Base
   namespace '/api/login_log' do
     get '/ranking' do
       names = {@user.id => @user.name}

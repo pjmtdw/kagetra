@@ -59,7 +59,7 @@
 %script#templ-album-group(type='text/template')
   .row
     .large-4.columns
-      %a(href='album#') TOP - 
+      %a(href='album#') TOP -
       %a(href='album#year/{{data.year || "_else_"}}') {{data.year || "(不明)"}}年
     .large-8.columns
       .right#album-buttons
@@ -75,7 +75,7 @@
   .row
     .large-12.columns
       #album-tags
-        タグ一覧: 
+        タグ一覧:
         <% _.each(data.tags,function(t){ %>
         .album-tag
           %span.album-tag-name {- t[0] -}
@@ -85,7 +85,7 @@
     .large-12.columns
       #album-items
 
-%script#templ-album-group-items(type='text/template')      
+%script#templ-album-group-items(type='text/template')
   <% _.each(_.filter(data.items,function(x){return ! x.hide}),function(x){ %>
   .gbase.thumbnail.album-item(data-id='{{x.id}}')
     <% if(x.no_tag){ %>
@@ -101,7 +101,7 @@
   .row
     .large-12.columns
       .left
-        %a(href='album#') TOP - 
+        %a(href='album#') TOP -
         %a(href='album#year/{{data.group.year || "_else_"}}') {{data.group.year || "(不明)"}}年 -
         <% if(!data.group.dummy){ %>
         %a(href='album{{"#group/"+data.group.id}}') {- data.group.name || "(タイトルなし)" -}
@@ -118,12 +118,12 @@
   <% if(!_.isEmpty(data.relations)){ %>
   .row.show-for-small
     .large-12.columns
-      %a#scroll-to-relation 関連写真へスクロール ( {{data.relations.length}} ) 
+      %a#scroll-to-relation 関連写真へスクロール ( {{data.relations.length}} )
   <% } %>
   .row
     .large-12.columns
       #album-tags
-        タグ一覧: 
+        タグ一覧:
         <% templ = _.template_braces($("#templ-album-tag").html()) %>
         <% _.each(data.tags,function(t){ %>
         {{ templ({tag:t}) }}
@@ -141,7 +141,7 @@
 %script#templ-relations(type='text/template')
   <% if(!_.isEmpty(relations)){ %>
   .left#relation-start
-    関連写真 ( {{relations.length}} ): 
+    関連写真 ( {{relations.length}} ):
   <% } %>
   <% _.each(relations,function(x){ %>
   .left.relation
@@ -220,7 +220,7 @@
             %td
               %input(name='place' type='text' value='{-data.place-}')
           %tr
-            %td 
+            %td
             %td
               <% if(!is_group){ %>
               {{ _.make_checkbox(data.daily_choose,{name:'daily_choose'}) }} 今日の一枚に選ぶ

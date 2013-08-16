@@ -19,7 +19,7 @@ define (require, exports, module) ->
       if d.start_at or d.end_at
         r += " &isin; <span class='hourmin'>#{d.start_at ? ''}</span> &sim; <span class='hourmin'>#{d.end_at ? ''}</span>"
       r
-        
+
     show_item_detail: (data,show_date=false)->
       dt = if show_date then "<span class='date'>#{data.date}</span>"
       hm = if data.start_at or data.end_at

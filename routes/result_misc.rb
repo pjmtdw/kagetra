@@ -20,7 +20,7 @@ class MainApp < Sinatra::Base
           y["type"] == "person" and y["promotion"] == "rank_up"
         }.map{|y|
           u = User.get(y["user_id"])
-          attr_values = if u.nil? then [] else u.attrs.value.map{|x|x[:id]} end 
+          attr_values = if u.nil? then [] else u.attrs.value.map{|x|x[:id]} end
           y.select_attr("class_name","name","prize","user_id").merge({event:x.event.select_attr(:name,:date),attr_values:attr_values})
         }
       }.flatten.sort_by{|x|
@@ -56,7 +56,7 @@ class MainApp < Sinatra::Base
 
       # 一つの大会で敵味方両方で出てる場合は味方のみを取得する(同会対決とかなので)
       op_cond = if games_my.empty? then "" else "AND event_id NOT IN(#{games_my.map{|x|x.event_id}.join(',')})" end
-      
+
       games_op = repository(:default).adapter.select("SELECT id,event_id FROM contest_games WHERE opponent_name = '#{name}' #{op_cond}")
 
       eids = (games_my.map{|x|x.event_id} + games_op.map{|x|x.event_id}).uniq
@@ -71,7 +71,7 @@ class MainApp < Sinatra::Base
       end
 
       cusers = if events.empty? then [] else repository(:default).adapter.select("SELECT id FROM contest_users where name = '#{name}' AND event_id IN (#{events.map{|x|x.id}.join(',')})") end
-      
+
       if @json["no_aggr"] then
         prizes = []
         aggr = []
@@ -104,7 +104,7 @@ class MainApp < Sinatra::Base
           res
         }
       end
-      page = @json["page"] || 1 
+      page = @json["page"] || 1
       # 詳細を表示する大会ID
       chunks = events.chunks(RESULT_RECORD_PER_PAGE)
       # chunks は Event.all()[0..10] のようにlimitを既にかけてるものでは使えない
@@ -186,7 +186,7 @@ class MainApp < Sinatra::Base
 
         # 敵として出た試合の勝敗を入れ替え
         if is_op then
-           res[:result] = 
+           res[:result] =
              case x.result
              when :win then :lose
              when :lose then :win

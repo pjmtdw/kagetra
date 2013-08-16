@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # 名簿
-class MainApp < Sinatra::Base 
+class MainApp < Sinatra::Base
   ADDRBOOK_RECENT_MAX =50
   namespace '/api/addrbook' do
     post '/item/:uid' do

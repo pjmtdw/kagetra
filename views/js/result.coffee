@@ -14,7 +14,7 @@ define (require,exports,module) ->
         s = if cur && cur.opponent_order == num then "selected" else ""
         res.push("<option value='#{num}' #{s}>#{ja}</option>")
       "<select name='opponent_order'>#{res.join('')}</select>"
-      
+
 
     make_point_select: (name,key,d)->
       pts = JSON.parse(g_points_str)[key]
@@ -56,8 +56,8 @@ define (require,exports,module) ->
         a = $("<div>",text:_.escape(s.team_name))
         b = $("<div>",class:"team-prize",text:_.escape(s.team_prize))
         a[0].outerHTML + b[0].outerHTML
-        
-  
+
+
   ContestResultRouter = Backbone.Router.extend
     routes:
       "contest/:id": "contest"
@@ -189,7 +189,7 @@ define (require,exports,module) ->
       @round_kind = (result.get('rounds')[round-1] || {kind:"team"}).kind
       super()
 
-      
+
 
   class ContestEditSingleRoundView extends ContestEditRoundBase
     events: _.extend(ContestEditRoundBase.prototype.events,
@@ -529,7 +529,7 @@ define (require,exports,module) ->
       for k,v of team_classes
         team_classes[k] = _.without(v,tid)
       @render()
-    
+
   # TODO: split this view to ContestInfoView which has name, date, group, list  and ContestResultView which only has result
   ContestResultView = Backbone.View.extend
     el: '#contest-result'

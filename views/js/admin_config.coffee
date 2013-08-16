@@ -18,7 +18,7 @@ define ["crypto-aes", "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
       cpass = fel.find("input[name='old-addrbook-pass']").val()
       npass1 = fel.find("input[name='new-addrbook-pass-1']").val()
       npass2 = fel.find("input[name='new-addrbook-pass-2']").val()
-      
+
       if not g_addrbook_check_password(cpass)
         alert('旧パスワードが間違っています')
         return
@@ -37,8 +37,8 @@ define ["crypto-aes", "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
           )
         contentType: "application/json"
         type: "POST").done(-> alert("完了"))
-      
-      
+
+
 
   init: ->
     window.admin_config_view = new AdminConfigView()

@@ -156,7 +156,7 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
       select.focus()
       select.one("change",->select.trigger("blur"))
       select.one("blur",->form.submit())
-      
+
     start_edit_text: (obj,type) ->
       return if obj.find("form").length > 0
       txt = obj.text()
@@ -297,7 +297,7 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
         uids: uids
       p.done(-> alert("パスワードを変更しました"))
       false
-      
+
     change_permission: (ev,mode) ->
       obj = $(ev.currentTarget)
       uids = @get_uids()
@@ -308,7 +308,7 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
                 type: $("#permission-name").val())
         contentType: "application/json"
         type: "POST").done( -> alert("更新完了"))
-      
+
     template: _.template($("#templ-admin-edit").html())
     render: ->
       @$el.html(@template(data:@collection.toJSON()))

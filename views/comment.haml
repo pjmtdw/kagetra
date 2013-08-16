@@ -5,7 +5,7 @@
       .large-12.columns
         %input(name='user_name' type='text' placeholder='名前' value='{-data.default_user_name-}' )
     %textarea.response-body(name='body' rows=20 placeholder='レス内容')
-      
+
 %script#templ-edit-response(type='text/template')
   %form.response-edit-form
     %input.button.small.round(type='submit' value='送信')
@@ -49,5 +49,5 @@
         {- data.public?"外部公開":"" -}
       <% } %>
     .comment-body
-    %button.response-toggle.small.round(data-toggle-text="キャンセル") 書き込む 
+    %button.response-toggle.small.round(data-toggle-text="キャンセル") 書き込む
     .response-container

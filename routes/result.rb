@@ -20,12 +20,12 @@ class MainApp < Sinatra::Base
         }
       end
       gr = evt.event_group
-      group = if gr then 
+      group = if gr then
                 fdate = if evt.date.nil? then Date.today else evt.date + 365*5 end
                 gr.events(done:true, :date.lte => fdate, order:[:date.desc])[0...DROPDOWN_EVENT_GROUP_MAX]
                 .map{|x| x.select_attr(:id,:name,:date)}
               else [] end
-      
+
       contest_results = if evt.team_size == 1 then
                         contest_results_single(evt) else
                         contest_results_team(evt) end
@@ -46,13 +46,13 @@ class MainApp < Sinatra::Base
       cond0 = Event.all(kind: :contest, done:true)
       cond = (cond0 &
               (Event.all(:participant_count.gt => 0) | Event.all(:contest_user_count.gt => 0)) )
-      evt = (cond0 & Event.all(
+      evt = (
               if id == "latest" then
-                {order: [:date.desc,:id.desc]}
+                cond & Event.all(order: [:date.desc,:id.desc])
               else
-                {id: id.to_i}
+                cond0 & Event.all(id: id.to_i)
               end
-            )).first
+            ).first
       return [nil,[]] if evt.nil?
 
       (pre,post) = [[:lt,:desc],[:gt,:asc]].map{|p,q|
@@ -62,7 +62,7 @@ class MainApp < Sinatra::Base
       # 実際にクエリ実行する(この行を入れないとうまく動かない)
       pre = pre.to_a
       post = post.to_a
-      
+
       first_is_most_recent = (post.size <= EVENT_HALF_PAGE)
 
       all = if pre.size <= EVENT_HALF_PAGE then
@@ -131,7 +131,7 @@ class MainApp < Sinatra::Base
         op_team_name: x.name
       }}
     end
-    
+
 
     # 勝ち数の多い順に並べる
     def result_sort(klass,user_games,round_num,prizes)
@@ -179,7 +179,7 @@ class MainApp < Sinatra::Base
         if prizes.has_key?(uid) then
           r[:prize] = prizes[uid]
         end
-        r 
+        r
       }
       # 試合に出ていない選手を追加する
       res + users.to_a.map{|uid,uname|
@@ -191,7 +191,7 @@ class MainApp < Sinatra::Base
         }
       }.compact
     end
-    
+
     # 団体戦の結果
     def contest_results_team(evt)
       evt.result_classes(order:[:index.asc]).teams.map{|team|
@@ -230,9 +230,9 @@ class MainApp < Sinatra::Base
         {
           class_id: team.contest_class_id,
           team_id: team.id,
-          header_left: hl, 
+          header_left: hl,
           rounds: get_team_rounds(team),
-          user_results: user_results 
+          user_results: user_results
         }
       }
     end
@@ -323,7 +323,7 @@ class MainApp < Sinatra::Base
               }
             else
               ContestClass.get(k).update(index:i)
-            end 
+            end
           }
           if ev.team_size > 1 then
             @json["user_classes"] = Hash[@json["team_classes"].map{|k,v|
@@ -399,7 +399,7 @@ class MainApp < Sinatra::Base
             condbase = {
                      type: :single,
                      contest_class_id: klass.id,
-                     round: round 
+                     round: round
                    }
           else
             # 団体戦
@@ -441,7 +441,7 @@ class MainApp < Sinatra::Base
           {
             results: Hash[ContestGame.all(condbase.merge({fields:["contest_user_id"]+fields})).map{|x|[x.contest_user_id,x.select_attr(*fields)]}],
             rounds: rounds
-          } 
+          }
         }
       }
     end

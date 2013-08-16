@@ -63,7 +63,7 @@ module UserEnv
   def self.included(base)
     base.class_eval do
       p = DataMapper::Property
-      property :remote_host, p::TrimString, length: 72, lazy: true 
+      property :remote_host, p::TrimString, length: 72, lazy: true
       property :remote_addr, p::TrimString, length: 48, lazy: true
       property :user_agent, p::TrimString, length: 255, lazy: true
     end
@@ -90,7 +90,7 @@ module CommentBase
   def self.included(base)
     base.class_eval do
       include UserEnv
-      p = DataMapper::Property 
+      p = DataMapper::Property
       # ParanoidBooleanにはバグがあって lazy: true にしてしまうと関連モデルを直接取得したときの belong_to が nil になる
       # https://github.com/datamapper/dm-types/issues/52
       property :deleted, p::ParanoidBoolean, lazy: false
@@ -116,7 +116,7 @@ module CommentBase
       end
       def is_new(user)
         user.nil?.! and
-        (self.user_id.nil? or self.user_id != user.id) and 
+        (self.user_id.nil? or self.user_id != user.id) and
         user.show_new_from.nil?.! and
         self.created_at >= user.show_new_from
       end
@@ -142,7 +142,7 @@ end
 module PatchBase
   def self.included(base)
     base.class_eval do
-      p = DataMapper::Property 
+      p = DataMapper::Property
       property :revision, p::Integer, unique_index: :u1, required: true
       property :patch, p::Text, required: true # 逆向きのdiff ( $ diff new old )
       belongs_to :user, required: false # 編集者
@@ -155,7 +155,7 @@ module ThreadBase
   # TODO: include時に has n, :comments の引数を指定できない？
   def self.included(base)
     base.class_eval do
-      p = DataMapper::Property 
+      p = DataMapper::Property
       belongs_to :last_comment_user, 'User', required: false # スレッドに最後に書き込んだユーザ
       property :last_comment_date, p::DateTime, index: true # スレッドに最後に書き込んだ日時
       property :comment_count, Integer, default: 0 # コメント数 (毎回aggregateするのは遅いのでキャッシュ)
@@ -172,7 +172,7 @@ module ThreadBase
           if user.show_new_from.nil?.! then
             if self.last_comment_date > user.show_new_from and
               (self.last_comment_user.nil? or self.last_comment_user_id != user.id) then
-                return true 
+                return true
             end
           end
         end
@@ -193,7 +193,7 @@ module DataMapper
     # @param[Boolean] Merger is a boolean that determines if the conditions are merged with the attributes upon create.
     #   If true, merges conditions to attributes and passes the merge to the create method;
     #   If false, only attributes are passed into the create method
-    # @return[Object] DataMapper object 
+    # @return[Object] DataMapper object
     def update_or_create(conditions = {}, attributes = {}, merger = true)
       if (row = first(conditions))
         row.update(attributes)
@@ -239,7 +239,7 @@ module DataMapper
       remove_whitespace(false)
       def initialize(model, name, options = {})
         super
-        @remove_whitespace = options.fetch(:remove_whitespace,false) 
+        @remove_whitespace = options.fetch(:remove_whitespace,false)
       end
       def custom?
         true

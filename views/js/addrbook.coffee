@@ -115,7 +115,7 @@ define ["crypto-aes", "crypto-hmac","crypto-pbkdf2","crypto-base64"], ->
         delete res[k]
       for k,v of res
         info.push [k,v]
-      
+
       templ = if @model.get("editable") then @template_edit else @template
       @$el.html(templ(data:_.extend(@model.toJSON(),info:info)))
       @decode_success = true

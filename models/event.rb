@@ -11,7 +11,7 @@ class Event
   property :team_size, Integer, default: 1 # 1 => 個人戦, 3 => 3人団体戦, 5 => 5人団体戦
   property :description, TrimText # 備考
   property :deadline, Date # 締切
-  property :date, Date, index: true # 日時 
+  property :date, Date, index: true # 日時
   property :start_at, HourMin #開始時刻
   property :end_at, HourMin #終了時刻
   property :place, TrimString, length: 255, lazy: true # 場所

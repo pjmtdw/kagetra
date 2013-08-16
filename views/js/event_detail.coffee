@@ -235,7 +235,7 @@ define (require,exports,module)->
     render: ->
       @$el.html(@template(data:@model.toJSON()))
       @$el.find("[name='forbidden_attrs']").select2()
-  
+
   EventGroupModel = Backbone.Model.extend
     urlRoot: "api/result/group"
   EventGroupView = Backbone.View.extend

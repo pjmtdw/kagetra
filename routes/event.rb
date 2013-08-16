@@ -47,7 +47,7 @@ class MainApp < Sinatra::Base
       end
       r[:choices] = ev.choices(order:[:index.asc]).map{|x|x.select_attr(:positive,:name,:id)}
       r[:editable] = @user.admin || ev.owners.include?(@user.id)
-      r[:choice] = if opts.has_key?(:user_choices) then opts[:user_choices][ev.id] 
+      r[:choice] = if opts.has_key?(:user_choices) then opts[:user_choices][ev.id]
                    else
                      t = user.event_user_choices.event_choices.first(event:ev)
                      t && t.id
@@ -55,7 +55,7 @@ class MainApp < Sinatra::Base
       opts[:user_attr_values] ||= user.attrs.value.map{|v|v.id}
       forbidden = (ev.forbidden_attrs & opts[:user_attr_values]).empty?.!
       r[:forbidden] = true if forbidden
-      if opts[:detail] 
+      if opts[:detail]
         r.merge!(ev.select_attr(:description,:formal_name,:start_at, :end_at, :done))
         r.merge!(get_participant(ev,opts[:edit])) unless opts[:no_participant]
         if opts[:edit]
@@ -127,8 +127,8 @@ class MainApp < Sinatra::Base
 
     def update_or_create_item
       # get時に付加したmodelにない情報なので削除する．TODO: 不要な情報なのでクライアント側で削除する
-      @json.delete("all_attrs") 
-      @json.delete("all_event_groups") 
+      @json.delete("all_attrs")
+      @json.delete("all_event_groups")
 
       dm_response{
         Event.transaction{

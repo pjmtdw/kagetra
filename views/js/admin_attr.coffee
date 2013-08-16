@@ -43,7 +43,7 @@ define ->
       if r = prompt("属性追加","")
         t = @template_row(data:{id:"new",value:r})
         $(ev.currentTarget).closest("table").find(".after-last-value").before(t)
-        
+
     delete_value: (ev)->
       o = $(ev.currentTarget).closest("[data-value-id]")
       o.addClass("deleted")

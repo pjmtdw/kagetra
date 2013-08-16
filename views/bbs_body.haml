@@ -1,0 +1,46 @@
+.row
+  %div.large-6.columns
+    %button#new-thread-toggle.small.round(data-toggle-text="キャンセル") スレッド作成
+    %button#search-toggle.small.round 検索
+#search-row.row.hide
+  %form#search-form.large-6.columns
+    .row.collapse
+      .large-10.small-10.columns
+        %input#query-string(type='text' placeholder='検索文字列' autofocus)
+      .large-2.small-2.columns
+        %input.button.small.postfix.radius(type='submit' value='検索')
+#new-thread-row.row.hide
+  %form#new-thread-form.large-12.columns
+    %fieldset
+      %legend スレッド作成
+      %input.button.small.round(type='submit' value='送信')
+      .row
+        .large-10.columns
+          %label 名前
+          %input(name='user_name' type='text')
+        .large-2.columns.hide-for-public
+          %input(name='public' type='checkbox') 外部公開
+      .row
+        .large-12.columns
+          %label タイトル
+          %input(name='title' type='text' autofocus)
+      .row
+        .large-12.columns
+          %label 内容
+          %textarea(name='body' rows=30)
+
+.row
+  %div(data-magellan-expedition="fixed")
+    .left
+      %button#prev-thread.tiny.success &laquo;
+      %button#next-thread.tiny.success &raquo;
+    #bbs-nav
+
+.row
+  #bbs-body
+
+%script#templ-bbs-nav(type='text/template')
+  <% _.each(data,function(x){ %>
+  .arrival.ellipsis(data-magellan-arrival="{{x.id}}")
+    %a(href="bbs#page/{{window.bbs_page}}@{{x.id}}") {- x.title -}
+  <% }) %>

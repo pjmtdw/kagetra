@@ -141,8 +141,6 @@ define (require, exports, module) ->
       r
 
       
-    is_public_mode: ->
-      location.pathname.indexOf("/public/") == 0
     router_base: (prefix,arg) ->
       Backbone.Router.extend
         remove_all: ->

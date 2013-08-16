@@ -62,13 +62,35 @@ require ["zep_or_jq","myutil","backbone","select2","jquery_placeholder"
     $(document).ajaxError((evt,xhr,settings,error)->
       return if xhr.status == 0
       alert("通信エラー(#{xhr.status}): #{xhr.statusText}"))
+
     # insert dummy element to detect whether it is small screen
-    v = $("<div class='show-for-small'></div>")
+    v = $("<div>",{class:'show-for-small'})
     v.insertAfter("body")
     window.is_small = v.is(":visible")
     v.remove()
 
     $(document).foundation()
-  mod_name = $("script[data-start]").data("start")
-  if mod_name
-    require [mod_name], (mod) -> $( -> init_f();mod.init() )
+  $(->
+    hamls = $("body").data("haml")
+    deferreds = []
+    if hamls
+      for b in hamls.split(/\s*,\s*/)
+        continue unless b
+        do ->
+          d = new $.Deferred()
+          v = $("<div>")
+          d["haml"] = b
+          v.load("haml/#{b}",->
+            $("body").append(v)
+            d.resolve()
+          )
+          deferreds.push(d.promise())
+    when_loaded = ->
+      mod_name = $("script[data-start]").data("start")
+      if mod_name
+        require [mod_name], (mod) -> init_f();mod.init()
+    if deferreds.length > 0
+      $.when.apply($,deferreds).done(when_loaded)
+    else
+      when_loaded()
+  )

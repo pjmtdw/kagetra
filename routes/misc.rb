@@ -6,7 +6,8 @@ class MainApp < Sinatra::Base
       next unless x[:public]
       r = x[:route]
       ["/"+r,"/api/"+r].any?{|z| path.start_with?(z)}
-    }
+    } or
+    path.start_with?("/haml/")
     @public_mode = true
     call env.merge("PATH_INFO" => path)
   end
@@ -35,6 +36,8 @@ class MainApp < Sinatra::Base
     if @user.nil? then
       if path.start_with?("/api/") then
         halt 403, "login required"
+      elsif path.start_with?("/mobile/") then
+        redirect '/mobile/'
       else
         redirect '/'
       end
@@ -86,11 +89,8 @@ class MainApp < Sinatra::Base
   end
   get '/top' do
     dph = MyConf.first(name:"daily_album_photo")
-    daily_photo = if dph then dph.value end
-    haml :top, locals:
-      {
-        daily_photo: daily_photo
-      }
+    @daily_photo = if dph then dph.value end
+    haml :top
   end
   get '/relogin' do
     delete_permanent("uid")
@@ -98,5 +98,9 @@ class MainApp < Sinatra::Base
   end
   get '/etc' do
     redirect '/top'
+  end
+  get '/haml/:prefix' do
+    last_modified File.mtime(File.join(settings.views,params[:prefix]+".haml"))
+    haml params[:prefix].to_sym, layout: nil
   end
 end

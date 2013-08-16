@@ -27,7 +27,7 @@ class MainApp < Sinatra::Base
           updated_date: ab.updated_at.strftime("%Y-%m-%d %H:%M")
         })
       end
-      if @user.admin or uid == @user.id then
+      if @user.admin or @user.sub_admin or uid == @user.id then
         r[:editable] = true
       end
       r

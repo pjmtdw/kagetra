@@ -1,0 +1,195 @@
+#wiki-panel
+
+.row
+  .large-12.columns
+    .section-container.tabs(data-section="tabs")
+      %section
+        %p.title(data-section-title)
+          %a#section-page(href="#") ページ
+        .content(data-section-content)
+          %p
+            #wiki-item.wiki-page
+            #wiki-edit
+      %section.hide-for-public
+        %p.title(data-section-title)
+          %a(href="#")
+            %span.hide-for-all
+              添付ファイル
+        .content(data-section-content)
+          %p
+            #wiki-attached
+      %section.hide-for-public
+        %p.title(data-section-title)
+          %a(href="#")
+            %span.hide-for-all 履歴
+        .content(data-section-content)
+          %p
+            #wiki-log
+      %section.hide-for-public
+        %p.title(data-section-title)
+          %a(href="#")
+            %span.hide-for-all
+              コメント 
+              %span#wiki-comment-count
+        .content(data-section-content)
+          %p
+            #wiki-comment
+
+%script#templ-wiki-panel(type='text/template')
+  .row.wiki-panel
+    .large-10.columns
+      .viewlog
+        <% _.each(viewlog,function(x){ if(x[0]!=data.id){ %>
+        %a.left(href='wiki#page/{{x[0]}}') {- x[1] -}
+        <% }}) %>
+    .large-2.columns
+      <% if(! g_public_mode ){ %>
+      %button#edit-new.small.round.right 新規作成
+      <% } %>
+
+%script#templ-wiki-item(type='text/template')
+  .row
+    .large-12.columns
+      .wiki-header
+        .wiki-title {- data.title -}
+        <% if(data.id != "all" && ! g_public_mode ){ %>
+        #edit-start.right [編集]
+        <% } %>
+  .row
+    .large-12.columns
+      <% if(!g_public_mode && data.public){ %>
+      .public-message
+        このページは
+        %a(href='/public/wiki#page/{{data.id}}') 外部公開
+        です．ただし
+        %span.private この色の部分
+        は非公開です．
+      <% }  %>
+      {{ data.html }}
+
+%script#templ-wiki-preview(type='text/template')
+  .row
+    .large-12.columns
+      <%= data.html %>
+
+%script#templ-wiki-edit(type='text/template')
+  .row
+    .large-12.columns
+      %a(href='#' data-reveal-id='wiki-help') ヘルプ
+      %button#edit-cancel.small.round キャンセル
+      %button#edit-preview.small.round プレビュー
+      %button#edit-done.small.round 送信
+      <% if(data.deletable){ %>
+      %button#delete-wiki.right.small.round.alert 削除
+      <% } %>
+  %form#wiki-edit-form
+    .row
+      .large-10.columns
+        %input(type='text' name='title' placeholder='タイトル' value='{-data.title-}')
+      <% if(!g_public_mode){ %>
+      .large-2.columns
+        {{ _.make_checkbox(data.public,{name:'public'}) }} 外部公開
+      <% } %>
+    .row
+      .large-12.columns
+        %textarea(name='body' rows=60 placeholder='本文') {- data.body -}
+
+%script#templ-wiki-attached-upload(type='text/template')
+  %form#attached-form(action='wiki/attached/{{data.item_id}}' method='post' enctype='multipart/form-data' target='dummy-iframe')
+    <% if(data.attached_id){ %>
+    %input(type='hidden' name='attached_id' value='{{data.attached_id}}')
+    <% } %>
+    %fieldset
+      %legend ファイル添付
+      <% if(data.orig_name){ %>
+      %label ファイル名
+      %input(type='text' name='orig_name' value='{- data.orig_name -}')
+      <% } %>
+      %label ファイル
+      %input(type='file' name='file')
+      %label 説明
+      %input(type='text' name='description' value='{- data.description -}')
+      %div
+        %input.button.small.round(type='submit' value='送信')
+        <% if(data.id){ %>
+        %input(type='hidden' name='attached_id' value='{- data.id -}')
+        %button.delete-attached.small.round.alert 削除
+        <% } %>
+  %iframe(name='dummy-iframe' id='dummy-iframe' style='display:none;')
+
+
+%script#templ-wiki-attached(type='text/template')
+  .row
+    .large-12.columns
+      %button#show-attached-upload.small.round ファイル添付
+  .row
+    .large-12.columns
+      = haml :pagination
+      %table
+        <% _.each(data.list,function(x){ %>
+        %tr
+          %td.filename
+            %a(href='static/wiki/attached/{{x.id}}') {- x.orig_name -}
+          %td.size
+            {{_.show_size(x.size)}}
+          %td.date
+            {{x.date}}
+          %td
+            {{x.description}}
+            <% if(x.editable){ %>
+            %button.tiny.edit-attached(data-id='{{x.id}}') 編集
+            <% } %>
+        <% }) %>
+
+%script#templ-wiki-log(type='text/template')
+  .row
+    <% if(data.next_page){ %>
+    #wiki-log-next-page.button.small.round(data-page='{{data.next_page}}') 次のページ
+    <% } %>
+  <% _.each(data.list,function(x){ %>
+  %hr
+  .row
+    .large-12.columns
+      %span.revision [{{x.revision}}]
+      %span.user-name {- x.user_name -}
+      %span.date @ {{ x.date }}
+      .pre
+        {{ x.html }}
+  <% }) %>
+
+#wiki-help.reveal-modal
+  .row
+    .large-12.columns
+      このWikiは
+      %a(target='_blank' href='http://ja.wikipedia.org/wiki/Markdown') Markdown記法
+      で書くことができます．記法についての説明は前述のリンクに委ねるとして，ここではこのWiki独自の仕様について説明します．
+      %hr
+      このWikiでは任意のHTMLタグが使えます．また&lt;style&gt;を使うときは
+      %code .wiki-page
+      がページ内を示すセレクタです．
+      %hr
+      Wiki内リンクは [[ ]] で囲みます．
+      .panel
+        %code
+          %div [[ リンク先タイトル ]]
+          %div [[ リンク先タイトル | 表示される文字列 ]]
+      %hr
+      テーブルを記述するには下記のようにします．ハイフンは3つ以上必要です．
+      .panel
+        %code
+          %div | Item&nbsp;&nbsp; | Price |&nbsp; 
+          %div | ------ | ----- |&nbsp;
+          %div | Apple&nbsp; | &nbsp;&nbsp;300 |&nbsp;
+          %div | Banana | &nbsp;&nbsp;400 |&nbsp;
+      %hr
+      %div 「外部公開」にチェックを入れるとそのページを公開できます．ただしコメント，添付ファイル，履歴は公開されません．
+      %div 公開ページの一部を非公開にするには /* */ で囲みます．
+      .panel
+        %code
+          %div この部分は公開 /* この部分は非公開 */
+        
+        
+
+
+#container-wiki-preview.wiki-page.reveal-modal
+#container-attached-upload.reveal-modal

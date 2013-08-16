@@ -31,6 +31,11 @@ class User
   before :save do
     self.furigana_row = Kagetra::Utils.gojuon_row_num(self.furigana)
   end
+
+  def sub_admin
+    self.permission.include?(:sub_admin)
+  end
+
   MIN_LOGIN_SPAN = 30 # これだけの分数経過したらログイン数を増やす
   # ログイン処理
   def update_login(request)

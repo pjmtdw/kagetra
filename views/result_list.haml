@@ -4,8 +4,9 @@
   result_list
 - content_for :css do
   event_detail
+- content_for :haml do
+  event_detail
 = haml :top_bar
-= haml :result_common
 
 #result-list
 
@@ -22,5 +23,3 @@
     .large-12.columns
       {{ t({data:data})}}
   
-
-= haml :event_detail

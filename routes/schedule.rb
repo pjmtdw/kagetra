@@ -54,6 +54,7 @@ class MainApp < Sinatra::Base
       x.emphasis.each{|e|
         r["emph_#{e}".to_sym] = "on"
       }
+      r[:editable] = @user && (@user.admin or @user.sub_admin or @user.id == x.owner_id)
       r
     end
     get '/detail/item/:id' do

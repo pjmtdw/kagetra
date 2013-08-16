@@ -18,7 +18,7 @@ define (require,exports,module) ->
       @remove_all()
       @set_id_fetch("item",WikiItemView,id)
       $("#section-page").click()
-      if id != "all" and not _.is_public_mode()
+      if id != "all" and not g_public_mode
         @set_id_fetch("attached_list",WikiAttachedListView,id)
         @set_id_fetch("log",WikiLogView,id)
         $co.section_comment("wiki","#wiki-comment",id,$("#wiki-comment-count"))
@@ -238,8 +238,9 @@ define (require,exports,module) ->
     window.wiki_router = new WikiRouter()
     # id が 1 のものは Home として特別扱い
     window.wiki_viewlog = []
-    if not _.is_public_mode()
+    if not g_public_mode
       window.wiki_viewlog.push(["1","Home"])
+    $("section.hide-for-public").hide() if g_public_mode
     Backbone.history.start()
 
 

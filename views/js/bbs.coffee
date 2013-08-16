@@ -113,4 +113,5 @@ define (require,exports,module) ->
       refresh_thread_new_name()
     )
 
+    $("#new-thread-form .hide-for-public").hide() if g_public_mode
     Backbone.history.start()

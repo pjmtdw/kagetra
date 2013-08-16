@@ -26,12 +26,22 @@
         = ".top-bar-section li a {background: #{public_top_bar_color} !important;}";
         = ".top-bar-section {background: #{public_top_bar_color} !important;}";
         = ".top-bar-section ul {background: #{public_top_bar_color} !important;}";
-  %body
+  %body(data-haml="#{yield_content(:haml)}")
     %a(name="anchor-top")
     = yield
     .row
       %a.right(href="javascript:window.scrollTo(0,0);") &uArr; 一番上へ
-    %script(src="/js/libs/require.js" data-main="/js/main" data-start="#{yield_content(:js_start)}")
     /[if IE 9]
       %script
         var g_is_ie9 = true
+    - if not @public_mode
+      %script
+        var g_user_name='#{@user and @user.name}'
+        -if @user and @user.bbs_public_name
+          var g_user_bbs_public_name='#{@user.bbs_public_name}'
+    - else
+      %script
+        var g_user_name='#{get_permanent("bbs_name")}'
+    %script
+      var g_public_mode=#{!!@public_mode}
+    %script(src="/js/libs/require.js" data-main="/js/main" data-start="#{yield_content(:js_start)}")

@@ -1,0 +1,329 @@
+#album-top
+#album-year
+#album-group
+#album-item
+#album-search
+#album-all-log
+
+#container-album-relations.reveal-modal
+
+%script#templ-album-top(type='text/template')
+  .row
+    .large-8.columns
+      計:
+      %span.album-num-total {{ data.total }}
+      枚
+      %a.button.success.small#album-comment-log-all(href='album#all_log') コメント履歴
+      %button.small.round#album-new-upload 写真アップロード
+    .large-4.columns
+      {{ $("#templ-album-search-form").html() }}
+  #album-recent
+  .row
+    %div 全一覧
+    %ul.large-block-grid-7.small-block-grid-4
+      <% _.each(data.list,function(x){ %>
+      %li
+        .gbase.years(data-year='{-x[0]?x[0]:"_else_"-}')
+          .row
+            .large-12.columns
+              .year.left {- x[0]?x[0]+'年':'不明' -}
+              .count.right {- x[1] -}
+      <% }) %>
+
+%script#templ-album-list(type='text/template')
+  .row
+    %ul#album-list.large-block-grid-3.small-block-grid-2
+      <% _.each(data.list,function(x){ %>
+      %li
+        <% if(x.type == "group"){ %>
+        .gbase.group(data-group-id='{-x.id-}')
+          .clearfix
+            .date.left {- x.start_at -}
+            <% if(x.no_tag){ %>
+            .left
+              %canvas.percent(title='タグ無し: {{x.no_tag}}%' width=21 height=13 data-percent='{{x.no_tag}}' data-color='teal')
+            <% } %>
+            <% if(x.no_comment){ %>
+            .left
+              %canvas.percent(title='コメント無し: {{x.no_comment}}%' width=21 height=13 data-percent='{{x.no_comment}}' data-color='olive')
+            <% } %>
+            .count.right {- x.item_count -}
+          %div {- x.name || "(タイトル無し)" -}
+        <% }else{ %>
+        .gbase.item(data-item-id='{-x.id-}')
+          .date {- x.date -}
+          %div {- x.name || "(タイトル無し)" -}
+        <% } %>
+      <% }) %>
+
+%script#templ-album-group(type='text/template')
+  .row
+    .large-4.columns
+      %a(href='album#') TOP - 
+      %a(href='album#year/{{data.year || "_else_"}}') {{data.year || "(不明)"}}年
+    .large-8.columns
+      .right#album-buttons
+        %button.small.round#add-picture 写真追加
+        %button.small.round#start-edit 編集開始
+      .right#album-edit-buttons.hide
+        <% if(data.deletable){ %>
+        %button#album-delete.small.round.alert フォルダ削除
+        <% } %>
+        %button#cancel-edit.small.round#cancel-edit キャンセル
+        %button#apply-edit.small.round#apply-edit 送信
+  #album-info
+  .row
+    .large-12.columns
+      #album-tags
+        タグ一覧: 
+        <% _.each(data.tags,function(t){ %>
+        .album-tag
+          %span.album-tag-name {- t[0] -}
+          %span ({- t[1].length -})
+        <% }) %>
+  .row
+    .large-12.columns
+      #album-items
+
+%script#templ-album-group-items(type='text/template')      
+  <% _.each(_.filter(data.items,function(x){return ! x.hide}),function(x){ %>
+  .gbase.thumbnail.album-item(data-id='{{x.id}}')
+    <% if(x.no_tag){ %>
+    .no-tag(title="タグ無し") {{x.no_tag?"★":""}}
+    <% } %>
+    <% if(x.no_comment){ %>
+    .no-comment(title="コメント無し") {{x.no_comment?"◆":""}}
+    <% } %>
+    {{_.album_thumb(x)}}
+  <% }) %>
+
+%script#templ-album-item(type='text/template')
+  .row
+    .large-12.columns
+      .left
+        %a(href='album#') TOP - 
+        %a(href='album#year/{{data.group.year || "_else_"}}') {{data.group.year || "(不明)"}}年 -
+        <% if(!data.group.dummy){ %>
+        %a(href='album{{"#group/"+data.group.id}}') {- data.group.name || "(タイトルなし)" -}
+        <% } %>
+      .right#album-buttons
+        %button.small.round#start-edit 編集開始
+      .right#album-edit-buttons.hide
+        <% if(data.deletable){ %>
+        %button#album-delete.small.round.alert 写真削除
+        <% } %>
+        %button#cancel-edit.small.round#cancel-edit キャンセル
+        %button#apply-edit.small.round#apply-edit 送信
+  #album-info
+  <% if(!_.isEmpty(data.relations)){ %>
+  .row.show-for-small
+    .large-12.columns
+      %a#scroll-to-relation 関連写真へスクロール ( {{data.relations.length}} ) 
+  <% } %>
+  .row
+    .large-12.columns
+      #album-tags
+        タグ一覧: 
+        <% templ = _.template_braces($("#templ-album-tag").html()) %>
+        <% _.each(data.tags,function(t){ %>
+        {{ templ({tag:t}) }}
+        <% }) %>
+  .row#canvas-container
+    .large-12.columns
+      #container.left(style="height:{{data.photo.height}}px;width:{{data.photo.width}}px")
+        %img#photo(src='/static/album/photo/{{data.photo.id}}.{{data.rotate}}')
+        %img#marker-r.marker.hide(src='/img/album_marker/red.gif')
+        %img#marker-b.marker.hide(src='/img/album_marker/blue.gif')
+        %img#marker-y.marker.hide(src='/img/album_marker/yellow.gif')
+        %span#tag-name.hide
+      #relation-container
+
+%script#templ-relations(type='text/template')
+  <% if(!_.isEmpty(relations)){ %>
+  .left#relation-start
+    関連写真 ( {{relations.length}} ): 
+  <% } %>
+  <% _.each(relations,function(x){ %>
+  .left.relation
+    {{_.album_thumb(x)}}
+  <% }) %>
+
+
+%script#templ-album-tag(type='text/template')
+  .album-tag(data-tag-id='{{tag.id}}')
+    %span.album-tag-name {- tag.name -}
+
+%script#templ-album-search(type='text/template')
+  .row
+    .large-8.columns
+      .top-message
+        %a(href='album#') TOP
+    .large-4.columns
+      {{ $("#templ-album-search-form").html() }}
+  .search-result
+
+%script#templ-album-search-result(type='text/template')
+  .row
+    {{ data.count }} 件ヒット
+    .large-12.columns
+      = haml :pagination
+      <% _.each(data.list,function(x){ %>
+      .gbase.thumbnail {{_.album_thumb(x)}}
+      <% }) %>
+
+%script#templ-album-search-form(type='text/template')
+  %form.search-form
+    .row.collapse
+      .large-10.small-10.columns
+        %input(name='qs' type='text' placeholder='検索文字列' title='例:「2006-2009 合宿」')
+      .large-2.small-2.columns
+        %input.button.small.postfix.radius(type='submit' value='検索')
+
+%script#templ-album-info(type='text/template')
+  .row
+    .large-5.columns
+      %table#album-info-table
+        %tr
+          %td タイトル
+          %td {- data.name -}
+        %tr
+          %td 日付
+          %td {{ _.show_date(data) }}
+        %tr
+          %td 場所
+          %td {- data.place -}
+    .large-7.columns
+      %fieldset#album-comment-container
+        %legend コメント
+        %div.pre {- data.comment -}
+
+%script#templ-album-info-form(type='text/template')
+  %form#album-item-form
+    .row
+      .large-5.columns
+        %table#album-info-table
+          %tr
+            %td タイトル
+            %td
+              %input(name='name' type='text' value='{-data.name-}')
+          %tr
+            %td 日付
+            %td
+              <% if(!is_group){ %>
+              %input(name='date' type='text' value='{-data.date-}' placeholder='YYYY-MM-DD')
+              <% }else{ %>
+              %input(name='start_at' type='text' value='{-data.start_at-}' placeholder='開始日(YYYY-MM-DD)') &sim;
+              %input(name='end_at' type='text' value='{-data.end_at-}' placeholder='終了日(YYYY-MM-DD)')
+              <% } %>
+          %tr
+            %td 場所
+            %td
+              %input(name='place' type='text' value='{-data.place-}')
+          %tr
+            %td 
+            %td
+              <% if(!is_group){ %>
+              {{ _.make_checkbox(data.daily_choose,{name:'daily_choose'}) }} 今日の一枚に選ぶ
+              <% } %>
+
+      .large-7.columns
+        %fieldset#album-comment-container
+          %legend コメント
+          %div
+            %textarea(name='comment' rows='10') {- data.comment -}
+
+%script#templ-album-empty-form(type='text/template')
+  %form#album-item-form
+    .row
+      %div {-data.name-} @ {{data.start_at}} に写真追加
+    %input(type='hidden' name='group_id' value='{{data.id}}')
+
+%script#templ-album-upload(type='text/template')
+  .row
+    .large-12.columns
+      -# %input(type='checkbox') どのフォルダにも属さない写真にする
+      .row.collapse
+        .small-2.columns
+          %label.inline.right ファイル :
+        .small-10.columns
+          %input(type='file' name='file')
+        .small-2.columns
+      %ul
+        %input.button.small.round(type='submit' value='送信')
+        %li 各画像ファイルの拡張子はpng,jpg,gifのどれかにして下さい．
+        %li 画像をzipファイルにまとめれば一度に複数送信できます．
+        %li ファイルに何も指定しないと空のフォルダを作ります．
+        %li アップロードは画像一枚につき1〜2秒かかります．気長にお待ち下さい．
+      %iframe(name='dummy-iframe' id='dummy-iframe' style='display:none;')
+
+%script#templ-album-all-log(type='text/template')
+  .row
+    <% if(data.prev_page){ %>
+    %a.button.small.round(href="album#all_log/{{data.prev_page}}") 前のページ
+    <% } %>
+    %a.button.small.round(href="album#all_log/{{data.next_page}}") 次のページ
+  .row
+    .large-12.columns
+      <% _.each(data.list,function(x){ %>
+      .item.clearfix
+        .thumbnail.left
+          {{_.album_thumb(x)}}
+        .comment.left
+          %div
+            [
+            %span.user-name {-x.log.user_name-}
+            %span.date @{{x.log.date}}
+            ]
+          .pre
+            {{ x.diff_html }}
+      <% }) %>
+
+%script#templ-album-edit-menu(type='text/template')
+  .row
+    .large-6.columns
+      %dl#click-mode.sub-nav.left
+        %dt 写真をクリックしたとき:
+        %dd.choice.active(data-mode='move')
+          %a 移動
+        %dd.choice(data-mode='rotate')
+          %a 回転
+    .large-6.columns
+      %button#multi-edit.small.round.right 一括編集
+      %button#remove-checked.small.round.right 選択解除
+      %button#reverse-checked.small.round.right 選択反転
+
+%script#templ-album-multi-edit(type='text/template')
+  チェックされた {{ count }} 枚の写真を編集
+  .row
+    .large-6.columns
+      %fieldset
+        %legend フォルダ移動
+        .row.collapse
+          .large-2.columns
+            %label.inline.right 移動先 :
+          .large-10.columns
+            %input.move-folder-target(type='text')
+        %button.small.round.do-move 移動
+    .large-6.columns
+      %fieldset
+        %legend 項目編集
+        - {"name"=>"タイトル","place"=>"場所","date"=>"日付"}.each do |key,value|
+          - placeholder = if key == "date" then "YYYY-MM-DD" end
+          - item_key = if key == "date" then "start_at" else key end
+          %form.multi-edit-form
+            .row.collapse
+              .large-2.columns
+                %label.inline.right #{value} :
+              .large-8.columns
+                %input(type='text' name='#{key}' placeholder='#{placeholder}' value='{{data.#{item_key}}}')
+              .large-2.columns
+                %input.button.small.round(type='submit' value='更新')
+  .row
+    .large-6.columns
+      %fieldset
+        %legend 削除
+        %button.small.round.alert.delete-items 削除
+
+#container-album-relation.reveal-modal
+#container-album-upload.reveal-modal
+#container-album-multi-edit.reveal-modal

@@ -307,10 +307,10 @@ class MainApp < Sinatra::Base
   end
 
   # 縦横比は保持したまま画素数を増減する
-  def resize_to_pixels(img,pixels)
+  def resize_to_pixels!(img,pixels)
     orig_px = img.columns * img.rows
     scale = Math.sqrt(pixels.to_f / orig_px.to_f)
-    img.resize(scale)
+    img.resize!(scale)
   end
 
   def process_image(group,index,orig_filename,abs_path)
@@ -323,37 +323,40 @@ class MainApp < Sinatra::Base
     }))
     rel_path = Pathname.new(abs_path).relative_path_from(Pathname.new(File.join(G_STORAGE_DIR,"album")).realpath)
     img = Magick::Image::read(abs_path).first
-    new_img = resize_to_pixels(img,CONF_ALBUM_LARGE_SIZE)
-    if new_img.columns != img.columns or new_img.rows != img.rows
-      new_img.write(abs_path){self.quality = CONF_ALBUM_LARGE_QUALITY}
+    prev_columns = img.columns
+    prev_rows = img.rows
+    resize_to_pixels!(img,CONF_ALBUM_LARGE_SIZE)
+    if prev_columns != img.columns or prev_rows != img.rows
+      img.write(abs_path){self.quality = CONF_ALBUM_LARGE_QUALITY}
     end
 
     AlbumPhoto.create(
       album_item_id:item.id,
       path:rel_path,
-      format: new_img.format,
-      width: new_img.columns,
-      height: new_img.rows
+      format: img.format,
+      width: img.columns,
+      height: img.rows
     )
-    thumb = resize_to_pixels(img,CONF_ALBUM_THUMB_SIZE)
-    thumb.write(abs_path+"_thumb"){self.quality = CONF_ALBUM_THUMB_QUALITY}
+    resize_to_pixels!(img,CONF_ALBUM_THUMB_SIZE)
+    img.write(abs_path+"_thumb"){self.quality = CONF_ALBUM_THUMB_QUALITY}
     AlbumThumbnail.create(
       album_item_id:item.id,
       path:rel_path.to_s+"_thumb",
-      format: thumb.format,
-      width: thumb.columns,
-      height: thumb.rows
+      format: img.format,
+      width: img.columns,
+      height: img.rows
     )
-
+    img.destroy!
   end
 
   def update_thumbnail(item)
     base = File.join(G_STORAGE_DIR,"album")
     img = Magick::Image::read(File.join(base,item.photo.path)).first
-    thumb = resize_to_pixels(img,CONF_ALBUM_THUMB_SIZE)
-    thumb.rotate!(item.rotate.to_i)
-    thumb.write(File.join(base,item.thumb.path)){self.quality = CONF_ALBUM_THUMB_QUALITY}
-    item.thumb.update(width:thumb.columns,height:thumb.rows)
+    resize_to_pixels!(img,CONF_ALBUM_THUMB_SIZE)
+    img.rotate!(item.rotate.to_i)
+    img.write(File.join(base,item.thumb.path)){self.quality = CONF_ALBUM_THUMB_QUALITY}
+    item.thumb.update(width:img.columns,height:img.rows)
+    img.destroy!
   end
 
   post '/album/upload' do
@@ -412,8 +415,10 @@ class MainApp < Sinatra::Base
     else
       last_modified p.updated_at
       img = Magick::Image::read(path).first
-      new_img = img.rotate(rotate)
-      new_img.to_blob
+      img.rotate!(rotate)
+      blob = img.to_blob
+      img.destroy!
+      blob
     end
   end
 

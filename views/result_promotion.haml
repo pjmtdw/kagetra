@@ -12,7 +12,12 @@
     .large-12.columns
       <% _.each(data.list,function(x){ %>
       .panel
-        %div [{{ x.event.date }}] {- x.name -} さんが {- x.event.name -} の {- x.class_name -} で {- x.prize -} でした
+        %div
+          [{{ x.event.date }}]
+          %a(href='result_record#show/{{encodeURIComponent(x.name)}}') {- x.name -}
+          さんが
+          %a(href='result#contest/{{x.event.id}}') {- x.event.name -}
+          の {- x.class_name -} で {- x.prize -} でした
         <% if(! _.isNull(x.user_id) && ! _.isUndefined(x.user_id)){ %>
         %div
           %form.change-attr(data-user-id='{{x.user_id}}')

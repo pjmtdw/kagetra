@@ -21,7 +21,7 @@ class MainApp < Sinatra::Base
         }.map{|y|
           u = User.get(y["user_id"])
           attr_values = if u.nil? then [] else u.attrs.value.map{|x|x[:id]} end
-          y.select_attr("class_name","name","prize","user_id").merge({event:x.event.select_attr(:name,:date),attr_values:attr_values})
+          y.select_attr("class_name","name","prize","user_id").merge({event:x.event.select_attr(:name,:date,:id),attr_values:attr_values})
         }
       }.flatten.sort_by{|x|
         x[:event][:date]

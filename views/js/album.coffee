@@ -291,7 +291,7 @@ define (require,exports,module)->
     template_relations: _.template_braces($("#templ-relations").html())
 
     cross: $("<span>",{html:'&times;',class:"delete-tag cross"})
-    editmark: $("<span>",{html:'&loz;',class:"edit-tag"})
+    editmark: $("<span>",{html:'&sect;',class:"edit-tag"})
 
     events:
       "mousemove #photo" : (ev) -> if @edit_mode then hide_tag() else @mouse_moved(ev)
@@ -362,8 +362,8 @@ define (require,exports,module)->
       ))
       @$el.find(".album-tag").append(@cross.clone())
       @$el.find(".album-tag").prepend(@editmark.clone())
-      $("#album-tags").before($("<div>",html:"関連写真をクリックすると関連を解除できます．<button class='small round' id='add-relations' >関連写真追加</button>"))
-      $("#container").before($("<div>",html:"写真をクリックするとタグを追加できます．タグの&loz;をクリックするとタグ名編集できます．"))
+      $("#album-tags").before($("<div>",html:"<button class='small round' id='add-relations' >関連写真追加</button> 解除するには下の関連写真自体をクリックします．"))
+      $("#container").before($("<div>",html:"写真をクリックするとタグを追加できます．タグの&sect;をクリックするとタグ名編集できます．"))
       $("#album-buttons").hide()
       $("#album-edit-buttons").show()
       $(".relation a").removeAttr("href")

@@ -27,7 +27,7 @@ requirejs.config
 
   shim:
     jquery_placeholder: deps: ["zep_or_jq"]
-    myutil: deps: ["underscore","zep_or_jq"]
+    myutil: deps: ["underscore","zep_or_jq","backbone"]
     select2: deps: ["zep_or_jq"]
     schedule_item: deps: ["backbone"]
     jquery: exports: "$"
@@ -49,7 +49,7 @@ requirejs.config
     "crypto-pbkdf2": deps: ["crypto"]
     "crypto-aes": deps: ["crypto"]
 
-require ["zep_or_jq","myutil","backbone","select2","jquery_placeholder"
+require ["zep_or_jq","backbone","myutil","select2","jquery_placeholder"
      "foundation.reveal","foundation.topbar","foundation.dropdown","foundation.section","foundation.alerts","foundation.magellan","foundation.tooltips"], ->
   # simply-deferred を使う場合は下記が必要
   # 現在は jquery の select2 プラグインを使用しているため zepto は使わない方針

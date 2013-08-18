@@ -81,6 +81,7 @@ class MainApp < Sinatra::Base
     get '/item/:id' do
       item = AlbumItem.get(params[:id].to_i)
       r = item.select_attr(:id,:rotate,:name,:place,:date,:comment,:daily_choose,:comment_revision)
+      r[:owner_name] = if item.owner.nil? then "" else item.owner.name end
       photo = item.photo
       (width,height) = case item.rotate.to_i
                        when 0,180 then [photo.width,photo.height]

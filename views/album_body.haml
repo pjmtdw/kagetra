@@ -137,6 +137,10 @@
         %img#marker-y.marker.hide(src='/img/album_marker/yellow.gif')
         %span#tag-name.hide
       #relation-container
+  <% if(data.owner_name){ %>
+  .row
+    .uploaded-by.right Uploaded by {{data.owner_name}}
+  <% } %>
 
 %script#templ-relations(type='text/template')
   <% if(!_.isEmpty(relations)){ %>

@@ -132,7 +132,8 @@ class MainApp < Sinatra::Base
         [ScheduleItem,:item,:make_item,Array,order],
         [Event,:event,:make_event,Array,order]
       ].each{|klass,sym,func,obj,acond|
-        klass.all(cond.merge(acond)).each{|x|
+        # 原因不明: ここに to_a を付けないと結果に重複が出る
+        klass.all(cond.merge(acond)).to_a.each{|x|
           p = arr[x.date-today]
           p[sym] ||= obj.new
           if obj == Array then

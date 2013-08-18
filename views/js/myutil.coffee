@@ -1,6 +1,7 @@
 define (require, exports, module) ->
   _ = require("underscore")
   $ = require("zep_or_jq")
+  Backbone = require("backbone")
 
   # 履歴付きBackbone.Router
   class HistoryRouter extends Backbone.Router

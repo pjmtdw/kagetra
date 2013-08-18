@@ -8,6 +8,18 @@ define (require,exports,module)->
           data.start_at
         else
           "#{data.start_at}&sim;#{data.end_at}"
+  scroll_to_item = (selector) ->
+    selector ||= (id )-> ".album-item[data-id='#{id}']"
+    prev = window.album_router.previous()
+    if prev and prev.indexOf("item/") == 0
+      prev_id = prev.split("/")[1]
+      $(selector(prev_id)).scrollHere(-1)
+  scroll_to_group = ->
+    prev = window.album_router.previous()
+    if prev and prev.indexOf("group/") == 0
+      prev_id = prev.split("/")[1]
+      $(".group[data-group-id='#{prev_id}']").scrollHere(-1)
+
   class AlbumRouter extends _.router_base("album",["top","year","group","item","search","all_log"])
     routes:
       "year/:year" : "year"
@@ -107,14 +119,8 @@ define (require,exports,module)->
       @$el.appendTo("#album-year")
       @$el.find("#album-list").before($("<a>",href:"album#",text:"TOP"))
       @render_percent()
-      prev = window.album_router.previous()
-      if prev
-        if prev.indexOf("group/") == 0
-          prev_id = prev.split("/")[1]
-          $(".group[data-group-id='#{prev_id}']").scrollHere(-1)
-        else if prev.indexOf("item/") == 0
-          prev_id = prev.split("/")[1]
-          $(".album-item[data-id='#{prev_id}']").scrollHere(-1)
+      scroll_to_item()
+      scroll_to_group()
   class AlbumRecentView extends AlbumListViewBase
     initialize: ->
       @render()
@@ -202,10 +208,7 @@ define (require,exports,module)->
       @$el.find("#album-info").html(@template_info(data:@model.toJSON()))
       @$el.appendTo("#album-group")
       @render_items()
-      prev = window.album_router.previous()
-      if prev and prev.indexOf("item/") == 0
-        prev_id = prev.split("/")[1]
-        $(".album-item[data-id='#{prev_id}']").scrollHere(-1)
+      scroll_to_item()
 
     render_items: ->
       $("#album-items").html(@template_items(data:@model.toJSON()))
@@ -558,6 +561,7 @@ define (require,exports,module)->
     render: ->
       @$el.html(@template(data:@model.toJSON()))
       @$el.appendTo("#album-all-log")
+      scroll_to_item((id)->"#album-all-log a[data-id='#{id}']")
 
   AlbumMultiEditView = Backbone.View.extend
     template: _.template_braces($("#templ-album-multi-edit").html())

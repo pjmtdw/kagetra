@@ -1,6 +1,20 @@
 define (require, exports, module) ->
   _ = require("underscore")
   $ = require("zep_or_jq")
+
+  # 履歴付きBackbone.Router
+  class HistoryRouter extends Backbone.Router
+    constructor: (options)->
+      @on "route", @storeRoute
+      @history = []
+      super options
+    storeRoute: (ev)->
+      @history.push Backbone.history.fragment
+      @history.shift() if @history.length > 2
+    previous: ->
+      if @history.length == 2
+        @history[0]
+
   # 前半はURL,後半はメールアドレスにマッチ
   # メールアドレスにマッチする部分は PEAR::Mail_RFC822::isValidInetAddress()
   pat_url = new RegExp("((https?://[a-zA-Z0-9/:%#$&?()~.=+_-]+)|(([*+!.&#\$|\'\\%\/0-9a-z^_`{}=?~:-]+)@(([0-9a-z-]+\.)+[0-9a-z]{2,})))","gi")
@@ -145,7 +159,7 @@ define (require, exports, module) ->
 
 
     router_base: (prefix,arg) ->
-      Backbone.Router.extend
+      HistoryRouter.extend
         remove_all: ->
           for k in arg
             vn = "#{prefix}_#{k}_view"
@@ -275,9 +289,12 @@ define (require, exports, module) ->
 
   $.fn.scrollHere = (speed)->
     speed ||= 1000
-    $('html, body').animate({
-      scrollTop: this.offset().top
-    }, speed)
+    if speed < 0
+      $('html, body').scrollTop(@offset().top)
+    else
+      $('html, body').animate({
+        scrollTop: @offset().top
+      }, speed)
 
 
   # formのinput要素を{name: value}形式にする

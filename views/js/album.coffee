@@ -107,6 +107,14 @@ define (require,exports,module)->
       @$el.appendTo("#album-year")
       @$el.find("#album-list").before($("<a>",href:"album#",text:"TOP"))
       @render_percent()
+      prev = window.album_router.previous()
+      if prev
+        if prev.indexOf("group/") == 0
+          prev_id = prev.split("/")[1]
+          $(".group[data-group-id='#{prev_id}']").scrollHere(-1)
+        else if prev.indexOf("item/") == 0
+          prev_id = prev.split("/")[1]
+          $(".album-item[data-id='#{prev_id}']").scrollHere(-1)
   class AlbumRecentView extends AlbumListViewBase
     initialize: ->
       @render()
@@ -194,6 +202,11 @@ define (require,exports,module)->
       @$el.find("#album-info").html(@template_info(data:@model.toJSON()))
       @$el.appendTo("#album-group")
       @render_items()
+      prev = window.album_router.previous()
+      if prev and prev.indexOf("item/") == 0
+        prev_id = prev.split("/")[1]
+        $(".album-item[data-id='#{prev_id}']").scrollHere(-1)
+
     render_items: ->
       $("#album-items").html(@template_items(data:@model.toJSON()))
     thumb_click: (ev)->
@@ -324,7 +337,7 @@ define (require,exports,module)->
       v = new AlbumSearchView(
         target:target
         do_when_click:do_when_click
-        top_message:"写真をクリックすると関連写真追加できます．"
+        top_message:"検索してから写真クリックで関連写真追加できます．"
       )
       _.reveal_view(target,v)
 

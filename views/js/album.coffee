@@ -316,12 +316,17 @@ define (require,exports,module)->
       "click .edit-tag" : "edit_tag"
       "mouseover .album-tag" : (ev) -> @album_tag($(ev.currentTarget))
       "click #start-edit" : "start_edit"
+      "click #go-random" : "go_random"
       "click #cancel-edit" : "cancel_edit"
       "click .delete-tag" : "delete_tag"
       "click #apply-edit" : "apply_edit"
       "click #scroll-to-relation" : "scroll_to_relation"
       "click #add-relations" : "add_relations"
       "click #album-delete" : "album_delete"
+    go_random: ->
+      $.get("/api/album/random").done((data)->
+        window.album_router.navigate("item/#{data.id}",trigger:true)
+      )
 
     scroll_to_relation: ->
       $("#relation-start").scrollHere(700)

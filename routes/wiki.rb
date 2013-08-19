@@ -102,7 +102,7 @@ class MainApp < Sinatra::Base
           if item then
             item.update(@json)
           else
-            item = WikiItem.create(@json)
+            item = WikiItem.create(@json.merge(owner_id:@user.id))
           end
           if updates_patch
             item.item_logs.create(updates_patch.merge({user:@user}))

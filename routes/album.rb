@@ -18,6 +18,10 @@ class MainApp < Sinatra::Base
     r
   end
   namespace '/api/album' do
+    get '/random' do
+      item = AlbumItem.all[rand(AlbumItem.all.count)]
+      {id:item.id}
+    end
     get '/year/:year' do
       year = if params[:year] == "_else_" then nil else params[:year] end
       groups = AlbumGroup.all(year:year, dummy:false).map{|x|

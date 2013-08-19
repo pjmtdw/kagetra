@@ -107,6 +107,7 @@
         %a(href='album{{"#group/"+data.group.id}}') {- data.group.name || "(タイトルなし)" -}
         <% } %>
       .right#album-buttons
+        %button.small.round.button-maroon#go-random ランダム
         %button.small.round#start-edit 編集開始
       .right#album-edit-buttons.hide
         <% if(data.deletable){ %>
@@ -292,9 +293,10 @@
         %dd.choice(data-mode='rotate')
           %a 回転
     .large-6.columns
-      %button#multi-edit.small.round.right 一括編集
-      %button#remove-checked.small.round.right 選択解除
-      %button#reverse-checked.small.round.right 選択反転
+      .right
+        %button#reverse-checked.small.round 選択反転
+        %button#remove-checked.small.round 選択解除
+        %button#multi-edit.small.round 一括編集
 
 %script#templ-album-multi-edit(type='text/template')
   チェックされた {{ count }} 枚の写真を編集

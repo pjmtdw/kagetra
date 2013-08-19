@@ -41,12 +41,13 @@ class MainApp < Sinatra::Base
         end
       }
       json["emphasis"] = emph.compact
+      data = { emphasis: emph }
+      if id.nil? then
+        data["owner_id"] = user.id
+      end
       ScheduleItem.update_or_create(
         {id: id},
-        {
-          owner: user,
-          emphasis: emph,
-      }.merge(if date then {date: date} else {} end).merge(json.select_attr("name","place","description","start_at","end_at"))
+        data.merge(if date then {date: date} else {} end).merge(json.select_attr("name","place","description","start_at","end_at"))
       )
     end
     def make_detail_item(x)

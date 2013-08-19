@@ -413,12 +413,12 @@ define (require,exports,module) ->
       @$el.appendTo(@options.target)
       _.ie9_placeholder(@options.target)
     add_class: ->
-      classes = @$el.find(".class-to-add").val().split(/\s+/)
+      classes = (x for x in @$el.find(".class-to-add").val().split(/\s+/) when x)
       classes.reverse()
       target = @$el.find(".add-class-target select").val()
       position = @$el.find(".add-class-position").val()
       kls = @model.get('classes')
-      index = (i.toString() for [i,j] in kls).indexOf(target)
+      index = if target then (i.toString() for [i,j] in kls).indexOf(target) else 0
       if position == "after"
         index += 1
       for c in classes
@@ -431,6 +431,7 @@ define (require,exports,module) ->
       @render()
     delete_class_common: (cs...)->
       cl = @$el.find(".class-to-delete select").val()
+      return unless cl
       for c in cs
         kls = @model.get(c)
         if not _.isEmpty(kls[cl])
@@ -444,8 +445,9 @@ define (require,exports,module) ->
       @model.set('classes',nclass)
       @render()
     add_player_common: (belongs)->
-      players = @$el.find(".player-to-add").val().split(/\s+/)
+      players = (x for x in @$el.find(".player-to-add").val().split(/\s+/) when x)
       cl = @$el.find(".player-to-add-belong select").val()
+      return unless cl
       for p in players
         nid = "new_#{@newid}"
         @newid += 1
@@ -455,6 +457,7 @@ define (require,exports,module) ->
     move_player_common: (belongs)->
       checked = @get_checked()
       cl = @$el.find(".player-to-move-belong select").val()
+      return unless cl
       ucs = @model.get(belongs)
       get_belong_from_id = (id)->
         for k,v of ucs
@@ -506,8 +509,9 @@ define (require,exports,module) ->
     remove_player_belong: (checked)->
       @remove_player_belong_common(checked,'user_teams','neutral')
     add_team: ->
-      team = @$el.find(".team-to-add").val().split(/\s+/)
+      team = (x for x in @$el.find(".team-to-add").val().split(/\s+/) when x)
       cl = @$el.find(".team-to-add-class select").val()
+      return unless cl
       for t in team
         nid = "new_#{@newid}"
         @newid += 1
@@ -518,6 +522,7 @@ define (require,exports,module) ->
 
     delete_team: ->
       tid = _.to_int_if_digit(@$el.find(".team-to-delete select").val())
+      return unless tid
       team = @model.get('user_teams')
       if not _.isEmpty(team[tid])
         alert("空でないチームは削除できません")

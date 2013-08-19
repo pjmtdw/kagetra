@@ -43,14 +43,12 @@ class MainApp < Sinatra::Base
 
     # 日時順に並べたときの前後の大会
     def recent_contests(id)
-      cond0 = Event.all(kind: :contest, done:true)
-      cond = (cond0 &
-              (Event.all(:participant_count.gt => 0) | Event.all(:contest_user_count.gt => 0)) )
+      cond = Event.all(kind: :contest, done:true, :contest_user_count.gt => 0)
       evt = (
               if id == "latest" then
                 cond & Event.all(order: [:date.desc,:id.desc])
               else
-                cond0 & Event.all(id: id.to_i)
+                [Event.get(id.to_i)]
               end
             ).first
       return [nil,[]] if evt.nil?
@@ -355,16 +353,20 @@ class MainApp < Sinatra::Base
               team.save
             }
             @json["deleted_teams"].each{|x|
-              ContestTeam.get(x).destroy
+              t = ContestTeam.get(x)
+              t.members.destroy
+              if not t.destroy then raise Exception.new("cannot destroy #{t.inspect}") end
             }
           else
             update_result_users(ev,@json)
           end
           @json["deleted_users"].each{|x|
-            ContestUser.get(x).destroy
+            cu = ContestUser.get(x)
+            if not cu.destroy then raise Exception.new("cannot destroy #{cu.inspect}") end
           }
           @json["deleted_classes"].each{|x|
-            ContestClass.get(x).destroy
+            cc = ContestClass.get(x)
+            if not cc.destroy then raise Exception.new("cannot destroy #{cc.inspect}") end
           }
         }
       }

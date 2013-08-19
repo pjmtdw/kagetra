@@ -506,6 +506,8 @@ define (require,exports,module)->
       that = this
       $.post("api/album/search",{qs:qs,page:page}).done((data)->
         that.$el.find(".search-result").html(that.template_result(data:data))
+        if not that.options.target? # Foundation の Reveal 上での表示ではない
+          scroll_to_item((id)->"#album-search .gbase[data-id='#{id}']")
         if that.options.do_when_click
           o = that.$el.find(".search-result .thumbnail a")
           o.removeAttr("href")
@@ -561,7 +563,7 @@ define (require,exports,module)->
     render: ->
       @$el.html(@template(data:@model.toJSON()))
       @$el.appendTo("#album-all-log")
-      scroll_to_item((id)->"#album-all-log a[data-id='#{id}']")
+      scroll_to_item((id)->"#album-all-log .item[data-id='#{id}']")
 
   AlbumMultiEditView = Backbone.View.extend
     template: _.template_braces($("#templ-album-multi-edit").html())

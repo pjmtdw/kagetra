@@ -106,7 +106,7 @@
   .row#single-player
     %button.small.success.apply-edit 反映
     .columns
-      <% select_classes = _.template_braces($("#templ-select").html())({data:data.classes}) %>
+      <% select_classes = _.template_braces($("#templ-select").html())({data:[["","--級名--"]].concat(data.classes)}) %>
       %form
         <% _.each(data.classes,function(x){ %>
         %fieldset
@@ -154,8 +154,8 @@
   .row#team-player
     %button.small.success.apply-edit 反映
     .columns
-      <% select_classes = _.template_braces($("#templ-select").html())({data:data.classes}) %>
-      <% select_teams = _.template_braces($("#templ-select").html())({data:_.pairs(data.teams)}) %>
+      <% select_classes = _.template_braces($("#templ-select").html())({data:[["","--級名--"]].concat(data.classes)}) %>
+      <% select_teams = _.template_braces($("#templ-select").html())({data:[["","--チーム名--"]].concat(_.pairs(data.teams))}) %>
       %form
         <% _.each(data.classes,function(x){ %>
         %fieldset

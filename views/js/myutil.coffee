@@ -58,6 +58,7 @@ define (require, exports, module) ->
       "<span class='event-symbol #{s}'>&#{s};</span>"
     to_int_if_digit: (s)->
       # $("hoge").val() は String を返すのでそれを Int にする
+      return "" if s.length == 0
       if isNaN(s) then s else parseInt(s)
     show_prize: (s) ->
       r = []

@@ -167,27 +167,27 @@ module MiscHelpers
 
   # wiki とアルバムコメントの共通部分
   def make_comment_log_patch(item,json,s_body,s_revision)
-    new_body = json[s_body]
-    if new_body.to_s.empty?.! then
-      prev_body = if item then item.send(s_body.to_sym).to_s else "" end
-      if item
-        if json[s_revision].nil? then raise Exception.new("no '#{s_revision}' found: #{json.inspect}") end
-        # check for conflict
-        if item.send(s_revision.to_sym) != json[s_revision]
-          # if conflict then merge
-          r_body = item.send(("get_revision_"+s_body).to_sym,json[s_revision])
-          patches = G_DIMAPA.patch_make(r_body,new_body)
-          (new_body,_) = G_DIMAPA.patch_apply(patches,prev_body)
-        end
-        rev = (item.send(s_revision)||0) + 1
-      else
-        rev = 1
+    return unless json.has_key?(s_body)
+    new_body = json[s_body].to_s.strip
+    prev_body = if item then item.send(s_body.to_sym).to_s else "" end
+    if item
+      if json[s_revision].nil? then raise Exception.new("no '#{s_revision}' found: #{json.inspect}") end
+      # check for conflict
+      cur_rev = item.send(s_revision.to_sym)
+      if cur_rev != json[s_revision]
+        # if conflict then merge
+        r_body = item.each_revisions_until(cur_rev-json[s_revision]).to_a[-1][:text]
+        patches = G_DIMAPA.patch_make(r_body,new_body)
+        (new_body,_) = G_DIMAPA.patch_apply(patches,prev_body)
       end
-      updates = {s_body => new_body, s_revision => rev}
-      patches = G_DIMAPA.patch_make(new_body,prev_body)
-      patch = G_DIMAPA.patch_toText(patches)
-      updates_patch = {revision:rev,patch:patch}
-      [updates,updates_patch]
+      rev = (item.send(s_revision)||0) + 1
+    else
+      rev = 1
     end
+    updates = {s_body => new_body, s_revision => rev}
+    patches = G_DIMAPA.patch_make(new_body,prev_body)
+    patch = G_DIMAPA.patch_toText(patches)
+    updates_patch = {revision:rev,patch:patch}
+    [updates,updates_patch]
   end
 end

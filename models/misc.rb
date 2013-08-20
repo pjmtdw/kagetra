@@ -24,7 +24,7 @@ module ModelBase
       # the included module have to implement `patch_syms` method
       def each_revisions_until(limit,&block)
         Enumerator.new{|enu|
-          cur = self.send(patch_syms[:cur_body])
+          cur = self.send(patch_syms[:cur_body]).to_s
           last_rev = self.send(patch_syms[:last_rev])
           revs = last_rev.downto(last_rev-limit+1)
           logs = self.send(patch_syms[:logs]).all(revision:revs,order:[:revision.desc])
@@ -53,8 +53,6 @@ module ModelBase
         }.each(&block)
       end
 
-      def get_diffs_common(rev,s_cur_body,s_last_revision,s_logs)
-      end
     end
   end
 end

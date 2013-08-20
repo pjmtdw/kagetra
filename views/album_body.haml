@@ -107,7 +107,7 @@
         %a(href='album{{"#group/"+data.group.id}}') {- data.group.name || "(タイトルなし)" -}
         <% } %>
       .right#album-buttons
-        %button.small.round.button-maroon#go-random ランダム
+        %button.small.round.success#go-random ランダム
         %button.small.round#start-edit 編集開始
       .right#album-edit-buttons.hide
         <% if(data.deletable){ %>

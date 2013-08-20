@@ -114,7 +114,7 @@ class AlbumItem
     self.relations_r + self.relations_l
   end
 
-  # get_revision_of を使うにはこの関数を実装しておく必要がある
+  # each_revisions_until を使うにはこの関数を実装しておく必要がある
   def patch_syms
     {
       cur_body: :comment,

@@ -11,7 +11,7 @@ class WikiItem
   has n, :item_logs, 'WikiItemLog'
   has n, :comments, 'WikiComment', child_key: [:thread_id] # コメント
 
-  # get_revision_of を使うにはこの関数を実装しておく必要がある
+  # each_revisions_until を使うにはこの関数を実装しておく必要がある
   def patch_syms
     {
       cur_body: :body,

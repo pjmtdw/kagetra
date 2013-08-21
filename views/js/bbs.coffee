@@ -19,6 +19,40 @@ define (require,exports,module) ->
         data.qs = qs if qs
         window.bbs_view.refresh(data)
 
+  BbsItemModel = Backbone.Model.extend
+    urlRoot: "api/bbs/item"
+
+  # use 'class .. extends ..' only when you have to call super methods
+  # since the compiled *.js code will be slightly larger
+  class BbsThreadView extends $co.CommentThreadView
+    template: _.template_braces($("#templ-bbs-thread").html())
+    events: 
+      _.extend($co.CommentThreadView.prototype.events,
+      "click .goto-new" : "goto_new"
+      )
+    goto_new: ->
+      mage = $("[data-magellan-expedition]")
+      height = mage.outerHeight()
+      offset =  if mage.css("position") == "fixed"
+                # 既に magellan が画面の一番上にfixedされている状態
+                  height
+                else
+                # スクロールの途中で magellan がfixedされるのでその分を考慮
+                  height*2
+      @$el.find(".is-new").first().scrollHere(500,-offset-8)
+    initialize: ->
+      _.bindAll(this,"do_response","toggle_response")
+      @render()
+    do_response: _.wrap_submit ->
+      m = new BbsItemModel(thread_id: @model.get("id"))
+      @response_common(m).done(@options.refresh_all)
+    render: ->
+      @$el.html(@template(data:@model.pick("title","public","has_new_comment")))
+      for item in @model.get("items")
+        m = new BbsItemModel(item)
+        v = new $co.CommentItemView(model: m)
+        @$el.find(".comment-body").append(v.$el)
+
   BbsThreadModel = Backbone.Model.extend
     url: 'api/bbs/thread'
   BbsThreadCollection = Backbone.Collection.extend
@@ -38,7 +72,7 @@ define (require,exports,module) ->
       $("#bbs-nav").empty()
       $("#bbs-nav").html(@template_nav(data:@collection.toJSON()))
       for m in @collection.models
-        v = new $co.BbsThreadView(model: m,refresh_all:refresh_all)
+        v = new BbsThreadView(model: m,refresh_all:refresh_all)
         @$el.append($("<a name='page/#{window.bbs_page}@#{m.get('id')}'>"))
         d = $("<div>").attr("data-magellan-destination",m.get('id'))
         @$el.append(d)

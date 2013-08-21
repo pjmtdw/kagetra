@@ -2,6 +2,15 @@
   %a(href="#{G_MOBILE_BASE}/top") [TOP]
   %a(href="#{G_MOBILE_BASE}/bbs/#{params[:page].to_i+1}") [次のページ]
 %hr
+- @threads.each_with_index do |t,i|
+  %a(href='#thread-#{t["id"]}')= t["title"]
+  - if t["has_new_comment"] then
+    %font(color="green")
+      (new!)
+  - if i != @threads.size - 1
+    ／
+
+%hr
   %form(method='post' action='#{G_MOBILE_BASE}/bbs/thread')
     %div
       タイトル:
@@ -14,8 +23,15 @@
 
 - @threads.each do |t|
   %hr
+  %a(name='thread-#{t["id"]}')
   %h3 ◆ #{t["title"]} #{if t["public"] then "&lt;公開スレッド&gt;" end}
+  - if t["has_new_comment"] then
+    - new_item = t["items"].find{|x|x["is_new"]}
+    - newid = new_item && new_item["id"]
+    %div
+      %a(href='#item-#{newid}') [新着へ]
   - t["items"].each do |item|
+    %a(name='item-#{item["id"]}')
     %div
       %b [ #{item["user_name"].escape_html}@#{item["date"]} ]
       - if item["is_new"]

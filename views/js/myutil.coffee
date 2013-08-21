@@ -289,13 +289,14 @@ define (require, exports, module) ->
     for k,v of obj
       @.find("[name='#{k}']").val(v)
 
-  $.fn.scrollHere = (speed)->
+  $.fn.scrollHere = (speed,offset)->
     speed ||= 1000
+    top = @offset().top + (offset || 0)
     if speed < 0
-      $('html, body').scrollTop(@offset().top)
+      $('html, body').scrollTop(top)
     else
       $('html, body').animate({
-        scrollTop: @offset().top
+        scrollTop: top
       }, speed)
 
 

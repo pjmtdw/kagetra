@@ -26,8 +26,7 @@ class MainApp < Sinatra::Base
       # chunksを使うときはorderに同じ物がある可能性があるものを指定するとバグるので:id.descも一緒に指定すること
       query.all(order: [:last_comment_date.desc,:id.desc]).chunks(BBS_THREADS_PER_PAGE)[page].map{|t|
         items = t.comments.map{|c|c.show(@user,@public_mode)}
-        title = t.title
-        {id: t.id, title: title, items: items, public: t.public}
+        t.select_attr(:id,:title,:public).merge(items:items,has_new_comment:t.has_new_comment(@user))
       }
     end
     def create_item(thread)

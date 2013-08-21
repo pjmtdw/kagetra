@@ -47,27 +47,6 @@ define ->
       data = @$el.find(".response-form").serializeObj()
       _.save_model_alert(model,data)
 
-  BbsItemModel = Backbone.Model.extend
-    urlRoot: "api/bbs/item"
-
-  # use 'class .. extends ..' only when you have to call super methods
-  # since the compiled *.js code will be slightly larger
-  class BbsThreadView extends CommentThreadView
-    template: _.template_braces($("#templ-bbs-thread").html())
-    initialize: ->
-      _.bindAll(this,"do_response","toggle_response")
-      @render()
-    do_response: _.wrap_submit ->
-      m = new BbsItemModel(thread_id: @model.get("id"))
-      @response_common(m).done(@options.refresh_all)
-    render: ->
-      title = @model.get("title")
-      @$el.html(@template(data:{title: title, public: @model.get("public")}))
-      for item in @model.get("items")
-        m = new BbsItemModel(item)
-        v = new CommentItemView(model: m)
-        @$el.find(".comment-body").append(v.$el)
-
   class ExtCommentThreadView extends CommentThreadView
     template: _.template_braces($("#templ-ext-comment").html())
     events:
@@ -115,7 +94,8 @@ define ->
       @collection.id = id
       @collection.fetch()
   {
-    BbsThreadView: BbsThreadView
+    CommentItemView: CommentItemView
+    CommentThreadView: CommentThreadView
     # comment_num_obj はコメント追加したときにコメント数を表示するjQueryオブジェクト
     reveal_comment: (mode,target,id,comment_num_obj,additional_data) ->
       v = new ExtCommentThreadView(mode:mode,target:target,comment_num_obj:comment_num_obj,additional_data:additional_data)

@@ -37,10 +37,17 @@
   margin: 6px 0;
   padding: 10px;
   @include border-radius(6px);
-  .title {
-    font-weight: bold;
+  .thread-header {
     margin-bottom: 7px;
     margin-top: 8px;
+    .title{
+      font-weight: bold;
+    }
+    .goto-new{
+      color: teal;
+      text-decoration: underline;
+      cursor: pointer;
+    }
   }
   .is-public{
     font-weight: bold;
@@ -54,4 +61,7 @@
 .public{
   border: 4px solid blue;
   background-color: #FFF;
+}
+.arrival.has_new_comment{
+  border: 3px solid #F80 !important;
 }

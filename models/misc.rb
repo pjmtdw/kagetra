@@ -75,9 +75,9 @@ module UserEnv
           nil
         end
       # TODO: DRY way to get the length of property ?
-      self.remote_host = host[0...72] if host
-      self.remote_addr = addr[0...48] if addr
-      self.user_agent = agent[0...255] if agent
+      self.remote_host = if host then host[0...72] end
+      self.remote_addr = if addr then addr[0...48] end
+      self.user_agent = if agent then agent[0...255] end
     end
   end
 end

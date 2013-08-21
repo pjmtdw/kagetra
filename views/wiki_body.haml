@@ -129,7 +129,7 @@
         <% _.each(data.list,function(x){ %>
         %tr
           %td.filename
-            %a(href='static/wiki/attached/{{x.id}}') {- x.orig_name -}
+            %a(href="static/wiki/attached/{{x.id}}/{{ encodeURIComponent(x.orig_name) }}") {- x.orig_name -}
           %td.size
             {{_.show_size(x.size)}}
           %td.date

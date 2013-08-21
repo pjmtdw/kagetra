@@ -11,7 +11,7 @@
   - @info["list"].each do |x|
     %tr
       %td
-        %a(href='/static/wiki/attached/#{x["id"]}')= x["orig_name"]
+        %a(href="/static/wiki/attached/#{x['id']}/#{Rack::Utils.escape_path(x['orig_name'])}")= x["orig_name"]
       %td= mobile_show_bytes(x["size"])
       %td= x["date"]
       %td= x["description"].to_s.escape_html

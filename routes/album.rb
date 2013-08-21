@@ -415,9 +415,20 @@ class MainApp < Sinatra::Base
   def send_photo(p,rotate)
     content_type "image/#{p.format.downcase}"
     path = File.join(G_STORAGE_DIR,"album",p.path)
+    ext = case p.format.downcase
+          when "jpeg" then "jpg"
+          else p.format.downcase
+          end
+    prefix =  if p.class == AlbumThumbnail then
+                p.album_item_id.to_s + "_thumb"
+              else
+                p.album_item_id
+              end
+    filename = "#{prefix}.#{ext}"
     if rotate == 0
-      send_file(path)
+      send_file(path,disposition:"inline",filename:filename)
     else
+      attachment(filename,"inline")
       last_modified p.updated_at
       img = Magick::Image::read(path).first
       img.rotate!(rotate)

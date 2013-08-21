@@ -164,10 +164,12 @@ class MainApp < Sinatra::Base
   get '/wiki' do
     haml :wiki
   end
-  get '/static/wiki/attached/:id', private:true do
+  get '/static/wiki/attached/:id/:filename', private:true do
+    # params[:filename] is dummy
     attached_base = File.join(G_STORAGE_DIR,"attached")
     attached = WikiAttachedFile.get(params[:id].to_i)
-    send_file(File.join(attached_base,attached.path),filename:attached.orig_name)
+    halt 404 if attached.nil?
+    send_file(File.join(attached_base,attached.path),disposition:nil)
   end
   post '/wiki/attached/:id', private:true do
     item = WikiItem.get(params[:id].to_i)

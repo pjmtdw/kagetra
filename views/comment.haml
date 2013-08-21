@@ -33,8 +33,16 @@
     .body.pre <%= _.replace_url_escape(data.body) %>
 
 %script#templ-ext-comment(type='text/template')
-  %button.response-toggle.small.round(data-toggle-text="キャンセル") 書き込む
-  %span.thread-name {- data.thread_name -}
+  .clearfix
+    .left
+      %button.response-toggle.small.round(data-toggle-text="キャンセル") 書き込む
+      %span.thread-name {- data.thread_name -}
+    <% if(data.header_template){ %>
+    <% tmpl = _.template_braces($(data.header_template).html()) %>
+    .right
+      {{ tmpl({data:data}) }}
+    <% } %>
+      
   .response-container
   = haml :pagination
   .comment-body

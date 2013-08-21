@@ -1,9 +1,15 @@
+%script#templ-event-detail-comment-header(type='text/template')
+  %button.button-light.show-event-info 大会/行事情報
 %script#templ-event-detail(type='text/template')
-  <% if(data.editable){ %>
   .row
     .large-12.columns
-      %button#contest-info-edit.small 編集
-  <% } %>
+      .right
+        <% if(data.editable){ %>
+        %button#contest-info-edit.small 編集
+        <% } %>
+        <% if(data.show_comment_button){ %>
+        %button.button-light.show-comment コメント ( <%= data.comment_count %> )
+        <% } %>
   .row
     .large-8.columns
       %fieldset.panel

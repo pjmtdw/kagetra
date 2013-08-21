@@ -92,14 +92,20 @@ define ->
       @collection = new C()
       @listenTo(@collection,"sync",@render)
     render: ->
-      @$el.html(@template(data:_.pick(@collection,"pages","cur_page","thread_name")))
+      data = _.pick(@collection,"pages","cur_page","thread_name")
+      if @options.additional_data
+        data = _.extend(data,@options.additional_data)
+        if @options.additional_data.events
+          @events = _.extend(@events,@options.additional_data.events)
+          @delegateEvents()
+      @$el.html(@template(data:data))
       for m in @collection.models
         v = new CommentItemView(model: m)
         @$el.find(".comment-body").append(v.$el)
 
       @$el.appendTo(@options.target)
       o = @options.comment_num_obj
-      if o? then o.html(_.show_new_comment(@collection))
+      if o then o.html(_.show_new_comment(@collection))
     do_response: _.wrap_submit ->
       m = new @collection.model(thread_id:@collection.id)
       that = this
@@ -111,8 +117,8 @@ define ->
   {
     BbsThreadView: BbsThreadView
     # comment_num_obj はコメント追加したときにコメント数を表示するjQueryオブジェクト
-    reveal_comment: (mode,target,id,comment_num_obj) ->
-      v = new ExtCommentThreadView(mode:mode,target:target,comment_num_obj:comment_num_obj)
+    reveal_comment: (mode,target,id,comment_num_obj,additional_data) ->
+      v = new ExtCommentThreadView(mode:mode,target:target,comment_num_obj:comment_num_obj,additional_data:additional_data)
       _.reveal_view(target,v)
       v.refresh(id)
       window["#{mode}_comment_thread_view"] = v

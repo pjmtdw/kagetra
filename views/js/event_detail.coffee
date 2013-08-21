@@ -1,4 +1,5 @@
 define (require,exports,module)->
+  $co = require("comment")
   _.mixin
     show_all_attrs: (all_attrs,forbidden_attrs) ->
       r = ""
@@ -26,21 +27,36 @@ define (require,exports,module)->
 
   EventItemModel = Backbone.Model.extend
     urlRoot: "api/event/item"
+
+  additional_data = (id)->
+    {
+      events:{
+        'click .show-event-info':->
+          reveal_detail("#container-event-detail",id)
+      }
+      header_template:"#templ-event-detail-comment-header"
+    }
+
   EventDetailView = Backbone.View.extend
     template: _.template($("#templ-event-detail").html())
     template_p: _.template_braces($("#templ-event-participant").html())
     events:
       "click #contest-info-edit":"info_edit"
+      "click .show-comment":"show_comment"
+    show_comment: ->
+      that = this
+      
+      $co.reveal_comment("event","#container-event-comment",@model.get('id'),null,additional_data(@model.get('id')))
     info_edit: ->
       show_event_edit(@model)
     initialize: ->
       @listenTo(@model,"sync",@render)
     render: ->
       data = @model.toJSON()
+      data["show_comment_button"] = @options.show_comment_button
       @$el.html(@template(data:data))
       @$el.find(".participants").html(@template_p(data:data)) unless @options.no_participant
       @$el.appendTo(@options.target)
-    reveal: (model_or_id) ->
 
   EventEditView = Backbone.View.extend
     template: _.template($("#templ-event-edit").html())
@@ -287,6 +303,14 @@ define (require,exports,module)->
       v = new EventEditView(_.extend(opts,{target:t,model:model}))
       _.reveal_view(t,v)
       window.event_edit_view = v
+  reveal_detail = (target, model_or_id) ->
+    model =  if typeof model_or_id == "number"
+                new EventItemModel(id:model_or_id)
+              else
+                model_or_id
+    v = new EventDetailView(target:target,model:model,show_comment_button:true)
+    _.reveal_view(target,v)
+    model.fetch(data:{detail:true})
   {
     show_event_group: show_event_group
     show_event_edit: show_event_edit
@@ -294,12 +318,6 @@ define (require,exports,module)->
     EventDetailView: EventDetailView
     # target: 表示する対象のセレクタ
     # model_or_id: EventItemModel もしくは id
-    reveal_detail: (target, model_or_id) ->
-      model =  if typeof model_or_id == "number"
-                  new EventItemModel(id:model_or_id)
-                else
-                  model_or_id
-      v = new EventDetailView(target:target,model:model)
-      _.reveal_view(target,v)
-      model.fetch(data:{detail:true})
+    reveal_detail: reveal_detail
+    additional_data: additional_data
   }

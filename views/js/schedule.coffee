@@ -46,7 +46,7 @@ define (require,exports,module) ->
       $ed.reveal_detail("#container-event-detail",id)
     reveal_comment: (ev)->
       id = $(ev.currentTarget).closest("[data-event-id]").data("event-id")
-      $co.reveal_comment("event","#container-event-comment",id)
+      $co.reveal_comment("event","#container-event-comment",id,null,$ed.additional_data(id))
     initialize: ->
       @model = new ScheduleEventDoneModel()
       @listenTo(@model,"sync",@render)

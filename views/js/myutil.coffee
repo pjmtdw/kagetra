@@ -5,7 +5,7 @@ define (require, exports, module) ->
 
   # 履歴付きBackbone.Router
   class HistoryRouter extends Backbone.Router
-    constructor: (options)->
+    initialize: (options)->
       @on "route", @storeRoute
       @history = []
       super options
@@ -13,8 +13,7 @@ define (require, exports, module) ->
       @history.push Backbone.history.fragment
       @history.shift() if @history.length > 2
     previous: ->
-      if @history.length == 2
-        @history[0]
+      @history[0]
 
   # 前半はURL,後半はメールアドレスにマッチ
   # メールアドレスにマッチする部分は PEAR::Mail_RFC822::isValidInetAddress()
@@ -290,6 +289,7 @@ define (require, exports, module) ->
       @.find("[name='#{k}']").val(v)
 
   $.fn.scrollHere = (speed,offset)->
+    return unless @.length > 0
     speed ||= 1000
     top = @offset().top + (offset || 0)
     if speed < 0

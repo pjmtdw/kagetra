@@ -51,12 +51,10 @@ class MainApp < Sinatra::Base
           no_comment: x.comment.to_s.empty?
         })
       }
-      cur = Time.now
       users = Hash[User.all(id:owners.keys,fields:[:id,:name]).map{|x|[x.id,x.name]}]
       r[:owners] = owners.to_a.map{|k,v|
         [users[k]||"不明",v]
       }.sort_by{|k,v|v}.reverse
-      p Time.now - cur
       r[:tags] = tags.sort_by{|k,v|v.size}.reverse
       r[:deletable] = @user.admin || group.owner_id == @user.id
       r
@@ -190,11 +188,15 @@ class MainApp < Sinatra::Base
     end
     get '/years' do
       aggr = AlbumGroup.aggregate(:item_count.sum, fields:[:year], unique: true, order: [:year.desc])
+      comment_updated = AlbumItem.aggregate(:comment_updated_at.max)
+      if comment_updated then
+        comment_updated = comment_updated.strftime("%m月%d日 %H:%M")
+      end
       total = aggr.map{|x|x[1]}.sum
       recent = AlbumGroup.all(order:[:created_at.desc],dummy:false)[0...ALBUM_RECENT_GROUPS].map{|x|
         album_group_info(x)
       }
-      {list: aggr,total: total,recent:{list:recent}}
+      {list: aggr,total: total,recent:{list:recent}, comment_updated:comment_updated}
     end
     post '/search' do
       cond = {}
@@ -230,7 +232,8 @@ class MainApp < Sinatra::Base
         list: list,
         pages: chunks.size,
         cur_page: page,
-        count: chunks.count
+        count: chunks.count,
+        qs: params[:qs]
       }
     end
     get '/thumb_info/:id' do

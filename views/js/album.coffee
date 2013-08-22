@@ -30,12 +30,25 @@ define (require,exports,module)->
       "" : "start"
     year: (year) -> @remove_all();@set_id_fetch("year",AlbumYearView,year)
     group: (id) -> @remove_all();@set_id_fetch("group",AlbumGroupView,id)
-    item: (id) -> @remove_all();@set_id_fetch("item",AlbumItemView,id)
+    item: (id) ->
+      if window.album_search_view
+        @come_from = @history[@history.length-1]
+        @chunk_list = (x.id for x in window.album_search_view.data.list)
+      else if window.album_all_log_view
+        @come_from = @history[@history.length-1]
+        @chunk_list = (x.id for x in window.album_all_log_view.model.get('list'))
+      else if window.album_group_view
+        @come_from = null
+        @chunk_list = (x.id for x in window.album_group_view.model.get('items'))
+      else if window.album_year_view or window.album_top_view
+        @come_from = null
+        @chunk_list = []
+      @remove_all()
+      @set_id_fetch("item",AlbumItemView,id)
     start: -> @remove_all();@set_id_fetch("top",AlbumTopView)
     all_log: (page)->
       @remove_all()
       window.album_all_log_view = new AlbumAllLogView(page:page)
-
     search: (qs,page) ->
       if not page
         page = 1
@@ -323,6 +336,10 @@ define (require,exports,module)->
       "click #scroll-to-relation" : "scroll_to_relation"
       "click #add-relations" : "add_relations"
       "click #album-delete" : "album_delete"
+      "click #go-back" : "go_back"
+    go_back: ->
+      r = window.album_router
+      r.navigate(r.come_from,trigger:true)
     go_random: ->
       $.get("/api/album/random").done((data)->
         window.album_router.navigate("item/#{data.id}",trigger:true)
@@ -474,7 +491,18 @@ define (require,exports,module)->
         $(".relation a").click(@remove_relation)
 
     render: ->
-      @$el.html(@template(data:@model.toJSON()))
+      router = window.album_router
+      data = @model.toJSON()
+      data["go_back"] = router.come_from
+      id = @model.get('id')
+      cl = router.chunk_list
+      if cl
+        idx = cl.indexOf(id)
+        if idx >= 0
+          data["prev_item"] = cl[idx-1]
+          data["next_item"] = cl[idx+1]
+
+      @$el.html(@template(data:data))
       @$el.find("#album-info").html(@template_info(data:@model.toJSON()))
       @$el.appendTo("#album-item")
       @render_relations(false)
@@ -510,6 +538,7 @@ define (require,exports,module)->
     search: (qs,page)->
       that = this
       $.post("api/album/search",{qs:qs,page:page}).done((data)->
+        that.data = data
         that.$el.find(".search-result").html(that.template_result(data:data))
         if not that.options.target? # Foundation の Reveal 上での表示ではない
           scroll_to_item((id)->"#album-search .gbase[data-id='#{id}']")

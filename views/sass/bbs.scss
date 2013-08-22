@@ -6,6 +6,7 @@
     padding: 5px;
     background-color: #EEE;
     display: inline-block;
+    font-size: 80%;
     @include border-radius(6px);
     a{
       color: gray;
@@ -26,10 +27,6 @@
     margin-bottom: 2px;
   }
 }
-[data-magellan-destination]{
-  position: relative;
-  top: -50px; // リンクで飛んだとき実際の位置より少し上に飛ばす． TODO: IEではうまく動かない
-}
 #bbs-body{
   margin-top: 8px;
 }
@@ -43,10 +40,11 @@
     .title{
       font-weight: bold;
     }
-    .goto-new{
+    .goto-new,.goto-bottom{
       color: teal;
-      text-decoration: underline;
       cursor: pointer;
+      margin-left: 0.3em;
+      margin-right: 0.3em;
     }
   }
   .is-public{

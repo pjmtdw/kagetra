@@ -27,7 +27,7 @@
         <% }) %>
       <% } %>
       %button.small.round#contest-add 大会追加
-      %a(href='result/excel/{{data.id}}') 印刷用
+      %a(href='result/excel/{{data.id}}/{{data.date}}_{{encodeURIComponent(data.name)}}.xls') 印刷用
   .row
     %div.contest-name-date
       %span.event-symbol {{_.show_kind_symbol(data.kind,data.official) }}

@@ -96,6 +96,11 @@
     <% } %>
     {{_.album_thumb(x)}}
   <% }) %>
+  <% if(!_.isEmpty(data.owners)){ %>
+  .uploaded-by
+    Uploaded by
+    {- _.map(data.owners,function(x){return x[0]+"("+x[1]+")"}).join(', ') -}
+  <% } %>
 
 %script#templ-album-item(type='text/template')
   .row

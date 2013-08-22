@@ -165,7 +165,8 @@ class MainApp < Sinatra::Base
     haml :wiki
   end
   get '/static/wiki/attached/:id/:filename', private:true do
-    # params[:filename] is dummy
+    # content-dispositionでutf8を使う方法は各ブラウザで統一されていないので
+    # :filenameの部分にダウンロードさせるファイル名を入れるという古くから使える方法を取る
     attached_base = File.join(G_STORAGE_DIR,"attached")
     attached = WikiAttachedFile.get(params[:id].to_i)
     halt 404 if attached.nil?

@@ -166,6 +166,7 @@ module ThreadBase
         (c0 & (c1 | c2)).all(order: [:last_comment_date.desc])
       end
       def has_new_comment(user)
+        return false if user.nil?
         if self.last_comment_date.nil?.! then
           if user.show_new_from.nil?.! then
             if self.last_comment_date > user.show_new_from and

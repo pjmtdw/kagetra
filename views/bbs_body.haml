@@ -27,7 +27,7 @@
       .row
         .large-12.columns
           %label 内容
-          %textarea(name='body' rows=30)
+          %textarea(name='body' rows='30')
 
 .row
   %div(data-magellan-expedition="fixed")
@@ -42,13 +42,15 @@
 %script#templ-bbs-nav(type='text/template')
   <% _.each(data,function(x){ %>
   .arrival.ellipsis(data-magellan-arrival="{{x.id}}" class="{{x.has_new_comment?'has_new_comment':''}}")
-    %a(href="bbs#page/{{window.bbs_page}}@{{x.id}}") {- x.title -}
+    -# %a(href="bbs#page/{{window.bbs_page}}@{{x.id}}") {- x.title -}
+    %a.goto-thread(href="#" data-id="{{x.id}}") {- x.title -}
   <% }) %>
 
 %script#templ-bbs-thread(type='text/template')
   .thread(class='{-data.public?"public":"private"-}')
     .clearfix.thread-header
       .left
+        %span.goto-bottom &sect;
         %span.title {- data.title -}
         <% if(data.has_new_comment){ %>
         %span.goto-new [新着へ]

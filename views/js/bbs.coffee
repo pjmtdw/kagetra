@@ -22,24 +22,31 @@ define (require,exports,module) ->
   BbsItemModel = Backbone.Model.extend
     urlRoot: "api/bbs/item"
 
+  magellan_offset = (delta)->
+    delta = if delta? then delta else 8 # ちょっと多めの余白
+    mage = $("[data-magellan-expedition]")
+    height = mage.outerHeight()
+    offset =  if mage.css("position") == "fixed"
+              # 既に magellan が画面の一番上にfixedされている状態
+                height
+              else
+              # スクロールの途中で magellan がfixedされるのでその分を考慮
+                height*2
+    -offset-delta
+
   # use 'class .. extends ..' only when you have to call super methods
   # since the compiled *.js code will be slightly larger
   class BbsThreadView extends $co.CommentThreadView
     template: _.template_braces($("#templ-bbs-thread").html())
-    events: 
+    events:
       _.extend($co.CommentThreadView.prototype.events,
       "click .goto-new" : "goto_new"
+      "click .goto-bottom" : "goto_bottom"
       )
+    goto_bottom: ->
+      @$el.find(".response-toggle").first().scrollHere(500,magellan_offset())
     goto_new: ->
-      mage = $("[data-magellan-expedition]")
-      height = mage.outerHeight()
-      offset =  if mage.css("position") == "fixed"
-                # 既に magellan が画面の一番上にfixedされている状態
-                  height
-                else
-                # スクロールの途中で magellan がfixedされるのでその分を考慮
-                  height*2
-      @$el.find(".is-new").first().scrollHere(500,-offset-8)
+      @$el.find(".is-new").first().scrollHere(500,magellan_offset())
     initialize: ->
       _.bindAll(this,"do_response","toggle_response")
       @render()
@@ -71,9 +78,13 @@ define (require,exports,module) ->
       @$el.empty()
       $("#bbs-nav").empty()
       $("#bbs-nav").html(@template_nav(data:@collection.toJSON()))
+      $("#bbs-nav .goto-thread").on("click",(ev)->
+        id = $(ev.currentTarget).data("id")
+        $("[data-magellan-destination='#{id}']").scrollHere(-1,magellan_offset(-3))
+        false
+      )
       for m in @collection.models
         v = new BbsThreadView(model: m,refresh_all:refresh_all)
-        @$el.append($("<a name='page/#{window.bbs_page}@#{m.get('id')}'>"))
         d = $("<div>").attr("data-magellan-destination",m.get('id'))
         @$el.append(d)
         @$el.append(v.$el)

@@ -1,4 +1,5 @@
 %div
+  %a(name='thread-top')
   %a(href="#{G_MOBILE_BASE}/top") [TOP]
   %a(href="#{G_MOBILE_BASE}/bbs/#{params[:page].to_i+1}") [次のページ]
 %hr
@@ -21,19 +22,27 @@
     %div
       %input(type='submit' value='新スレッド作成')
 
-- @threads.each do |t|
+- @threads.each_with_index do |t,index|
   %hr
   %a(name='thread-#{t["id"]}')
-  %h3 ◆ #{t["title"]} #{if t["public"] then "&lt;公開スレッド&gt;" end}
+  %div
+    - next_thread = if index >= @threads.size-1 then "bottom" else @threads[index+1]["id"] end
+    - prev_thread = if index <= 0 then "top" else @threads[index-1]["id"] end
+    %a(href='#thread-#{prev_thread}') ▲
+    %a(href='#thread-#{next_thread}') ▼
+    %b #{t["title"]} #{if t["public"] then "&lt;公開スレッド&gt;" end}
   - if t["has_new_comment"] then
     - new_item = t["items"].find{|x|x["is_new"]}
     - newid = new_item && new_item["id"]
-    %div
-      %a(href='#item-#{newid}') [新着へ]
+    %a(href='#item-#{newid}') [新着へ]
   - t["items"].each do |item|
     %a(name='item-#{item["id"]}')
     %div
-      %b [ #{item["user_name"].escape_html}@#{item["date"]} ]
+      [
+      %font(color='green')=item["user_name"].escape_html
+      @
+      %font(color='maroon')=item["date"]
+      ]
       - if item["is_new"]
         %b
           %font(color="green")
@@ -43,3 +52,5 @@
     %textarea(rows='5' cols='60' name='body')
     %div
       %input(type='submit' value='コメント書き込み')
+
+%a(name='thread-bottom')

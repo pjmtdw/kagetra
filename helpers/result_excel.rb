@@ -4,7 +4,6 @@ module ResultExcelHelpers
     mincho = "ＭＳ Ｐ明朝"
     default_height = 15.75
 
-    attachment "#{ev.date.strftime('%Y-%m-%d')}_#{ev.name}.xls"
     content_type 'application/vnd.ms-excel'
     book = Spreadsheet::Workbook.new
     sheet = book.create_worksheet(name:"#{ev.date.year}-#{ev.name}")

@@ -20,7 +20,7 @@
           の {- x.class_name -} で {- x.prize -} でした
         <% if(! _.isNull(x.user_id) && ! _.isUndefined(x.user_id)){ %>
         %div
-          %form.change-attr(data-user-id='{{x.user_id}}')
+          %form.change-attr(data-user-id='{{x.user_id}}' data-event-id='{{x.event.id}}')
             現在の属性:
             <% _.each(data.attrs,function(y,i){ %>
             %span

@@ -2,6 +2,7 @@
 class MainApp < Sinatra::Base
   PROMOTION_MAX_DAY = 365
   RESULT_RECORD_PER_PAGE = 30
+  RESULT_SEARCH_NAME_LIMIT = 100
   namespace '/api/result_misc' do
     get '/year/:year' do
       minyear = Event.aggregate(:date.min,kind:[:contest]).year
@@ -33,10 +34,10 @@ class MainApp < Sinatra::Base
     end
     post '/search_name' do
       query = params[:q]
-      list1 = ContestUser.aggregate(fields:[:name,:id.count],:name.like=>"#{query}%",unique:true).sort_by{|x,y|y}.reverse.map{|x,y|
+      list1 = ContestUser.aggregate(fields:[:name,:id.count],:name.like=>"%#{query}%",unique:true)[0...(RESULT_SEARCH_NAME_LIMIT/2)].sort_by{|x,y|y}.reverse.map{|x,y|
         x
       }
-      list2 = ContestGame.aggregate(fields:[:opponent_name,:id.count],:opponent_name.like=>"#{query}%",unique:true).sort_by{|x,y|y}.reverse.map{|x,y|
+      list2 = ContestGame.aggregate(fields:[:opponent_name,:id.count],:opponent_name.like=>"%#{query}%",unique:true)[0...(RESULT_SEARCH_NAME_LIMIT/2)].sort_by{|x,y|y}.reverse.map{|x,y|
         x
       }
       results = (list1+list2).uniq

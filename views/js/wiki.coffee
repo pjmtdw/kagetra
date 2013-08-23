@@ -26,7 +26,12 @@ define (require,exports,module) ->
       else
         $(".hide-for-all").hide()
 
-    start: -> @navigate("page/all", {trigger:true, replace: true})
+    start: ->
+      if g_public_mode
+        @navigate("page/all", {trigger:true, replace: true})
+      else
+        @navigate("page/1", {trigger:true, replace: true})
+
   WikiItemModel = Backbone.Model.extend
     urlRoot: "api/wiki/item"
   WikiEditView = Backbone.View.extend
@@ -236,10 +241,7 @@ define (require,exports,module) ->
 
   init: ->
     window.wiki_router = new WikiRouter()
-    # id が 1 のものは Home として特別扱い
     window.wiki_viewlog = []
-    if not g_public_mode
-      window.wiki_viewlog.push(["1","Home"])
     $("section.hide-for-public").hide() if g_public_mode
     Backbone.history.start()
 

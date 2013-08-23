@@ -110,6 +110,17 @@
   tr td:nth-child(1){
     width: 80px;
   }
+  .owners.selected{
+    font-weight: bold;
+  }
+  .owners.unselected{
+    color: gray;
+  }
+  .owners{
+    display: inline-block;
+    cursor: pointer;
+    color: teal;
+  }
 }
 #album-comment-container{
   margin: 0;
@@ -181,10 +192,6 @@ canvas.percent{
     color: olive;
     font-size: 80%;
   }
-}
-.uploaded-by{
-  color: gray;
-  font-style: italic;
 }
 #go-random{
   margin-right: 1.5em;

@@ -99,9 +99,9 @@ class MainApp < Sinatra::Base
         }
       }
     end
-    post '/change_attr/:id' do
+    post '/change_attr/:promotion_event/:user_id' do
       User.transaction{
-        u = User.get(params[:id].to_i)
+        u = User.get(params[:user_id].to_i)
         @json["values"].each{|v|
           new_value = UserAttributeValue.get(v.to_i)
           key = new_value.attr_key
@@ -110,15 +110,16 @@ class MainApp < Sinatra::Base
           Event.all(done:false).choices.user_choices(user:u,attr_value:cur_value).each{|choice|
             ev_choice = choice.event_choice
             ev = ev_choice.event
+            promotion_event = Event.get(params[:promotion_event].to_i)
             if ev.forbidden_attrs.include?(v.to_i) then
               choice.destroy
               if ev_choice.positive then
-                ev.comments.create(user_name:"ロビタ",body:"#{u.name}さんが#{ev.name}で昇級して参加不能属性になったので登録を取り消しました。")
+                ev.comments.create(user_name:"ロビタ",body:"#{u.name}さんが#{promotion_event.name}で昇級して参加不能属性になったので登録を取り消しました。")
               end
             else
               ev_choice.user_choices.create(user:u)
               if ev_choice.positive then
-                ev.comments.create(user_name:"ロビタ",body:"#{u.name}さんが#{ev.name}で昇級したので#{cur_value.value}から#{new_value.value}に登録変更しました。")
+                ev.comments.create(user_name:"ロビタ",body:"#{u.name}さんが#{promotion_event.name}で昇級したので#{cur_value.value}から#{new_value.value}に登録変更しました。")
               end
             end
           }

@@ -152,7 +152,9 @@ define (require,exports,module)->
     template_info: _.template_braces($("#templ-album-info").html())
     template_info_form: _.template_braces($("#templ-album-info-form").html())
     template_items: _.template_braces($("#templ-album-group-items").html())
+    template_tags: _.template_braces($("#templ-album-group-tags").html())
     events:
+      "click .owners" : "filter_owners"
       "click .album-tag" : "filter_tag"
       "click #start-edit" : "start_edit"
       "click #add-picture" : "add_picture"
@@ -221,10 +223,24 @@ define (require,exports,module)->
       @$el.find("#album-info").html(@template_info(data:@model.toJSON()))
       @$el.appendTo("#album-group")
       @render_items()
+      @render_tags()
       scroll_to_item()
 
+    render_tags: ->
+      tags = @model.get('tags')
+      if @filter
+        filter = @filter
+        tags = _.chain(tags)
+          .map(([k,v])->[k,_.intersection(v,filter)])
+          .filter(([k,v])->not _.isEmpty(v))
+          .sortBy(([k,v])->-v.length)
+          .value()
+      $("#album-tags").html(@template_tags(data:{tags:tags}))
     render_items: ->
-      $("#album-items").html(@template_items(data:@model.toJSON()))
+      items = @model.get('items')
+      if @filter
+        items = (x for x in items when x.id in @filter)
+      $("#album-items").html(@template_items(data:{items:items}))
     thumb_click: (ev)->
       return unless @edit_mode
       obj = $(ev.currentTarget).closest(".album-item")
@@ -244,11 +260,30 @@ define (require,exports,module)->
         img.removeClass("rotate-#{rot}")
         @add_rotate[id] = (rot + 90)%360
         img.addClass("rotate-#{@add_rotate[id]}")
+    remove_filter: ->
+      $("#album-info-table .owners").removeClass("selected")
+      $("#album-info-table .owners").removeClass("unselected")
+      @filter = null
+
     show_all: ->
       @$el.find(".tag-selected").removeClass("tag-selected")
       for x in @model.get("items")
         x.hide = false
       @render_items()
+    filter_owners: (ev)->
+      return if @edit_mode
+      obj = $(ev.currentTarget)
+      if obj.hasClass("selected")
+        @remove_filter
+      else
+        $("#album-info-table .owners").removeClass("selected")
+        $("#album-info-table .owners").addClass("unselected")
+        obj.removeClass("unselected")
+        obj.addClass("selected")
+        name = obj.find(".owner-name").text()
+        @filter = _.object(@model.get('owners'))[name]
+      @render_items()
+      @render_tags()
     filter_tag: (ev)->
       return if @edit_mode
       obj = $(ev.currentTarget)
@@ -262,6 +297,7 @@ define (require,exports,module)->
           x.hide = not (x.id in visibles)
         @render_items()
     start_edit: ->
+      @remove_filter()
       @show_all()
       $("#album-tags").hide()
       $("#album-info").html(@template_info_form(

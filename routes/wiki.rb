@@ -88,6 +88,10 @@ class MainApp < Sinatra::Base
       r
     end
     delete '/item/:id' do
+      if params[:id].to_i == 1 then
+        # HOMEは削除できない
+        halt 403
+      end
       item = WikiItem.get(params[:id].to_i)
       # destory するには関連するmodelを削除しないといけないけどそれはイヤなので deleted フラグを付けるだけ
       # ただし title が unique なので削除したはずのものと同じ名前ページを作ろうとするとエラーが出るのを防ぐ

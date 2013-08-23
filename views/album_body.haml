@@ -76,16 +76,18 @@
   .row
     .large-12.columns
       #album-tags
-        タグ一覧:
-        <% _.each(data.tags,function(t){ %>
-        .album-tag
-          %span.album-tag-name {- t[0] -}
-          %span ({- t[1].length -})
-        <% }) %>
   .row
     .large-12.columns
       #album-items
-
+        
+%script#templ-album-group-tags(type='text/template')
+  タグ一覧:
+  <% _.each(data.tags,function(t){ %>
+  .album-tag
+    %span.album-tag-name {- t[0] -}
+    %span ({- t[1].length -})
+  <% }) %>
+  
 %script#templ-album-group-items(type='text/template')
   <% _.each(_.filter(data.items,function(x){return ! x.hide}),function(x){ %>
   .gbase.thumbnail.album-item(data-id='{{x.id}}')
@@ -97,11 +99,6 @@
     <% } %>
     {{_.album_thumb(x)}}
   <% }) %>
-  <% if(!_.isEmpty(data.owners)){ %>
-  .uploaded-by
-    Uploaded by
-    {- _.map(data.owners,function(x){return x[0]+"("+x[1]+")"}).join(', ') -}
-  <% } %>
 
 %script#templ-album-item(type='text/template')
   .row
@@ -153,10 +150,6 @@
         %img#marker-y.marker.hide(src='/img/album_marker/yellow.gif')
         %span#tag-name.hide
       #relation-container
-  <% if(data.owner_name){ %>
-  .row
-    .uploaded-by.right Uploaded by {{data.owner_name}}
-  <% } %>
 
 %script#templ-relations(type='text/template')
   <% if(!_.isEmpty(relations)){ %>
@@ -212,6 +205,19 @@
         %tr
           %td 場所
           %td {- data.place -}
+        %tr
+          %td 撮影者
+          %td
+            <% if(!_.isUndefined(data.owners)){ %>
+            <% _.each(data.owners,function(x,i){ %>
+            .owners
+              %span.owner-name {- x[0] -}
+              %span ({{x[1].length}})
+            {{ (i != data.owners.length-1)?",":"" }}
+            <% }) %>
+            <% }else{ %>
+            {- data.owner_name -}
+            <% } %>
     .large-7.columns
       %fieldset#album-comment-container
         %legend コメント

@@ -36,7 +36,7 @@ class MainApp < Sinatra::Base
       group = AlbumGroup.get(params[:gid].to_i)
       r = group.select_attr(:name,:year,:place,:comment,:start_at,:end_at)
       tags = Hash.new{[]}
-      owners = Hash.new{0}
+      owners = Hash.new{[]}
       r[:items] = group.items(fields:item_fields,order:[:group_index.asc]).map{|x|
         if x.tag_names then
           JSON.parse(x.tag_names).each{|t|
@@ -44,7 +44,7 @@ class MainApp < Sinatra::Base
           }
         end
         if not x.owner_id.nil? then
-          owners[x.owner_id] += 1
+          owners[x.owner_id] <<= x.id
         end
         x.id_with_thumb.merge({
           no_tag: x.tag_count == 0,
@@ -54,7 +54,7 @@ class MainApp < Sinatra::Base
       users = Hash[User.all(id:owners.keys,fields:[:id,:name]).map{|x|[x.id,x.name]}]
       r[:owners] = owners.to_a.map{|k,v|
         [users[k]||"不明",v]
-      }.sort_by{|k,v|v}.reverse
+      }.sort_by{|k,v|v.size}.reverse
       r[:tags] = tags.sort_by{|k,v|v.size}.reverse
       r[:deletable] = @user.admin || group.owner_id == @user.id
       r

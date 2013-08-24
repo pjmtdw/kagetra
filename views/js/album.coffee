@@ -274,7 +274,7 @@ define (require,exports,module)->
       return if @edit_mode
       obj = $(ev.currentTarget)
       if obj.hasClass("selected")
-        @remove_filter
+        @remove_filter()
       else
         $("#album-info-table .owners").removeClass("selected")
         $("#album-info-table .owners").addClass("unselected")

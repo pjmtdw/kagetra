@@ -1,6 +1,15 @@
 # -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
   namespace '/api/user' do
+    def login_jobs(user)
+      uid = user.id
+      user.update_login(request)
+      exec_daily_job
+      exec_monthly_job
+      session[:user_id] = uid
+      session[:user_token] = user.token
+      set_permanent("uid",uid)
+    end
     # /auth 以下はログインなしでも見られるように名前空間を分ける
     # TODO: 直接APIを叩かれるとユーザ一覧が取得できてしまう．共通パスワードを入れたユーザのみがユーザ一覧を見られるようにする
     namespace '/auth' do
@@ -15,17 +24,11 @@ class MainApp < Sinatra::Base
         }}
       end
       post '/user' do
-        uid = params[:user_id]
-        user = User.first(id: uid)
+        user = User.get(params[:user_id].to_i)
         hash = user.password_hash
         res = Kagetra::Utils.check_password(params,hash)
         if res[:result] == "OK" then
-          user.update_login(request)
-          exec_daily_job
-          exec_monthly_job
-          session[:user_id] = uid
-          session[:user_token] = user.token
-          set_permanent("uid",uid)
+          login_jobs(user)
         end
         res
       end
@@ -125,6 +128,9 @@ class MainApp < Sinatra::Base
           }
         }
       }
+    end
+    post '/relogin' do
+      login_jobs(@user)
     end
   end
   get '/user/logout' do

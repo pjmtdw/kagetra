@@ -139,5 +139,9 @@ $forbidden-color: gray !important;
   .login-elapsed{
     color: gray;
     font-size: 90%;
+    &.countable{
+      color: teal;
+      cursor: pointer;
+    }
   }
 }

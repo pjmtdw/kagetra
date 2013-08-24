@@ -15,15 +15,14 @@
         #login-ranking
     %section
       %p.title(data-section-title)
+        %a(href="login_log#weekly") 今週
+      .content(data-section-content)
+        #login-weekly
+    %section
+      %p.title(data-section-title)
         %a(href="login_log#total") 履歴
       .content(data-section-content)
         #login-total
-    -# TODO
-    -# %section
-    -#   %p.title(data-section-title)
-    -#     %a(href="login_log#weekly") 今週
-    -#   .content(data-section-content)
-    -#     #login-weekly
 
 %script#templ-login-ranking(type='text/template')
   .row
@@ -42,12 +41,18 @@
           %td.count {{ x.rank }}
           %td.count {{ x.count }}
           %td {- names[x.user_id] -}
+          <% if(data.one_day){ %>
+          %td.count [{{data.one_day[x.user_id]||0}}]
+          <% } %>
         <% }) %>
         <% if(!found && data.myinfo){ %>
         %tr.myrank
           %td.count {{ data.myinfo.rank }}
           %td.count {{ data.myinfo.count }}
           %td {{ names[data.myinfo.user_id] }}
+          <% if(data.one_day){ %>
+          %td.count [{{data.one_day[data.myinfo.user_id]}}]
+          <% } %>
         <% } %>
 %script#templ-login-total(type='text/template')
   .row
@@ -79,4 +84,15 @@
 %script#templ-login-weekly(type='text/template')
   .row
     .large-12.columns
-      -# TODO
+      <% _.each(data.list,function(x){ %>
+      %div {{ x[0] }}
+      %table
+        <% _.each(x[1],function(y){ %>
+        %tr
+          %td
+            .right {{ y.hour }}時
+          %td
+            %span.left.bar.mylog(style='width:{{10*y.mylog}}px') &nbsp;
+            %span.left.bar.total(style='width:{{10*(y.total-y.mylog)}}px') &nbsp;
+        <% }) %>
+      <% }) %>

@@ -47,6 +47,7 @@ class User
         latest = UserLoginLatest.create(user:self)
       end
       now = DateTime.now
+      counted = false
       if is_first_login or (now - latest.updated_at)*1440 >= MIN_LOGIN_SPAN then
         monthly = self.login_monthlies.first_or_new(year_month:UserLoginMonthly.year_month(now.year,now.month))
         monthly.count += 1
@@ -55,10 +56,11 @@ class User
         latest.set_env(request)
         latest.touch
         latest.save
+        counted = true
       end
       self.change_token!
       self.save
-      log = self.login_logs.new
+      log = self.login_logs.new(counted: counted)
       log.set_env(request)
       log.save
 
@@ -93,7 +95,8 @@ class User
       end
     end
     r2 = (1440*(DateTime.now-last_count).to_f).to_i
-    [r1,r2]
+    r3 = (r2 >= MIN_LOGIN_SPAN)
+    [r1,r2,r3]
   end
 end
 
@@ -110,6 +113,7 @@ class UserLoginLog
   include ModelBase
   include UserEnv
   belongs_to :user
+  property :counted, Boolean, default:true # ログイン数としてカウントされたか
 end
 
 # ユーザが月に何回ログインしたか

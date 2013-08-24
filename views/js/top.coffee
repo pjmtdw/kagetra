@@ -202,6 +202,9 @@ define (require,exports,module) ->
     events:
       "click #event-comment-new a" : "show_event_comment"
       "click .link-detail a" : "show_event_detail"
+      "click .login-elapsed.countable" : "relogin"
+    relogin: ->
+      $.post("api/user/relogin").done(-> location.reload())
     show_event_comment: (ev)->
       id = _.last($(ev.currentTarget).attr("href").split("/"))
       $(".event-item[data-id='#{id}'] .show-comment").trigger("click")

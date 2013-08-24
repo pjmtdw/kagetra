@@ -2,7 +2,7 @@ define (require,exports,module) ->
   LoginWeeklyModel = Backbone.Model.extend
     url: "api/login_log/weekly"
   LoginWeeklyView = Backbone.View.extend
-    template: _.template($("#templ-login-weekly").html())
+    template: _.template_braces($("#templ-login-weekly").html())
     initialize: ->
       @model = new LoginWeeklyModel()
       @listenTo(@model,"sync",@render)
@@ -30,10 +30,11 @@ define (require,exports,module) ->
       @listenTo(@model,"sync",@render)
       @model.fetch()
     render: ->
-      h_cur = @template_table(title:"今月",data:@model.get("cur"),names:@model.get("names"))
+      h_cur = @template_table(title:"今月",data:_.extend(@model.get("cur"),@model.pick("one_day")),names:@model.get("names"))
       h_prev = @template_table(title:"先月",data:@model.get("prev"),names:@model.get("names"))
+      h_total = @template_table(title:"総計",data:@model.get("total"),names:@model.get("names"))
       @$el.html($("#templ-login-ranking").html())
-      @$el.find(".body").html(h_cur + h_prev)
+      @$el.find(".body").html(h_cur + h_prev + h_total)
       @$el.appendTo("#login-ranking")
 
   switch_view = (ev)->

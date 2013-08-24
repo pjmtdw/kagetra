@@ -100,7 +100,7 @@
     最終ログイン:
     %span.last-login {{ data.last_login[0] }}
     <% if(data.last_login[1] >= 5){ %>
-    %span.login-elapsed ( +{{data.last_login[1]}}分 )
+    %span.login-elapsed(class='{{data.last_login[2]?"countable":""}}') ( +{{data.last_login[1]}}分 )
     <% } %>
     , 今月ログイン:
     %span.log-mon {{ data.log_mon }}

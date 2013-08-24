@@ -31,7 +31,7 @@ class MainApp < Sinatra::Base
     return if @public_mode
     path = request.path_info
     # 以下のURLはログインしなくてもアクセスできる
-    return if ["/public/","/api/user/auth/","/js/","/img/","/css/"].any?{|s|path.start_with?(s)} or ["/","/robots.txt","/relogin","/mobile/"].include?(path)
+    return if ["/public/","/api/user/auth/","/js/","/img/","/css/"].any?{|s|path.start_with?(s)} or ["/","/robots.txt","/select_other_uid","/mobile/"].include?(path)
     @user = get_user
     if @user.nil? then
       if path.start_with?("/api/") then
@@ -92,7 +92,7 @@ class MainApp < Sinatra::Base
     @daily_photo = if dph then dph.value end
     haml :top
   end
-  get '/relogin' do
+  get '/select_other_uid' do
     delete_permanent("uid")
     redirect '/'
   end

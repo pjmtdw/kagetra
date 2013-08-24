@@ -12,3 +12,15 @@
     border-bottom: 1px solid silver;
   }
 }
+
+#login-weekly{
+  .bar{
+    margin:0;padding:0;display:inline-block;
+    &.mylog{
+      background: #F60;
+    }
+    &.total{
+      background: teal;
+    }
+  }
+}

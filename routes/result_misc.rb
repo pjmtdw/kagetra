@@ -51,7 +51,7 @@ class MainApp < Sinatra::Base
         name = @user.name
       end
 
-      # raw query 使わないと1秒近くかかる
+      # raw query 使わないと遅い
       cusers_all = repository(:default).adapter.select("SELECT id FROM contest_users WHERE name = '#{name}'")
       games_my = if cusers_all.empty? then [] else repository(:default).adapter.select("SELECT id,event_id FROM contest_games WHERE contest_user_id IN (#{cusers_all.join(',')})") end
 

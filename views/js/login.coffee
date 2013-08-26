@@ -29,6 +29,9 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
       $("#shared-pass input[type=password]").focus()
 
     on_shared_pass_submit: _.wrap_submit ->
+      return if @submitting
+      @submitting = true
+      that = this
       elem = $("#shared-pass input[type=password]")
       password = elem.val()
       [hash,msg] = _.hmac_password(password ,g_shared_salt)
@@ -43,6 +46,10 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
           alert("パスワードが違います")
           elem.val("")
           elem.focus()
+        that.submitting = false
+      .fail ->
+        that.submitting = false
+        alert('サーバエラー')
 
   LoginView = Backbone.View.extend
     el: "#container-login"
@@ -61,6 +68,9 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
       $("#login input[type=password]").focus()
 
     on_login_submit: _.wrap_submit ->
+      return if @submitting
+      @submitting = true
+      that = this
       user_id =
         if @options.single_mode
           $("#login-uid").val()
@@ -76,13 +86,18 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
           user_id: user_id
           hash: hash
           msg: msg
-      $.when(first()).then(second).done (data) ->
+      $.when(first()).then(second)
+      .done (data) ->
         if data.result == "OK"
           window.location.href = "/top"
         else
           alert("パスワードが違います")
           elem.val("")
           elem.focus()
+        that.submitting = false
+      .fail ->
+        that.submitting = false
+        alert('サーバエラー')
   init: ->
     if $("#templ-user-name").length == 0
       window.shared_passwd_view = new SharedPasswdView()

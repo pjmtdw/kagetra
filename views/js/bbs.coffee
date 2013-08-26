@@ -2,14 +2,14 @@ define (require,exports,module) ->
   $co = require("comment")
   BbsRouter = Backbone.Router.extend
     routes:
-      "page/:id": "page"
+      "page/:id(/newly/:thread)": "page"
       "": "start"
     initialize: ->
       _.bindAll(this,"start")
     start: ->
       window.bbs_page = 0 # force relading page
       @navigate("page/1", {trigger: true, replace: true})
-    page: (page) ->
+    page: (page,thread) ->
       page = parseInt(page)
       if window.bbs_page != page
         window.bbs_page = page
@@ -17,7 +17,11 @@ define (require,exports,module) ->
         qs = $("#query-string").val()
         data = {page: page}
         data.qs = qs if qs
-        window.bbs_view.refresh(data)
+        window.bbs_view.refresh(data).done(->
+          if thread
+            $(".thread[data-thread-id='#{thread}']").find(".is-new").first().scrollHere(-1,magellan_offset())
+        )
+        
 
   BbsItemModel = Backbone.Model.extend
     urlRoot: "api/bbs/item"
@@ -54,7 +58,7 @@ define (require,exports,module) ->
       m = new BbsItemModel(thread_id: @model.get("id"))
       @response_common(m).done(@options.refresh_all)
     render: ->
-      @$el.html(@template(data:@model.pick("title","public","has_new_comment")))
+      @$el.html(@template(data:@model.pick("id","title","public","has_new_comment")))
       for item in @model.get("items")
         m = new BbsItemModel(item)
         v = new $co.CommentItemView(model: m)
@@ -72,8 +76,15 @@ define (require,exports,module) ->
       @collection = new BbsThreadCollection()
       _.bindAll(this,"render")
     refresh: (data) ->
+      d = $.Deferred()
+      that = this
       @collection.reset([])
-      @collection.fetch(data:data).done(@render)
+      @collection.fetch(data:data)
+        .done(->
+          that.render()
+          d.resolve()
+        )
+      d.promise()
     render: ->
       @$el.empty()
       $("#bbs-nav").empty()

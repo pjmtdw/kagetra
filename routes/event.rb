@@ -46,7 +46,7 @@ class MainApp < Sinatra::Base
         r[:deadline_alert] = true
       end
       r[:choices] = ev.choices(order:[:index.asc]).map{|x|x.select_attr(:positive,:name,:id)}
-      r[:editable] = @user.admin || ev.owners.include?(@user.id)
+      r[:editable] = @user.admin || ev.owners.include?(@user.id) || (ev.done and ev.kind == :contest and @user.permission.include?(:sub_admin))
       r[:choice] = if opts.has_key?(:user_choices) then opts[:user_choices][ev.id]
                    else
                      t = user.event_user_choices.event_choices.first(event:ev)

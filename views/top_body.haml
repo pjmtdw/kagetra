@@ -106,17 +106,17 @@
     %span.log-mon {{ data.log_mon }}
 
   #event-new.link-detail
-    {{ _.show_news(data.new_events,"name","新規大会行事追加%%件","top#event-detail/%%")  }}
+    {{ _.show_news(data.new_events,"name","新規大会行事追加%%件","top#event-detail/%id%")  }}
   #bbs-new
-    {{ _.show_news(data.bbs,"title","掲示板に新着%%件","bbs")  }}
+    {{ _.show_news(data.bbs,"title","掲示板に新着%%件","bbs#page/%page%/newly/%id%")  }}
   #event-comment-new
-    {{ _.show_news(data.event_comment,"name","大会行事コメントに新着%%件","top#event-comment/%%")  }}
+    {{ _.show_news(data.event_comment,"name","大会行事コメントに新着%%件","top#event-comment/%id%")  }}
   #result-comment-new
-    {{ _.show_news(data.result_comment,"name","大会結果コメントに新着%%件","result#contest/%%")  }}
+    {{ _.show_news(data.result_comment,"name","大会結果コメントに新着%%件","result#contest/%id%")  }}
   #ev-done-comment
     {{ _.show_news(data.ev_done_comment,"name","過去行事コメントに新着%%件","schedule#ev_done")  }}
   #wiki-comment-new
-    {{ _.show_news(data.wiki,"title","Wikiコメントに新着%%件","wiki#page/%%")  }}
+    {{ _.show_news(data.wiki,"title","Wikiコメントに新着%%件","wiki#page/%id%")  }}
   #event-participant-new.link-detail
     <% if(!_.isEmpty(data.participants)){ %>
     大会行事の新規登録者:

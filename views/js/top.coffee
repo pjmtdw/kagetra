@@ -9,7 +9,7 @@ define (require,exports,module) ->
       buf += ": "
       rs = []
       for x in arr[0..10]
-        hr = href.replace("%%",x.id)
+        hr = href.replace("%id%",x.id).replace("%page%",x.page)
         rs.push("<a href='#{hr}'>#{x[attr]}</a>")
       buf += rs.join(" / ")
       buf
@@ -204,7 +204,7 @@ define (require,exports,module) ->
       "click .link-detail a" : "show_event_detail"
       "click .login-elapsed.countable" : "relogin"
     relogin: ->
-      $.post("api/user/relogin").done(-> location.reload())
+      $.post("api/user/relogin").done(-> location.reload(false))
     show_event_comment: (ev)->
       id = _.last($(ev.currentTarget).attr("href").split("/"))
       $(".event-item[data-id='#{id}'] .show-comment").trigger("click")

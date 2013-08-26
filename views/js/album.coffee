@@ -260,21 +260,26 @@ define (require,exports,module)->
         img.removeClass("rotate-#{rot}")
         @add_rotate[id] = (rot + 90)%360
         img.addClass("rotate-#{@add_rotate[id]}")
-    remove_filter: ->
+    remove_owner_filter: ->
       $("#album-info-table .owners").removeClass("selected")
       $("#album-info-table .owners").removeClass("unselected")
       @filter = null
 
-    show_all: ->
+    remove_tag_filter: ->
       @$el.find(".tag-selected").removeClass("tag-selected")
+      flag_changed = false
       for x in @model.get("items")
-        x.hide = false
-      @render_items()
+        if x.hide
+          x.hide = false
+          flag_changed = true
+      if flag_changed
+        @render_items()
     filter_owners: (ev)->
       return if @edit_mode
       obj = $(ev.currentTarget)
+      @remove_tag_filter()
       if obj.hasClass("selected")
-        @remove_filter()
+        @remove_owner_filter()
       else
         $("#album-info-table .owners").removeClass("selected")
         $("#album-info-table .owners").addClass("unselected")
@@ -288,7 +293,7 @@ define (require,exports,module)->
       return if @edit_mode
       obj = $(ev.currentTarget)
       if obj.hasClass("tag-selected")
-        @show_all()
+        @remove_tag_filter()
       else
         @$el.find(".tag-selected").removeClass("tag-selected")
         obj.addClass("tag-selected")
@@ -297,8 +302,8 @@ define (require,exports,module)->
           x.hide = not (x.id in visibles)
         @render_items()
     start_edit: ->
-      @remove_filter()
-      @show_all()
+      @remove_owner_filter()
+      @remove_tag_filter()
       $("#album-tags").hide()
       $("#album-info").html(@template_info_form(
         is_group:true

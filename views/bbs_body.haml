@@ -47,7 +47,7 @@
   <% }) %>
 
 %script#templ-bbs-thread(type='text/template')
-  .thread(class='{-data.public?"public":"private"-}')
+  .thread(class='{-data.public?"public":"private"-}' data-thread-id='{{data.id}}')
     .clearfix.thread-header
       .left
         %span.goto-bottom &sect;

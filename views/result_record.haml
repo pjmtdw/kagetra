@@ -27,51 +27,81 @@
           %a 直近
         %dd.choice(data-span='full')
           %a 全期間
-      %table#record-summary
-        %thead
-          %tr
-            %th 年
-            %th 大会
-            %th 勝
-            %th 敗
-            %th 勝率
-            %th(title='ポイント') pt
-            %th(title='会内ポイント') kpt
-            %th 入賞歴
-        %tbody
-          <% sum = {count:0,win:0,lose:0,point:0,point_local:0} %>
-          <% prize_count = 0 %>
-          <% _.each(data.aggr,function(x){ %>
-          <% _.each(["count","win","lose","point","point_local"],function(z){sum[z]+=x[z]}) %>
-          %tr
-            %td {{x.year}}
-            %td.value {{x.count}}
-            %td.value {{x.win}}
-            %td.value {{x.lose}}
-            %td.value {{x.win_percent+"%" }}
-            %td.value {{x.point}}
-            %td.value {{x.point_local}}
-            %td
-              <% prize_count += x.prize_contests.length %>
-              <% _.each(x.prize_contests,function(e){ %>
-              <% pr = data.prizes[e] %>
-              <% dt=new Date(data.events[e].date);md=(dt.getMonth()+1)+"月"+(dt.getDate())+"日" %>
-              %div
-                {{ md }}
-                %a(href='result#contest/{{e}}') {- data.events[e].name -}
-                %span(class='{{pr.promotion}}') {- data.class_info[e].class_name + " " + _.show_prize(pr) -}
-              <% }) %>
-          <% }) %>
-          %tr.sum
-            %td 合計
-            %td.value {{sum.count}}
-            %td.value {{sum.win}}
-            %td.value {{sum.lose}}
-            <% ave_win_percent = 100*((sum.win+sum.lose)==0?0:sum.win/(sum.win+sum.lose)) %>
-            %td.value {{ave_win_percent.toFixed(1)+"%" }}
-            %td.value {{sum.point}}
-            %td.value {{sum.point_local}}
-            %td 入賞: {{prize_count}} 回
+      #record-summary
+
+%script#templ-record-summary-small(type='text/template')
+  <% tmpl = _.template_braces($('#templ-record-sumary-yearly-prize').html()) %>
+  %table#record-summary-small
+    %tr
+      %td 計:
+      %td.value {{data.sum.count}}大会
+      %td.value {{data.sum.win}}勝
+      %td.value {{data.sum.lose}}敗
+      %td.value ({{data.sum.win_percent }})
+      %td.value [{{data.sum.point}}pt]
+      %td.value [{{data.sum.point_local}}kpt]
+    <% _.each(data.aggr,function(x){ %>
+    %tr.small-year
+      %td {{x.year}}年
+      %td.value {{x.count}}大会
+      %td.value {{x.win}}勝
+      %td.value {{x.lose}}敗
+      %td.value ({{x.win_percent+"%" }})
+      %td.value [{{x.point}}pt]
+      %td.value [{{x.point_local}}kpt]
+    <% if(!_.isEmpty(x.prize_contests)){ %>
+    %tr.small-prize
+      %td(colspan='7')
+        {{tmpl({data:data,x:x})}}
+    <% } %>
+    <% }) %>
+
+%script#templ-record-summary-large(type='text/template')
+  <% tmpl = _.template_braces($('#templ-record-sumary-yearly-prize').html()) %>
+  %table
+    %thead
+      %tr
+        %th 年
+        %th 大会
+        %th 勝
+        %th 敗
+        %th 勝率
+        %th(title='ポイント') pt
+        %th(title='会内ポイント') kpt
+        %th 入賞歴
+    %tbody
+      %tr.sum
+        %td 合計
+        %td.value {{data.sum.count}}
+        %td.value {{data.sum.win}}
+        %td.value {{data.sum.lose}}
+        %td.value {{data.sum.win_percent }}
+        %td.value {{data.sum.point}}
+        %td.value {{data.sum.point_local}}
+        %td 入賞: {{data.sum.prize_count}} 回
+      <% _.each(data.aggr,function(x){ %>
+      %tr
+        %td {{x.year}}
+        %td.value {{x.count}}
+        %td.value {{x.win}}
+        %td.value {{x.lose}}
+        %td.value {{x.win_percent+"%" }}
+        %td.value {{x.point}}
+        %td.value {{x.point_local}}
+        %td
+          {{tmpl({data:data,x:x})}}
+      <% }) %>
+
+%script#templ-record-sumary-yearly-prize(type='text/template')
+  <% _.each(x.prize_contests,function(e){ %>
+  <% pr = data.prizes[e] %>
+  <% dt=new Date(data.events[e].date);md=(dt.getMonth()+1)+"月"+(dt.getDate())+"日" %>
+  %div
+    {{ md }}
+    %a(href='result#contest/{{e}}') {- data.events[e].name -}
+    %span(class='{{pr.promotion}}') {- data.class_info[e].class_name + " " + _.show_prize(pr) -}
+  <% }) %>
+
 
 %script#templ-record-detail(type='text/template')
   .row

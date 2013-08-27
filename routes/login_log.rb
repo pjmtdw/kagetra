@@ -75,6 +75,7 @@ class MainApp < Sinatra::Base
         res[:total] = tot
         res[:mylog] = mylog
       end
+      total_max = res[:total].values.max
       cur = Time.now
       dates = Hash.new{[]}
       while cur >= weekago
@@ -82,7 +83,7 @@ class MainApp < Sinatra::Base
         dates[cur.strftime("%m月%d日 (#{G_WEEKDAY_JA[cur.wday]})")] <<= {hour:cur.hour,total:res[:total][s]||0,mylog:res[:mylog][s]||0}
         cur -= 3600
       end
-      {list:dates.to_a}
+      {list:dates.to_a,total_max:total_max}
     end
     get '/total' do
       (fromy,fromm) = Kagetra::Utils.inc_month(Date.today.year,Date.today.month,-48)

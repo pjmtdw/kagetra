@@ -14,6 +14,13 @@
 }
 
 #login-weekly{
+  $total-max: purple;
+  .hour{
+    white-space: nowrap;
+  }
+  .bars{
+    white-space: nowrap;
+  }
   .bar{
     margin:0;padding:0;display:inline-block;
     &.mylog{
@@ -22,5 +29,11 @@
     &.total{
       background: teal;
     }
+    &.total-max{
+      background: $total-max;
+    }
+  }
+  .total-max-sample{
+    color: $total-max;
   }
 }

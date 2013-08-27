@@ -84,15 +84,19 @@
 %script#templ-login-weekly(type='text/template')
   .row
     .large-12.columns
+      %span.total-max-sample この色
+      はログイン数が{{data.total_max}}です
+      -# TODO: any way to get remaining width for bars ?
+      <% unit = _.max([window.is_small?($(document).width()-70)/data.total_max:10,1]) %>
       <% _.each(data.list,function(x){ %>
       %div {{ x[0] }}
       %table
         <% _.each(x[1],function(y){ %>
         %tr
-          %td
+          %td.hour
             .right {{ y.hour }}時
-          %td
-            %span.left.bar.mylog(style='width:{{10*y.mylog}}px') &nbsp;
-            %span.left.bar.total(style='width:{{10*(y.total-y.mylog)}}px') &nbsp;
+          %td.bars
+            %span.bar.mylog(style='width:{{unit*y.mylog}}px')> &nbsp;
+            %span.bar.total(style='width:{{unit*(y.total-y.mylog)}}px' class='{{(y.total==data.total_max)?"total-max":""}}')> &nbsp;
         <% }) %>
       <% }) %>

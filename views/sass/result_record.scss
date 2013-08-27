@@ -41,6 +41,20 @@
     font-weight: bold;
   }
 }
+#record-summary-small{
+  border: 1px solid black;
+  tbody tr{
+    background-color: white;
+    border-top: none;
+    border-bottom: none;
+    &.small-year{
+      border-top: 1px solid black;
+    }
+    &.small-prize{
+      border-top: 1px dotted silver;
+    }
+  }
+}
 #contest-span{
   margin-top: 6px;
   margin-bottom: 0;

@@ -28,6 +28,8 @@ define (require,exports,module) ->
   ResultRecordView = Backbone.View.extend
     template: _.template_braces($("#templ-record").html())
     template_result: _.template_braces($("#templ-record-result").html())
+    template_record_summary_large: _.template_braces($("#templ-record-summary-large").html())
+    template_record_summary_small: _.template_braces($("#templ-record-summary-small").html())
     template_detail: _.template_braces($("#templ-record-detail").html())
     events:
       "click .page" : "goto_page"
@@ -47,7 +49,16 @@ define (require,exports,module) ->
       @$el.appendTo("#result-record")
     render_result: (data:data) ->
       if not @aggr_loaded
+        data.sum = {count:0,win:0,lose:0,point:0,point_local:0,prize_count:0}
+        for x in data.aggr
+          for z in ["count","win","lose","point","point_local"]
+            data.sum[z] += x[z]
+          data.sum.prize_count += x.prize_contests.length
+        data.sum.win_percent = if data.sum.win  + data.sum.lose == 0 then "0.0%" else ((100*data.sum.win)/(data.sum.win+data.sum.lose)).toFixed(1)+"%"
+
         $("#record-result").html(@template_result(data:data))
+        tmpl = if window.is_small then @template_record_summary_small else @template_record_summary_large
+        $("#record-summary").html(tmpl(data:data))
         $("#contest-span .choice[data-span='#{data.span}']").addClass("active")
       @aggr_loaded = true
       $("#record-detail").html(@template_detail(data:data))

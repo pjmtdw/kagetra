@@ -39,14 +39,18 @@ class MainApp < Sinatra::Base
 
     def event_info(ev,user,opts = {})
       today = Date.today
+      is_owner = ev.owners.include?(@user.id) 
       r = ev.select_attr(:place,:name,:date,:kind,:official,:deadline,:created_at,:id,:participant_count,:comment_count,:team_size,:event_group_id,:public,:last_comment_date)
       r[:has_new_comment] = ev.has_new_comment(user)
       r[:deadline_day] = (r[:deadline]-today).to_i if r[:deadline]
       if r[:deadline_day] and r[:deadline_day].between?(0,G_DEADLINE_ALERT) then
         r[:deadline_alert] = true
       end
+      if is_owner and r[:deadline_day] and r[:deadline_day] < 0 and not ev.register_done then
+        r[:deadline_after] = true
+      end
       r[:choices] = ev.choices(order:[:index.asc]).map{|x|x.select_attr(:positive,:name,:id)}
-      r[:editable] = @user.admin || ev.owners.include?(@user.id) || (ev.done and ev.kind == :contest and @user.permission.include?(:sub_admin))
+      r[:editable] = @user.admin || is_owner || (ev.done and ev.kind == :contest and @user.permission.include?(:sub_admin))
       r[:choice] = if opts.has_key?(:user_choices) then opts[:user_choices][ev.id]
                    else
                      t = user.event_user_choices.event_choices.first(event:ev)
@@ -62,7 +66,7 @@ class MainApp < Sinatra::Base
           r[:all_attrs] = get_all_attrs
           r[:owners_str] = ev.owners.map{|u|User.get(u).name}.join(" , ")
           r[:all_event_groups] = get_all_event_groups
-          r.merge!(ev.select_attr(:forbidden_attrs,:hide_choice,:aggregate_attr_id))
+          r.merge!(ev.select_attr(:forbidden_attrs,:hide_choice,:register_done,:aggregate_attr_id))
         end
       end
       r

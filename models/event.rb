@@ -17,6 +17,7 @@ class Event
   property :place, TrimString, length: 255, lazy: true # 場所
   property :done, Boolean, default: false, index:true # 終わった大会/行事
   property :public, Boolean, default: true, index: true # 公開されているか
+  property :register_done, Boolean, default: false # 登録者確認済(締切を過ぎてからN日経過のメッセージを表示しない)
 
   # 以下のparticipant_count と contest_user_count は違うもの．前者は事前登録の数，後者は大会に出場した人の数
   property :participant_count, Integer, default: 0 # 参加者数 (毎回aggregateするのは遅いのでキャッシュ)

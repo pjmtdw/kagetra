@@ -304,6 +304,14 @@ define (require, exports, module) ->
   $.fn.serializeObj = ->
     o = {}
     a = this.serializeArray()
+
+    # multipleのselectで一つもチェックされてないものは
+    # serializeArrayに出てこないので自分で集めてくる
+    this.find("select[multiple]").each(->
+      o[this.name] = []
+      true
+    )
+
     $.each a, ->
       if o[this.name]?
         if !o[this.name].push

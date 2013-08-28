@@ -32,7 +32,8 @@ class AlbumGroup
     dc = self.items(daily_choose:true).count
     hc = self.items(:comment.not => nil).count
     ic = self.items.count
-    self.update!(daily_choose_count:dc,has_comment_count:hc,item_count:ic)
+    tc = self.items(:tag_count.gt => 0).count
+    self.update!(daily_choose_count:dc,has_comment_count:hc,item_count:ic,has_tag_count:tc)
   end
 end
 
@@ -100,13 +101,10 @@ class AlbumItem
   def do_after_tag_updated
     tag_names = self.tags.map{|x|x.name}.to_json
     self.update!(tag_count:self.tags.count,tag_names:tag_names)
-    ag = self.group
-    tc = ag.items(:tag_count.gt => 0).count
-    ag.update!(has_tag_count:tc)
+    self.group.update_count
   end
   after :save do
-    ag = self.group
-    ag.update_count
+    self.group.update_count
   end
 
   # 順方向と逆方向の両方の関連写真

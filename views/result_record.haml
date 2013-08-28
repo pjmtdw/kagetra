@@ -32,29 +32,31 @@
 %script#templ-record-summary-small(type='text/template')
   <% tmpl = _.template_braces($('#templ-record-sumary-yearly-prize').html()) %>
   %table#record-summary-small
-    %tr
-      %td 計:
-      %td.value {{data.sum.count}}大会
-      %td.value {{data.sum.win}}勝
-      %td.value {{data.sum.lose}}敗
-      %td.value ({{data.sum.win_percent }})
-      %td.value [{{data.sum.point}}pt]
-      %td.value [{{data.sum.point_local}}kpt]
-    <% _.each(data.aggr,function(x){ %>
-    %tr.small-year
-      %td {{x.year}}年
-      %td.value {{x.count}}大会
-      %td.value {{x.win}}勝
-      %td.value {{x.lose}}敗
-      %td.value ({{x.win_percent+"%" }})
-      %td.value [{{x.point}}pt]
-      %td.value [{{x.point_local}}kpt]
-    <% if(!_.isEmpty(x.prize_contests)){ %>
-    %tr.small-prize
-      %td(colspan='7')
-        {{tmpl({data:data,x:x})}}
-    <% } %>
-    <% }) %>
+    %thead
+      %tr
+        %th 計:
+        %th.value {{data.sum.count}}大会
+        %th.value {{data.sum.win}}勝
+        %th.value {{data.sum.lose}}敗
+        %th.value ({{data.sum.win_percent }})
+        %th.value [{{data.sum.point}}pt]
+        %th.value [{{data.sum.point_local}}kpt]
+    %tbody
+      <% _.each(data.aggr,function(x){ %>
+      %tr.small-year
+        %td {{x.year}}年
+        %td.value {{x.count}}大会
+        %td.value {{x.win}}勝
+        %td.value {{x.lose}}敗
+        %td.value ({{x.win_percent+"%" }})
+        %td.value [{{x.point}}pt]
+        %td.value [{{x.point_local}}kpt]
+      <% if(!_.isEmpty(x.prize_contests)){ %>
+      %tr.small-prize
+        %td(colspan='7')
+          {{tmpl({data:data,x:x})}}
+      <% } %>
+      <% }) %>
 
 %script#templ-record-summary-large(type='text/template')
   <% tmpl = _.template_braces($('#templ-record-sumary-yearly-prize').html()) %>

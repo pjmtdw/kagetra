@@ -12,7 +12,12 @@
   .row
     .large-6.columns
       .panel.deadline-message.hide
-        .header 締切が迫っています
+        .deadline-before.hide
+          .header 締切が迫っています
+          .body
+        .deadline-after.hide
+          .header 締切を過ぎました
+          .body
     <% if(g_daily_photo_str){ %>
     .large-6.columns
       %div.right.daily-album-photo
@@ -49,6 +54,18 @@
     .large-3.columns
       .deadline
         <%= data.deadline_str %>
+    .large-5.columns
+      .event-choice
+
+%script#templ-event-after(type='text/template')
+  .row.collapse.event-item
+    .large-4.columns
+      %a.show-detail
+        <%- data.name %>
+    .large-3.columns
+      .deadline
+        %span.deadline-after <%= -data.deadline_day %>
+        日経過
     .large-5.columns
       .event-choice
 

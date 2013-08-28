@@ -34,6 +34,7 @@ class MainApp < Sinatra::Base
     get '/group/:gid' do
       item_fields = [:id,:tag_count,:comment,:tag_names]
       group = AlbumGroup.get(params[:gid].to_i)
+      halt 404 if group.nil?
       r = group.select_attr(:name,:year,:place,:comment,:start_at,:end_at)
       tags = Hash.new{[]}
       owners = Hash.new{[]}
@@ -91,6 +92,7 @@ class MainApp < Sinatra::Base
     end
     get '/item/:id' do
       item = AlbumItem.get(params[:id].to_i)
+      halt 404 if item.nil?
       r = item.select_attr(:id,:rotate,:name,:place,:date,:comment,:daily_choose,:comment_revision)
       r[:owner_name] = if item.owner.nil? then "" else item.owner.name end
       photo = item.photo
@@ -282,10 +284,20 @@ class MainApp < Sinatra::Base
       {results:results}
     end
     post '/move_group' do
-      index = AlbumGroup.get(@json["group_id"].to_i).items.aggregate(fields:[:group_index.max]) || -1
-      AlbumItem.all(id:@json["item_ids"],order:[:group_index.asc]).each{|item|
-        index += 1
-        item.update(group_id:@json["group_id"].to_i, group_index:index)
+      AlbumItem.transaction{
+        to_group = AlbumGroup.get(@json["group_id"].to_i)
+        index = to_group.items.aggregate(fields:[:group_index.max]) || -1
+        from_groups = {}
+        AlbumItem.all(id:@json["item_ids"],order:[:group_index.asc]).each{|item|
+          next if item.group_id == to_group.id
+          from_groups[item.group_id] = true
+          index += 1
+          item.update(group_id:to_group.id, group_index:index)
+        }
+        to_group.update_count
+        AlbumGroup.all(id:from_groups.keys).each{|x|
+          x.update_count
+        }
       }
     end
     post '/update_attrs' do

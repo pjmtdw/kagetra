@@ -117,6 +117,11 @@ module MiscHelpers
     }
   end
 
+
+  def invalidate_expired_token
+    User.all(:token_expire.lt => DateTime.now).update(token:nil,token_expire:nil)
+  end
+
   # 古いログイン履歴を削除
   def clean_login_log
     day_from = Date.today - G_LOGIN_LOG_DAYS
@@ -134,6 +139,7 @@ module MiscHelpers
         choose_daily_album_photo
         clean_login_log
         update_event_done_flag
+        invalidate_expired_token
 
         MyConf.update_or_create({name:DAILY_JOB_KEY},{value:{date:today}})
       }

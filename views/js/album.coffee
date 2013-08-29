@@ -1,4 +1,5 @@
 define (require,exports,module)->
+  $as = require('album_search')
   _.mixin
     show_date: (data)->
       if data.date?
@@ -54,7 +55,13 @@ define (require,exports,module)->
         page = 1
       if not window.album_search_view?
         @remove_all()
-        window.album_search_view = new AlbumSearchView(init_qs:qs)
+        window.album_search_view = new $as.AlbumSearchView(
+          init_qs:qs
+          do_when_research: (qs,page) ->
+            window.album_router.navigate("search/#{encodeURIComponent(qs)}/#{page}", trigger:true)
+          do_after_search: ->
+            scroll_to_item((id)->"#album-search .gbase[data-id='#{id}']")
+        )
       if qs
         window.album_search_view.search(qs,page)
 
@@ -400,7 +407,7 @@ define (require,exports,module)->
           alert("関連写真に追加しました")
           that.render_relations(true)
         )
-      v = new AlbumSearchView(
+      v = new $as.AlbumSearchView(
         target:target
         do_when_click:do_when_click
         top_message:"検索してから写真クリックで関連写真追加できます．"
@@ -548,46 +555,6 @@ define (require,exports,module)->
       @$el.appendTo("#album-item")
       @render_relations(false)
 
-  AlbumSearchView = Backbone.View.extend
-    template: _.template_braces($("#templ-album-search").html())
-    template_result: _.template_braces($("#templ-album-search-result").html())
-    events:
-      "submit .search-form" : "do_submit"
-      "click .page" : "goto_page"
-    initialize: ->
-      @render()
-    render: ->
-      @$el.html(@template())
-      @$el.find(".search-form input[name='qs']").val(@options.init_qs)
-      if @options.top_message?
-        @$el.find(".top-message").text(@options.top_message)
-      if @options.target? # Foundation の Reveal 上での表示
-        @$el.appendTo(@options.target)
-      else
-        @$el.appendTo("#album-search")
-    research: (page)->
-      qs = @$el.find(".search-form input[name='qs']").val()
-      if @options.target?
-        @search(qs,page)
-      else
-        window.album_router.navigate("search/#{encodeURIComponent(qs)}/#{page}", trigger:true)
-    goto_page: (ev)->
-      obj = $(ev.currentTarget)
-      @research(obj.data("page"))
-    do_submit: _.wrap_submit ->
-      @research(1)
-    search: (qs,page)->
-      that = this
-      $.post("api/album/search",{qs:qs,page:page}).done((data)->
-        that.data = data
-        that.$el.find(".search-result").html(that.template_result(data:data))
-        if not that.options.target? # Foundation の Reveal 上での表示ではない
-          scroll_to_item((id)->"#album-search .gbase[data-id='#{id}']")
-        if that.options.do_when_click
-          o = that.$el.find(".search-result .thumbnail a")
-          o.removeAttr("href")
-          o.click(that.options.do_when_click)
-      )
   AlbumUploadView = Backbone.View.extend
     template_form: _.template_braces($("#templ-album-info-form").html())
     template: _.template($("#templ-album-upload").html())

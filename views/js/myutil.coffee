@@ -230,8 +230,9 @@ define (require, exports, module) ->
 
       $("<option>",opts)[0].outerHTML
 
-    album_thumb: (x) ->
-      "<a href='album#item/#{x.id}' data-id='#{x.id}'>" +
+    album_thumb: (x,new_window) ->
+      target = if new_window then "target='_blank'" else ""
+      "<a #{target} href='album#item/#{x.id}' data-id='#{x.id}'>" +
         "<img src='/static/album/thumb/#{x.thumb.id}.#{x.rotate}' style='width:#{x.thumb.width}px;height:#{x.thumb.height}px' />" +
       "</a>"
 

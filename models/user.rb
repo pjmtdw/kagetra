@@ -8,6 +8,7 @@ class User
   property :password_hash, TrimString, length: 44, lazy: true
   property :password_salt, TrimString, length: 32, lazy: true
   property :token,         TrimString, length: 32, lazy: true # 認証用トークン
+  property :token_expire, DateTime # 認証用トークンの有効期限
   property :admin,          Boolean, default: false # 管理者
   property :loginable,      Boolean, default: true # ログインできるか
   property :permission, Flag[:sub_admin]
@@ -58,7 +59,9 @@ class User
         latest.save
         counted = true
       end
-      self.change_token!
+      if self.token_expire.nil? or DateTime.now > self.token_expire
+        self.change_token!
+      end
       self.save
       log = self.login_logs.new(counted: counted)
       log.set_env(request)
@@ -68,6 +71,7 @@ class User
   end
   def change_token!
     self.token = SecureRandom.base64(24)
+    self.token_expire = DateTime.now + (G_TOKEN_EXPIRE_HOURS/24.0)
   end
   # 今月のログイン数
   def log_mon_count

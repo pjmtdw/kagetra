@@ -22,6 +22,7 @@ def make_tasks
   }
 
   multitask :user => :zokusei
+  multitask :meibo => :album
 
   [:login_log,:meibo,:bbs,:schedule,:event,:endtaikai,:event_comment,:wiki,:album].each{|t|
     multitask t => :user
@@ -922,6 +923,32 @@ def import_meibo
     book = AddrBook.create(user:user, text: Kagetra::Utils.openssl_enc(res.to_json,CONF_MEIBO_PASSWD))
     book.update!(updated_at: updated_at)
   }
+  # 名簿写真のimport
+  doc = Nokogiri::HTML(open(CONF_MEIBO_HTML),nil,'utf-8')
+  doc.css('table').each{|x|
+    data = {}
+    x.css('tr').each{|y|
+      (k,v) = y.css('td')
+      data[k.text] = v
+    }
+    if data.keys.include?("*写真") then
+      name = data["名前"].text.gsub(' ','')
+      (num1,num2) = data["*写真"].css("input").attr("name").value.gsub('*','').split("==")[1].split('-')
+      al = CONF_HAGAKURE_BASE+"/album/albumlist_#{num1}.cgi"
+      lines = File.readlines(al)
+      dn = lines[0].strip.split(/\t/)[1]
+      buf = lines.find{|z|z.start_with?("#{num2}\t")}
+      buf.sjis!
+      fn = buf.split(/\t/)[1]
+      path =  "hagakure/#{dn}/#{fn}.jpg"
+      photo = AlbumPhoto.first(path:path)
+      user = search_user_name(name)
+      addr = AddrBook.first(user:user)
+      if photo.nil?.! and addr.nil?.! then
+        addr.update!(album_item_id:photo.album_item_id)
+      end
+    end
+  }
 end
 
 def import_album_stage1
@@ -1195,11 +1222,11 @@ end
 import_zokusei
 import_user
 import_login_log
-import_meibo
 import_bbs
 import_schedule
 import_wiki
 import_album
+import_meibo
 import_shurui
 import_event
 import_endtaikai

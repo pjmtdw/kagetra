@@ -5,8 +5,6 @@
 #album-search
 #album-all-log
 
-#container-album-relations.reveal-modal
-
 %script#templ-album-top(type='text/template')
   .row
     .large-8.columns
@@ -165,32 +163,6 @@
 %script#templ-album-tag(type='text/template')
   .album-tag(data-tag-id='{{tag.id}}')
     %span.album-tag-name {- tag.name -}
-
-%script#templ-album-search(type='text/template')
-  .row
-    .large-8.columns
-      .top-message
-        %a(href='album#') TOP
-    .large-4.columns
-      {{ $("#templ-album-search-form").html() }}
-  .search-result
-
-%script#templ-album-search-result(type='text/template')
-  .row
-    {{ data.count }} 件ヒット
-    .large-12.columns
-      = haml :pagination
-      <% _.each(data.list,function(x){ %>
-      .gbase.thumbnail(data-id='{{x.id}}') {{_.album_thumb(x)}}
-      <% }) %>
-
-%script#templ-album-search-form(type='text/template')
-  %form.search-form
-    .row.collapse
-      .large-10.small-10.columns
-        %input(name='qs' type='text' placeholder='検索文字列' title='例:「2006-2009 合宿」')
-      .large-2.small-2.columns
-        %input.button.small.postfix.radius(type='submit' value='検索')
 
 %script#templ-album-info(type='text/template')
   .row

@@ -52,6 +52,7 @@ CONF_MEIBO_PASSWD = "password_of_meibo"
 
 # MeiboDownloaderによって作られたCSV
 CONF_MEIBO_CSV = "/path/to/hagakure/meibo.csv"
+CONF_MEIBO_HTML = "/path/to/hagakure/meibo.html"
 
 # 結婚などで名前が変わった人一覧
 CONF_USERNAME_CHANGED = {

@@ -134,9 +134,6 @@ class MainApp < Sinatra::Base
     end
   end
   get '/user/logout' do
-    @user.change_token!
-    @user.save
-
     session.clear
     redirect '/'
   end

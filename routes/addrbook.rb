@@ -2,9 +2,19 @@
 # 名簿
 class MainApp < Sinatra::Base
   ADDRBOOK_RECENT_MAX =50
+  def make_addrbook_info(ab)
+    album_item = ab.album_item && ab.album_item.id_with_thumb
+    ab.select_attr(:text).merge({
+      album_item:album_item,
+      found:true,
+      uid: ab.user_id,
+      updated_date: ab.updated_at.strftime("%Y-%m-%d %H:%M")
+    })
+  end
   namespace '/api/addrbook' do
     post '/item/:uid' do
-      AddrBook.update_or_create({user_id:params[:uid]},{text:@json["text"]})
+      ab = AddrBook.update_or_create({user_id:params[:uid]},{text:@json["text"],album_item_id:@json["album_item_id"]})
+      make_addrbook_info(ab)
     end
     get '/item/:uid' do
       uid = params[:uid].to_i
@@ -21,11 +31,7 @@ class MainApp < Sinatra::Base
           }
         }
       else
-        ab.select_attr(:text).merge({
-          found:true,
-          uid:uid,
-          updated_date: ab.updated_at.strftime("%Y-%m-%d %H:%M")
-        })
+        make_addrbook_info(ab)
       end
       if @user.admin or @user.sub_admin or uid == @user.id then
         r[:editable] = true

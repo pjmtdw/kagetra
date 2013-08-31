@@ -229,7 +229,10 @@ define (require,exports,module)->
       false
     delete_event: ->
       if prompt("削除するにはdeleteと入れて下さい","") == "delete"
-        @model.destroy().done(-> alert("削除しました"))
+        @model.destroy().done(->
+          alert("削除しました")
+          $("#container-event-edit").foundation("reveal","close")
+        )
       false
     do_submit: ->
       obj = $("#event-edit-form").serializeObj()
@@ -301,7 +304,7 @@ define (require,exports,module)->
   show_event_edit = (model,opts={})->
       t = "#container-event-edit"
       v = new EventEditView(_.extend(opts,{target:t,model:model}))
-      _.reveal_view(t,v)
+      _.reveal_view(t,v,true)
       window.event_edit_view = v
   reveal_detail = (target, model_or_id) ->
     model =  if typeof model_or_id == "number"

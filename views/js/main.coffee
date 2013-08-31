@@ -6,15 +6,15 @@ requirejs.config
     zepto: "http://cdnjs.cloudflare.com/ajax/libs/zepto/1.0/zepto.min"
     backbone: "http://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.0.0/backbone-min"
     underscore: "http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min"
-    foundation: "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/foundation/foundation"
-    "foundation.topbar": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/foundation/foundation.topbar.min"
-    "foundation.reveal": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/foundation/foundation.reveal.min"
-    "foundation.dropdown": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/foundation/foundation.dropdown.min"
-    "foundation.section": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/foundation/foundation.section.min"
-    "foundation.alerts": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/foundation/foundation.alerts.min"
-    "foundation.magellan": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/foundation/foundation.magellan.min"
-    "foundation.tooltips": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/foundation/foundation.tooltips.min"
-    modernizr: "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.1.6/js/vendor/custom.modernizr.min"
+    foundation: "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.2.3/js/foundation/foundation"
+    "foundation.topbar": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.2.3/js/foundation/foundation.topbar.min"
+    "foundation.reveal": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.2.3/js/foundation/foundation.reveal.min"
+    "foundation.dropdown": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.2.3/js/foundation/foundation.dropdown.min"
+    "foundation.section": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.2.3/js/foundation/foundation.section.min"
+    "foundation.alerts": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.2.3/js/foundation/foundation.alerts.min"
+    "foundation.magellan": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.2.3/js/foundation/foundation.magellan.min"
+    "foundation.tooltips": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.2.3/js/foundation/foundation.tooltips.min"
+    modernizr: "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.2.3/js/vendor/custom.modernizr.min"
     json2: "http://cdnjs.cloudflare.com/ajax/libs/json2/20121008/json2"
     select2: "http://cdnjs.cloudflare.com/ajax/libs/select2/3.4.0/select2.min"
     crypto: "libs/CryptoJS/crypto"
@@ -68,8 +68,11 @@ require ["zep_or_jq","backbone","myutil","select2","jquery_placeholder"
     v.insertAfter("body")
     window.is_small = v.is(":visible")
     v.remove()
-
-    $(document).foundation()
+    # magellanは掲示板のみで使われ，そこで初期化するのでここではしなくてもいい．
+    # revealの背景をclickしたときの処理は自前で行う．
+    # という訳なので reveal を使うときは必ず myutil.coffee の _.reveal_view() を使うこと．
+    $(document).foundation('topbar dropdown section alerts tooltips')
+    .foundation('reveal',closeOnBackgroundClick:false)
   $(->
     hamls = $("body").data("haml")
     deferreds = []

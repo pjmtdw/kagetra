@@ -75,3 +75,10 @@ for Ubuntu ->
   $ bundle exec tux
 - If you get "Internal Server Error" when compiling CoffeeScript but cannot know the position of the error, try executing
   $ coffee -c views/js/hoobar.coffee
+
+[Howto Update Zurb Foundation Version]
+(1) replace "gem 'zurb-foundation', '<version>'" in 'Gemfile'
+(2) execute 'bundle update'
+(3) replace "/ajax/libs/foundation/<version>/" in 'views/js/main.coffee' 
+(4) replace "/gems/zurb-foundation-<version>" in 'deploy/compass_conf.rb'
+

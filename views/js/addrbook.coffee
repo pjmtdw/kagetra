@@ -64,6 +64,7 @@ define (require,exports,module)->
       "click .photo-change" : "photo_change"
       "click .photo-remove" : "photo_remove"
     photo_remove: _.wrap_submit ->
+      @$el.find(".album-photo").html("なし")
 
     photo_change: _.wrap_submit ->
       that = this
@@ -71,9 +72,9 @@ define (require,exports,module)->
       do_when_click = (ev) ->
         id = $(ev.currentTarget).data("id")
         $.get("api/album/thumb_info/#{id}").done((data)->
-          that.$el.find(".album-photo").html(_.album_thumb(data)
+          that.$el.find(".album-photo").html(_.album_thumb(data,true))
           $(target).foundation("reveal","close")
-          ))
+          )
       v = new $as.AlbumSearchView(
         target:target
         do_when_click:do_when_click

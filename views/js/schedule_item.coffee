@@ -152,6 +152,7 @@ define (require, exports, module) ->
           that.refresh_day()
       _.save_model_alert(@model,obj).done(when_done)
     toggle_edit: ->
+      $(locals.schedule_detail_target).removeClass("form-changed")
       if @model.isNew()
         @$el.remove()
       else
@@ -202,7 +203,6 @@ define (require, exports, module) ->
       else
       @collection.fetch().done(@render)
     render: ->
-
       [year,mon,day] = (@collection[x] for x in ["year","mon","day"])
       date = _.gen_date(year,mon,day)
       di = @collection.day_infos
@@ -230,7 +230,7 @@ define (require, exports, module) ->
     v = new ScheduleDetailView(parent_model:model)
     window.schedule_detail_view = v
     t = locals.schedule_detail_target
-    _.reveal_view(t,v)
+    _.reveal_view(t,v,true)
     v.refresh(year,mon,day)
   {
     ScheduleModel: ScheduleModel

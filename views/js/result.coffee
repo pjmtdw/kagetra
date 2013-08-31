@@ -181,7 +181,6 @@ define (require,exports,module) ->
         round_kind: @round_kind
         team_id: result.get("team_id")
       }
-    do_after_apply: ->
     initialize: ->
       round = @options.round
       cindex = @options.chunk_index
@@ -255,7 +254,7 @@ define (require,exports,module) ->
       options ||= {}
       target = "#container-result-edit"
       v = new klass(_.extend(options,{target:target,collection:@collection}))
-      _.reveal_view(target,v)
+      _.reveal_view(target,v,true)
     get_chunk_data: (ev)->
       obj = $(ev.currentTarget)
       round = obj.data("round")

@@ -210,7 +210,9 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
       if parseInt($("#selected-count").text()) == 0
         alert("編集対象をチェックして下さい")
       else
-        window.admin_edit_view.reveal()
+        target = "#admin-edit"
+        v = new AdminEditView(collection: @collection,target:target)
+        _.reveal_view(target,v)
     do_select_user: (ev)->
       obj = $(ev.currentTarget)
       uid = parseInt(obj.parent().data("uid"))
@@ -257,7 +259,6 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
       @$el.find(".attr-key-values").append(aview.$el)
 
   AdminEditView = Backbone.View.extend
-    el: "#admin-edit"
     events:
       "click #add-permission": (ev) -> @change_permission(ev,"add")
       "click #del-permission": (ev) -> @change_permission(ev,"del")
@@ -310,14 +311,13 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
         type: "POST").done( -> alert("更新完了"))
 
     template: _.template($("#templ-admin-edit").html())
+    initialize: -> @render()
     render: ->
       @$el.html(@template(data:@collection.toJSON()))
       view = new AdminAttrView(collection:@collection)
       view.render()
       @$el.find(".attr-key-values").append(view.$el)
-    reveal: ->
-      @$el.foundation("reveal","open")
-      @render()
+      @$el.appendTo(@options.target)
   AdminUserAddView = Backbone.View.extend
     template: _.template_braces($("#templ-admin-user-add").html())
     events:
@@ -342,4 +342,3 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
   init: ->
     collection = new AdminCollection()
     window.admin_view = new AdminView(collection: collection)
-    window.admin_edit_view = new AdminEditView(collection: collection)

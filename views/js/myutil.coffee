@@ -212,13 +212,29 @@ define (require, exports, module) ->
           console.log e.message
           console.trace?()
         return false
-    # ensure that view is removed when reveal is closed
-    reveal_view: (target,view) ->
-      $(target).one("closed", ->
+    # revealが閉じたときにviewがremoveされることを保証する
+    # ついでにrevealのcloseを途中でキャンセルする方法が見つからなかったため
+    # 背景をclickしたときの処理は自前で行なう
+    # TODO: 将来的にZurb Foundationがバージョンアップしたらその方法が用意されるかもしれない
+    reveal_view: (target,view,confirm_when_edited) ->
+      obj = $(target)
+      obj.one("closed", ->
+        $(".reveal-modal-bg").off('click')
         view.remove()
-        $(target).empty()
+        obj.empty()
+        obj.removeClass("form-changed")
       )
-      $(target).foundation("reveal","open")
+      # 
+      obj.one("opened", ->
+        $(".reveal-modal-bg").on('click',->
+          if obj.hasClass("form-changed") and not confirm("本当に変更を破棄して閉じますか？")
+            return
+          obj.foundation("reveal","close")
+        )
+      )
+      if confirm_when_edited
+        obj.one("change",":input",->obj.addClass("form-changed"))
+      obj.foundation("reveal","open")
 
     make_checkbox: (checked,opts) ->
       # underscore.jsのtemplateとしてHamlを使うと %input(type='checkbox' {{ checked?"checked":"" }}) みたいなことができない

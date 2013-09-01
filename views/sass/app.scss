@@ -1,0 +1,138 @@
+@import "settings";
+@import "normalize";
+
+@import "foundation/components/global"; // *always required
+@import "foundation/components/grid";
+@import "foundation/components/visibility";
+@import "foundation/components/block-grid";
+@import "foundation/components/type";
+@import "foundation/components/buttons";
+@import "foundation/components/forms"; // *requires components/buttons
+//@import "foundation/components/custom-forms"; // *requires components/buttons, components/forms
+@import "foundation/components/button-groups"; // *requires components/buttons
+@import "foundation/components/dropdown-buttons"; // *requires components/buttons
+@import "foundation/components/split-buttons"; // *requires components/buttons
+// @import "foundation/components/flex-video";
+@import "foundation/components/section";
+@import "foundation/components/top-bar";  // *requires components/grid
+// @import "foundation/components/orbit";
+@import "foundation/components/reveal";
+// @import "foundation/components/joyride";
+@import "foundation/components/clearing";
+@import "foundation/components/alert-boxes";
+@import "foundation/components/breadcrumbs";
+// @import "foundation/components/keystrokes";
+@import "foundation/components/labels";
+// @import "foundation/components/inline-lists";
+@import "foundation/components/pagination";
+@import "foundation/components/panels";
+// @import "foundation/components/pricing-tables";
+// @import "foundation/components/progress-bars";
+// @import "foundation/components/side-nav";
+@import "foundation/components/sub-nav";
+//@import "foundation/components/switch";
+@import "foundation/components/magellan";
+@import "foundation/components/tables";
+// @import "foundation/components/thumbs";
+@import "foundation/components/tooltips";
+@import "foundation/components/dropdown";
+
+// as from foundation 4.2.3, you have to set height:auto to textarea since it mixns form-element in foundation/components/_forms.scss
+textarea{
+  height: auto;
+}
+
+.button-light {
+  @include button($button-sml, rgb(235,207,171), false, false, false, false);
+  @include single-transition;
+  @include inset-shadow(true);
+}
+.button-maroon {
+  @include button($button-sml, maroon, false, false, false, false);
+  @include single-transition;
+  @include inset-shadow(true);
+}
+
+.panel,.pagination,.breadcrumbs,.sub-nav{
+  a{
+    cursor: pointer;
+  }
+}
+.alert-box{
+  .close{
+    cursor: pointer;
+  }
+}
+
+.pre{
+  white-space: pre-line;
+}
+
+html{
+  height: 100%;
+}
+body{
+  min-height: 100%;
+}
+
+.cross{
+  font-size: 120%;
+  text-shadow: 1px 1px 1px silver;
+  margin-left: 5px;
+  cursor: pointer;
+}
+
+// for bbs
+@media #{$screen}{
+  [data-magellan-expedition]{
+    .arrival{
+      max-width: 80px;
+    }
+  }
+}
+@media #{$small}{
+  [data-magellan-expedition]{
+    .arrival{
+      max-width: 120px;
+    }
+  }
+}
+@media #{$medium}{
+  [data-magellan-expedition]{
+    .arrival{
+      max-width: 170px;
+    }
+  }
+}
+
+// The following was created by 'bundle exec compass install compass/ellipsis'
+// Since you've installed the xml file, you should set
+// $use-mozilla-ellipsis-binding to true before importing.
+$use-mozilla-ellipsis-binding: true;
+
+@import "compass/typography/text/ellipsis";
+@import "compass/css3/transform";
+
+// By default, ellipsis text is no-wrap. Pass false as the first argument if you don't want that.
+.ellipsis {
+  @include ellipsis;
+}
+
+.clearfix {
+  @include clearfix();
+}
+
+.panel {
+  line-height: 125%;
+}
+
+.rotate-90{
+  @include rotate(90deg)
+}
+.rotate-180{
+  @include rotate(180deg)
+}
+.rotate-270{
+  @include rotate(270deg)
+}
+

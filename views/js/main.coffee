@@ -72,7 +72,7 @@ require ["zep_or_jq","backbone","myutil","select2","jquery_placeholder"
     # revealの背景をclickしたときの処理は自前で行う．
     # という訳なので reveal を使うときは必ず myutil.coffee の _.reveal_view() を使うこと．
     $(document).foundation('topbar dropdown section alerts tooltips')
-    .foundation('reveal',closeOnBackgroundClick:false)
+    .foundation('reveal',closeOnBackgroundClick:false,dismissModalClass:'my-close-reveal-modal')
   $(->
     hamls = $("body").data("haml")
     deferreds = []

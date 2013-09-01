@@ -7,8 +7,7 @@
     %title #{G_APP_NAME} - #{yield_content(:title)}
     %link(rel="shortcut icon" href="/img/favicon.ico")
     %link(rel="apple-touch-icon" href="/img/apple-touch-icon.png")
-    %link(rel="stylesheet" href="/css/base1.css")
-    %link(rel="stylesheet" href="/css/base2.css")
+    %link(rel="stylesheet" href="/css/app.css")
     %link(rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/select2/3.4.0/select2.min.css")
     - this_css = yield_content(:css)
     - this_css.strip.split(/\s*,\s*/).each do |x|

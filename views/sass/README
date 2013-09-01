@@ -1,0 +1,2 @@
+app.scss and _settings.scss is created by
+$ compass create <project-name> -r zurb-foundation --using foundation

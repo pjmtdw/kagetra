@@ -6,33 +6,18 @@ Developer: Haruhiro Yoshimoto <hpnpwd@gmail.com>
 Description: Groupware specialized to Kyogi-Karuta
 
 [Middleware]
-Version Control System:
-  Git
-Programming Language:
-  Ruby 1.9.3
-Ruby Management:
-  rbenv + bundler
-Web Framework:
-  Sinatra
-Testing:
-  RSpec
-ORM:
-  DataMapper
-Database:
-  SQLite, MySQL, PostgreSQL (which is supported by DataMapper)
-HTML Template Engine:
-  Haml
-CSS Template Engine:
-  Sass(SCSS) + Compass
-Meta JavaScript:
-  CoffeeScript
-JavaScript Library:
-  jQuery
-  underscore.js
-  Backbone.js
-  RequireJS
-Web UI Library:
-  Zurb Foundation 4
+Version Control System: Git
+Programming Language:   Ruby 1.9.3
+Ruby Management:        rbenv + bundler
+Web Framework:          Sinatra
+Testing:                RSpec
+ORM:                    DataMapper
+Database:               MySQL, PostgreSQL, SQLite (migration from hagakure does not work for PostgreSQL)
+HTML Template Engine:   Haml
+CSS Template Engine:    Sass(SCSS) + Compass
+Meta JavaScript:        CoffeeScript
+JavaScript Library:     jQuery, underscore.js, Backbone.js, RequireJS
+Web UI Library:         Zurb Foundation 4
 
 [Howto Run]
 (0) Prepare Ruby environment
@@ -81,4 +66,5 @@ for Ubuntu ->
 (2) execute 'bundle update'
 (3) replace "/ajax/libs/foundation/<version>/" in 'views/js/main.coffee' 
 (4) replace "/gems/zurb-foundation-<version>" in 'deploy/compass_conf.rb'
+(5) execute `bundle exec compass create hoobar -r zurb-foundation --using foundation` and merge 'hoobar/sass/*.scss' to 'views/sass/'
 

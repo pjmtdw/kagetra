@@ -62,6 +62,26 @@ class ContestResultCache
   end
 end
 
+# 昇級ランキング用キャッシュ
+class ContestPromotionCache
+  include ModelBase
+  belongs_to :contest_prize, unique: true
+  belongs_to :contest_user, unique: true
+  property :prize, TrimString, length: 32, required: true # ContestPrizeのprize
+  property :class_name, TrimString, length: 16, required: true # ContestClassのclass_name
+  property :user_name, TrimString, length: 24, required: true # ConteestUserのname
+  belongs_to :event # 昇級した大会
+  property :event_date, Date, required:true # Eventのdate
+  property :event_name, TrimString, length:48, required:true # Eventのname
+  property :debut_date, Date, required:true # 初出場大会もしくは前回昇級してから次の大会の日付
+  property :contests, Integer, required: true # 昇級した級の大会出場数
+  property :promotion, Enum[:rank_up, :dash, :a_champ], required: true # ContestnPrizeのpromotion
+  property :class_rank, Enum[:a,:b,:c,:d,:e,:f,:g], required: true # ContestClassのclass_rank
+  property :a_champ_count, Integer # 何回目のA級優勝か 
+  validates_absence_of :a_champ_count, if: ->(x){x.promotion != :a_champ }
+  validates_presence_of :a_champ_count, if: ->(x){x.promotion == :a_champ }
+end
+
 # 大会の各級の情報
 class ContestClass
   include ModelBase
@@ -119,6 +139,44 @@ class ContestPrize
       self.contest_user.update(point:self.point,point_local:self.point_local)
     end
     self.contest_class.event.update_cache_prizes
+    if [:rank_up,:a_champ].include?(self.promotion) then
+      self.save_promotion_cache
+    end
+  end
+  def save_promotion_cache
+    event = self.contest_class.event
+    user_name = self.contest_user.name
+    contest_users = ContestUser.all(name:user_name)
+    promotions = ContestPrize.all(contest_user_id:contest_users.map{|x|x.id},promotion: :rank_up)
+    prev_promotion = promotions.map{|x|x.contest_class.event}.select{|x|x.date < event.date}.sort_by{|x|x.date}.last
+    cond = if prev_promotion.nil? then {} else {:date.gt => prev_promotion.date} end
+    debut_date = Event.all(cond.merge(id:contest_users.map{|x|x.event_id},kind: :contest,order: [:date.asc])).first.date
+
+    # 東京都大会のように非公認大会であっても昇級できる大会もあるのでその分を考慮
+    contests = Event.all(id:contest_users.map{|x|x.event_id},kind: :contest,official:true,team_size:1,:date.gte => debut_date, :date.lt => event.date).count + 1
+    class_rank = self.contest_class.class_rank || Kagetra::Utils.class_from_name(self.contest_class.class_name)
+
+    a_champ_count = if self.promotion == :a_champ then
+      ContestPrize.all(contest_user_id:contest_users.map{|x|x.id},promotion: :a_champ).map{|x|x.contest_class.event}.select{|x|x.date < event.date}.size + 1
+    end
+
+    data = {
+      contest_user_id: self.contest_user_id,
+      prize: self.prize.sub(/\(.*\)/,""),
+      class_name: self.contest_class.class_name,
+      user_name: user_name,
+      event_id: event.id,
+      event_name: event.name,
+      event_date: event.date,
+      contests: contests,
+      debut_date: debut_date,
+      promotion: self.promotion,
+      class_rank: class_rank,
+      a_champ_count: a_champ_count
+    }
+    Kagetra::Utils.dm_debug{
+      ContestPromotionCache.update_or_create({contest_prize_id:self.id},data)
+    }
   end
 end
 

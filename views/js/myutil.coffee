@@ -161,8 +161,8 @@ define (require, exports, module) ->
 
     router_base: (prefix,arg) ->
       HistoryRouter.extend
-        remove_all: ->
-          for k in arg
+        remove_all: (ignore)->
+          for k in arg when k != ignore
             vn = "#{prefix}_#{k}_view"
             window[vn]?.remove()
             delete window[vn]

@@ -1,13 +1,24 @@
 - content_for :title do
-  大会結果 - 昇級履歴
+  昇級履歴
 - content_for :js_start do
+  result_promotion
+- content_for :css do
   result_promotion
 = haml :top_bar
 = haml :result_common
 
-#result-promotion
+.row
+  .large-12.columns
+    %dl#promotion-nav.sub-nav
+      %dd.choice(data-mode='recent')
+        %a(href='result_promotion#recent') 最近
+      %dd.choice(data-mode='ranking')
+        %a(href='result_promotion#ranking') ランキング
 
-%script#templ-result-promotion(type='text/template')
+#result-promotion-recent
+#result-promotion-ranking
+
+%script#templ-result-promotion-recent(type='text/template')
   .row
     .large-12.columns
       <% _.each(data.list,function(x){ %>
@@ -33,3 +44,58 @@
             %input.button.small(type='submit' value='変更')
         <% } %>
       <% }) %>
+
+%script#templ-result-promotion-ranking(type='text/template')
+  .row
+    .large-12.columns
+      ※ 「かるたを始めて」というのは大会初出場日から過去に遡った最初の4月1日からという意味です．
+      %form#promotion-ranking-form
+        %select(name='from')
+          %option(value='debut') かるたを始めて
+          %option(value='prom_c') C級に昇級して
+          %option(value='prom_b') B級に昇級して
+          %option(value='prom_a') A級に昇級して
+        から
+        %select(name='to')
+          %option(value='prom_c') C級に昇級
+          %option(value='prom_b') B級に昇級
+          %option(value='prom_a') A級に昇級
+          %option(value='a_champ') A級で優勝
+        するまで
+        %select(name='mode')
+          %option(value='days') の日数のランキングを
+          %option(value='contests') の大会数のランキングを
+          %option(value='list') を日付順に
+        表示
+  .row
+    .large-12.columns
+      #promotion-ranking-body
+  
+
+
+%script#templ-result-promotion-ranking-body(type='text/template')
+  <% if(data.median){ %>
+  中央値: {{ data.median  }}
+  <% } %>
+  %table
+    <% _.each(data.list,function(x,index){ %>
+    %tr
+      %td {{index+1}}
+      %td
+        %a(href='result_record#show/{{encodeURIComponent(x.user_name)}}') {- x.user_name -}
+      %td {{x.days_str}} ( {{x.contests}}大会 )
+      %td {{_.show_promotion_event(x.start)}} &sim; {{_.show_promotion_event(x.end)}}
+    <% }) %>
+%script#templ-result-promotion-ranking-a-champ(type='text/template')
+  %table
+    <% _.each(data.list,function(x,index){ %>
+    %tr
+      %td {{index+1}}
+      %td
+        %a(href='result_record#show/{{encodeURIComponent(x.user_name)}}') {- x.user_name -}
+      %td
+        {- x.event_date -}
+        %a(href='result#contest/{{x.event_id}}') {- x.event_name -}
+        {{ x.a_champ_count == 1 ?"初優勝 "+x.nth_champ+"人目":x.a_champ_count+"回目" }}
+    <% }) %>
+

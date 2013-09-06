@@ -7,6 +7,14 @@ class Hash
   end
 end
 
+class Array
+  def median
+    # Array must by sorted
+    len = self.size
+    (self[(len-1)/2] + self[len/2])/2.0
+  end
+end
+
 class String
   def escape_html
     Rack::Utils.escape_html(self)
@@ -205,6 +213,35 @@ module Kagetra
         pyear = m / 12
         pmonth = (m % 12) + 1
         [pyear,pmonth]
+    end
+
+    def self.date_diff_str(x,y)
+      if x == y then return "0日" end
+      a = [x,y].min
+      b = [x,y].max
+      month_diff = b.year*12+b.month-a.year*12-a.month
+      day_diff = if a.day > b.day
+        month_diff -= 1
+        (Date.new(a.year,a.month,b.day).next_month - a).to_i
+      else
+        b.day - a.day
+      end
+      year_diff = month_diff / 12
+      month_diff = month_diff % 12
+      r = []
+      if year_diff > 0
+        r << "#{year_diff}年"
+      end
+      if month_diff > 0
+        r << "#{month_diff}ヶ月"
+      end
+      if day_diff > 0
+        r <<  "#{day_diff}日"
+      end
+      if r.size >= 2 then
+        r = r.insert(-2,"と")
+      end
+      return r.join("")
     end
   end
 

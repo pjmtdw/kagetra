@@ -108,9 +108,6 @@
 %script#templ-record-detail(type='text/template')
   .row
     .large-12.columns
-      = haml :pagination
-  .row
-    .large-12.columns
       %table.chunk-body
         %tbody
           <% _.each(data.event_details,function(eid){ %>
@@ -142,3 +139,6 @@
             <% } %>
             <% } %>
           <% }) %>
+  .row
+    .large-12.columns
+      = haml :pagination_alt

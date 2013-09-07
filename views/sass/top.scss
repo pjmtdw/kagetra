@@ -144,8 +144,9 @@ $forbidden-color: gray !important;
     color: gray;
     font-size: 90%;
     &.countable{
-      color: teal;
+      color: blue;
       cursor: pointer;
+      text-decoration: underline;
     }
   }
 }

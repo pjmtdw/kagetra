@@ -115,7 +115,7 @@
         %a.button.small.success(href='album#item/{{data.next_item}}') &raquo;
         <% } %>
         <% if(data.go_back){ %>
-        %button.small.success#go-back 上へ
+        %button.small.success#go-back {{data.go_back.indexOf("search/")==0?"検索結果":"コメント履歴"}}へ
         <% } %>
         %button.small.success#go-random ランダム
         %button.small.round#start-edit 編集開始

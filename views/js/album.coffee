@@ -554,6 +554,15 @@ define (require,exports,module)->
       @$el.find("#album-info").html(@template_info(data:@model.toJSON()))
       @$el.appendTo("#album-item")
       @render_relations(false)
+      if router.come_from and router.come_from.indexOf("search/") == 0
+        tags = @model.get('tags')
+        if tags
+          qs = decodeURIComponent(router.come_from.split("/")[1])
+          tag = _.find(tags,(x)->x.name.indexOf(qs)>=0)
+          if tag
+            show_tag(tag)
+
+
 
   AlbumUploadView = Backbone.View.extend
     template_form: _.template_braces($("#templ-album-info-form").html())

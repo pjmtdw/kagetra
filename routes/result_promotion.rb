@@ -43,7 +43,9 @@ class MainApp < Sinatra::Base
       query.each{|x|
         next if params["mode"] != "list" and x.class_rank == :a and x.a_champ_count != 1
         r = res[x.user_name]
-        r[:contests] += x.contests
+        if params["from"] == "debut" or x.class_rank != bottom_rank
+          r[:contests] += x.contests
+        end
         info = x.select_attr(:event_date,:event_name,:event_id,:prize)
         if x.class_rank == top_rank
           r[:end] = info

@@ -853,7 +853,12 @@ def import_endtaikai
       p e.resource.errors
       raise e
     end
-
+  }
+  # 昇級履歴用のキャッシュ更新
+  ContestPrize.all(:promotion.not => nil).each{|x|
+    puts "昇級履歴更新: #{x.id}"
+    x.touch
+    x.save
   }
 end
 

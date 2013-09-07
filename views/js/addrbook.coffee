@@ -63,6 +63,13 @@ define (require,exports,module)->
       "submit #addrbook-form":"do_when_submit"
       "click .photo-change" : "photo_change"
       "click .photo-remove" : "photo_remove"
+      "click .start-edit" : "start_edit"
+      "click .cancel-edit" : "cancel_edit"
+    start_edit: ->
+      @render(true)
+    cancel_edit: ->
+      @render(false)
+      false
     photo_remove: _.wrap_submit ->
       @$el.find(".album-photo").html("なし")
 
@@ -112,8 +119,9 @@ define (require,exports,module)->
     initialize: ->
       _.bindAll(this,"render","do_when_submit")
       @model = new AddrBookModel()
-      @listenTo(@model,"sync", @render)
-    render: ->
+      that = this
+      @listenTo(@model,"sync", -> that.render(false))
+    render: (edit_mode)->
       res = null
       @decode_success = false
       if @model.get("found")
@@ -140,8 +148,7 @@ define (require,exports,module)->
         delete res[k]
       for k,v of res
         info.push [k,v]
-
-      templ = if @model.get("editable") then @template_edit else @template
+      templ = if edit_mode then @template_edit else @template
       @$el.html(templ(data:_.extend(@model.toJSON(),info:info)))
       @decode_success = true
     refresh: (id) ->

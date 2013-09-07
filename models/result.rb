@@ -128,7 +128,7 @@ class ContestPrize
         when '昇級' then :rank_up
         end
       end
-      if self.prize == "優勝" and self.contest_class.class_rank == :a then
+      if self.prize.start_with?("優勝") and self.contest_class.class_rank == :a then
         self.promotion = :a_champ
       end
       self.rank = Kagetra::Utils.rank_from_prize(self.prize)

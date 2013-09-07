@@ -30,7 +30,18 @@
 %script#templ-addrbook-body-enc(type='text/template')
   %div
 %script#templ-addrbook-body(type='text/template')
-  最終更新: <%= data.updated_date || "なし" %>
+  %div 
+    最終更新: <%= data.updated_date || "なし" %>
+    <% if(data.editable){ %>
+    %button.small.round.start-edit 編集開始
+    <% } %>
+  %div
+    ユーザ属性: 
+    <% _.each(data.user_attrs,function(x){ %>
+    %span.user-attr-elem
+      %span.user-attr-elem-key> <%- x[0] %>:
+      %span.user-attr-elem-value <%- x[1] %>
+    <% }) %>
   %div
     写真: 
     %span.album-photo <%= data.album_item?_.album_thumb(data.album_item,true):"なし" %>
@@ -43,6 +54,7 @@
 
 %script#templ-addrbook-body-edit(type='text/template')
   %form#addrbook-form(method='post')
+    %button.small.round.cancel-edit キャンセル
     %input.button.small.round(type='submit' value='送信')
     %div 最終更新: {{ data.updated_date || "なし" }}
     %div

@@ -237,7 +237,7 @@ class MainApp < Sinatra::Base
 
     def result_summary(ev)
       cache = ev.result_cache
-      r = ev.select_attr(:id,:name,:date)
+      r = ev.select_attr(:id,:name,:date,:official)
       r.merge({
         user_count: ev.contest_user_count,
         win: if cache then cache.win else 0 end,

@@ -140,13 +140,18 @@ $forbidden-color: gray !important;
   .log-mon{
     color: #030;
   }
-  .login-elapsed{
-    color: gray;
-    font-size: 90%;
-    &.countable{
-      color: blue;
-      cursor: pointer;
-      text-decoration: underline;
+  .login-message{
+    span{
+      display: inline-block;
+    }
+    .login-elapsed{
+      display: inline-block;
+      color: gray;
+      &.countable{
+        color: blue;
+        cursor: pointer;
+        text-decoration: underline;
+      }
     }
   }
 }

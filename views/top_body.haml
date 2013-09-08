@@ -113,13 +113,13 @@
     %a.close &times;
 
 %script#templ-newly-message(type='text/template')
-  %div
-    最終ログイン:
+  .login-message
+    %span 最終ログイン:
     %span.last-login {{ data.last_login[0] }}
     <% if(data.last_login[1] >= 5){ %>
-    %span.login-elapsed(class='{{data.last_login[2]?"countable":""}}') ( +{{data.last_login[1]}}分 )
+    %a.login-elapsed(class='{{data.last_login[2]?"countable":""}}') ( +{{data.last_login[1]}}分 )
     <% } %>
-    , 今月ログイン:
+    %span , 今月ログイン:
     %span.log-mon {{ data.log_mon }}
 
   #event-new.link-detail

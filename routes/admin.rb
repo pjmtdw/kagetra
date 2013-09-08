@@ -5,11 +5,9 @@ class MainApp < Sinatra::Base
       halt 403 unless @user.admin
     end
     get '/list' do
-      # UserAttribute.all(fields:[:user_id,:value_id]).map{|x|[x.user_id,x.value_id]} が遅いので手動でクエリする
-      # TODO: 上記が遅い原因を探り, 手動クエリを使わない方法を見つける
-      user_attrs = Hash[repository(:default).adapter
-        .select('SELECT user_id, value_id FROM user_attributes WHERE deleted = false')
-        .group_by{|x| x[:user_id]}.map{|xs|[xs[0],xs[1].map{|x|x[:value_id]}]}]
+      user_attrs = Hash[
+        UserAttribute.aggregate(fields:[:user_id,:value_id])
+        .group_by{|x| x[0]}.map{|xs|[xs[0],xs[1].map{|x|x[1]}]}]
       attr_values = Hash[UserAttributeValue.all
         .map{|x| [x.id, x.select_attr(:index,:value,:default).merge({key_id:x.attr_key.id})]}]
       key_names = UserAttributeKey.all(order: [:index.asc]).map{|x|[x.id,x.name]}

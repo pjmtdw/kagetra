@@ -3,19 +3,12 @@
 class MainApp < Sinatra::Base
   ADDRBOOK_RECENT_MAX =50
   def make_addrbook_info(ab)
-    uavid = UserAttribute.all(user_id:ab.user_id,fields:[:value_id]).map{|x|x.value_id}
-    uavs = Hash[UserAttributeValue.all(id:uavid,fields:[:attr_key_id,:value]).map{|x|[x.attr_key_id,x.value]}]
-    user_attrs = UserAttributeKey.all(:index.not => 0,fields:[:name,:id],order:[:index.asc]).map{|x|
-      [x.name,uavs[x.id]]
-    }
-
     album_item = ab.album_item && ab.album_item.id_with_thumb
     ab.select_attr(:text).merge({
       album_item:album_item,
       found:true,
       uid: ab.user_id,
       updated_date: ab.updated_at.strftime("%Y-%m-%d %H:%M"),
-      user_attrs: user_attrs
     })
   end
   namespace '/api/addrbook' do
@@ -43,6 +36,13 @@ class MainApp < Sinatra::Base
       if @user.admin or @user.sub_admin or uid == @user.id then
         r[:editable] = true
       end
+
+      uavid = UserAttribute.all(user_id:uid,fields:[:value_id]).map{|x|x.value_id}
+      uavs = Hash[UserAttributeValue.all(id:uavid,fields:[:attr_key_id,:value]).map{|x|[x.attr_key_id,x.value]}]
+      user_attrs = UserAttributeKey.all(:index.not => 0,fields:[:name,:id],order:[:index.asc]).map{|x|
+        [x.name,uavs[x.id]]
+      }
+      r[:user_attrs] = user_attrs
       r
     end
     # TODO: パスワードを平文で送るのは危険

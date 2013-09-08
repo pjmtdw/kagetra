@@ -390,7 +390,9 @@ define (require,exports,module)->
       r.navigate(r.come_from,trigger:true)
     go_random: ->
       $.get("/api/album/random").done((data)->
-        window.album_router.navigate("item/#{data.id}",trigger:true)
+        router = window.album_router
+        router.chunk_list = data.group_items
+        router.navigate("item/#{data.id}",trigger:true)
       )
 
     scroll_to_relation: ->

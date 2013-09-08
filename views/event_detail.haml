@@ -246,7 +246,7 @@
         {{x.date}}
       %td
         %div
-          %a.contest-link(href='result#contest/{{x.id}}') {{x.name}}
+          %a.contest-link(href='result#contest/{{x.id}}') {{_.show_kind_symbol("contest",x.official)}} {{x.name}}
         %div &rArr; {{x.win}}勝{{x.lose}}敗 ({{x.user_count}}人)
       %td
         <% _.each(x.prizes,function(p){ %>

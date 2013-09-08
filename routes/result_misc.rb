@@ -32,14 +32,15 @@ class MainApp < Sinatra::Base
         name = @user.name
       end
 
-      # raw query 使わないと遅い
-      cusers_all = repository(:default).adapter.select("SELECT id FROM contest_users WHERE name = '#{name}'")
-      games_my = if cusers_all.empty? then [] else repository(:default).adapter.select("SELECT id,event_id FROM contest_games WHERE contest_user_id IN (#{cusers_all.join(',')})") end
+      # .all() 使うより .aggregate() 使う方が速い
+      cusers_all = ContestUser.aggregate(fields:[:id],name:name)
+      GameStruct = Struct.new(:id,:event_id)
+      games_my = if cusers_all.empty? then [] else ContestGame.aggregate(fields:[:id,:event_id],contest_user_id:cusers_all).map{|x,y|GameStruct.new(x,y)} end
 
       # 一つの大会で敵味方両方で出てる場合は味方のみを取得する(同会対決とかなので)
-      op_cond = if games_my.empty? then "" else "AND event_id NOT IN(#{games_my.map{|x|x.event_id}.join(',')})" end
+      op_cond = if games_my.empty? then {} else {:event_id.not => games_my.map{|x|x.event_id}} end
 
-      games_op = repository(:default).adapter.select("SELECT id,event_id FROM contest_games WHERE opponent_name = '#{name}' #{op_cond}")
+      games_op = ContestGame.aggregate(op_cond.merge({fields:[:id,:event_id],opponent_name:name})).map{|x,y|GameStruct.new(x,y)}
 
       eids = (games_my.map{|x|x.event_id} + games_op.map{|x|x.event_id}).uniq
       (mindate,maxdate) = Event.aggregate(fields:[:date.min,:date.max],id:eids)
@@ -52,7 +53,7 @@ class MainApp < Sinatra::Base
         Event.all(evcond)
       end
 
-      cusers = if events.empty? then [] else repository(:default).adapter.select("SELECT id FROM contest_users where name = '#{name}' AND event_id IN (#{events.map{|x|x.id}.join(',')})") end
+      cusers = if events.empty? then [] else ContestUser.aggregate(fields:[:id],name:name,event_id:events.map{|x|x.id}) end
 
       if @json["no_aggr"] then
         prizes = []
@@ -111,14 +112,14 @@ class MainApp < Sinatra::Base
       op_events = games_op.map{|x|x.event_id}.uniq
       res_events = Hash[events.map{|x|
         next unless eid_required.include?(x.id)
-        r = x.select_attr(:name,:date)
+        r = x.select_attr(:name,:date,:official)
         r[:is_op] = op_events.include?(x.id)
         [x.id,r]
       }.compact]
 
       # 級の名前と回戦の名前を取得(味方として出場した大会のみ)
 
-      clids = if eid_required.empty? or cusers.empty? then [] else repository(:default).adapter.select("SELECT contest_class_id FROM contest_users WHERE event_id IN (#{eid_required.join(',')}) AND id IN (#{cusers.join(',')})") end
+      clids = if eid_required.empty? or cusers.empty? then [] else ContestUser.aggregate(fields:[:contest_class_id],event_id:eid_required,id:cusers) end 
       class_info = Hash[ContestClass.all(fields:[:event_id,:round_name,:class_name],id:clids).map{|c|
         r = c.select_attr(:class_name)
         # 空のとき c.round_name をそのまま返してしまうと後で更新するときに Immutable resources cannot be modified エラーが出る

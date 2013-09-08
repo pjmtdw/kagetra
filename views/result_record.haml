@@ -116,6 +116,7 @@
             <% cinfo = data.class_info[eid] %>
             %td.leftmost.row-info(class='{{einfo.is_op?"is-opponent":""}}')
               %div
+                {{ _.show_kind_symbol("contest",einfo.official)}}
                 %a(href='result#contest/{{eid}}') {{ einfo.name }}
               %div @ {{ einfo.date }}
               %div {{ cinfo.class_name }} {{ data.my_belongs[eid] }}

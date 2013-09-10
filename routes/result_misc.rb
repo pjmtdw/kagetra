@@ -34,13 +34,13 @@ class MainApp < Sinatra::Base
 
       # .all() 使うより .aggregate() 使う方が速い
       cusers_all = ContestUser.aggregate(fields:[:id],name:name)
-      GameStruct = Struct.new(:id,:event_id)
-      games_my = if cusers_all.empty? then [] else ContestGame.aggregate(fields:[:id,:event_id],contest_user_id:cusers_all).map{|x,y|GameStruct.new(x,y)} end
+      game_struct = Struct.new(:id,:event_id)
+      games_my = if cusers_all.empty? then [] else ContestGame.aggregate(fields:[:id,:event_id],contest_user_id:cusers_all).map{|x,y|game_struct.new(x,y)} end
 
       # 一つの大会で敵味方両方で出てる場合は味方のみを取得する(同会対決とかなので)
       op_cond = if games_my.empty? then {} else {:event_id.not => games_my.map{|x|x.event_id}} end
 
-      games_op = ContestGame.aggregate(op_cond.merge({fields:[:id,:event_id],opponent_name:name})).map{|x,y|GameStruct.new(x,y)}
+      games_op = ContestGame.aggregate(op_cond.merge({fields:[:id,:event_id],opponent_name:name})).map{|x,y|game_struct.new(x,y)}
 
       eids = (games_my.map{|x|x.event_id} + games_op.map{|x|x.event_id}).uniq
       (mindate,maxdate) = Event.aggregate(fields:[:date.min,:date.max],id:eids)

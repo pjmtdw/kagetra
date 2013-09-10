@@ -427,10 +427,13 @@ define (require,exports,module)->
     apply_edit: ->
       obj = $("#album-item-form").serializeObj()
       obj["tag_edit_log"] = @tag_edit_log if not _.isEmpty(@tag_edit_log)
+      # 編集途中で写真が回転させられたかもしれないので元のrotateを送る
+      obj["orig_rotate"] = @model.get("rotate")
       that = this
       _.save_model(@model,obj,["comment_revision","relations"]).done(->
         that.model.fetch().done(->
           that.model.unset("tag_edit_log")
+          that.model.unset("orig_rotate")
           that.edit_mode = false
           # alert("更新完了")
         )

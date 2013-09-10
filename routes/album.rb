@@ -126,6 +126,8 @@ class MainApp < Sinatra::Base
       item = AlbumItem.get(params[:id].to_i)
       dm_response{
         AlbumItem.transaction{
+          orig_rotate = @json["orig_rotate"]
+          @json.delete("orig_rotate")
           if @json.has_key?("tag_edit_log")
             @json["tag_edit_log"].each{|k,v|
               (cmd,obj) = v
@@ -133,7 +135,7 @@ class MainApp < Sinatra::Base
               when "update_or_create"
                 (xx,yy) = [obj["coord_x"],obj["coord_y"]]
                 (width,height) = [item.photo.width,item.photo.height]
-                (cx,cy) = case item.rotate.to_i
+                (cx,cy) = case orig_rotate.to_i
                         when 0
                           [xx,yy]
                         when 90
@@ -355,8 +357,9 @@ class MainApp < Sinatra::Base
     img = Magick::Image::read(abs_path).first
     prev_columns = img.columns
     prev_rows = img.rows
+    rotated = img.auto_orient!.nil?.!
     resize_to_pixels!(img,CONF_ALBUM_LARGE_SIZE)
-    if prev_columns != img.columns or prev_rows != img.rows
+    if prev_columns != img.columns or prev_rows != img.rows or rotated
       img.write(abs_path){self.quality = CONF_ALBUM_LARGE_QUALITY}
     end
 

@@ -1,14 +1,31 @@
+// Global Foundation Settings
 @import "settings";
+
+// Comment out this import if you don't want to use normalize
 @import "normalize";
+
+// Comment out this import if you are customizing you imports below
+// @import "foundation";
+
+// Import specific parts of Foundation by commenting the import "foundation"
+// and uncommenting what you want below. You must uncomment the following if customizing
 
 @import "foundation/components/global"; // *always required
 @import "foundation/components/grid";
+
+//
+// Use this grid if you want to start using the new Foundation 5 grid early.
+// It will change breakpoints to min-width: 640px and 1024px.
+//
+// @import "foundation/components/grid-5";
+//
+
 @import "foundation/components/visibility";
 @import "foundation/components/block-grid";
 @import "foundation/components/type";
 @import "foundation/components/buttons";
 @import "foundation/components/forms"; // *requires components/buttons
-//@import "foundation/components/custom-forms"; // *requires components/buttons, components/forms
+// @import "foundation/components/custom-forms"; // *requires components/buttons, components/forms
 @import "foundation/components/button-groups"; // *requires components/buttons
 @import "foundation/components/dropdown-buttons"; // *requires components/buttons
 @import "foundation/components/split-buttons"; // *requires components/buttons
@@ -30,7 +47,7 @@
 // @import "foundation/components/progress-bars";
 // @import "foundation/components/side-nav";
 @import "foundation/components/sub-nav";
-//@import "foundation/components/switch";
+// @import "foundation/components/switch";
 @import "foundation/components/magellan";
 @import "foundation/components/tables";
 // @import "foundation/components/thumbs";
@@ -41,7 +58,6 @@
 textarea{
   height: auto;
 }
-
 .button-light {
   @include button($button-sml, rgb(235,207,171), false, false, false, false);
   @include single-transition;
@@ -52,7 +68,6 @@ textarea{
   @include single-transition;
   @include inset-shadow(true);
 }
-
 .panel,.pagination,.breadcrumbs,.sub-nav{
   a{
     cursor: pointer;
@@ -63,25 +78,21 @@ textarea{
     cursor: pointer;
   }
 }
-
 .pre{
   white-space: pre-line;
 }
-
 html{
   height: 100%;
 }
 body{
   min-height: 100%;
 }
-
 .cross{
   font-size: 120%;
   text-shadow: 1px 1px 1px silver;
   margin-left: 5px;
   cursor: pointer;
 }
-
 // for bbs
 @media #{$screen}{
   [data-magellan-expedition]{
@@ -104,28 +115,22 @@ body{
     }
   }
 }
-
 // The following was created by 'bundle exec compass install compass/ellipsis'
 // Since you've installed the xml file, you should set
 // $use-mozilla-ellipsis-binding to true before importing.
 $use-mozilla-ellipsis-binding: true;
-
 @import "compass/typography/text/ellipsis";
 @import "compass/css3/transform";
-
 // By default, ellipsis text is no-wrap. Pass false as the first argument if you don't want that.
 .ellipsis {
   @include ellipsis;
 }
-
 .clearfix {
   @include clearfix();
 }
-
 .panel {
   line-height: 125%;
 }
-
 .rotate-90{
   @include rotate(90deg)
 }
@@ -135,7 +140,6 @@ $use-mozilla-ellipsis-binding: true;
 .rotate-270{
   @include rotate(270deg)
 }
-
 .event-symbol{
   font-size: 120%;
   margin-right: .2em;
@@ -153,4 +157,3 @@ $use-mozilla-ellipsis-binding: true;
     color: red;
   }
 }
-

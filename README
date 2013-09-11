@@ -16,7 +16,7 @@ Database:               MySQL, PostgreSQL, SQLite (migration from hagakure does 
 HTML Template Engine:   Haml
 CSS Template Engine:    Sass(SCSS) + Compass
 Meta JavaScript:        CoffeeScript
-JavaScript Library:     jQuery, underscore.js, Backbone.js, RequireJS
+JavaScript Library:     bower, jQuery, underscore.js, Backbone.js, RequireJS
 Web UI Library:         Zurb Foundation 4
 
 [Howto Run]
@@ -34,7 +34,9 @@ for Ubuntu ->
   $ cd kagetra && bundle install --path .vendor/bundle
 (3) Install JavaScript runtime for ExecJS
   $ apt-get install nodejs
-(4) Run web app
+(4) Install JavaScript libraries
+  $ npm install bower && bower install
+(5) Run web app
   $ cd kagetra && bundle exec rackup
 
 [For Production]
@@ -64,7 +66,8 @@ for Ubuntu ->
 [Howto Update Zurb Foundation Version]
 (1) replace "gem 'zurb-foundation', '<version>'" in 'Gemfile'
 (2) execute 'bundle update'
-(3) replace "/ajax/libs/foundation/<version>/" in 'views/js/main.coffee' 
-(4) replace "/gems/zurb-foundation-<version>" in 'deploy/compass_conf.rb'
-(5) execute `bundle exec compass create hoobar -r zurb-foundation --using foundation` and merge 'hoobar/sass/*.scss' to 'views/sass/'
+(3) replace "foundation" : "<version>" in bower.json
+(4) execute 'bower update'
+(5) replace "/gems/zurb-foundation-<version>" in 'deploy/compass_conf.rb'
+(6) execute `bundle exec compass create hoobar -r zurb-foundation --using foundation` and merge 'hoobar/sass/*.scss' to 'views/sass/'
 

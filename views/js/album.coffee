@@ -682,6 +682,8 @@ define (require,exports,module)->
       @$el.html(@template(data:@model.toJSON(),count:@options.checked.length))
       @$el.appendTo(@options.target)
       @$el.find(".move-folder-target").select2(
+        width:"resolve"
+        placeholder: "フォルダ名"
         minimumInputLength: 1
         ajax:
           url: "api/album/search_group"

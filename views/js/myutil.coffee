@@ -1,6 +1,6 @@
 define (require, exports, module) ->
   _ = require("underscore")
-  $ = require("zep_or_jq")
+  $ = require("jquery")
   Backbone = require("backbone")
 
   # 履歴付きBackbone.Router

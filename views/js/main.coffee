@@ -1,42 +1,39 @@
 requirejs.config
   paths:
-    zep_or_jq: "libs/zepto_or_jquery"
-    jquery: "http://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min"
-    jquery_placeholder: "http://cdnjs.cloudflare.com/ajax/libs/jquery-placeholder/2.0.7/jquery.placeholder.min"
-    zepto: "http://cdnjs.cloudflare.com/ajax/libs/zepto/1.0/zepto.min"
-    backbone: "http://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.0.0/backbone-min"
-    underscore: "http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min"
-    foundation: "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.2.3/js/foundation/foundation"
-    "foundation.topbar": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.2.3/js/foundation/foundation.topbar.min"
-    "foundation.reveal": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.2.3/js/foundation/foundation.reveal.min"
-    "foundation.dropdown": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.2.3/js/foundation/foundation.dropdown.min"
-    "foundation.section": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.2.3/js/foundation/foundation.section.min"
-    "foundation.alerts": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.2.3/js/foundation/foundation.alerts.min"
-    "foundation.magellan": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.2.3/js/foundation/foundation.magellan.min"
-    "foundation.tooltips": "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.2.3/js/foundation/foundation.tooltips.min"
-    modernizr: "http://cdnjs.cloudflare.com/ajax/libs/foundation/4.2.3/js/vendor/custom.modernizr.min"
-    json2: "http://cdnjs.cloudflare.com/ajax/libs/json2/20121008/json2"
-    select2: "http://cdnjs.cloudflare.com/ajax/libs/select2/3.4.0/select2.min"
-    crypto: "libs/CryptoJS/crypto"
-    require: "libs/require"
-    "crypto-pbkdf2": "libs/CryptoJS/rollups/pbkdf2"
-    "crypto-hmac": "libs/CryptoJS/rollups/hmac-sha256"
-    "crypto-base64": "libs/CryptoJS/components/enc-base64-min"
-    "crypto-aes": "libs/CryptoJS/rollups/aes"
-    "crypto-core": "libs/CryptoJS/components/core"
+    jquery: "libs/jquery/jquery"
+    jquery_placeholder: "libs/jquery-placeholder/jquery.placeholder"
+    backbone: "libs/backbone/backbone"
+    underscore: "libs/underscore/underscore"
+    foundation: "libs/foundation/js/foundation/foundation"
+    "foundation.topbar": "libs/foundation/js/foundation/foundation.topbar"
+    "foundation.reveal": "libs/foundation/js/foundation/foundation.reveal"
+    "foundation.dropdown": "libs/foundation/js/foundation/foundation.dropdown"
+    "foundation.section": "libs/foundation/js/foundation/foundation.section"
+    "foundation.alerts": "libs/foundation/js/foundation/foundation.alerts"
+    "foundation.magellan": "libs/foundation/js/foundation/foundation.magellan"
+    "foundation.tooltips": "libs/foundation/js/foundation/foundation.tooltips"
+    modernizr: "libs/foundation/js/vendor/custom.modernizr"
+    json2: "libs/json2/json2"
+    select2: "libs/select2/select2.min"
+    require: "libs/requirejs/require"
+    "crypto-pbkdf2": "libs/crypto-js/build/rollups/pbkdf2"
+    "crypto-hmac": "libs/crypto-js/build/rollups/hmac-sha256"
+    "crypto-base64": "libs/crypto-js/build/components/enc-base64-min"
+    "crypto-aes": "libs/crypto-js/build/rollups/aes"
+    "crypto-core": "libs/crypto-js/build/components/core"
 
   shim:
-    jquery_placeholder: deps: ["zep_or_jq"]
-    myutil: deps: ["underscore","zep_or_jq","backbone"]
-    select2: deps: ["zep_or_jq"]
+    jquery_placeholder: deps: ["jquery"]
+    myutil: deps: ["underscore","jquery","backbone"]
+    select2: deps: ["jquery"]
     schedule_item: deps: ["backbone"]
     jquery: exports: "$"
     underscore: exports: "_"
     crypto: exports: "CryptoJS"
     backbone:
-      deps: ["zep_or_jq","underscore","json2"]
+      deps: ["jquery","underscore","json2"]
       exports: "Backbone"
-    foundation: deps: ["zep_or_jq","modernizr"]
+    foundation: deps: ["jquery","modernizr"]
     "foundation.topbar": deps: ["foundation"]
     "foundation.reveal": deps: ["foundation"]
     "foundation.dropdown": deps: ["foundation"]
@@ -49,14 +46,9 @@ requirejs.config
     "crypto-pbkdf2": deps: ["crypto"]
     "crypto-aes": deps: ["crypto"]
 
-require ["zep_or_jq","backbone","myutil","select2","jquery_placeholder"
+require ["jquery","backbone","myutil","select2","jquery_placeholder"
      "foundation.reveal","foundation.topbar","foundation.dropdown","foundation.section","foundation.alerts","foundation.magellan","foundation.tooltips"], ->
-  # simply-deferred を使う場合は下記が必要
-  # 現在は jquery の select2 プラグインを使用しているため zepto は使わない方針
-  # zep_or_jq は常にjqueryを返すようになっている
-
-  # Deferred.installInto(Zepto) if Zepto?
-  $ = require("zep_or_jq")
+  $ = require("jquery")
   init_f = ->
     # alert if ajax failed
     $(document).ajaxError((evt,xhr,settings,error)->

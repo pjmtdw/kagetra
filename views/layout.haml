@@ -8,7 +8,7 @@
     %link(rel="shortcut icon" href="/img/favicon.ico")
     %link(rel="apple-touch-icon" href="/img/apple-touch-icon.png")
     %link(rel="stylesheet" href="/css/app.css")
-    %link(rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/select2/3.4.0/select2.min.css")
+    %link(rel="stylesheet" href="js/libs/select2/select2.css")
     - this_css = yield_content(:css)
     - this_css.strip.split(/\s*,\s*/).each do |x|
       - path = if x.start_with?("http://") then x else "/css/#{x}.css" end
@@ -46,4 +46,4 @@
         var g_user_name='#{get_permanent("bbs_name")}'
     %script
       var g_public_mode=#{!!@public_mode}
-    %script(src="/js/libs/require.js" data-main="/js/main" data-start="#{yield_content(:js_start)}")
+    %script(src="/js/libs/requirejs/require.js" data-main="/js/main" data-start="#{yield_content(:js_start)}")

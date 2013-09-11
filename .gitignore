@@ -15,6 +15,7 @@ scripts/wikipedia_name/tmp/
 scripts/periodic_mysqldump.sh
 scripts/dump/
 storage/
+views/js/libs/
 
 Gemfile.lock
 conf.rb

@@ -5,17 +5,6 @@
   dir: '../public/js/',
   logLevel: 0,
   preserveLicenseComments: false,
-  paths: {
-    jquery: "empty:",
-    zepto: "empty:",
-    backbone: "empty:",
-    underscore: "empty:",
-    foundation: "empty:",
-    "foundation.topbar": "empty:",
-    "foundation.reveal": "empty:",
-    modernizr: "empty:",
-    json2: "empty:"
-  },
   modules: [
     { name: "main" },
     { name: "top",

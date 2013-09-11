@@ -1,0 +1,21 @@
+{
+  "name": "kagetra",
+  "version": "0.0.1",
+  "homepage": "https://github.com/pjmtdw/kagetra",
+  "authors": [
+    "Haruhiro Yoshimoto <hpnpwd@gmail.com>"
+  ],
+  "description": "Groupware specialized to Kyogi-Karuta",
+  "license": "MIT",
+  "dependencies": {
+    "requirejs": "2.1.8",
+    "crypto-js": "3.1.2",
+    "underscore": "1.5.2",
+    "jquery": "1.10.2",
+    "json2": "*",
+    "backbone": "1.0.0",
+    "foundation": "4.3.1",
+    "jquery-placeholder": "2.0.7",
+    "select2": "3.4.2"
+  }
+}

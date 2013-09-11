@@ -7,7 +7,7 @@ gem 'sinatra-contrib','1.4.0'
 gem 'haml','4.0.3' # meta html
 gem 'sass','3.2.10' # meta css
 
-gem 'zurb-foundation','4.2.3' # design framework
+gem 'zurb-foundation','4.3.1' # design framework
 gem 'compass','0.12.2' # css authoring framework
 gem 'redcarpet','3.0.0' # markdown to (x)html converter
 gem 'spreadsheet','0.8.7' # make Microsoft Excel files

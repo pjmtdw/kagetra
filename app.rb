@@ -39,6 +39,10 @@ class MainApp < Sinatra::Base
   configure :development do
     register Sinatra::Reloader
 
+    get '/js/libs/select2/:file' do
+      send_file "./views/js/libs/select2/#{params[:file]}"
+    end
+
     get %r{/(.+)\.js$} do |m|
       content_type "application/javascript"
       js = if m.start_with?("foundation") then

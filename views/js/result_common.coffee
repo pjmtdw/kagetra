@@ -5,7 +5,9 @@ define (require,exports,module) ->
     $("#result-search-form").on("submit",do_when_result_search)
     $("#result-search-text").on("change",->$("#result-search-form").submit())
     $("#result-search-text").select2(
-      minimumInputLength: 1,
+      width: 'resolve'
+      placeholder: '選手名'
+      minimumInputLength: 1
       ajax:
         url: "api/result_misc/search_name"
         type: "POST"

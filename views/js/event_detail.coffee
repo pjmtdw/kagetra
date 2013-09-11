@@ -91,7 +91,7 @@ define (require,exports,module)->
         that.$el.find("#event-edit-info").empty()
         that.$el.find("#event-edit-info").append(ev.$el)
         that.group_change(id)
-        ev.$el.find("[name='forbidden_attrs']").select2()
+        ev.$el.find("[name='forbidden_attrs']").select2(width:'resolve')
       )
     group_change: (optdef)->
       # 大会の新規作成時のみ有効
@@ -253,7 +253,7 @@ define (require,exports,module)->
       @listenTo(@model,"sync",@render)
     render: ->
       @$el.html(@template(data:@model.toJSON()))
-      @$el.find("[name='forbidden_attrs']").select2()
+      @$el.find("[name='forbidden_attrs']").select2(width:'resolve')
 
   EventGroupModel = Backbone.Model.extend
     urlRoot: "api/result/group"

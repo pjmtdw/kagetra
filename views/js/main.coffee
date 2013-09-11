@@ -2,6 +2,7 @@ requirejs.config
   paths:
     jquery: "libs/jquery/jquery"
     jquery_placeholder: "libs/jquery-placeholder/jquery.placeholder"
+    simplemodal: "libs/bolster.simplemodal/src/jquery.simplemodal"
     backbone: "libs/backbone/backbone"
     underscore: "libs/underscore/underscore"
     foundation: "libs/foundation/js/foundation/foundation"
@@ -26,7 +27,9 @@ requirejs.config
     jquery_placeholder: deps: ["jquery"]
     myutil: deps: ["underscore","jquery","backbone"]
     select2: deps: ["jquery"]
+    blockui: deps: ["jquery"]
     schedule_item: deps: ["backbone"]
+    album: ["simplemodal"]
     jquery: exports: "$"
     underscore: exports: "_"
     crypto: exports: "CryptoJS"
@@ -72,7 +75,7 @@ require ["jquery","backbone","myutil","select2","jquery_placeholder"
       for b in hamls.split(/\s*,\s*/)
         continue unless b
         do ->
-          d = new $.Deferred()
+          d = $.Deferred()
           v = $("<div>")
           d["haml"] = b
           v.load("haml/#{b}",->

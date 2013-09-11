@@ -9,6 +9,45 @@ define (require,exports,module)->
           data.start_at
         else
           "#{data.start_at}&sim;#{data.end_at}"
+  prompt_tag = (group_id,txt) ->
+    defer = $.Deferred()
+    templ = _.template_braces($("#templ-album-tag-popup").html())
+    on_show = ->
+        obj = $("#album-tag-popup")
+        obj.select2({
+          width: 'resolve'
+          placeholder: 'タグ'
+          minimumInputLength: 1
+          ajax:
+            url: 'api/album/tag_complete'
+            type: "POST"
+            data: (term,page)->
+              group_id: group_id
+              q: term
+            results: (data,page) ->
+              {results:({text:x} for x in data.results)}
+          id: (x)->x.text
+          initSelection: (elem,callback) ->
+            callback({id:txt,text:txt}) if txt
+          createSearchChoice: (term,data) ->
+            # able to choose user input text
+            if not _.find(data,(x)->x.text.localeCompare(term)==0)
+              {
+                id: term
+                text: term
+              }
+        })
+        obj.on("change",->
+          value = obj.select2("val")
+          defer.resolve(value)
+          $.modal.close()
+          )
+        $("#album-tag-popup").select2("open")
+    on_close = ->
+      if defer.state() != "resolved" then defer.reject()
+      $.modal.close()
+    $.modal(templ(data:{tag:txt}),{onShow:on_show,overlayClose:true,onClose:on_close})
+    defer.promise()
   scroll_to_item = (selector) ->
     selector ||= (id )-> ".album-item[data-id='#{id}']"
     prev = window.album_router.previous()
@@ -484,17 +523,18 @@ define (require,exports,module)->
     append_tag: (ev) ->
       obj = $(ev.currentTarget)
       hide_tag()
-      if name = prompt("タグ名","")
-        o = $($.parseHTML(@template_tag(tag:{name:name,id:@new_tag_id})))
-        [x,y] = @get_pos(ev)
-        nw = {id:@new_tag_id,name:name,coord_x:x,coord_y:y,radius:50}
-        @tag_edit_log[@new_tag_id] = ["update_or_create", nw]
-        @model.get("tags").push(nw)
-        o.append(@cross.clone())
-        o.prepend(@editmark.clone())
+      that = this
+      prompt_tag(@model.get('group').id).done((name)->
+        o = $($.parseHTML(that.template_tag(tag:{name:name,id:that.new_tag_id})))
+        [x,y] = that.get_pos(ev)
+        nw = {id:that.new_tag_id,name:name,coord_x:x,coord_y:y,radius:50}
+        that.tag_edit_log[that.new_tag_id] = ["update_or_create", nw]
+        that.model.get("tags").push(nw)
+        o.append(that.cross.clone())
+        o.prepend(that.editmark.clone())
         $("#album-tags").append(o)
-        that = this
-        @new_tag_id -= 1
+        that.new_tag_id -= 1
+      )
 
     delete_tag: (ev) ->
       obj = $(ev.currentTarget).parent()
@@ -510,10 +550,11 @@ define (require,exports,module)->
       tag_id = obj.parent().data("tag-id")
       tag = _.find(@model.get("tags"),(x)->x.id == tag_id)
       tobj = obj.parent().find(".album-tag-name")
-      if name = prompt("タグ名",tobj.text())
+      that = this
+      prompt_tag(@model.get('group').id,tobj.text()).done((name)->
         tag["name"] = name
-        @tag_edit_log[tag_id] = ["update_or_create", tag]
-        tobj.text(name)
+        that.tag_edit_log[tag_id] = ["update_or_create", tag]
+        tobj.text(name))
     show_marker: (ev)->
       ev.stopPropagation()
       [x,y] = @get_pos(ev)

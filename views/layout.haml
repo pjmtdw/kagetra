@@ -8,10 +8,10 @@
     %link(rel="shortcut icon" href="/img/favicon.ico")
     %link(rel="apple-touch-icon" href="/img/apple-touch-icon.png")
     %link(rel="stylesheet" href="/css/app.css")
-    %link(rel="stylesheet" href="js/libs/select2/select2.css")
+    %link(rel="stylesheet" href="/js/libs/select2/select2.css")
     - this_css = yield_content(:css)
     - this_css.strip.split(/\s*,\s*/).each do |x|
-      - path = if x.start_with?("http://") then x else "/css/#{x}.css" end
+      - path = if x.start_with?("/") then "#{x}.css" else "/css/#{x}.css" end
       %link(rel="stylesheet" href="#{path}")
     %style(type="text/css")
       - curmonth = "%02d"%Date.today.month

@@ -333,6 +333,12 @@ class MainApp < Sinatra::Base
         {list:deleted_ids}
       }
     end
+    post '/tag_complete' do
+      item_ids = AlbumItem.aggregate(fields:[:id],group_id:params[:group_id].to_i)
+      tags = AlbumTag.aggregate(fields:[:name],:name.like => "%#{params[:q]}%", album_item_id:item_ids)
+      list = User.aggregate(fields:[:name],:name.like => "%#{params[:q]}%",order:[:updated_at.desc])
+      {results:(tags+list).uniq}
+    end
   end
   get '/album' do
     haml :album
@@ -391,7 +397,6 @@ class MainApp < Sinatra::Base
     item.thumb.update(width:img.columns,height:img.rows)
     img.destroy!
   end
-
   post '/album/upload' do
     res = dm_response{
       AlbumItem.transaction{

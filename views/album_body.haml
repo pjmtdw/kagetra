@@ -326,3 +326,10 @@
 #container-album-relation.reveal-modal
 #container-album-upload.reveal-modal
 #container-album-multi-edit.reveal-modal
+
+%script#templ-album-tag-popup(type='text/template')
+  #tag-popup
+    %form
+      %fieldset
+        %legend タグ名
+        %input#album-tag-popup(type='text')

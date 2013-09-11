@@ -39,16 +39,17 @@ class MainApp < Sinatra::Base
   configure :development do
     register Sinatra::Reloader
 
-    get '/js/libs/select2/:file' do
-      send_file "./views/js/libs/select2/#{params[:file]}"
+    get %r{/js/libs/(.+)} do |m|
+      send_file("views/js/libs/#{m}")
     end
 
-    get %r{/(.+)\.js$} do |m|
+    get %r{/js/(.+)\.js$} do |m|
       content_type "application/javascript"
       js = if m.start_with?("foundation") then
+        # used for debugging from gem
         "#{Gem.loaded_specs['zurb-foundation'].full_gem_path}/js/foundation/#{m}.js"
       else
-        "views/#{m}.js"
+        "views/js/#{m}.js"
       end
       pass if not File.exist?(js) # pass to Rack::Coffee
       send_file(js)

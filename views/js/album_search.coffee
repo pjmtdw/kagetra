@@ -1,4 +1,5 @@
-define ->
+define (require,exports,module)->
+  require("jquery_lazyload")
   AlbumSearchView = Backbone.View.extend
     template: _.template_braces($("#templ-album-search").html())
     template_result: _.template_braces($("#templ-album-search-result").html())
@@ -38,6 +39,7 @@ define ->
           o = that.$el.find(".search-result .thumbnail a")
           o.removeAttr("href")
           o.click(that.options.do_when_click)
+        $("img.lazy").lazyload({effect:"fadeIn"})
       )
   {
     AlbumSearchView: AlbumSearchView

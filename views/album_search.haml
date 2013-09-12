@@ -13,7 +13,7 @@
     .large-12.columns
       = haml :pagination
       <% _.each(data.list,function(x){ %>
-      .gbase.thumbnail(data-id='{{x.id}}') {{_.album_thumb(x)}}
+      .gbase.thumbnail(data-id='{{x.id}}') {{_.album_thumb(x,null,true)}}
       <% }) %>
 
 %script#templ-album-search-form(type='text/template')

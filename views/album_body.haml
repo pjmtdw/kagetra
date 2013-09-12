@@ -95,7 +95,7 @@
     <% if(x.no_comment){ %>
     .no-comment(title="コメント無し") {{x.no_comment?"◆":""}}
     <% } %>
-    {{_.album_thumb(x)}}
+    {{_.album_thumb(x,null,true)}}
   <% }) %>
 
 %script#templ-album-item(type='text/template')
@@ -256,6 +256,9 @@
 
 %script#templ-album-all-log(type='text/template')
   .row
+    %div
+      %a(href='album#') TOP
+    %hr
     <% if(data.prev_page){ %>
     %a.button.small.round(href="album#all_log/{{data.prev_page}}") 前のページ
     <% } %>
@@ -265,7 +268,7 @@
       <% _.each(data.list,function(x){ %>
       .item.clearfix(data-id='{{x.id}}')
         .thumbnail.left
-          {{_.album_thumb(x)}}
+          {{_.album_thumb(x,null,true)}}
         .comment.left
           %div
             [

@@ -33,13 +33,13 @@ class MainApp < Sinatra::Base
       {list:groups+items}
     end
     get '/group/:gid' do
-      item_fields = [:id,:tag_count,:comment,:tag_names]
+      item_fields = [:id,:tag_count,:comment,:tag_names,:rotate,:owner_id]
       group = AlbumGroup.get(params[:gid].to_i)
       halt 404 if group.nil?
       r = group.select_attr(:name,:year,:place,:comment,:start_at,:end_at)
       tags = Hash.new{[]}
       owners = Hash.new{[]}
-      r[:items] = group.items(fields:item_fields,order:[:group_index.asc]).map{|x|
+      r[:items] = AlbumItem.all(group_id:group.id,fields:item_fields,order:[:group_index.asc]).map{|x|
         if x.tag_names then
           JSON.parse(x.tag_names).each{|t|
             tags[t] <<= x.id
@@ -53,7 +53,7 @@ class MainApp < Sinatra::Base
           no_comment: x.comment.to_s.empty?
         })
       }
-      users = Hash[User.all(id:owners.keys,fields:[:id,:name]).map{|x|[x.id,x.name]}]
+      users = Hash[User.aggregate(id:owners.keys,fields:[:id,:name]).map{|id,name|[id,name]}]
       r[:owners] = owners.to_a.map{|k,v|
         [users[k]||"不明",v]
       }.sort_by{|k,v|v.size}.reverse

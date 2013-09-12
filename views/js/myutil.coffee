@@ -246,10 +246,16 @@ define (require, exports, module) ->
 
       $("<option>",opts)[0].outerHTML
 
-    album_thumb: (x,new_window) ->
+    album_thumb: (x,new_window,lazy) ->
       target = if new_window then "target='_blank'" else ""
+      path = "/static/album/thumb/#{x.thumb.id}.#{x.rotate}"
+      source = if lazy
+                 "class='lazy' src='/img/dummy.png' data-original='#{path}'"
+               else
+                 "src='#{path}'"
+
       "<a #{target} href='album#item/#{x.id}' data-id='#{x.id}'>" +
-        "<img src='/static/album/thumb/#{x.thumb.id}.#{x.rotate}' style='width:#{x.thumb.width}px;height:#{x.thumb.height}px' />" +
+        "<img #{source} style='width:#{x.thumb.width}px;height:#{x.thumb.height}px' />" +
       "</a>"
 
 

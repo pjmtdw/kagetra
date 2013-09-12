@@ -271,6 +271,7 @@ define (require,exports,module)->
       @render_items()
       @render_tags()
       scroll_to_item()
+      $("img.lazy").lazyload({effect:"fadeIn"})
 
     render_tags: ->
       tags = @model.get('tags')
@@ -661,6 +662,7 @@ define (require,exports,module)->
       @$el.html(@template(data:@model.toJSON()))
       @$el.appendTo("#album-all-log")
       scroll_to_item((id)->"#album-all-log .item[data-id='#{id}']")
+      $("img.lazy").lazyload({effect:"fadeIn"})
 
   AlbumMultiEditView = Backbone.View.extend
     template: _.template_braces($("#templ-album-multi-edit").html())

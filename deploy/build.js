@@ -17,6 +17,12 @@
       exclude: ["main"] },
     { name: "result",
       exclude: ["main"] },
+    { name: "album",
+      exclude: ["main"] },
+    { name: "addrbook",
+      exclude: ["main"] },
+    { name: "wiki",
+      exclude: ["main"] },
     { name: "user_conf",
       exclude: ["main"] }
   ]

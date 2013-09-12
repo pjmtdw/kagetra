@@ -95,7 +95,7 @@
     <% if(x.no_comment){ %>
     .no-comment(title="コメント無し") {{x.no_comment?"◆":""}}
     <% } %>
-    {{_.album_thumb(x,null,true)}}
+    {{_.album_thumb(x)}}
   <% }) %>
 
 %script#templ-album-item(type='text/template')
@@ -268,7 +268,7 @@
       <% _.each(data.list,function(x){ %>
       .item.clearfix(data-id='{{x.id}}')
         .thumbnail.left
-          {{_.album_thumb(x,null,true)}}
+          {{_.album_thumb(x)}}
         .comment.left
           %div
             [

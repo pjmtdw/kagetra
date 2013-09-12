@@ -2,7 +2,6 @@ requirejs.config
   paths:
     jquery: "libs/jquery/jquery"
     jquery_placeholder: "libs/jquery-placeholder/jquery.placeholder"
-    jquery_lazyload: "libs/jquery.lazyload/jquery.lazyload"
     simplemodal: "libs/bolster.simplemodal/src/jquery.simplemodal"
     backbone: "libs/backbone/backbone"
     underscore: "libs/underscore/underscore"

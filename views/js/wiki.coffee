@@ -19,10 +19,10 @@ define (require,exports,module) ->
       @set_id_fetch("item",WikiItemView,id)
       $("#section-page").click()
       if id != "all" and not g_public_mode
+        $(".hide-for-all").show()
         @set_id_fetch("attached_list",WikiAttachedListView,id)
         @set_id_fetch("log",WikiLogView,id)
         $co.section_comment("wiki","#wiki-comment",id,$("#wiki-comment-count"))
-        $(".hide-for-all").show()
       else
         $(".hide-for-all").hide()
 

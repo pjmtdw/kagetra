@@ -339,6 +339,42 @@ class MainApp < Sinatra::Base
       list = User.aggregate(fields:[:name],:name.like => "%#{params[:q]}%",order:[:updated_at.desc])
       {results:(tags+list).uniq}
     end
+    get '/stat' do
+      uploaders = AlbumItem.aggregate(fields:[:id.count,:owner_id],:owner_id.not=>nil).sort_by{|x,y|x}.reverse
+      uploader_stat = [] 
+      prev_count = nil
+      rank = 1
+      uploaders.to_enum.with_index(1){|(count,owner_id),index|
+        if count != prev_count
+          rank = index
+          prev_count = count
+        end
+        is_mine = (owner_id == @user.id)
+        if rank <= 20 or is_mine
+          uploader_stat << [rank,count,owner_id,is_mine]
+        end
+      }
+      uploader_names = Hash[User.aggregate(fields:[:id,:name],id:uploader_stat.map{|ar|ar[2]})]
+
+      tags = AlbumTag.aggregate(fields:[:id.count,:name]).sort_by{|x,y|x}.reverse[0..20]
+      tag_stat = []
+      prev_count = nil
+      has_mine = false
+      tags.to_enum.with_index(1){|(count,name),index|
+        if count != prev_count
+          rank = index
+          prev_count = count
+        end
+        is_mine = (name == @user.name)
+        has_mine ||= is_mine
+        tag_stat << [rank,count,name,is_mine]
+      }
+      if not has_mine then
+        count = AlbumTag.aggregate(fields:[:id.count],name:@user.name)
+        tag_stat << ["??",count,@user.name,true]
+      end
+      {uploader_stat:uploader_stat,uploader_names:uploader_names,tag_stat:tag_stat}
+    end
   end
   get '/album' do
     haml :album

@@ -4,6 +4,7 @@
 #album-item
 #album-search
 #album-all-log
+#album-stat
 
 %script#templ-album-top(type='text/template')
   .row
@@ -18,7 +19,9 @@
       {{ $("#templ-album-search-form").html() }}
   #album-recent
   .row
-    %div 全一覧
+    %div
+      全一覧
+      %a.button.small.success(href='album#stat') 統計
     %ul.large-block-grid-7.small-block-grid-4
       <% _.each(data.list,function(x){ %>
       %li
@@ -325,6 +328,37 @@
       %fieldset
         %legend 削除
         %button.small.round.alert.delete-items 削除
+
+%script#templ-album-stat(type='text/template')
+  .row
+    .large-4.columns
+      %a(href='album#') TOP
+  .row
+    .large-12.columns
+      %table.left
+        %caption アップロード枚数
+        %tbody
+          <% _.each(data.uploader_stat,function(x){ %>
+          %tr(class='{{x[3]?"is-mine":""}}')
+            %td.count
+              [{{x[0]}}]
+            %td.count
+              {-x[1]-}
+            %td
+              {- data.uploader_names[x[2]] -}
+          <% }) %>
+      %table.left
+        %caption タグ
+        %tbody
+          <% _.each(data.tag_stat,function(x){ %>
+          %tr(class='{{x[3]?"is-mine":""}}')
+            %td.count
+              [{{x[0]}}]
+            %td.count
+              {-x[1]-}
+            %td
+              {-x[2]-}
+          <% }) %>
 
 #container-album-relation.reveal-modal
 #container-album-upload.reveal-modal

@@ -196,3 +196,11 @@ canvas.percent{
 #go-random{
   margin-right: 1.5em;
 }
+#album-stat{
+  .count{
+    text-align: right;
+  }
+  .is-mine{
+    font-weight: bold;
+  }
+}

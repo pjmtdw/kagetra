@@ -60,14 +60,18 @@ define (require,exports,module)->
       prev_id = prev.split("/")[1]
       $(".group[data-group-id='#{prev_id}']").scrollHere(-1)
 
-  class AlbumRouter extends _.router_base("album",["top","year","group","item","search","all_log"])
+  class AlbumRouter extends _.router_base("album",["top","year","group","item","search","all_log","stat"])
     routes:
       "year/:year" : "year"
       "group/:id" : "group"
       "item/:id" : "item"
       "search/:qs(/:page)" : "search"
       "all_log(/:page)" : "all_log"
+      "stat" : "stat"
       "" : "start"
+    stat: ->
+      @remove_all()
+      window.album_stat_view = new AlbumStatView()
     year: (year) -> @remove_all();@set_id_fetch("year",AlbumYearView,year)
     group: (id) -> @remove_all();@set_id_fetch("group",AlbumGroupView,id)
     item: (id) ->
@@ -735,6 +739,17 @@ define (require,exports,module)->
           results: (data,page) ->
             data
       )
+  AlbumStatModel = Backbone.Model.extend
+    url: "api/album/stat"
+  AlbumStatView = Backbone.View.extend
+    template: _.template_braces($("#templ-album-stat").html())
+    initialize: ->
+      @model = new AlbumStatModel()
+      @listenTo(@model,"sync",@render)
+      @model.fetch()
+    render: ->
+      @$el.html(@template(data:@model.toJSON()))
+      @$el.appendTo("#album-stat")
 
   init: ->
     window.album_router = new AlbumRouter()

@@ -8,7 +8,10 @@
 
 %script#templ-edit-response(type='text/template')
   %form.response-edit-form
-    %input.button.small.round(type='submit' value='送信')
+    .row
+      .large-12.columns
+        %input.button.small.round(type='submit' value='送信')
+        %button.small.alert.delete.round 削除
     .row
       .large-12.columns
         %input(name='user_name' type='text' placeholder='名前' value='{-data.user_name-}')
@@ -28,7 +31,6 @@
       .right
         <% if(data.editable){ %>
         %button.tiny.toggle-edit(data-toggle-text="キャンセル") 編集
-        %button.tiny.alert.delete 削除
         <% } %>
     .body.pre <%= _.replace_url_escape(data.body) %>
 

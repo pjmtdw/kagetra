@@ -152,7 +152,7 @@ define (require,exports,module)->
         id:@model.get("id")
       )
       that = this
-      _.save_model_alert(m,{log:@edit_log},["log"]).done(->
+      _.save_model_alert(m,{log:@edit_log},["log"],true).done(->
         that.model.fetch(data:{detail:true,edit:true})
         that.toggle_edit())
 
@@ -225,7 +225,7 @@ define (require,exports,module)->
       "submit #event-edit-form" : "do_submit"
     move_to_done: ->
       if confirm("この行事を予定表の過去の行事に移動します．よろしいですか？")
-        _.save_model_alert(@model,{done:true})
+        _.save_model_alert(@model,{done:true},null,true)
       false
     delete_event: ->
       if prompt("削除するにはdeleteと入れて下さい","") == "delete"
@@ -241,7 +241,7 @@ define (require,exports,module)->
       if m.get("id") == "contest" || m.get("id") == "party"
         m.unset("id")
       is_new = m.isNew()
-      _.save_model_alert(@model,obj).done(->
+      _.save_model_alert(@model,obj,null,true).done(->
         $("#container-event-edit").foundation("reveal","close")
         if is_new and window.event_list_view?
           window.event_list_view.collection.add(m)
@@ -279,7 +279,7 @@ define (require,exports,module)->
       m = new M()
       m.set('id',@model.get('id'))
       that = this
-      _.save_model_alert(m,obj).done(->
+      _.save_model_alert(m,obj,null,true).done(->
         that.model.fetch()
       )
     do_page: (ev)->

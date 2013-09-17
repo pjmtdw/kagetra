@@ -113,8 +113,9 @@ class MainApp < Sinatra::Base
     end
 
     def get_klass_rounds(klass)
-      round_num = klass.single_games.aggregate(:round.max) || 0
-      (1..round_num).map{|x| rn = klass.round_name
+      round_num = ContestGame.aggregate(contest_class_id:klass.id,fields:[:round.max]) || 0
+      (1..round_num).map{|x|
+        rn = klass.round_name
         {
           name: if rn and rn[x.to_s] then rn[x.to_s] end
         }
@@ -133,12 +134,11 @@ class MainApp < Sinatra::Base
 
     # 勝ち数の多い順に並べる
     def result_sort(klass,user_games,round_num,prizes)
-      games = klass.single_games
+      games = ContestGame.all(contest_class_id:klass.id,fields:[:opponent_name,:round,:contest_user_id])
       temp_res = {}
 
       # 後で少しずつ取得するのは遅いのでまとめて取得
-      users = Hash[klass.users.all(fields:[:id,:name]).map{|u|
-        [u.id,u.name]}]
+      users = Hash[ContestUser.aggregate(contest_class_id:klass.id,fields:[:id,:name])]
 
       users.keys.each{|uid|
         score = ["Z"] * round_num
@@ -192,21 +192,24 @@ class MainApp < Sinatra::Base
 
     # 団体戦の結果
     def contest_results_team(evt)
-      evt.result_classes(order:[:index.asc]).teams.map{|team|
-        ops = team.opponents(order: :round.asc)
-        round_ops = Hash[ops.map{|o|[o.round,o]}]
-        max_round = ops.size
+      teams = evt.result_classes.all(order:[:index.asc]).teams
+      
+      teams.map{|team|
+        op_rounds = Hash[ContestTeamOpponent.aggregate(contest_team_id:team.id,fields:[:id,:round])]
+        max_round = op_rounds.size
         members = team.members.all(order:[:order_num.asc]).map{|x|x.contest_user}
-        games = ops.games.group_by{|game| game.contest_user}
+        prizes = Hash[ContestPrize.all(contest_user_id:members.map{|x|x.id},fields:[:contest_user_id,:prize,:point_local]).map{|x|[x.contest_user_id,x]}]
+        game_fields = [:opponent_name,:result,:score_str,:comment,:opponent_order,:opponent_belongs]
+        games = ContestGame.all(contest_team_opponent_id:op_rounds.keys,fields:game_fields+[:contest_user_id,:contest_team_opponent_id]).group_by{|game| game.contest_user_id}
         user_results = members.map{|user|
-          results = games[user] || []
+          results = games[user.id] || []
           res = Hash[results.map{|game|
-            [game.contest_team_opponent.round,game]
+            [op_rounds[game.contest_team_opponent_id],game]
           }]
           game_results = (1..max_round).map{|round|
             game = res[round]
             if game then
-              game.select_attr(:opponent_name,:result,:score_str,:comment,:opponent_order,:opponent_belongs)
+              game.select_attr(*game_fields)
             else
               {result: "break"}
             end
@@ -216,8 +219,8 @@ class MainApp < Sinatra::Base
             cuid: user.id,
             game_results: game_results
           }
-          if user.prize.nil?.! then
-            r[:prize] = user.prize.select_attr(:prize,:point_local)
+          if prizes.has_key?(user.id) then
+            r[:prize] = prizes[user.id].select_attr(:prize,:point_local)
           end
           r
         }
@@ -236,7 +239,7 @@ class MainApp < Sinatra::Base
     end
 
     def result_summary(ev)
-      cache = ev.result_cache
+      cache = ContestResultCache.first(event_id:ev.id,fields:[:win,:lose,:prizes])
       r = ev.select_attr(:id,:name,:date,:official)
       r.merge({
         user_count: ev.contest_user_count,

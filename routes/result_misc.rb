@@ -8,7 +8,7 @@ class MainApp < Sinatra::Base
       year = params[:year].to_i
       sday = Date.new(year,1,1)
       eday = Date.new(year+1,1,1)
-      list = Event.all(:date.gte => sday, :date.lt => eday, done: true, kind:[:contest], order:[:date.desc]).map{|x|
+      list = Event.all(:date.gte => sday, :date.lt => eday, done: true, kind:[:contest], order:[:date.desc],fields:[:id,:name,:date,:official,:contest_user_count]).map{|x|
         result_summary(x)
       }
       {list:list,minyear:minyear,maxyear:Date.today.year,curyear:year}

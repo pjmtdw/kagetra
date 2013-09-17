@@ -57,7 +57,7 @@ define (require,exports,module) ->
           that.changed = false
           that.edit_cancel()
 
-      _.save_model_alert(@model,obj,["revision"]).done(->
+      _.save_model_alert(@model,obj,["revision"],true).done(->
         that.model.fetch().done(on_done)
       )
       false

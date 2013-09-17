@@ -39,7 +39,7 @@ define (require, exports, module) ->
           alert(res._error_)
           when_error?()
         else if res.result == "OK"
-          alert("送信しました")
+          #alert("送信しました")
           when_success?(res)
         else
           alert("エラー: 送信失敗(1)")
@@ -256,16 +256,22 @@ define (require, exports, module) ->
 
     # save backbone model (only changed attributes)
     # force: list of keys to be saved even if not changed
-    save_model_alert: (model,obj,force) ->
+    save_model_alert: (model,obj,force,disallow_double) ->
       defer = $.Deferred()
-      _.save_model(model,obj,force).done(->
+      _.save_model(model,obj,force,disallow_double).done(->
         alert("更新成功")
         defer.resolve()
       ).fail((error) ->
         alert("更新失敗: " + error)
         defer.reject(error))
       defer.promise()
-    save_model: (model,obj,force)->
+    save_model: (model,obj,force,disallow_double)->
+      defer = $.Deferred()
+      if disallow_double
+        return defer.promise() if window.save_model_in_progress
+        window.save_model_in_progress = true
+        defer.always(->window.save_model_in_progress=false)
+
       m = model.clone()
       m.set(obj)
       attrs = {}
@@ -275,7 +281,6 @@ define (require, exports, module) ->
           attrs = _.extend(attrs,m.pick(force))
         m.clear()
         m.set('id',model.id)
-      defer = $.Deferred()
       m.save(attrs).done((data) ->
         if data._error_
           defer.reject(data._error_)

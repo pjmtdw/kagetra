@@ -150,7 +150,10 @@ define (require, exports, module) ->
         ->
           that.toggle_edit()
           that.refresh_day()
-      _.save_model_alert(@model,obj).done(when_done)
+      _.save_model_alert(@model,obj,null,true).done(->
+        when_done()
+        $(locals.schedule_detail_target).removeClass("form-changed")
+      )
     toggle_edit: ->
       $(locals.schedule_detail_target).removeClass("form-changed")
       if @model.isNew()
@@ -168,7 +171,7 @@ define (require, exports, module) ->
       @$el.html(@template(data:@model.toJSON()))
     render_edit: ->
       @edit_mode = true
-      @$el.html(@template_edit(data:@model.toJSON()))
+      @$el.html(@template_edit(is_new:@model.isNew(),data:@model.toJSON()))
       _.ie9_placeholder(@el)
   ScheduleDetailEventView = Backbone.View.extend
     events:

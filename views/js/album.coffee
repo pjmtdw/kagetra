@@ -259,7 +259,7 @@ define (require,exports,module)->
       obj["item_order"] = $.makeArray($(".album-item").map((i,x)->$(x).data("id")))
       obj["add_rotate"] = @add_rotate
       that = this
-      _.save_model(@model,obj).done(->
+      _.save_model(@model,obj,null,true).done(->
         that.model.fetch().done(->
           that.edit_mode = false
           # alert("更新完了")
@@ -356,8 +356,9 @@ define (require,exports,module)->
       @remove_tag_filter()
       $("#album-tags").hide()
       $("#album-info").html(@template_info_form(
-        is_group:true
-        data:@model.toJSON()
+        is_group: true
+        show_comment: true
+        data: @model.toJSON()
       ))
       $("#album-items").before($($.parseHTML($("#templ-album-edit-menu").html())))
       $("#album-buttons").hide()
@@ -473,7 +474,7 @@ define (require,exports,module)->
       # 編集途中で写真が回転させられたかもしれないので元のrotateを送る
       obj["orig_rotate"] = @model.get("rotate")
       that = this
-      _.save_model(@model,obj,["comment_revision","relations"]).done(->
+      _.save_model(@model,obj,["comment_revision","relations"],true).done(->
         that.model.fetch().done(->
           that.model.unset("tag_edit_log")
           that.model.unset("orig_rotate")
@@ -491,8 +492,9 @@ define (require,exports,module)->
     start_edit: ->
       hide_tag()
       $("#album-info").html(@template_info_form(
-        is_group:false
-        data:@model.toJSON()
+        is_group: false
+        show_comment: true
+        data: @model.toJSON()
       ))
       @$el.find(".album-tag").append(@cross.clone())
       @$el.find(".album-tag").prepend(@editmark.clone())
@@ -620,7 +622,7 @@ define (require,exports,module)->
     events:
       "submit #album-item-form" : "do_submit"
     do_submit: ->
-      return false unless confirm("アップロードしますか？")
+      #return false unless confirm("アップロードしますか？")
       obj = @$el.find("input[type='submit']")
       obj.after($("<div>",id:"now-uploading-message",text:"アップロード中..."))
       obj.hide()
@@ -643,7 +645,7 @@ define (require,exports,module)->
       _.bindAll(@,"submit_done")
       @render()
     render: ->
-      tform = @options.tform || @template_form(is_group:true,data:{})
+      tform = @options.tform || @template_form(is_group:true,show_comment:false,data:{})
       @$el.html(tform)
       form = @$el.find("#album-item-form")
       form.attr("method","post")

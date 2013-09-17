@@ -8,9 +8,8 @@ define ->
       "submit .response-edit-form" : "do_response"
     do_response: _.wrap_submit ->
       obj = @$el.find(".response-edit-form").serializeObj()
-      that = this
-      _.save_model_alert(@model,obj)
-    do_delete: ->
+      _.save_model_alert(@model,obj,null,true)
+    do_delete: _.wrap_submit ->
       if prompt("削除するにはdeleteと入れて下さい","") == "delete"
         # TODO: refresh page
         @model.destroy().done(-> alert("削除完了しました"))
@@ -18,6 +17,7 @@ define ->
       if @$el.find(".body").find(".response-edit-form").length == 0
         @$el.find(".toggle-edit").toggleBtnText(false)
         @$el.find(".body").html(@template_edit(data:@model.toJSON()))
+        @$el.find(".body").removeClass("pre")
       else
         @render()
     initialize: ->
@@ -45,7 +45,7 @@ define ->
         container.empty()
     response_common: (model)->
       data = @$el.find(".response-form").serializeObj()
-      _.save_model_alert(model,data)
+      _.save_model_alert(model,data,null,true)
 
   class ExtCommentThreadView extends CommentThreadView
     template: _.template_braces($("#templ-ext-comment").html())

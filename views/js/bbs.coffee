@@ -122,7 +122,7 @@ define (require,exports,module) ->
   create_new_thread = ->
     m = new BbsThreadModel()
     obj = $('#new-thread-form').serializeObj()
-    _.save_model_alert(m,obj).done( ->
+    _.save_model_alert(m,obj,null,true).done( ->
       $("#new-thread-form")[0].reset()
       refresh_thread_new_name()
       $("#new-thread-row").hide()

@@ -227,11 +227,13 @@
               {{ _.make_checkbox(data.daily_choose,{name:'daily_choose'}) }} 今日の一枚に選ぶ
               <% } %>
 
+      <% if(show_comment){ %>
       .large-7.columns
         %fieldset#album-comment-container
           %legend コメント
           %div
             %textarea(name='comment' rows='10') {- data.comment -}
+      <% } %>
 
 %script#templ-album-empty-form(type='text/template')
   %form#album-item-form

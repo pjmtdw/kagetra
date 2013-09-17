@@ -72,7 +72,6 @@
     <% if(!g_public_mode && data.editable){ %>
     .right
       %button.edit.small.round 編集
-      %button.delete.small.round.alert 削除
     <% } %>
 
 %script#templ-schedule-detail-item-edit(type='text/template')
@@ -122,9 +121,10 @@
         .large-12.small-12.columns
           %textarea(cols='100' rows='8' name='description' placeholder='備考') {- data.description -}
     .right
-      %button.edit-done.small.round
-        編集完了
-      %button.edit-cancel.small.round
-        キャンセル
+      <% if(!is_new){ %>
+      %button.delete.small.round.alert 削除
+      <% } %>
+      %button.edit-cancel.small.round キャンセル
+      %button.edit-done.small.round 編集完了
 
 #container-schedule-detail.reveal-modal

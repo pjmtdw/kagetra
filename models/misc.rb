@@ -112,6 +112,10 @@ module CommentBase
                   last_comment_user: self.user,
                   last_comment_date: self.created_at)
       end
+      after :destroy do
+        th = self.thread
+        th.update(comment_count: th.comments.count)
+      end
       def is_new(user)
         user.nil?.! and
         (self.user_id.nil? or self.user_id != user.id) and

@@ -16,6 +16,10 @@ define ->
       "click .add-key" : "add_key"
       "click .apply-edit" : "apply_edit"
     apply_edit: (ev) ->
+      return if @is_applying
+      @is_applying = true
+      button = $(".apply-edit")
+      button.toggleBtnText()
       ar = $.makeArray($("[data-key-id]").map(->
         {
           key_id:$(@).data("key-id")
@@ -29,10 +33,17 @@ define ->
              deleted:$(@).hasClass("deleted")
            }))}
       ))
+      that = this
       $.ajax("api/admin/update_attr",
         data: JSON.stringify(list:ar)
         contentType: "application/json"
-        type: "POST").done(-> alert("編集しました"))
+        type: "POST")
+      .done(->
+        alert("編集しました")
+        button.toggleBtnText()
+        that.is_applying = false
+        that.model.fetch()
+      )
 
     add_key: (ev) ->
       if r = prompt("属性追加","")

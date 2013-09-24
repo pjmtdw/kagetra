@@ -81,9 +81,9 @@ class MainApp < Sinatra::Base
           else
             k = UserAttributeKey.get(x["key_id"])
             if x["deleted"] then
-              UserAttribute.all(value:k.values).update!(deleted:true)
-              k.values.update!(deleted:true)
-              k.update!(deleted:true)
+              UserAttribute.all(value:k.values).destroy!
+              k.values.each{|y|y.destroy!}
+              k.destroy!
               next
             end
           end
@@ -96,7 +96,7 @@ class MainApp < Sinatra::Base
             elsif y["deleted"] then
               next if y["default"]
               UserAttribute.all(value_id:y["value_id"]).update!(value_id:k.values.first(default:true).id)
-              k.values.get(y["value_id"]).update!(deleted:true)
+              k.values.get(y["value_id"]).destroy
             else
               k.values.get(y["value_id"]).update(index:i,default:y["default"])
             end

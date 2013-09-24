@@ -83,6 +83,7 @@ class MainApp < Sinatra::Base
       }
     end
     delete '/delete_users' do
+      # destroyだと関連するモデルを全部削除しないといけないのでフラグ立てるだけ
       User.all(id:@json["uids"].map{|x|x.to_i}).update!(deleted:true)
     end
     post '/create_users' do

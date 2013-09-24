@@ -3,7 +3,6 @@
 # 大会出場者(後に改名する人がいる可能性があるのと，Userにない人を追加できるようにするため)
 class ContestUser
   include ModelBase
-  property :deleted, ParanoidBoolean, lazy: false
   property :name, TrimString, length: 24, required: true,index:true, remove_whitespace: true
   property :user_id, Integer, unique_index: :u1, required: false
   belongs_to :user, required: false
@@ -33,7 +32,6 @@ end
 # 毎回aggregateするのは遅いのでキャッシュ
 class ContestResultCache
   include ModelBase
-  property :deleted, ParanoidBoolean, lazy: false
   belongs_to :event
   property :win, Integer, default: 0 # 勝ち数の合計
   property :lose, Integer, default: 0 # 負け数の合計
@@ -85,7 +83,6 @@ end
 # 大会の各級の情報
 class ContestClass
   include ModelBase
-  property :deleted, ParanoidBoolean, lazy: false
   property :event_id, Integer, unique_index: :u1, required: true
   belongs_to :event
   property :class_name, TrimString, length: 16, required: true, unique_index: :u1 # 級の名前
@@ -184,7 +181,6 @@ end
 # 試合結果(個人戦, 団体戦共通)
 class ContestGame
   include ModelBase
-  property :deleted, ParanoidBoolean, lazy: false
   property :event_id, Integer, index:true, allow_nil: false # 検索用にキャッシュ
   belongs_to :event
   # Discriminator を使った Single Table Inheritance は子クラスにインデックスを作れないし

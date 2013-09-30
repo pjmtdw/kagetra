@@ -64,7 +64,7 @@ for Ubuntu ->
   $ coffee -c views/js/hoobar.coffee
 
 [Howto Update Zurb Foundation Version]
-(1) replace "gem 'zurb-foundation', '<version>'" in 'Gemfile'
+(1) replace "gem 'zurb-foundation', '<version>'" in Gemfile
 (2) execute 'bundle update'
 (3) replace "foundation" : "<version>" in bower.json
 (4) execute 'bower update'

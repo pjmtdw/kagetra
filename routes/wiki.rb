@@ -76,7 +76,7 @@ class MainApp < Sinatra::Base
     get '/item/:id' do
       item = WikiItem.get(params[:id].to_i)
       halt 403 unless (not @public_mode or (@public_mode and item.public))
-      r = item.select_attr(:title,:revision,:public)
+      r = item.select_attr(:title,:revision,:public,:attached_count)
       if not @public_mode then
         r[:deletable] = @user.admin || item.owner_id == @user.id
       end
@@ -161,7 +161,7 @@ class MainApp < Sinatra::Base
 
     end
     delete '/attached/:id' do
-      WikiAttachedFile.get(params[:id].to_i).update!(deleted:true)
+      WikiAttachedFile.get(params[:id].to_i).destroy
     end
   end
   comment_routes("/api/wiki",WikiItem,WikiComment,true)

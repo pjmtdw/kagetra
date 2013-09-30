@@ -6,6 +6,7 @@ class WikiItem
   property :public, Boolean, default: false # 外部公開されているか
   property :body, TrimText, required: true
   property :revision, Integer, default: 0
+  property :attached_count, Integer, default: 0
   belongs_to :owner, 'User', required: false
   has n, :attacheds, 'WikiAttachedFile'
   has n, :item_logs, 'WikiItemLog'
@@ -38,6 +39,12 @@ class WikiAttachedFile
   property :orig_name, TrimString, length: 128 # 元の名前
   property :description, TrimText # 説明
   property :size, Integer, required: true
+  def update_attached_count
+    wi = self.wiki_item
+    wi.update(attached_count:wi.attacheds.count)
+  end
+  after :create, :update_attached_count
+  after :destroy, :update_attached_count
 end
 
 # Wikiコメント

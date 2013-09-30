@@ -107,7 +107,9 @@ module MiscHelpers
         }
         ev.choices.all(positive: true).each{|c|
           c.user_choices.each{|uc|
-            klass = value2klass[uc.attr_value.id]
+            av = uc.attr_value
+            next if av.nil?
+            klass = value2klass[av.id]
             next if klass.nil?
             ContestUser.create(event_id:ev.id,contest_class_id:klass.id,user:uc.user,name:uc.user_name)
           }

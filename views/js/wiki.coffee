@@ -162,6 +162,8 @@ define (require,exports,module) ->
       try
         @$el.html(@template(data:@model.toJSON()))
         @$el.appendTo("#wiki-item")
+        $("#wiki-attached-count").text("( #{@model.get('attached_count')} )")
+        @$el.foundation('section','reflow')
       catch e
         console.log "Error: " + e.message
 

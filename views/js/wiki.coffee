@@ -245,10 +245,16 @@ define (require,exports,module) ->
       @$el.html(@template(data:@model.toJSON()))
       @$el.appendTo("#wiki-log")
 
+  switch_uri = (ev)->
+    [page,id] = Backbone.history.fragment.split('/')
+    tab = $(ev.currentTarget).attr("id")
+    rest = if tab == "section-page" then "" else tab.replace(/^section-/,"/")
+    window.wiki_router.navigate("#{page}/#{id}#{rest}",trigger:false,replace:true)
   init: ->
     window.wiki_router = new WikiRouter()
     window.wiki_viewlog = []
     $("section.hide-for-public").hide() if g_public_mode
+    $("#wiki-container a").on("click",switch_uri)
     Backbone.history.start()
 
 

@@ -75,9 +75,11 @@ define (require, exports, module) ->
       }[s]
     # reverse of $.param
     deparam: (s) ->
+      return {} unless s
       _.object(
         for p in s.split('&')
-         p.split('=')
+         [k,v] = p.split('=')
+         [k,decodeURIComponent(v)]
       )
 
     swap_elem: (a,b) ->

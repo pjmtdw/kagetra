@@ -82,8 +82,7 @@ define (require,exports,module)->
         @come_from = @history[@history.length-1]
         @chunk_list = (x.id for x in window.album_all_log_view.model.get('list'))
       else if window.album_group_view
-        @come_from = null
-        @chunk_list = (x.id for x in window.album_group_view.model.get('items'))
+        @come_from = @history[@history.length-1]
       else if window.album_year_view or window.album_top_view
         @come_from = null
         @chunk_list = []
@@ -274,7 +273,17 @@ define (require,exports,module)->
       @$el.appendTo("#album-group")
       @render_items()
       @render_tags()
+      @apply_uri_filter()
       scroll_to_item()
+    apply_uri_filter: ->
+      [s,t] = Backbone.history.fragment.split('?')
+      ts = _.deparam(t)
+      owner = ts['owner']
+      tag = ts['tag']
+      if owner
+        $(".owners:contains('#{owner}')").click()
+      if tag
+        $(".album-tag-name:contains('#{tag}')").closest('.album-tag').click()
 
     render_tags: ->
       tags = @model.get('tags')
@@ -290,6 +299,7 @@ define (require,exports,module)->
       items = @model.get('items')
       if @filter
         items = (x for x in items when x.id in @filter)
+      window.album_router.chunk_list = (x.id for x in items when not x.hide)
       $("#album-items").html(@template_items(data:{items:items}))
     thumb_click: (ev)->
       return unless @edit_mode
@@ -310,10 +320,22 @@ define (require,exports,module)->
         img.removeClass("rotate-#{rot}")
         @add_rotate[id] = (rot + 90)%360
         img.addClass("rotate-#{@add_rotate[id]}")
+    set_param: (key,value)->
+      [s,t] = Backbone.history.fragment.split('?')
+      ts = if t then _.deparam(t) else {}
+      if _.isNull(value)
+        delete ts[key]
+      else
+        ts[key] = value
+      rest = if not _.isEmpty(ts) then "?"+$.param(ts) else ""
+      window.album_router.navigate(s+rest,trigger:false,replace:true)
+      window.album_router.storeRoute()
+
     remove_owner_filter: ->
       $("#album-info-table .owners").removeClass("selected")
       $("#album-info-table .owners").removeClass("unselected")
       @filter = null
+      @set_param('owner',null)
 
     remove_tag_filter: ->
       @$el.find(".tag-selected").removeClass("tag-selected")
@@ -324,6 +346,7 @@ define (require,exports,module)->
           flag_changed = true
       if flag_changed
         @render_items()
+      @set_param('tag',null)
     filter_owners: (ev)->
       return if @edit_mode
       obj = $(ev.currentTarget)
@@ -336,6 +359,7 @@ define (require,exports,module)->
         obj.removeClass("unselected")
         obj.addClass("selected")
         name = obj.find(".owner-name").text()
+        @set_param('owner',name)
         @filter = _.object(@model.get('owners'))[name]
       @render_items()
       @render_tags()
@@ -347,7 +371,9 @@ define (require,exports,module)->
       else
         @$el.find(".tag-selected").removeClass("tag-selected")
         obj.addClass("tag-selected")
-        visibles = _.object(@model.get("tags"))[obj.find(".album-tag-name").text()]
+        tag = obj.find(".album-tag-name").text()
+        @set_param('tag',tag)
+        visibles = _.object(@model.get("tags"))[tag]
         for x in @model.get("items")
           x.hide = not (x.id in visibles)
         @render_items()
@@ -594,6 +620,10 @@ define (require,exports,module)->
       router = window.album_router
       data = @model.toJSON()
       data["go_back"] = router.come_from
+      data["group_path"] = "group/#{data.group.id}"
+      if router.come_from and router.come_from.indexOf("#{data.group_path}?") == 0
+        data["group_path"] = router.come_from
+
       id = @model.get('id')
       cl = router.chunk_list
       if cl

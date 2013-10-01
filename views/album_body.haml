@@ -108,7 +108,7 @@
         %a(href='album#') TOP -
         %a(href='album#year/{{data.group.year || "_else_"}}') {{data.group.year || "(不明)"}}年 -
         <% if(!data.group.dummy){ %>
-        %a(href='album{{"#group/"+data.group.id}}') {- data.group.name || "(タイトルなし)" -}
+        %a(href='album{{"#"+data.group_path}}') {- data.group.name || "(タイトルなし)" -}
         <% } %>
       .right#album-buttons
         <% if(data.prev_item){ %>
@@ -117,7 +117,7 @@
         <% if(data.next_item){ %>
         %a.button.small.success(href='album#item/{{data.next_item}}') &raquo;
         <% } %>
-        <% if(data.go_back){ %>
+        <% if(data.go_back && data.go_back.indexOf("group/") != 0){ %>
         %button.small.success#go-back {{data.go_back.indexOf("search/")==0?"検索結果":"コメント履歴"}}へ
         <% } %>
         %button.small.success#go-random ランダム

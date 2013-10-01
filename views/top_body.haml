@@ -133,7 +133,7 @@
   #ev-done-comment
     {{ _.show_news(data.ev_done_comment,"name","過去行事コメントに新着%%件","schedule#ev_done")  }}
   #wiki-comment-new
-    {{ _.show_news(data.wiki,"title","Wikiコメントに新着%%件","wiki#page/%id%")  }}
+    {{ _.show_news(data.wiki,"title","Wikiコメントに新着%%件","wiki#page/%id%/comment")  }}
   #event-participant-new.link-detail
     <% if(!_.isEmpty(data.participants)){ %>
     大会行事の新規登録者:

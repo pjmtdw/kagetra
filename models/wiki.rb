@@ -11,6 +11,15 @@ class WikiItem
   has n, :attacheds, 'WikiAttachedFile'
   has n, :item_logs, 'WikiItemLog'
   has n, :comments, 'WikiComment', child_key: [:thread_id] # コメント
+  
+  validates_with_block :title do
+    if self.title.include?("/")
+      [false, "You cannot use '/' in title"]
+    else
+      true
+    end
+  end
+
 
   # each_revisions_until を使うにはこの関数を実装しておく必要がある
   def patch_syms

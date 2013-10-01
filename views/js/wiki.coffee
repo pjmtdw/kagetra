@@ -10,14 +10,17 @@ define (require,exports,module) ->
         "#{Math.floor(x/1048576)} MB"
   class WikiRouter extends _.router_base("wiki",["item","attached_list","edit","comment","comment_thread","log"])
     routes:
-      "page/:id" : "page"
+      "page/:id(/:extra)" : "page"
       "" : "start"
     initialize: ->
       _.bindAll(@,"start")
-    page: (id) ->
+    page: (id,extra) ->
       @remove_all()
       @set_id_fetch("item",WikiItemView,id)
-      $("#section-page").click()
+      if extra
+        $("#section-#{extra}").click()
+      else
+        $("#section-page").click()
       if id != "all" and not g_public_mode
         $(".hide-for-all").show()
         @set_id_fetch("attached_list",WikiAttachedListView,id)
@@ -112,7 +115,8 @@ define (require,exports,module) ->
     link_page: (ev)->
       obj = $(ev.currentTarget)
       id = obj.data('link-id')
-      window.wiki_router.navigate("/page/#{id}", trigger:true)
+      extra = obj.data('link-extra') || ''
+      window.wiki_router.navigate("/page/#{id}#{extra}", trigger:true)
 
   class WikiPanelView extends WikiBaseView
     template: _.template_braces($("#templ-wiki-panel").html())
@@ -162,8 +166,8 @@ define (require,exports,module) ->
       try
         @$el.html(@template(data:@model.toJSON()))
         @$el.appendTo("#wiki-item")
-        $("#wiki-attached-count").text("( #{@model.get('attached_count')} )")
-        @$el.foundation('section','reflow')
+        $("#wiki-attached-count").text("( #{@model.get('attached_count')||0} )")
+        $("#wiki-container").sectionTitleExpandHorizontal("#wiki-attached-count")
       catch e
         console.log "Error: " + e.message
 

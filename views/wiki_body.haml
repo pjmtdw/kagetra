@@ -2,7 +2,7 @@
 
 .row
   .large-12.columns
-    .section-container.tabs(data-section="tabs")
+    #wiki-container.section-container.tabs(data-section="tabs")
       %section.active
         %p.title(data-section-title)
           %a#section-page(href="#") ページ
@@ -12,26 +12,23 @@
             #wiki-edit
       %section.hide-for-public
         %p.title.hide-for-all(data-section-title)
-          %a(href="#")
-            %span 履歴
+          %a#section-log(href="#") 履歴
         .content(data-section-content)
           %p
             #wiki-log
       %section.hide-for-public
         %p.title.hide-for-all(data-section-title)
-          %a(href="#")
-            %span
-              添付
-              %span#wiki-attached-count
+          %a#section-attached(href="#")
+            添付
+            %span#wiki-attached-count
         .content(data-section-content)
           %p
             #wiki-attached
       %section.hide-for-public
         %p.title.hide-for-all(data-section-title)
-          %a(href="#")
-            %span
-              コメント
-              %span#wiki-comment-count
+          %a#section-comment(href="#")
+            コメント
+            %span#wiki-comment-count
         .content(data-section-content)
           %p
             #wiki-comment
@@ -171,11 +168,12 @@
       %code .wiki-page
       がページ内を示すセレクタです．
       %hr
-      Wiki内リンクは [[ ]] で囲みます．
+      Wiki内リンクは [[ ]] で囲みます．末尾に/log,/attached,/commentを付けるとそれぞれ履歴，添付，コメントへのリンクになります．
       .panel
         %code
           %div [[ リンク先タイトル ]]
           %div [[ リンク先タイトル | 表示される文字列 ]]
+          %div [[ リンク先タイトル/attached ]]
       %hr
       テーブルを記述するには下記のようにします．ハイフンは3つ以上必要です．
       .panel

@@ -43,12 +43,18 @@ class MainApp < Sinatra::Base
 
       html.gsub!(/#{tag_link}:(\d+):/){
         (keyword,text) = links[$1.to_i].split('|').map{|x|x.strip}
+        pattern = /\/(attached|comment|log)$/
+        extra = ""
+        if pattern =~ keyword then
+          extra = "data-link-extra='#{$&}'"
+          keyword.sub!(pattern,"")
+        end
         text ||= keyword
         item = WikiItem.first(title:keyword)
         if item.nil? then
-          %(<a class="link-new" data-link-new="#{Rack::Utils.escape_html(keyword)}">#{text}</a>)
+          %(<a #{extra} class="link-new" data-link-new="#{Rack::Utils.escape_html(keyword)}">#{text}</a>)
         else
-          %(<a class="link-page" data-link-id="#{item.id}">#{text}</a>)
+          %(<a #{extra} class="link-page" data-link-id="#{item.id}">#{text}</a>)
         end
       }
       html

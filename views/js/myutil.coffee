@@ -290,6 +290,22 @@ define (require, exports, module) ->
           defer.resolve()
       )
       defer.promise()
+  # Zurb Foundation 4のSectionのTitle部分だけをリサイズ(foundation.section.js参照)
+  # 同じようなことは $.foundation("section","reflow")でもできるが，
+  # sectionのrefrowは全体を描画し直そうとしてチラつくので以下の関数ではTitle部分だけをリサイズする．
+  # ただし完全にリサイズ仕直すのではなく増えた分だけ右にずらすだけ．
+  # elemのwidth分だけTitleを右に伸ばす．
+  $.fn.sectionTitleExpandHorizontal = (elem) ->
+    data_name = "expand-horizontal-previous-width"
+    obj = @.find(elem)
+    return unless obj.is(":visible")
+    previous_width = obj.data(data_name) || 0
+    obj.data(data_name,obj.width())
+    obj.closest("section").nextAll("section").each(->
+      t = $(@).find("[data-section-title]")
+      t.css(left:t.position().left+obj.width()-previous_width)
+    )
+
 
   # b == true なら最初の状態, b == false なら裏状態
   # 指定されないならtoggle

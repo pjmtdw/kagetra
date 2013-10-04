@@ -1,4 +1,6 @@
 define (require,exports,module)->
+  const_no_tag = 'タグなし'
+  const_no_comment = 'コメントなし'
   $as = require('album_search')
   _.mixin
     show_date: (data)->
@@ -192,6 +194,46 @@ define (require,exports,module)->
       @$el.find("#album-list").before($("<div>",text:"新着"))
       @render_percent()
 
+  AlbumEventEditView = Backbone.View.extend
+    template: _.template_braces($("#templ-album-event-edit").html())
+    events:
+      "submit #album-event-edit-form" : 'apply_edit'
+    apply_edit: _.wrap_submit ->
+      v = @$el.find(".album-event-target").select2("val")
+      return if _.isEmpty(v)
+      obj = {
+        album_group_id: @model.get('id')
+        event_id: parseInt(v)
+      }
+      that = this
+      $.ajax("api/album/set_event",{
+        data: JSON.stringify(obj),
+        contentType: "application/json",
+        type: "POST"
+      }).done((data)->
+        alert("更新しました")
+        $(that.options.target).foundation("reveal","close")
+      )
+    initialize: ->
+      @render()
+    render: ->
+      @$el.html(@template())
+      @$el.appendTo(@options.target)
+      group_id = @model.get('id')
+      @$el.find(".album-event-target").select2(
+        width:"resolve"
+        placeholder: "大会名"
+        minimumInputLength: 0
+        ajax:
+          url: "api/album/complement_event"
+          type: "POST"
+          data: (term,page)->
+            q: term
+            group_id: group_id
+          results: (data,page) ->
+            data.results.unshift(id:-1,text:"なし")
+            data
+      )
 
   AlbumGroupModel = Backbone.Model.extend
     urlRoot: "api/album/group"
@@ -215,6 +257,11 @@ define (require,exports,module)->
       "click #multi-edit" : "multi_edit"
       "click #remove-checked" : "remove_checked"
       "click #reverse-checked" : "reverse_checked"
+      "click #event-edit" : "event_edit"
+    event_edit: ->
+      target = "#container-album-event-edit"
+      v = new AlbumEventEditView(target:target,model:@model)
+      _.reveal_view(target,v)
     get_checked: ->
       @$el.find(".album-item input[type='checkbox']:checked")
     remove_checked: ->
@@ -268,6 +315,7 @@ define (require,exports,module)->
       @model = new AlbumGroupModel()
       @listenTo(@model,"sync",@render)
     render: ->
+      @generate_extra_tags()
       @$el.html(@template(data:@model.toJSON()))
       @$el.find("#album-info").html(@template_info(data:@model.toJSON()))
       @$el.appendTo("#album-group")
@@ -275,6 +323,16 @@ define (require,exports,module)->
       @render_tags()
       @apply_uri_filter()
       scroll_to_item()
+    generate_extra_tags: ->
+      tags = @model.get('tags')
+      items = @model.get('items')
+      no_tag = (x.id for x in items when x.no_tag)
+      no_comment = (x.id for x in items when x.no_comment)
+      if not _.isEmpty(no_tag)
+        tags.push([const_no_tag,no_tag])
+      if not _.isEmpty(no_comment)
+        tags.push([const_no_comment,no_comment])
+
     apply_uri_filter: ->
       [s,t] = Backbone.history.fragment.split('?')
       ts = _.deparam(t)
@@ -287,12 +345,17 @@ define (require,exports,module)->
 
     render_tags: ->
       tags = @model.get('tags')
-      if @filter
+      if not _.isEmpty(@filter)
         filter = @filter
         tags = _.chain(tags)
           .map(([k,v])->[k,_.intersection(v,filter)])
           .filter(([k,v])->not _.isEmpty(v))
-          .sortBy(([k,v])->-v.length)
+          .sortBy(([k,v])->
+            switch k
+              when const_no_tag then 0
+              when const_no_comment then 1
+              else -v.length
+          )
           .value()
       $("#album-tags").html(@template_tags(data:{tags:tags}))
     render_items: ->
@@ -321,14 +384,17 @@ define (require,exports,module)->
         @add_rotate[id] = (rot + 90)%360
         img.addClass("rotate-#{@add_rotate[id]}")
     set_param: (key,value)->
-      [s,t] = Backbone.history.fragment.split('?')
+      fragment = Backbone.history.fragment
+      [s,t] = fragment.split('?')
       ts = if t then _.deparam(t) else {}
       if _.isNull(value)
         delete ts[key]
       else
         ts[key] = value
       rest = if not _.isEmpty(ts) then "?"+$.param(ts) else ""
-      window.album_router.navigate(s+rest,trigger:false,replace:true)
+      u = s+rest
+      return if u == fragment
+      window.album_router.navigate(u,trigger:false,replace:true)
       window.album_router.storeRoute()
 
     remove_owner_filter: ->
@@ -636,10 +702,16 @@ define (require,exports,module)->
       @$el.find("#album-info").html(@template_info(data:@model.toJSON()))
       @$el.appendTo("#album-item")
       @render_relations(false)
-      if router.come_from and router.come_from.indexOf("search/") == 0
+      cf = router.come_from
+      qs = if cf
+            if cf.indexOf("search/") == 0
+              decodeURIComponent(cf.split("/")[1])
+            else if cf.indexOf("group/") == 0
+              [q,r] = cf.split("?")
+              _.deparam(r)["tag"]
+      if qs
         tags = @model.get('tags')
-        if tags
-          qs = decodeURIComponent(router.come_from.split("/")[1])
+        if not _.isEmpty(tags)
           tag = _.find(tags,(x)->x.name.indexOf(qs)>=0)
           if tag
             show_tag(tag)

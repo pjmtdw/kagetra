@@ -376,7 +376,7 @@ define (require,exports,module) ->
     url: -> 'api/result/contest/' + (@id or "latest")
     model: ContestChunkModel
     parse: (data)->
-      for x in ["recent_list","name","date","id","kind","official"
+      for x in ["recent_list","name","date","id","kind","official","album_groups"
         "contest_classes","group","team_size","event_group_id"]
         @[x] = data[x]
       data.contest_results
@@ -584,7 +584,7 @@ define (require,exports,module) ->
 
     render: ->
       col = @collection
-      @$el.html(@template(data:_.pick(@collection,"id","recent_list","group","name","date","kind","official")))
+      @$el.html(@template(data:_.pick(@collection,"id","recent_list","group","name","date","kind","official","album_groups")))
       cur_class = null
       @chunks = []
       that = this

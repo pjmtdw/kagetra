@@ -29,10 +29,16 @@
       %button.small.round#contest-add 大会追加
       %a(href='result/excel/{{data.id}}/{{data.date}}_{{encodeURIComponent(data.name)}}.xls') 印刷用
   .row
-    %div.contest-name-date
+    .contest-name-date
       %span.event-symbol {{_.show_kind_symbol(data.kind,data.official) }}
       %span.contest-name {- data.name -}
       %span.contest-date @ {- data.date -}
+      <% if(data.album_groups){ %>
+      %span.gap-margin-left
+        <% _.each(data.album_groups,function(x,index){ %>
+        %a.button.small.success(href='album#group/{{x}}') アルバム{{data.album_groups.length == 1?"":(index+1)}}へ
+      <% })%>
+      <% } %>
   .row
     .section-container.tabs(data-section="tabs")
       %section.active

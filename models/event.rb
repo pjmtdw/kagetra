@@ -32,6 +32,8 @@ class Event
 
   has 1, :result_cache, 'ContestResultCache'
 
+  has n, :album_groups, 'AlbumGroup', through: :album_group_event # 関連アルバム
+
   has n, :choices, 'EventChoice'
   has n, :result_classes, 'ContestClass' # 大会結果の各級の情報
   has n, :result_users, 'ContestUser' # 大会結果の出場者

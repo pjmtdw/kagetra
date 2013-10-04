@@ -2,6 +2,8 @@
 class MainApp < Sinatra::Base
   ALBUM_SEARCH_PER_PAGE = 50
   ALBUM_RECENT_GROUPS = 6
+  ALBUM_EVENT_COMPLEMENT_DAYS = 3
+  ALBUM_EVENT_COMPLEMENT_LIMIT = 50
   def album_group_info(group)
     r = group.select_attr(:id,:name,:start_at,:item_count).merge({type:"group"})
     ic = group.item_count || 0
@@ -36,7 +38,8 @@ class MainApp < Sinatra::Base
       item_fields = [:id,:tag_count,:comment,:tag_names,:rotate,:owner_id]
       group = AlbumGroup.get(params[:gid].to_i)
       halt 404 if group.nil?
-      r = group.select_attr(:name,:year,:place,:comment,:start_at,:end_at)
+      r = group.select_attr(:id,:name,:year,:place,:comment,:start_at,:end_at)
+      r[:event_id] = AlbumGroupEvent.get_event_id(group.id)
       tags = Hash.new{[]}
       owners = Hash.new{[]}
       r[:items] = AlbumItem.all(group_id:group.id,fields:item_fields,order:[:group_index.asc]).map{|x|
@@ -48,10 +51,16 @@ class MainApp < Sinatra::Base
         if not x.owner_id.nil? then
           owners[x.owner_id] <<= x.id
         end
-        x.id_with_thumb.merge({
-          no_tag: x.tag_count == 0,
-          no_comment: x.comment.to_s.empty?
-        })
+        no_tag = x.tag_count == 0
+        no_comment = x.comment.to_s.empty?
+        data = x.id_with_thumb
+        if no_tag then
+          data[:no_tag] = 1
+        end
+        if no_comment then
+          data[:no_comment] = 1
+        end
+        data
       }
       users = Hash[User.aggregate(id:owners.keys,fields:[:id,:name]).map{|id,name|[id,name]}]
       r[:owners] = owners.to_a.map{|k,v|
@@ -241,6 +250,35 @@ class MainApp < Sinatra::Base
         qs: params[:qs]
       }
     end
+    post '/complement_event' do
+      group = AlbumGroup.get(params[:group_id])
+      query = params[:q]
+      results = if query.empty? then
+                  if group.start_at then
+                    st = group.start_at - ALBUM_EVENT_COMPLEMENT_DAYS
+                    ed = group.start_at + ALBUM_EVENT_COMPLEMENT_DAYS
+                    Event.all(:date.gte=>st,:date.lte=>ed,done:true,kind: :contest,order:[:date.desc]).map{|x|
+                      {id:x.id,text:"#{x.name}@#{x.date}"}
+                    }
+                  else
+                    []
+                  end
+                else
+                  cond = {order:[:date.desc]}
+                  if /\d{4}/ =~ query then
+                    year = $&.to_i
+                    query.sub!(/\s*\d{4}\s*/,"")
+                    cond[:date.gte] = Date.new(year,1,1)
+                    cond[:date.lte] = Date.new(year,12,31)
+                  end
+                  query.gsub!(/\s+/,"")
+                  Event.all(cond.merge({:name.like => "%#{query}%"}))[0...ALBUM_EVENT_COMPLEMENT_LIMIT].map{|x|
+                    {id:x.id,text:"#{x.name}@#{x.date}"}
+                  }
+                end
+      {results:results}
+
+    end
     get '/thumb_info/:id' do
       item = AlbumItem.get(params[:id].to_i)
       item.id_with_thumb
@@ -338,6 +376,14 @@ class MainApp < Sinatra::Base
       tags = AlbumTag.aggregate(fields:[:name],:name.like => "%#{params[:q]}%", album_item_id:item_ids)
       list = User.aggregate(fields:[:name],:name.like => "%#{params[:q]}%",order:[:updated_at.desc])
       {results:(tags+list).uniq}
+    end
+    post '/set_event' do
+      Kagetra::Utils.dm_debug{
+        ag = AlbumGroup.get(@json["album_group_id"].to_i)
+        eid = @json["event_id"].to_i
+        ag.event = if eid == -1 then nil else Event.get(eid) end
+        ag.save
+      }
     end
     get '/stat' do
       uploaders = AlbumItem.aggregate(fields:[:id.count,:owner_id],:owner_id.not=>nil).sort_by{|x,y|x}.reverse

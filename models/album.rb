@@ -19,6 +19,7 @@ class AlbumGroup
   property :has_comment_count, Integer, default: 0 # コメントの入っている写真の数
   property :has_tag_count, Integer, default: 0 # タグの入っている写真の数
   property :item_count, Integer, default: 0 # 毎回aggregateするのは遅いのでキャッシュ
+  has 1, :event, 'Event', through: :album_group_event # 関連大会
   has n, :items, 'AlbumItem', child_key: [:group_id]
   before :save do
     if not self.dummy then
@@ -180,4 +181,18 @@ class AlbumTag
   property :coord_y, Integer # 写真の中のY座標
   property :radius, Integer # 円の半径
   belongs_to :album_item
+end
+
+# アルバムと大会の関連
+class AlbumGroupEvent
+  include ModelBase
+  belongs_to :album_group, unique: true
+  belongs_to :event
+  # event_idやalbum_group_idだけを取ってくるならaggregate使った方が余計なJOINが発生しないで済む
+  def self.get_event_id(album_group_id)
+    self.aggregate(fields:[:event_id],album_group_id:album_group_id)[0]
+  end
+  def self.get_album_group_ids(event_id)
+    self.aggregate(fields:[:album_group_id],event_id:event_id)
+  end
 end

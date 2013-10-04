@@ -65,14 +65,18 @@
       %a(href='album#year/{{data.year || "_else_"}}') {{data.year || "(不明)"}}年
     .large-8.columns
       .right#album-buttons
-        %button.small.round#add-picture 写真追加
-        %button.small.round#start-edit 編集開始
+        <% if(data.event_id){ %>
+        %a.gap-margin-right.button.success.small(href='result#contest/{{data.event_id}}') 大会結果へ
+        <% } %>
+        %button#add-picture.small.round 写真追加
+        %button#start-edit.small.round 編集開始
       .right#album-edit-buttons.hide
         <% if(data.deletable){ %>
         %button#album-delete.small.round.alert フォルダ削除
         <% } %>
-        %button#cancel-edit.small.round#cancel-edit キャンセル
-        %button#apply-edit.small.round#apply-edit 送信
+        %button#event-edit.success.small 関連大会変更
+        %button#cancel-edit.small.round キャンセル
+        %button#apply-edit.small.round 送信
   #album-info
   .row
     .large-12.columns
@@ -120,7 +124,7 @@
         <% if(data.go_back && data.go_back.indexOf("group/") != 0){ %>
         %button.small.success#go-back {{data.go_back.indexOf("search/")==0?"検索結果":"コメント履歴"}}へ
         <% } %>
-        %button.small.success#go-random ランダム
+        %button.small.success.gap-margin-right#go-random ランダム
         %button.small.round#start-edit 編集開始
       .right#album-edit-buttons.hide
         <% if(data.deletable){ %>
@@ -362,13 +366,26 @@
               {-x[2]-}
           <% }) %>
 
-#container-album-relation.reveal-modal
-#container-album-upload.reveal-modal
-#container-album-multi-edit.reveal-modal
-
 %script#templ-album-tag-popup(type='text/template')
   #tag-popup
     %form
       %fieldset
         %legend タグ名
         %input#album-tag-popup(type='text')
+
+%script#templ-album-event-edit(type='text/template')
+  .row
+    関連大会変更
+  .row
+    %form#album-event-edit-form
+      .large-8.small-9.columns
+        %input.album-event-target(type='text')
+      .large-4.small-3.columns
+        %input.button.small.round(type='submit' value='送信')
+  .row
+    検索例: 「名人戦 {{new Date().getFullYear()}}」
+
+#container-album-relation.reveal-modal
+#container-album-upload.reveal-modal
+#container-album-multi-edit.reveal-modal
+#container-album-event-edit.reveal-modal

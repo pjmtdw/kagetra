@@ -3,6 +3,9 @@ define (require, exports, module) ->
   $ = require("jquery")
   Backbone = require("backbone")
 
+  String.prototype.endsWith = (x)->
+    @indexOf(x,@length-x.length) != -1
+
   # 履歴付きBackbone.Router
   class HistoryRouter extends Backbone.Router
     initialize: (options)->
@@ -220,18 +223,39 @@ define (require, exports, module) ->
     # TODO: 将来的にZurb Foundationがバージョンアップしたらその方法が用意されるかもしれない
     reveal_view: (target,view,confirm_when_edited) ->
       obj = $(target)
+      window.foundation_is_revealing = true
       obj.one("closed", ->
         $(".reveal-modal-bg").off('click')
         view.remove()
         obj.empty()
         obj.removeClass("form-changed")
+        if window.foundation_is_revealing
+          # do nothing since other window is revealing
+        else if window.location.hash.endsWith("@revealed")
+          # closed with $.foundation("reveal","close")
+          window.onhashchange = ->
+            window.onhashchange = null
+            Backbone.history.start({silent:true})
+          window.history.back()
+        else
+          # closed with browser's back key or window.history.back()
+          window.onhashchange = null
+          Backbone.history.start({silent:true})
       )
-      # 
       obj.one("opened", ->
+        window.foundation_is_revealing = false
+        Backbone.history.stop()
+        if not window.location.hash.endsWith("@revealed")
+          window.location.hash = window.location.hash + "@revealed"
+        window.onhashchange = ->
+          if not window.location.hash.endsWith("@revealed")
+            if obj.hasClass("form-changed") and not confirm("本当に変更を破棄して閉じますか？")
+              window.history.forward()
+              return
+            obj.foundation("reveal","close")
+
         $(".reveal-modal-bg").on('click',->
-          if obj.hasClass("form-changed") and not confirm("本当に変更を破棄して閉じますか？")
-            return
-          obj.foundation("reveal","close")
+          window.history.back()
         )
       )
       if confirm_when_edited

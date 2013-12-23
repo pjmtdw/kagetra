@@ -119,14 +119,15 @@ class MainApp < Sinatra::Base
       event_info(ev,@user,opts)
     end
     delete '/item/:id' do
-      # 関連するクラスを全て削除しないとdestroyできないが，全部削除はしたくないので deleted フラグを付けるだけにする
-      # ただしそのままだと関連するクラスに対して直接aggregate/get/allメソッドを呼ぶような場合はヒットしてしまうのでそういうのをdeleted:trueにする
-      ev = Event.get(params[:id].to_i)
-      ev.result_users.update!(deleted:true)
-      ev.result_classes.update!(deleted:true)
-      ContestResultCache.all(event_id:ev.id).update!(deleted:true)
-      ContestGame.all(event_id:ev.id).update!(deleted:true)
-      ev.update!(deleted:true)
+      # 関連するクラスを全て削除しないとdestroyできない
+      Event.transaction{
+        ev = Event.get(params[:id].to_i)
+        ev.result_users.destroy!
+        ev.result_classes.destroy!
+        ContestResultCache.all(event_id:ev.id).destroy!
+        ContestGame.all(event_id:ev.id).destroy!
+        ev.update!(deleted:true)
+      }
     end
 
     def update_or_create_item

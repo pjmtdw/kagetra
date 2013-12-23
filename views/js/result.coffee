@@ -112,7 +112,23 @@ define (require,exports,module) ->
                   r.game_results.push({result:"break"})
               r.game_results[that.options.round-1] = data.results[r.cuid]
             else
-              delete r.game_results[that.options.round-1]
+              # 先の回戦がないか，全て休みの場合は削除 
+              # 休み以外がある場合は今の回回戦を休みにする
+              break_flag = false
+              if r.game_results.length > that.options.round
+                for i in [(r.game_results.length-1)..(that.options.round)]
+                  continue unless r.game_results[i]
+                  if r.game_results[i].result == "break"
+                    delete r.game_results[i]
+                  else
+                    break_flag = true
+                    break
+              if break_flag
+                r.game_results[that.options.round-1] = {result:"break"}
+              else
+                delete r.game_results[that.options.round-1]
+              # .lengthの調整(deleteするだけじゃlengthは変わらない)
+              r.game_results = _.compact(r.game_results)
           result.set("rounds",data.rounds)
           that.do_after_apply?(result,data)
           window.result_view.refresh_chunk(cindex)

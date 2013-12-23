@@ -346,24 +346,18 @@
         %tbody
           <% _.each(data.uploader_stat,function(x){ %>
           %tr(class='{{x[3]?"is-mine":""}}')
-            %td.count
-              [{{x[0]}}]
-            %td.count
-              {-x[1]-}
-            %td
-              {- data.uploader_names[x[2]] -}
+            %td.count [{{x[0]}}]
+            %td.count {-x[1]-}
+            %td {- data.uploader_names[x[2]] -}
           <% }) %>
       %table.left
         %caption タグ
         %tbody
           <% _.each(data.tag_stat,function(x){ %>
           %tr(class='{{x[3]?"is-mine":""}}')
-            %td.count
-              [{{x[0]}}]
-            %td.count
-              {-x[1]-}
-            %td
-              {-x[2]-}
+            %td.count [{{x[0]}}]
+            %td.count {-x[1]-}
+            %td {-x[2]-}
           <% }) %>
 
 %script#templ-album-tag-popup(type='text/template')

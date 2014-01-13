@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# find files newer than previous backup and send it by mail
+# backup file is splitted and encripted.
+# you can use 'cat' command to concatenate,
+# and 'openssl enc -d -aes256 -k $ENC_PASSWORD' to decrypt it.
+ 
+# this script uses  'mail' command, which is alias to 'mailx' in CentOS
+# thus you must install mailx before executing this script
+
+# you may use this script with ./periodic_mysqldump.sh
+# for example, you can add following jobs to crontab
+# 0 3 * * 1 /home/kagetra/kagetra/scripts/periodic_mysqldump.sh
+# 0 4 * * 1 /home/kagetra/kagetra/scripts/send_backup_as_emal.sh
+
+# basic settings
+PATH="/bin:/usr/bin"
+CURDIR="$(dirname $(readlink -f $0))"
+WORKDIR="${CURDIR}/bkup_work/"
+BKUP_ROOT="${CURDIR}/../"
+NEXT_BKUP_FROM="${WORKDIR}/next_bkup_from"
+
+# other settings
+MAIL_ADDR="example@gmail.com" # mail address to send backup files
+ENC_PASSWORD="hogefugapiyo"
+SPLIT_SIZE="20MB" # backup files will be splitted in this size
+
+function die(){
+  echo "$1"
+  exit 1 
+}
+
+if [ ! -e "$WORKDIR" ];then
+  mkdir -p "$WORKDIR"
+fi
+
+if [ ! -e "$NEXT_BKUP_FROM" ];then
+  echo "File not found: $NEXT_BKUP_FROM."
+  echo "Maybe this is the first time you executed this command."
+  echo "Mou must create it by executing:"
+  echo '$ date -d "7 days ago" +"%F %H:%M:%S" > '$NEXT_BKUP_FROM
+  exit 0
+fi
+next_bkup_time="$(date -d '30 minutes ago' +'%F %H:%M:%S')"
+cd "$BKUP_ROOT"
+prefix="kagetra-bkup-$(date +'%F-%H%M%S')".tgz.enc.
+
+find . -type f -newermt "$(cat $NEXT_BKUP_FROM)" ! -name 'kagetra-bkup-*' | \
+tar zcv -T - | \
+openssl enc -e -aes256 -k $ENC_PASSWORD | \
+split - $WORKDIR/$prefix -a 3 -b $SPLIT_SIZE -d
+
+for f in $WORKDIR/kagetra-bkup-*; do
+  echo -n "sending $f to $MAIL_ADDR .."
+  echo "this is a backup of kagetra" | mail -s "kagetra_bkup" -a "$f" "$MAIL_ADDR"
+  echo "done"
+  if [ $? -eq 0 ];then
+    rm -f "$f"
+  else
+    echo "sending mail failed, so we exit"
+    exit 1
+  fi
+  echo -n "sleeping 10 seconds.."
+  sleep 10 # maybe some smtp server hates sending a lot of file in once.
+  echo "done"
+done
+echo "$next_bkup_time" > "$NEXT_BKUP_FROM"

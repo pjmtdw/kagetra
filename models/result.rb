@@ -229,6 +229,19 @@ class ContestGame
 
   # TODO: 複数の勝ち負けの一括更新に対応
   after :save do
+    # 本来なら下記の処理はupdate_or_createしか呼んでないので不要なはずだが，何らかの条件下で同じものが出来てしまう模様
+    # したがってそれが起きてしまった場合はソフトウェア的にunique処理を行う
+    # TODO: 既にDBに存在してしまった以下のunique条件を満たさないデータを削除する
+    # TODO: unique条件を満たさないデータが出来てしまう原因を見つけ以下の処理を不要にする．
+    # TODO: 個人戦と団体戦でテーブルを分け，それぞれに unique index を作る
+    if is_single.call(self) then
+      # event_id, contest_user_id, contest_class_id, round で unique にする
+      self.class.all(self.select_attr(:event_id,:contest_user_id,:contest_class_id,:round).merge({:id.not => self.id})).destroy!
+    elsif is_team.call(self) then
+      # event_id, contest_user_id, contest_team_opponent_id で unique にする
+      self.class.all(self.select_attr(:event_id,:contest_user_id,:contest_team_opponent_id).merge({:id.not => self.id})).destroy!
+    end
+
     u = self.contest_user
     updates = Hash[[:win,:lose].map{|sym|
       [sym,u.games(result:sym).count]

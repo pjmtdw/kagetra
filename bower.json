@@ -8,15 +8,15 @@
   "description": "Groupware specialized to Kyogi-Karuta",
   "license": "MIT",
   "dependencies": {
-    "requirejs": "2.1.8",
+    "requirejs": "2.1.11",
     "crypto-js": "3.1.2",
-    "underscore": "1.5.2",
-    "jquery": "1.10.2",
+    "underscore": "1.6.0",
+    "jquery": "1.11.1",
     "json2": "*",
-    "backbone": "1.0.0",
+    "backbone": "1.1.2",
     "foundation": "4.3.2",
-    "jquery-placeholder": "2.0.7",
-    "select2": "3.4.2",
+    "jquery-placeholder": "2.0.8",
+    "select2": "3.4.8",
     "bolster.simplemodal": "1.4.4"
   }
 }

@@ -8,7 +8,6 @@
 #CONF_DB_PATH = "sqlite3://#{Dir.pwd}/db/data.db"
 CONF_DB_PATH = "mysql://root:hogefuga@localhost/test"
 
-CONF_DB_DEBUG = false # DataMapperが発行するクエリを表示する
 CONF_LOG_SIZE = 32 # deploy/logに置かれるログの最大サイズ(MB)
 
 # scripts/initial_config.rbで作られる属性, 最初の要素は必ず「全員」にすること

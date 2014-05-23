@@ -19,20 +19,11 @@ require 'nkf'
 require 'redcarpet'
 require './libs/diff_match_patch-ruby/diff_match_patch.rb'
 require 'RMagick'
-require 'zip/zip' # RubyZip
+require 'zip' # RubyZip
 
 require 'nokogiri'
 
-require 'data_mapper'
-require 'dm-chunked_query'
 require 'spreadsheet'
-
-case CONF_DB_PATH
-when /^sqlite3:/
-  require 'dm-sqlite-adapter'
-when /^mysql:/
-  require 'dm-mysql-adapter'
-end
 
 require 'openssl'
 require 'securerandom'

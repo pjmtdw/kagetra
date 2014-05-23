@@ -7,12 +7,12 @@ Description: Groupware specialized to Kyogi-Karuta
 
 [Middleware]
 Version Control System: Git
-Programming Language:   Ruby 1.9.3
+Programming Language:   Ruby 2.1.2
 Ruby Management:        rbenv + bundler
 Web Framework:          Sinatra
 Testing:                RSpec
-ORM:                    DataMapper
-Database:               MySQL, PostgreSQL, SQLite (migration from hagakure does not work for PostgreSQL)
+ORM:                    Sequel
+Database:               MySQL
 HTML Template Engine:   Haml
 CSS Template Engine:    Sass(SCSS) + Compass
 Meta JavaScript:        CoffeeScript
@@ -22,12 +22,15 @@ Web UI Library:         Zurb Foundation 4
 [Howto Run]
 (0) Prepare Ruby environment
 for Ubuntu -> 
+  Note: rbenv in ubuntu repository might not work with git's recent ruby-build plugin, so you may have to install from GitHub
+  Install ruby by apt
   $ apt-get install ruby1.9.1 ruby1.9.1-dev libsqlite3-dev
-  $ apt-get install rbenv
-  $ echo 'eval "$(rbenv init -)"' >> ~/.bashrc
-  $ rbenv alternatives
-  ( install ruby-build plug-in for rbenv and execute $ rbenv install 1.9.3-p448 )
-  $ cd kagetra && rbenv local 1.9.3-debian ( or 1.9.3-p448 if using ruby-build )
+  Read following URL and install rbenv and ruby-build
+    https://github.com/sstephenson/rbenv
+    https://github.com/sstephenson/ruby-build
+  Install Ruby 2.1.2
+  $ rbenv install 2.1.2
+  $ cd kagetra && rbenv global 2.1.2
 (1) Install bundler
   $ gem install bundler
 (2) Install Sinatra and other Ruby modules

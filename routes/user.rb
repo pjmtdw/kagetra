@@ -19,12 +19,12 @@ class MainApp < Sinatra::Base
       end
       get '/list/:initial' do
         row = params[:initial].to_i
-        {list: User.all(order: [:furigana.asc], furigana_row: row, loginable: true).map{|x|
+        {list: User.where(furigana_row: row, loginable: true).order(Sequel.asc(:furigana)).map{|x|
           [x.id,x.name]
         }}
       end
       post '/user' do
-        user = User.get(params[:user_id].to_i)
+        user = User[params[:user_id].to_i]
         hash = user.password_hash
         res = Kagetra::Utils.check_password(params,hash)
         if res[:result] == "OK" then
@@ -33,7 +33,7 @@ class MainApp < Sinatra::Base
         res
       end
       get '/salt/:id' do
-        {salt: User.first(id: params[:id]).password_salt}
+        {salt: User[params[:id]].password_salt}
       end
     end
     get '/mysalt' do

@@ -31,3 +31,4 @@ gem 'sqlite3','1.3.9' # used when importing mytoma wiki
 # only used for developing
 gem 'rack-coffee','1.0.1'
 gem 'tux','0.3.0' # CLI for sinatra
+#gem 'mecab', '0.996'

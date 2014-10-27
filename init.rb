@@ -2,7 +2,8 @@
 # License of this software is described in LICENSE file.
 require './conf'
 require 'bundler'
-
+require 'mysql2'
+require 'sequel'
 require 'sinatra'
 require 'sinatra/namespace'
 require 'sinatra/content_for'

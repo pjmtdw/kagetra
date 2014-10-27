@@ -5,8 +5,10 @@
 # CONF_SESSION_SECRET = ""
 
 # DBのパス
-#CONF_DB_PATH = "sqlite3://#{Dir.pwd}/db/data.db"
-CONF_DB_PATH = "mysql://root:hogefuga@localhost/test"
+CONF_DB_USERNAME = "<user>"
+CONF_DB_PASSWORD = "<pass>"
+CONF_DB_HOST = "<host>"
+CONF_DB_DATABASE = "<db>"
 
 CONF_LOG_SIZE = 32 # deploy/logに置かれるログの最大サイズ(MB)
 
@@ -27,13 +29,12 @@ CONF_PROMOTION_ATTRS = ["級","段位"] # 昇級履歴で編集できる属性
 # 名簿の各項目名,「名前」と「ふりがな」は必須
 CONF_ADDRBOOK_KEYS = ['名前','ふりがな','E-Mail','生年月日','所属','出身高校','電話番号','郵便番号1','住所1','郵便番号2','住所2','メモ1','メモ2']
 
-# アルバム写真の画素数と画質
+# アルバム写真のサイズ(px)と画質
 CONF_ALBUM_LARGE_SIZE = 480000
 CONF_ALBUM_LARGE_QUALITY = 92
-# アルバムサムネイルの画素数と画質
+# アルバムサムネイルのサイズ(px)と画質
 CONF_ALBUM_THUMB_SIZE = 30000
 CONF_ALBUM_THUMB_QUALITY = 87
-
 # 初ログイン時に表示されるメッセージ
 CONF_FIRST_LOGIN_MESSAGE = "競技かるた会用グループウェア「景虎」へようこそ．<br/>「その他」&rArr;「ユーザ設定」でパスワード変更できます．"
 
@@ -53,7 +54,7 @@ CONF_MEIBO_PASSWD = "password_of_meibo"
 CONF_MEIBO_CSV = "/path/to/hagakure/meibo.csv"
 CONF_MEIBO_HTML = "/path/to/hagakure/meibo.html"
 
-# 結婚などで名前が変わった人一覧
+# 結婚などの理由で途中で名前が変わったユーザの一覧
 CONF_USERNAME_CHANGED = {
   '佐藤太郎' => '鈴木太郎',
   '高橋次郎' => '高橋次郎'

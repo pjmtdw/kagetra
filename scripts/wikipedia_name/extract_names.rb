@@ -15,6 +15,7 @@
 #   "漢字\tふりがな\n"
 
 require "set"
+require "fileutils"
 
 # 日本の1文字姓上位200
 ONE_SEI = File.readlines("one_sei.txt").join("").chomp

@@ -24,6 +24,9 @@ class MainApp < Sinatra::Base
           [x.id,x.name]
         }}
       end
+      # この認証方法はDBのpassword_hashが分かればパスワードを知らなくても誰でもログインできてしまう．
+      # しかしそもそも攻撃者がDBを見られる時点であんまし認証とか意味ないので許容する
+      # TODO: ちゃんとした認証方法に変える
       post '/user' do
         user = User[params[:user_id].to_i]
         hash = user.password_hash

@@ -5,6 +5,11 @@ DB = Sequel.mysql2(
   password: CONF_DB_PASSWORD,
   database: CONF_DB_DATABASE
 )
+if CONF_DB_DEBUG then
+  DB.loggers << Logger.new($stdout)
+  DB.sql_log_level = :debug
+end
+
 Sequel::Model.plugin :touch
 Sequel::Model.plugin :string_stripper
 require_relative 'sequel_plugins/input_transformer_custom'

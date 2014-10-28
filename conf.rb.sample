@@ -10,6 +10,8 @@ CONF_DB_PASSWORD = "<pass>"
 CONF_DB_HOST = "<host>"
 CONF_DB_DATABASE = "<db>"
 
+CONF_DB_DEBUG = true # stdout に DEBUG 情報を出力
+
 CONF_LOG_SIZE = 32 # deploy/logに置かれるログの最大サイズ(MB)
 
 # scripts/initial_config.rbで作られる属性, 最初の要素は必ず「全員」にすること

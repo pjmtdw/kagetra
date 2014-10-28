@@ -77,7 +77,6 @@ class User < Sequel::Model(:users)
       now = Time.now
       counted = false
       if is_first_login or (now - latest.updated_at) >= MIN_LOGIN_SPAN*60 then
-        p self.user_login_monthlies_dataset.public_methods.sort
         monthly = self.user_login_monthlies_dataset.find_or_create({year_month:UserLoginMonthly.year_month(now.year,now.month)},:user_id)
         monthly.count += 1
         monthly.save

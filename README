@@ -7,7 +7,7 @@ Description: Groupware specialized to Kyogi-Karuta
 
 [Middleware]
 Version Control System: Git
-Programming Language:   Ruby 2.1.2
+Programming Language:   Ruby 2.1.4
 Ruby Management:        rbenv + bundler
 Web Framework:          Sinatra
 Testing:                RSpec
@@ -21,16 +21,16 @@ Web UI Library:         Zurb Foundation 4
 
 [Howto Run]
 (0) Prepare Ruby environment
-for Ubuntu -> 
+for Ubuntu 14.04 -> 
   Note: rbenv in ubuntu repository might not work with git's recent ruby-build plugin, so you may have to install from GitHub
   Install ruby by apt
-  $ apt-get install ruby1.9.1 ruby1.9.1-dev libsqlite3-dev
+  $ apt-get install ruby2.0 ruby2.0-dev libsqlite3-dev libreadline-dev libssl-dev
   Read following URL and install rbenv and ruby-build
     https://github.com/sstephenson/rbenv
     https://github.com/sstephenson/ruby-build
-  Install Ruby 2.1.2
-  $ rbenv install 2.1.2
-  $ cd kagetra && rbenv global 2.1.2
+  Install Ruby 2.1.4
+  $ rbenv install 2.1.4
+  $ cd kagetra && rbenv global 2.1.4
 (1) Install bundler
   $ gem install bundler
 (2) Install Sinatra and other Ruby modules

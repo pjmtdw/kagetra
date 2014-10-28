@@ -19,6 +19,5 @@ scripts/bkup_work/
 storage/
 views/js/libs/
 
-Gemfile.lock
 conf.rb
 

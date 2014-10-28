@@ -140,7 +140,7 @@ module Kagetra
       }
     end
     def self.hmac_password(hash,msg)
-      Base64.strict_encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::Digest.new('sha256'), hash, msg))
+      Base64.strict_encode64(OpenSSL::HMAC.digest(OpenSSL::Digest.new('sha256'), hash, msg))
     end
 
     def self.zenkaku_to_hankaku(s)

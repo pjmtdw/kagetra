@@ -37,52 +37,6 @@
 #    self.permission.include?(:sub_admin)
 #  end
 #
-#  MIN_LOGIN_SPAN = 30 # これだけの分数経過したらログイン数を増やす
-#  # ログイン処理
-#  def update_login(request)
-#    User.transaction{
-#      latest = self.login_latest
-#      is_first_login = false
-#      if latest.nil? then
-#        is_first_login = true
-#        latest = UserLoginLatest.create(user:self)
-#      end
-#      now = DateTime.now
-#      counted = false
-#      if is_first_login or (now - latest.updated_at)*1440 >= MIN_LOGIN_SPAN then
-#        monthly = self.login_monthlies.first_or_new(year_month:UserLoginMonthly.year_month(now.year,now.month))
-#        monthly.count += 1
-#        monthly.save
-#        self.show_new_from = if is_first_login then nil else latest.updated_at end
-#        latest.set_env(request)
-#        latest.touch
-#        latest.save
-#        counted = true
-#      end
-#      if self.token_expire.nil? or DateTime.now > self.token_expire
-#        self.change_token!
-#      end
-#      self.save
-#      log = self.login_logs.new(counted: counted)
-#      log.set_env(request)
-#      log.save
-#
-#    }
-#  end
-#  def change_token!
-#    self.token = SecureRandom.base64(24)
-#    self.token_expire = DateTime.now + (G_TOKEN_EXPIRE_HOURS/24.0)
-#  end
-#  # 今月のログイン数
-#  def log_mon_count
-#    dt = Date.today
-#    monthly = self.login_monthlies.first(year_month:UserLoginMonthly.year_month(dt.year,dt.month))
-#    if monthly then
-#      monthly.count
-#    else
-#      0
-#    end
-#  end
 #  def last_login_str
 #    pre = self.show_new_from
 #    last_count = self.login_latest.updated_at
@@ -104,49 +58,93 @@
 #  end
 #end
 
+
 class User < Sequel::Model(:users)
+  one_to_one :user_login_latest
+  one_to_many :attrs, :class => 'UserAttribute'
+  one_to_many :user_login_monthlies
+  one_to_many :user_login_logs
+  MIN_LOGIN_SPAN = 30 # これだけの分数経過したらログイン数を増やす
+  # ログイン処理
+  def update_login(request)
+    DB.transaction{
+      latest = self.user_login_latest
+      is_first_login = false
+      if latest.nil? then
+        is_first_login = true
+        latest = UserLoginLatest.new(user:self)
+      end
+      now = Time.now
+      counted = false
+      if is_first_login or (now - latest.updated_at) >= MIN_LOGIN_SPAN*60 then
+        p self.user_login_monthlies_dataset.public_methods.sort
+        monthly = self.user_login_monthlies_dataset.find_or_create({year_month:UserLoginMonthly.year_month(now.year,now.month)},:user_id)
+        monthly.count += 1
+        monthly.save
+        self.show_new_from = if is_first_login then nil else latest.updated_at end
+        latest.set_env(request)
+        latest.touch
+        latest.save
+        counted = true
+      end
+      if self.token_expire.nil? or Time.now > self.token_expire
+        self.change_token!
+      end
+      self.save
+      log = self.add_user_login_log(counted: counted)
+      log.set_env(request)
+      log.save
+    }
+  end
+  def change_token!
+    self.token = SecureRandom.base64(24)
+    self.token_expire = Time.now + (G_TOKEN_EXPIRE_HOURS/24.0)
+  end
+  # 今月のログイン数
+  def log_mon_count
+    dt = Date.today
+    monthly = self.user_login_monthlies.first(year_month:UserLoginMonthly.year_month(dt.year,dt.month))
+    if monthly then
+      monthly.count
+    else
+      0
+    end
+  end
 end
+User.plugin :input_transformer_custom
+User.add_input_transformer_custom(:name){|v|v.gsub(/\s+/,"")}
 
 # 最後のログイン(updated_atが実際のログインの日時)
-#class UserLoginLatest
-#  include ModelBase
-#  include UserEnv
-#  property :user_id, Integer, unique: true, required: true
-#  belongs_to :user
-#end
-#
+class UserLoginLatest < Sequel::Model(:user_login_latests)
+  include UserEnv
+  many_to_one :user
+end
+
 ## 直近数日間のログイン履歴(created_atがログインの日時)
-#class UserLoginLog
-#  include ModelBase
-#  include UserEnv
-#  belongs_to :user
-#  property :counted, Boolean, default:true # ログイン数としてカウントされたか
-#end
-#
-## ユーザが月に何回ログインしたか
-#class UserLoginMonthly
-#  include ModelBase
-#  property :user_id, Integer, unique_index: :u1, required: true
-#  belongs_to :user
-#  property :year_month, String, unique_index: :u1, required: true, index: true, length: 8 # YYYY-MM
-#  property :count, Integer, default: 0
-#  property :rank, Integer
-#  def self.year_month(year,month)
-#    "%d-%02d" % [year,month]
-#  end
-#  def self.calc_rank(year,month)
-#    year_month = self.year_month(year,month)
-#    rank = nil
-#    prev = nil
-#    self.all(year_month:year_month,order:[:count.desc]).to_enum.with_index(1).map{|x,index|
-#      if prev != x.count then
-#        rank = index
-#        prev = x.count
-#      end
-#      x.select_attr(:user_id,:count).merge({rank:rank})
-#    }
-#  end
-#end
+class UserLoginLog < Sequel::Model(:user_login_logs)
+  include UserEnv
+  many_to_one :user
+end
+
+# ユーザが月に何回ログインしたか
+class UserLoginMonthly < Sequel::Model(:user_login_monthlies)
+  many_to_one :user
+  def self.year_month(year,month)
+    "%d-%02d" % [year,month]
+  end
+  def self.calc_rank(year,month)
+    year_month = self.year_month(year,month)
+    rank = nil
+    prev = nil
+    self.where(year_month:year_month).order(Sequel.desc(:count)).to_enum.with_index(1).map{|x,index|
+      if prev != x.count then
+        rank = index
+        prev = x.count
+      end
+      x.select_attr(:user_id,:count).merge({rank:rank})
+    }
+  end
+end
 #
 ## どのユーザがどの属性を持っているか
 #class UserAttribute

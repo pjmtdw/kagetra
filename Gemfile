@@ -21,7 +21,7 @@ gem 'rmagick','2.13.2' # ImageMagick interface
 gem 'rubyzip','1.1.3' # zip/unzip archive
 
 gem 'mysql2', '0.3.16'
-gem 'sequel', '4.10.0'
+gem 'sequel', '4.15.0'
 
 # only used in hagakure scripts
 gem 'parallel','1.0.0'

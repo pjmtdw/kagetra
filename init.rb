@@ -16,6 +16,7 @@ require 'haml'
 
 require 'json'
 require 'base64'
+require 'digest'
 require 'nkf'
 require 'redcarpet'
 require './libs/diff_match_patch-ruby/diff_match_patch.rb'

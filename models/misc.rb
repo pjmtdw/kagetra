@@ -57,30 +57,24 @@
 #  end
 #end
 #
-#module UserEnv
-#  def self.included(base)
-#    base.class_eval do
-#      p = DataMapper::Property
-#      property :remote_host, p::TrimString, length: 72, lazy: true
-#      property :remote_addr, p::TrimString, length: 48, lazy: true
-#      property :user_agent, p::TrimString, length: 255, lazy: true
-#    end
-#    def set_env(req)
-#      addr = req.ip
-#      agent = req.user_agent
-#      host =
-#        begin
-#          Resolv.getname(addr)
-#        rescue Resolv::ResolvError => e
-#          nil
-#        end
-#      # TODO: DRY way to get the length of property ?
-#      self.remote_host = if host then host[0...72] end
-#      self.remote_addr = if addr then addr[0...48] end
-#      self.user_agent = if agent then agent[0...255] end
-#    end
-#  end
-#end
+module UserEnv
+  def self.included(base)
+    def set_env(req)
+      addr = req.ip
+      agent = req.user_agent
+      host =
+        begin
+          Resolv.getname(addr)
+        rescue Resolv::ResolvError => e
+          nil
+        end
+      # TODO: DRY way to get the length of property ?
+      self.remote_host = if host then host[0...72] end
+      self.remote_addr = if addr then addr[0...48] end
+      self.user_agent = if agent then agent[0...255] end
+    end
+  end
+end
 #
 #module CommentBase
 #  # このモジュールをincludeするクラスは belongs_to :thread を持たなければならない

@@ -6,10 +6,15 @@ module Sequel
         primary_key :id
         DateTime :created_at, index:true, null:false
         DateTime :updated_at, index:true, null:false
+      },
+      env: lambda{|x|
+        String :remote_host, size:72
+        String :remote_addr, size:48
+        String :user_agent, size:255
       }
     }
     def create_table_custom(name, extra_blocks, options=OPTS, &block)
-      create_table(name, options){
+      create_table(name, options.merge(charset:"utf8")){
         extra_blocks.each{|b|
           instance_eval(&CUSTOM_EXTRA_BLOCKS[b])
         }

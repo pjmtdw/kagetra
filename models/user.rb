@@ -1,34 +1,64 @@
 # -*- coding: utf-8 -*-
-#class User
-#  include ModelBase
-#  property :deleted,       ParanoidBoolean, lazy: false # 自動的に付けられる削除済みフラグ
-#  property :name,          TrimString, length: 24, required: true, lazy: true, remove_whitespace: true
-#  property :furigana,      TrimString, length: 36, required: true, lazy: true
-#  property :furigana_row,  Integer, index: true, allow_nil: false, lazy:true # 振り仮名の最初の一文字が五十音順のどの行か
-#  property :password_hash, TrimString, length: 44, lazy: true
-#  property :password_salt, TrimString, length: 32, lazy: true
-#  property :token,         TrimString, length: 32, lazy: true # 認証用トークン
-#  property :token_expire, DateTime # 認証用トークンの有効期限
-#  property :admin,          Boolean, default: false # 管理者
-#  property :loginable,      Boolean, default: true # ログインできるか
-#  property :permission, Flag[:sub_admin]
-#  property :bbs_public_name, TrimString, length: 24, lazy: true # 掲示板に書き込むときの名前(公開スレッド)
-#  property :show_new_from, DateTime # 掲示板, コメントなどの新着メッセージはこれ以降の日時のものを表示
-#
-#  has n, :attrs, 'UserAttribute'
-#
-#  has n, :event_user_choices
-#
-#  has 1, :login_latest, 'UserLoginLatest'
-#  has n, :login_logs, 'UserLoginLog'
-#  has n, :login_monthlies, 'UserLoginMonthly'
-#
+
+class User < Sequel::Model(:users)
+  one_to_many :attrs, class:'UserAttribute'
+
+  one_to_one :login_latest, class:'UserLoginLatest'
+  one_to_many :login_monthlies, class:'UserLoginMonthly'
+  one_to_many :login_logs, class:'UserLoginLog'
+  
+  one_to_many :event_user_chocies
+
+  MIN_LOGIN_SPAN = 30 # これだけの分数経過したらログイン数を増やす
+  # ログイン処理
+  def update_login(request)
+    DB.transaction{
+      latest = self.login_latest
+      is_first_login = false
+      if latest.nil? then
+        is_first_login = true
+        latest = UserLoginLatest.new(user:self)
+      end
+      now = Time.now
+      counted = false
+      if is_first_login or (now - latest.updated_at) >= MIN_LOGIN_SPAN*60 then
+        monthly = self.login_monthlies_dataset.find_or_create({year_month:UserLoginMonthly.year_month(now.year,now.month)},:user_id)
+        monthly.count += 1
+        monthly.save
+        self.show_new_from = if is_first_login then nil else latest.updated_at end
+        latest.set_env(request)
+        latest.touch
+        latest.save
+        counted = true
+      end
+      if self.token_expire.nil? or Time.now > self.token_expire
+        self.change_token!
+      end
+      self.save
+      log = self.add_login_log(counted: counted)
+      log.set_env(request)
+      log.save
+    }
+  end
+  def change_token!
+    self.token = SecureRandom.base64(24)
+    self.token_expire = Time.now + (G_TOKEN_EXPIRE_HOURS/24.0)
+  end
+  # 今月のログイン数
+  def log_mon_count
+    dt = Date.today
+    monthly = self.login_monthlies.first(year_month:UserLoginMonthly.year_month(dt.year,dt.month))
+    if monthly then
+      monthly.count
+    else
+      0
+    end
+  end
 #  after :create do
 #    UserAttributeValue.all(default:true).each{|v|
 #      self.attrs.create(value:v)
 #    }
 #  end
-#
 #  before :save do
 #    self.furigana_row = Kagetra::Utils.gojuon_row_num(self.furigana)
 #  end
@@ -56,76 +86,20 @@
 #    r3 = (r2 >= MIN_LOGIN_SPAN)
 #    [r1,r2,r3]
 #  end
-#end
-
-
-class User < Sequel::Model(:users)
-  one_to_one :user_login_latest
-  one_to_many :attrs, :class => 'UserAttribute'
-  one_to_many :user_login_monthlies
-  one_to_many :user_login_logs
-  MIN_LOGIN_SPAN = 30 # これだけの分数経過したらログイン数を増やす
-  # ログイン処理
-  def update_login(request)
-    DB.transaction{
-      latest = self.user_login_latest
-      is_first_login = false
-      if latest.nil? then
-        is_first_login = true
-        latest = UserLoginLatest.new(user:self)
-      end
-      now = Time.now
-      counted = false
-      if is_first_login or (now - latest.updated_at) >= MIN_LOGIN_SPAN*60 then
-        monthly = self.user_login_monthlies_dataset.find_or_create({year_month:UserLoginMonthly.year_month(now.year,now.month)},:user_id)
-        monthly.count += 1
-        monthly.save
-        self.show_new_from = if is_first_login then nil else latest.updated_at end
-        latest.set_env(request)
-        latest.touch
-        latest.save
-        counted = true
-      end
-      if self.token_expire.nil? or Time.now > self.token_expire
-        self.change_token!
-      end
-      self.save
-      log = self.add_user_login_log(counted: counted)
-      log.set_env(request)
-      log.save
-    }
-  end
-  def change_token!
-    self.token = SecureRandom.base64(24)
-    self.token_expire = Time.now + (G_TOKEN_EXPIRE_HOURS/24.0)
-  end
-  # 今月のログイン数
-  def log_mon_count
-    dt = Date.today
-    monthly = self.user_login_monthlies.first(year_month:UserLoginMonthly.year_month(dt.year,dt.month))
-    if monthly then
-      monthly.count
-    else
-      0
-    end
-  end
 end
 User.plugin :input_transformer_custom
 User.add_input_transformer_custom(:name){|v|v.gsub(/\s+/,"")}
 
-# 最後のログイン(updated_atが実際のログインの日時)
 class UserLoginLatest < Sequel::Model(:user_login_latests)
   include UserEnv
   many_to_one :user
 end
 
-## 直近数日間のログイン履歴(created_atがログインの日時)
 class UserLoginLog < Sequel::Model(:user_login_logs)
   include UserEnv
   many_to_one :user
 end
 
-# ユーザが月に何回ログインしたか
 class UserLoginMonthly < Sequel::Model(:user_login_monthlies)
   many_to_one :user
   def self.year_month(year,month)
@@ -145,7 +119,6 @@ class UserLoginMonthly < Sequel::Model(:user_login_monthlies)
   end
 end
 #
-## どのユーザがどの属性を持っているか
 #class UserAttribute
 #  include ModelBase
 #  belongs_to :user
@@ -158,7 +131,6 @@ end
 #end
 #
 #
-## ユーザ属性の名前
 #class UserAttributeKey
 #  include ModelBase
 #  property :name, TrimString, length: 36, required:true
@@ -166,7 +138,6 @@ end
 #  has n, :values, 'UserAttributeValue', child_key: [:attr_key_id]
 #end
 #
-## ユーザ属性の値
 #class UserAttributeValue
 #  include ModelBase
 #  property :attr_key_id, Integer, required: true

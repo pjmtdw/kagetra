@@ -146,21 +146,15 @@ Sequel.migration do
 #      index [:user_id], name::index_bbs_items_user
 #    end
 #    
-#    create_table_custom(:bbs_threads,[:base]) do
-#      DateTime :last_comment_date
-#      Integer :comment_count, default:0
+#    create_table_custom(:bbs_threads,[:base,:thread]) do
 #      TrueClass :deleted, default:false
 #      String :title, size:48, null:false
 #      TrueClass :public, default:false
-#      Bignum :last_comment_user_id
 #      Bignum :first_item_id
 #      
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:last_comment_user_id), 0)
 #      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:first_item_id), 0)
 #      
 #      index [:first_item_id], name::index_bbs_threads_first_item
-#      index [:last_comment_date], name::index_bbs_threads_last_comment_date
-#      index [:last_comment_user_id], name::index_bbs_threads_last_comment_user
 #    end
 #    
 #    create_table_custom(:contest_classes,[:base]) do
@@ -293,95 +287,6 @@ Sequel.migration do
 #      index [:user_id, :event_id], name::unique_contest_users_u1, unique:true
 #    end
 #    
-#    create_table_custom(:event_choices,[:base]) do
-#      String :name, size:24, null:false
-#      TrueClass :positive, null:false
-#      TrueClass :hide_result, default:false
-#      Integer :index, null:false
-#      Bignum :event_id, null:false
-#      
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:event_id), 0)
-#      
-#      index [:event_id], name::index_event_choices_event
-#    end
-#    
-#    create_table_custom(:event_comments,[:base,:env]) do
-#      TrueClass :deleted, default:false
-#      String :body, text:true, null:false
-#      String :user_name, size:24, null:false
-#      String :real_name, size:24
-#      Bignum :user_id
-#      Bignum :thread_id, null:false
-#      
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:user_id), 0)
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:thread_id), 0)
-#      
-#      index [:thread_id], name::index_event_comments_thread
-#      index [:user_id], name::index_event_comments_user
-#    end
-#    
-#    create_table_custom(:event_groups,[:base]) do
-#      String :name, size:60, null:false
-#      String :description, text:true
-#      
-#      index [:name], name::unique_event_groups_name, unique:true
-#    end
-#    
-#    create_table_custom(:event_user_choices,[:base]) do
-#      String :user_name, size:24, null:false
-#      Integer :attr_value_id, null:false
-#      TrueClass :cancel, default:false
-#      Bignum :event_choice_id, null:false
-#      Bignum :user_id
-#      
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:event_choice_id), 0)
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:user_id), 0)
-#      
-#      index [:event_choice_id], name::index_event_user_choices_event_choice
-#      index [:user_id], name::index_event_user_choices_user
-#    end
-#    
-#    create_table_custom(:events,[:base]) do
-#      DateTime :last_comment_date
-#      Integer :comment_count, default:0
-#      TrueClass :deleted, default:false
-#      String :name, size:48, null:false
-#      String :formal_name, size:96
-#      TrueClass :official, default:true
-#      TrueClass :kind
-#      Integer :team_size, default:1
-#      String :description, text:true
-#      Date :deadline
-#      Date :date
-#      String :start_at, size:50
-#      String :end_at, size:50
-#      String :place, size:255
-#      TrueClass :done, default:false
-#      TrueClass :public, default:true
-#      Integer :participant_count, default:0
-#      Integer :contest_user_count, default:0
-#      String :owners, text:true
-#      String :forbidden_attrs, text:true
-#      TrueClass :hide_choice, default:false
-#      Bignum :last_comment_user_id
-#      Bignum :event_group_id
-#      Bignum :aggregate_attr_id, null:false
-#      TrueClass :register_done, default:false
-#      
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:last_comment_user_id), 0)
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:event_group_id), 0)
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:aggregate_attr_id), 0)
-#      
-#      index [:aggregate_attr_id], name::index_events_aggregate_attr
-#      index [:date], name::index_events_date
-#      index [:done], name::index_events_done
-#      index [:event_group_id], name::index_events_event_group
-#      index [:kind], name::index_events_kind
-#      index [:last_comment_date], name::index_events_last_comment_date
-#      index [:last_comment_user_id], name::index_events_last_comment_user
-#      index [:public], name::index_events_public
-#    end
-#    
 #    create_table_custom(:my_confs,[:base]) do
 #      String :name, size:64
 #      String :value, text:true
@@ -458,23 +363,17 @@ Sequel.migration do
 #      index [:revision, :wiki_item_id], name::unique_wiki_item_logs_u1, unique:true
 #    end
 #    
-#    create_table_custom(:wiki_items,[:base]) do
-#      DateTime :last_comment_date
-#      Integer :comment_count, default:0
+#    create_table_custom(:wiki_items,[:base,:thread]) do
 #      TrueClass :deleted, default:false
 #      String :title, size:72, null:false
 #      TrueClass :public, default:false
 #      String :body, text:true, null:false
 #      Integer :revision, default:0
-#      Bignum :last_comment_user_id
 #      Bignum :owner_id
 #      Integer :attached_count, default:0
 #      
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:last_comment_user_id), 0)
 #      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:owner_id), 0)
 #      
-#      index [:last_comment_date], name::index_wiki_items_last_comment_date
-#      index [:last_comment_user_id], name::index_wiki_items_last_comment_user
 #      index [:owner_id], name::index_wiki_items_owner
 #      index [:title], name::unique_wiki_items_title, unique:true
 #    end

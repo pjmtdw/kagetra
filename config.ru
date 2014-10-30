@@ -7,7 +7,7 @@ configure :development do
     style: :expanded,
     line_numbers: true,
     load_paths: [
-      "#{Gem.loaded_specs['compass'].full_gem_path}/frameworks/compass/stylesheets",
+      "#{Gem.loaded_specs['compass-core'].full_gem_path}/stylesheets",
       "#{Gem.loaded_specs['zurb-foundation'].full_gem_path}/scss"
       ],
     template_location: {

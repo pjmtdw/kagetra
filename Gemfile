@@ -5,7 +5,10 @@ gem 'unicorn' # http server
 gem 'sinatra' # web framework
 gem 'sinatra-contrib'
 gem 'haml' # meta html
-gem 'sass' # meta css
+
+# sass 3.4.6 has a bug so we use 3.4.5: https://github.com/sass/sass/issues/1476
+# TODO: install new sass when bug is fixed
+gem 'sass','3.4.5' # meta css
 gem 'compass' # css authoring framework
 
 gem 'zurb-foundation','4.3.2' # design framework

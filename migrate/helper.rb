@@ -11,12 +11,33 @@ module Sequel
         String :remote_host, size:72
         String :remote_addr, size:48
         String :user_agent, size:255
+      },
+      thread: lambda{|x|
+        DateTime :last_comment_date, index: true, comment:"スレッドに最後に書き込んだ日時"
+        foreign_key :last_comment_user_id, :users, on_delete: :set_null, comment: "スレッドに最後に書き込んだユーザ"
+        Integer :comment_count, default:0, comment:"コメント数(毎回aggregateするのは遅いのでキャッシュ)"
+      },
+      comment: lambda{|thread|
+        lambda{|x|
+          TrueClass :deleted, default:false
+          String :body, text:true, null:false, comment:"内容"
+          String :user_name, size:24, null:false, comment:"書き込んだ人の名前"
+          String :real_name, size:24, comment:"内部的な名前と書き込んだ名前が違う場合に使用"
+          foreign_key :thread_id, thread
+          foreign_key :user_id, :users, on_delete: :set_null
+        }
       }
     }
     def create_table_custom(name, extra_blocks, options=OPTS, &block)
       create_table(name, options.merge(charset:"utf8")){
         extra_blocks.each{|b|
-          instance_eval(&CUSTOM_EXTRA_BLOCKS[b])
+          if b.is_a?(Symbol) then
+            instance_eval(&CUSTOM_EXTRA_BLOCKS[b])
+          elsif b.is_a?(Array) then
+            instance_eval(&(CUSTOM_EXTRA_BLOCKS[b[0]].call(*b[1..-1])))
+          else
+            raise Exception.new("#{b.class} is not supported for extra block in #{name}")
+          end
         }
         instance_eval(&block) if block
       }

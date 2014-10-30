@@ -12,7 +12,9 @@ end
 
 Sequel::Model.plugin :touch
 Sequel::Model.plugin :string_stripper
-require_relative 'sequel_plugins/input_transformer_custom'
+Sequel::Model.plugin :serialization
+require_relative 'sequel_helpers/input_transformer_custom'
+require_relative 'sequel_helpers/serializers'
 
 module Sequel
   class Dataset

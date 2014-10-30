@@ -22,31 +22,31 @@ Sequel.migration do
     end
     
     create_table_custom(:user_attribute_values, [:base], comment:"ユーザ属性の値(性別なら男または女,級位ならA級やB級など)") do
-      foreign_key :attr_key_id, :user_attribute_keys, key:[:id], null:false
+      foreign_key :attr_key_id, :user_attribute_keys, null:false
       String :value, size:48, null:false
       Integer :index, null:false, comment:"順序付け"
       TrueClass :default, default:false, comment:"既定値かどうか"
     end
     
     create_table_custom(:user_attributes, [:base],comment:"どのユーザがどの属性を持っているか") do
-      foreign_key :user_id, :users, key:[:id], null:false
-      foreign_key :value_id, :user_attribute_values, key:[:id], null:false
+      foreign_key :user_id, :users, null:false
+      foreign_key :value_id, :user_attribute_values, null:false
     end
     
     create_table_custom(:user_login_latests,[:base,:env],comment:"最後のログイン(updated_atが実際のログインの日時)") do
-      foreign_key :user_id, :users, key:[:id], null:false
+      foreign_key :user_id, :users, null:false
     end
     
     create_table_custom(:user_login_logs,[:base,:env],comment:"直近数日間のログイン履歴(created_atがログインの日時)") do
-      foreign_key :user_id, :users, key:[:id], null:false
+      foreign_key :user_id, :users, null:false
       TrueClass :counted, default:true, comment:"ログイン数を増やしたかどうか"
     end
     
     create_table_custom(:user_login_monthlies,[:base],comment:"ユーザが月に何回ログインしたか") do
-      foreign_key :user_id, :users, key:[:id], null:false
+      foreign_key :user_id, :users, null:false
       String :year_month, size:8, null:false, index:true
       Integer :count, default:0
-      Integer :rank
+      Integer :rank, comment:"その月における順位"
 
       index [:user_id, :year_month], name: :unique_user_login_monthlies_u1, unique:true
     end 

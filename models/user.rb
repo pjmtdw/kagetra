@@ -8,6 +8,9 @@ class User < Sequel::Model(:users)
   one_to_many :login_logs, class:'UserLoginLog'
   
   one_to_many :event_user_chocies
+  
+  serialize_attributes Kagetra::serialize_flag([:sub_admin]), :permission
+
 
   MIN_LOGIN_SPAN = 30 # これだけの分数経過したらログイン数を増やす
   # ログイン処理

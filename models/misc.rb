@@ -81,10 +81,6 @@ end
 #  # TODO: include時に belongs_to :thread の引数を指定できない？
 #  def self.included(base)
 #    base.class_eval do
-#      include UserEnv
-#      p = DataMapper::Property
-#      # ParanoidBooleanにはバグがあって lazy: true にしてしまうと関連モデルを直接取得したときの belong_to が nil になる
-#      # https://github.com/datamapper/dm-types/issues/52
 #      property :deleted, p::ParanoidBoolean, lazy: false
 #      property :body, p::TrimText, required: true # 内容
 #      property :user_name, p::TrimString, length: 24, allow_nil: false # 書き込んだ人の名前
@@ -146,38 +142,34 @@ end
 #  end
 #end
 #
-#module ThreadBase
-#  # このモジュールをincludeするクラスは has n, :comments を持たなければならない
-#  # TODO: include時に has n, :comments の引数を指定できない？
-#  def self.included(base)
-#    base.class_eval do
-#      p = DataMapper::Property
-#      belongs_to :last_comment_user, 'User', required: false # スレッドに最後に書き込んだユーザ
-#      property :last_comment_date, p::DateTime, index: true # スレッドに最後に書き込んだ日時
-#      property :comment_count, Integer, default: 0 # コメント数 (毎回aggregateするのは遅いのでキャッシュ)
-#      def self.new_threads(user,cond={})
-#        search_from = [user.show_new_from||DateTime.now,DateTime.now-G_NEWLY_DAYS_MAX].max
-#        c0 = self.all(
-#          cond.merge({:last_comment_date.gte => search_from}))
-#        c1 = self.all(:last_comment_user_id => nil)
-#        c2 = self.all(:last_comment_user_id.not => user.id)
-#        (c0 & (c1 | c2)).all(order: [:last_comment_date.desc])
-#      end
-#      def has_new_comment(user)
-#        return false if user.nil?
-#        if self.last_comment_date.nil?.! then
-#          if user.show_new_from.nil?.! then
-#            if self.last_comment_date > user.show_new_from and
-#              (self.last_comment_user.nil? or self.last_comment_user_id != user.id) then
-#                return true
-#            end
-#          end
-#        end
-#        false
-#      end
-#    end
-#  end
-#end
+module ThreadBase
+  # このモジュールをincludeするクラスは one_to_many :comments を持たなければならない
+  # TODO: include時に one_to_many :comments の引数を指定できない？
+  def self.included(base)
+    base.class_eval do
+      def self.new_threads(user,cond={})
+        search_from = [user.show_new_from||DateTime.now,DateTime.now-G_NEWLY_DAYS_MAX].max
+        c0 = self.all(
+          cond.merge({:last_comment_date.gte => search_from}))
+        c1 = self.all(:last_comment_user_id => nil)
+        c2 = self.all(:last_comment_user_id.not => user.id)
+        (c0 & (c1 | c2)).all(order: [:last_comment_date.desc])
+      end
+      def has_new_comment(user)
+        return false if user.nil?
+        if self.last_comment_date.nil?.! then
+          if user.show_new_from.nil?.! then
+            if self.last_comment_date > user.show_new_from and
+              (self.last_comment_user.nil? or self.last_comment_user_id != user.id) then
+                return true
+            end
+          end
+        end
+        false
+      end
+    end
+  end
+end
 #
 #module DataMapper
 #  module Model

@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
 
 class User < Sequel::Model(:users)
+  plugin :input_transformer_custom
+  add_input_transformer_custom(:name){|v|v.gsub(/\s+/,"")}
+
   one_to_many :attrs, class:'UserAttribute'
 
   one_to_one :login_latest, class:'UserLoginLatest'
   one_to_many :login_monthlies, class:'UserLoginMonthly'
   one_to_many :login_logs, class:'UserLoginLog'
   
-  one_to_many :event_user_chocies
+  one_to_many :event_user_choices
   
   serialize_attributes Kagetra::serialize_flag([:sub_admin]), :permission
 
@@ -90,8 +93,6 @@ class User < Sequel::Model(:users)
 #    [r1,r2,r3]
 #  end
 end
-User.plugin :input_transformer_custom
-User.add_input_transformer_custom(:name){|v|v.gsub(/\s+/,"")}
 
 class UserLoginLatest < Sequel::Model(:user_login_latests)
   include UserEnv
@@ -121,49 +122,41 @@ class UserLoginMonthly < Sequel::Model(:user_login_monthlies)
     }
   end
 end
-#
-#class UserAttribute
-#  include ModelBase
-#  belongs_to :user
-#  belongs_to :value, 'UserAttributeValue'
-#  before :save do
-#    #一人のユーザは各属性keyにつき一つの属性valueしか持てない
-#    values = self.value.attr_key.values
-#    self.user.attrs(value: values).destroy!
-#  end
-#end
-#
-#
-#class UserAttributeKey
-#  include ModelBase
-#  property :name, TrimString, length: 36, required:true
-#  property :index, Integer, required: true # 順番
-#  has n, :values, 'UserAttributeValue', child_key: [:attr_key_id]
-#end
-#
-#class UserAttributeValue
-#  include ModelBase
-#  property :attr_key_id, Integer, required: true
-#  belongs_to :attr_key, 'UserAttributeKey'
-#  property :value, TrimString, length: 48, required: true
-#  property :index, Integer, required: true
-#  property :default, Boolean, default: false # ユーザ作成時のデフォルトの値
-#  # デフォルトは必ず一つ必要
-#  before :create do
-#    if self.attr_key.values(default:true).count == 0 then
-#      self.default = true
-#    end
-#  end
-#  # デフォルトが二つあってはいけない
-#  after :save do
-#    if self.default then
-#      self.attr_key.values(default:true,:id.not => self.id).update!(default:false)
-#    end
-#  end
-#  # 少なくとも一つはデフォルトがなくてはならない
-#  before :destroy do
-#    if self.default then
-#      self.attr_key.values(:id.not => self.id).first.update(default:true)
-#    end
-#  end
-#end
+
+class UserAttribute < Sequel::Model(:user_attributes)
+  many_to_one :user
+  many_to_one :value, class:'UserAttributeValue'
+  def before_save
+    #一人のユーザは各属性keyにつき一つの属性valueしか持てない
+    values = self.value.attr_key.attr_values
+    self.user.attrs(attar_value: values).destroy!
+  end
+end
+
+
+class UserAttributeKey < Sequel::Model(:user_attribute_keys)
+  one_to_many :attr_values, class:'UserAttributeValue', key: :attr_key_id
+end
+
+class UserAttributeValue < Sequel::Model(:user_attribute_values)
+  many_to_one :attr_key, class:'UserAttributeKey'
+  one_to_many :user_attribute, key: :value_id
+  # デフォルトは必ず一つ必要
+  def before_create
+    if self.attr_key.attr_values(default:true).count == 0 then
+      self.default = true
+    end
+  end
+  # デフォルトが二つあってはいけない
+  def after_save
+    if self.default then
+      self.attr_key.attr_values(default:true,:id.not => self.id).update!(default:false)
+    end
+  end
+  # 少なくとも一つはデフォルトがなくてはならない
+  def before_destroy
+    if self.default then
+      self.attr_key.attr_values(:id.not => self.id).first.update(default:true)
+    end
+  end
+end

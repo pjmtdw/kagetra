@@ -15,6 +15,7 @@ Sequel::Model.plugin :string_stripper
 Sequel::Model.plugin :serialization
 require_relative 'sequel_helpers/input_transformer_custom'
 require_relative 'sequel_helpers/serializers'
+Sequel::Plugins::Serialization.register_format(:hourmin,*Kagetra::serialize_hourmin)
 
 module Sequel
   class Dataset
@@ -28,15 +29,13 @@ module Sequel
   end
 end
 
-Event = nil # TODO
-EventComment = nil # TODO
 WikiItem = nil # TODO
 WikiComment = nil # TODO
 require_relative 'misc'
 require_relative 'user'
+require_relative 'event'
 #require_relative 'bbs'
 #require_relative 'schedule'
-#require_relative 'event'
 #require_relative 'result'
 #require_relative 'addrbook'
 #require_relative 'album'

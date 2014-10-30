@@ -40,7 +40,7 @@ class MainApp < Sinatra::Base
     def event_info(ev,user,opts = {})
       today = Date.today
       is_owner = ev.owners.include?(@user.id) 
-      r = ev.select_attr(:place,:name,:date,:kind,:official,:deadline,:created_at,:id,:participant_count,:comment_count,:team_size,:event_group_id,:public,:last_comment_date)
+      r = ev.to_deserialized_hash.select_attr(:place,:name,:date,:kind,:official,:deadline,:created_at,:id,:participant_count,:comment_count,:team_size,:event_group_id,:public,:last_comment_date)
       r[:has_new_comment] = ev.has_new_comment(user)
       r[:deadline_day] = (r[:deadline]-today).to_i if r[:deadline]
       if r[:deadline_day] and r[:deadline_day].between?(0,G_DEADLINE_ALERT) then
@@ -49,7 +49,7 @@ class MainApp < Sinatra::Base
       if is_owner and r[:deadline_day] and r[:deadline_day] < 0 and not ev.register_done then
         r[:deadline_after] = true
       end
-      r[:choices] = ev.choices(order:[:index.asc]).map{|x|x.select_attr(:positive,:name,:id)}
+      r[:choices] = ev.choices_dataset.order(Sequel.asc(:index)).map{|x|x.values.select_attr(:positive,:name,:id)}
       r[:editable] = @user.admin || is_owner || (ev.done and ev.kind == :contest and @user.permission.include?(:sub_admin))
       r[:choice] = if opts.has_key?(:user_choices) then opts[:user_choices][ev.id]
                    else
@@ -183,14 +183,14 @@ class MainApp < Sinatra::Base
       update_or_create_item
     end
     get '/list' do
-      events = Event.all(done:false)
+      events = Event.where(done:false)
       if events.empty?
         # BackboneのCollectionのsyncをtriggerするために空ではない配列を返す
         [{name:"(大会／行事はありません)",choices:[],editable:false,comment_count:0,participant_count:0,id:-1,public:false}]
       else
         # 各eventごとに取得するのは遅いのでまとめて取得しておく
-        user_choices = @user.event_user_choices.event_choice(event:events).to_enum.with_object({}){|x,h|h[x.event_id]=x.id}
-        user_attr_values = @user.attrs.value.map{|v|v.id}
+        user_choices = EventChoice.where(event:events,user_choices:@user.event_user_choices_dataset).to_hash(:event_id,:id)
+        user_attr_values = UserAttributeValue.where(user_attribute:@user.attrs_dataset).map{|v|v.id}
 
         events.map{|ev|
           event_info(ev,@user,{user_choices:user_choices,user_attr_values:user_attr_values})

@@ -336,19 +336,7 @@ Sequel.migration do
 #      index [:wiki_item_id], name::index_wiki_attached_files_wiki_item
 #    end
 #    
-#    create_table_custom(:wiki_comments,[:base,:env]) do
-#      TrueClass :deleted, default:false
-#      String :body, text:true, null:false
-#      String :user_name, size:24, null:false
-#      String :real_name, size:24
-#      Bignum :user_id
-#      Bignum :thread_id, null:false
-#      
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:user_id), 0)
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:thread_id), 0)
-#      
-#      index [:thread_id], name::index_wiki_comments_thread
-#      index [:user_id], name::index_wiki_comments_user
+#    create_table_custom(:wiki_comments,[:base,:env,[:comment,:wiki_items]]) do
 #    end
 #    
 #    create_table_custom(:wiki_item_logs,[:base]) do

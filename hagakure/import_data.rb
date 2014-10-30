@@ -545,7 +545,7 @@ def import_contest_result_dantai(evt,sankas)
               when 'FUSEN'
                 :default_win
               else
-                raise Exception("unknown result: #{result}")
+                raise Exception.new("unknown result: #{result}")
               end
     op_team.games.create(
       type: :team,

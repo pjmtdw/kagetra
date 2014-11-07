@@ -20,9 +20,16 @@ BKUP_ROOT="${CURDIR}/../"
 NEXT_BKUP_FROM="${WORKDIR}/next_bkup_from"
 
 # other settings
-MAIL_ADDR="example@gmail.com" # mail address to send backup files
+MAIL_ADDR="mailto@example.com" # mail address to send backup files
+MAIL_BODY="this is a backup of kagetra"
+MAIL_SUBJECT="kagetra_bkup"
 ENC_PASSWORD="hogefugapiyo"
 SPLIT_SIZE="20MB" # backup files will be splitted in this size
+MSMTP_CONFIG="/path/to/msmtprc" # config file of msmtp
+
+function my_send_mail(){
+  echo "$MAIL_BODY" | mutt -e 'set sendmail="/usr/bin/msmtp -C '"$MSMTP_CONFIG"'"' -s "$MAIL_SUBJECT" -a "$1" -- "$2"
+}
 
 function die(){
   echo "$1"
@@ -51,14 +58,14 @@ split - $WORKDIR/$prefix -a 3 -b $SPLIT_SIZE -d
 
 for f in $WORKDIR/kagetra-bkup-*; do
   echo -n "sending $f to $MAIL_ADDR .."
-  echo "this is a backup of kagetra" | mail -s "kagetra_bkup" -a "$f" "$MAIL_ADDR"
-  echo "done"
+  my_send_mail "$f" "$MAIL_ADDR"
   if [ $? -eq 0 ];then
     rm -f "$f"
   else
     echo "sending mail failed, so we exit"
     exit 1
   fi
+  echo "done"
   echo -n "sleeping 10 seconds.."
   sleep 10 # maybe some smtp server hates sending a lot of file in once.
   echo "done"

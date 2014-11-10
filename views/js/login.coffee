@@ -88,12 +88,15 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
           msg: msg
       $.when(first()).then(second)
       .done (data) ->
-        if data.result == "OK"
-          window.location.href = "/top"
-        else
-          alert("パスワードが違います")
-          elem.val("")
-          elem.focus()
+        switch data.result
+          when "OK"
+            window.location.href = "/top"
+          when "WRONG_PASSWORD"
+            alert("パスワードが違います")
+            elem.val("")
+            elem.focus()
+          when "NOT_LOGINABLE"
+            alert("ログイン権限がありません")
         that.submitting = false
       .fail ->
         that.submitting = false

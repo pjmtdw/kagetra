@@ -29,12 +29,16 @@ class MainApp < Sinatra::Base
       # TODO: ちゃんとした認証方法に変える
       post '/user' do
         user = User[params[:user_id].to_i]
-        hash = user.password_hash
-        res = Kagetra::Utils.check_password(params,hash)
-        if res[:result] == "OK" then
-          login_jobs(user)
+        if user.loginable then
+          hash = user.password_hash
+          Kagetra::Utils.check_password(params,hash).tap{|res|
+            if res[:result] == "OK" then
+              login_jobs(user)
+            end
+          }
+        else
+          {result: "NOT_LOGINABLE"}
         end
-        res
       end
       get '/salt/:id' do
         {salt: User[params[:id]].password_salt}

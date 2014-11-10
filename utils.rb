@@ -84,7 +84,7 @@ module Kagetra
       msg = params[:msg]
       trial_hash = params[:hash]
       correct_hash = Kagetra::Utils.hmac_password(hash,msg)
-      res = if trial_hash == correct_hash then "OK" else "FAIL" end
+      res = if trial_hash == correct_hash then "OK" else "WRONG_PASSWORD" end
       {result: res}
     end
 

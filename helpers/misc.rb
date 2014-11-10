@@ -49,8 +49,14 @@ module MiscHelpers
     if data then data[key] end
   end
 
+  def get_permanent_cookie_name
+    # 共通パスワードが変わったら共通パスワード入力画面に強制的に飛ばすために別のCookie Keyにする
+    # 16文字で十分衝突確率は低いはず
+    G_PERMANENT_COOKIE_NAME + "." + MyConf.first(name:"shared_password").value["hash"].delete("^a-zA-Z0-9")[0...16]
+  end
+
   def get_permanent_all
-    str = request.cookies[G_PERMANENT_COOKIE_NAME]
+    str = request.cookies[get_permanent_cookie_name]
     if str.to_s.empty? then
       {}
     else
@@ -66,7 +72,7 @@ module MiscHelpers
 
   def set_permanent_all(data)
     str = Base64.strict_encode64(data.to_json)
-    response.set_cookie(G_PERMANENT_COOKIE_NAME,
+    response.set_cookie(get_permanent_cookie_name,
                         value: str,
                         path: "/",
                         expires: (Date.today + 90).to_time)
@@ -76,7 +82,7 @@ module MiscHelpers
     data = get_permanent_all
     data.delete(key)
     if data.empty?
-      response.delete_cookie(G_PERMANENT_COOKIE_NAME)
+      response.delete_cookie(get_permanent_cookie_name)
     else
       set_permanent_all(data)
     end

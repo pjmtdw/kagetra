@@ -221,9 +221,9 @@ class MainApp < Sinatra::Base
         mt = $1
         (year_s,year_e) = nil
         if mt.end_with?("-") then
-          year_s = mt.gsub("-","").to_i
+          year_s = mt.delete("-").to_i
         elsif mt.start_with?("-") then
-          year_e = mt.gsub("-","").to_i
+          year_e = mt.delete("-").to_i
         elsif mt.include?("-") then
           (year_s,year_e) = mt.split("-")
         else

@@ -139,7 +139,7 @@ def import_login_log
         puts "USER ID:#{uid} not found: ignoring login log"
         next
       end
-      Kagetra::Utils.dm_debug(fn){
+      dm_response(fn){
         UserLoginMonthly.update_or_create({user:user, year_month:UserLoginMonthly.year_month(year,month)},{rank:rank,count:num.to_i})
       }
     }
@@ -311,7 +311,7 @@ def import_shurui
     line.sjis!
     (num,name,description) = line.split("\t")
     if description.nil?.! then description = description.body_replace end
-    Kagetra::Utils.dm_debug("#{fn} line #{lineno}"){
+    dm_response("#{fn} line #{lineno}"){
       group = EventGroup.create(id:num, name:name, description:description)
     }
   }
@@ -982,7 +982,7 @@ def import_album_stage1
     (fday,tday) = day.split(/<>/)
     fdate = begin Date.new(fyear.to_i,fmon.to_i,fday.to_i) rescue nil end
     tdate = begin Date.new(tyear.to_i,tmon.to_i,tday.to_i) rescue nil end
-    Kagetra::Utils.dm_debug(line){
+    dm_response(line){
       AlbumGroup.create(id:num.to_i,name:name,place:place,start_at:fdate,end_at:tdate,comment:comment)
     }
   }
@@ -998,7 +998,7 @@ def import_album_stage1
       (fnum,fname,group,_,_,_,_,year) = line.split(/\t/)
       puts "album: #{dnum}-#{fnum}"
       group = nil if group and group.empty?
-      Kagetra::Utils.dm_debug(line){
+      dm_response(line){
         ag = if group.nil?.! then
           AlbumGroup.get(group)
         else
@@ -1036,7 +1036,7 @@ end
 def import_album_stage2(old_ids)
   Parallel.each(old_ids.values,in_threads:NUM_THREADS){|item_id,prefix|
     puts prefix
-    Kagetra::Utils.dm_debug(prefix){
+    dm_response(prefix){
       if not File.exist?(File.join(CONF_HAGAKURE_BASE,"album/#{prefix}.cgi")) then
         next
       end
@@ -1073,7 +1073,7 @@ def import_album_stage2(old_ids)
           place = $1
         when %r(<!comment>(.*)<!/comment>)
           comment = $1
-          Kagetra::Utils.dm_debug(prefix){
+          dm_response(prefix){
             import_comment(item,comment)
           }
         when %r(<!ruiji>(.*)<!/ruiji>)
@@ -1199,7 +1199,7 @@ def import_wiki
   puts "import_wiki started"
   # kagetraやhagakure の user_id と mytoma の user_id は別物なので注意
   # kagetraやhagakure の user_id は mytoma の auth_user の username に格納されてある
-  Kagetra::Utils.dm_debug{
+  dm_response{
     db = SQLite3::Database.open CONF_MYTOMA_WIKI_FILE
     db.execute("select id,text,revision,keyword,exhibited,deleted from wiki_wikipage"){|id,text,revision,keyword,exhibited,deleted|
       WikiItem.create(id:id,deleted:deleted==1,public:exhibited==1,title:keyword,body:text,revision:revision)

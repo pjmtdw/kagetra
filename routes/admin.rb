@@ -47,7 +47,7 @@ class MainApp < Sinatra::Base
 
     post '/change_attr' do
       users = User.all(id: @json["uids"])
-      Kagetra::Utils.dm_debug{
+      dm_response{
         users.map{|u|u.attrs.create(value_id:@json["value"].to_i)}
       }
     end

@@ -171,7 +171,7 @@ class ContestPrize
       class_rank: class_rank,
       a_champ_count: a_champ_count
     }
-    Kagetra::Utils.dm_debug{
+    dm_response{
       ContestPromotionCache.update_or_create({contest_prize_id:self.id},data)
     }
   end

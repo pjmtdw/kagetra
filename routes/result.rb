@@ -310,7 +310,7 @@ class MainApp < Sinatra::Base
       new_ids
     end
     put '/players/:id' do
-      Kagetra::Utils.dm_debug{
+      dm_response{
         ContestUser.transaction{
           ev = Event.get(params[:id].to_i)
           @json["classes"].each_with_index{|(k,v),i|
@@ -376,7 +376,7 @@ class MainApp < Sinatra::Base
       }
     end
     post '/num_person' do
-      Kagetra::Utils.dm_debug{
+      dm_response{
         ContestClass.transaction{
           Hash[@json["data"].map{|x|
             np = x["num_person"]

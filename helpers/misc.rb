@@ -93,7 +93,7 @@ module MiscHelpers
   end
 
   def update_event_done_flag
-    Kagetra::Utils.dm_debug{
+    dm_response{
       events = Event.all(:date.lte => Date.today, done:false)
       (events & Event.all(kind: :contest)).each{|ev|
         # ContestUser と ContestClass を作る

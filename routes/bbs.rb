@@ -70,14 +70,12 @@ class MainApp < Sinatra::Base
       }
     end
     delete '/item/:id' do
-      Kagetra::Utils.dm_debug{
-        item = BbsItem.get(params[:id])
+      dm_response{
+        item = BbsItem[params[:id]]
         halt(403,"you cannot delete this item") unless item.editable(@user)
-        BbsThread.transaction{
+        DB.transaction{
           thread = item.thread
-          if thread.first_item.id == item.id then
-            # 関係するものを全部削除してからじゃないとダメ
-            thread.comments.destroy
+          if item.is_first then
             thread.destroy
           else
             item.destroy

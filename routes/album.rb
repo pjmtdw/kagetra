@@ -378,7 +378,7 @@ class MainApp < Sinatra::Base
       {results:(tags+list).uniq}
     end
     post '/set_event' do
-      Kagetra::Utils.dm_debug{
+      dm_response{
         ag = AlbumGroup.get(@json["album_group_id"].to_i)
         eid = @json["event_id"].to_i
         ag.event = if eid == -1 then nil else Event.get(eid) end

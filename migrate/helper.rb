@@ -22,7 +22,7 @@ module Sequel
           String :body, text:true, null:false, comment:"内容"
           String :user_name, size:24, null:false, comment:"書き込んだ人の名前"
           String :real_name, size:24, comment:"内部的な名前と書き込んだ名前が違う場合に使用"
-          foreign_key :thread_id, thread
+          foreign_key :thread_id, thread, on_delete: :cascade
           foreign_key :user_id, :users, on_delete: :set_null
         }
       }

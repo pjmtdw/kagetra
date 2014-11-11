@@ -198,7 +198,7 @@ class MainApp < Sinatra::Base
       end
     end
     put '/choose/:cid' do
-      Kagetra::Utils.dm_debug{
+      dm_response{
         c = EventChoice.first(id:params[:cid].to_i)
         c.user_choices.create(user:@user)
         {count: c.event.participant_count,event_name:c.event.name,choice:c.name}

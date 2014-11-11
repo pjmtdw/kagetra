@@ -12,7 +12,12 @@ define ->
     do_delete: _.wrap_submit ->
       if prompt("削除するにはdeleteと入れて下さい","") == "delete"
         # TODO: refresh page
-        @model.destroy().done(-> alert("削除完了しました"))
+        @model.destroy().done((data) ->
+          if data._error_
+            alert("削除失敗: " + data._error_)
+          else
+            alert("削除完了しました")
+        )
     toggle_edit: ->
       if @$el.find(".body").find(".response-edit-form").length == 0
         @$el.find(".toggle-edit").toggleBtnText(false)

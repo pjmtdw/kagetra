@@ -94,7 +94,7 @@ class MainApp < Sinatra::Base
       }
     end
     delete "#{namespace}/comment/item/:id" do
-      Kagetra::Utils.dm_debug{
+      dm_response{
         item = klass_comment.get(params[:id])
         halt(403,"you cannot delete this item") unless item.editable(@user)
         item.destroy()

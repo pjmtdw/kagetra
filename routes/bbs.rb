@@ -8,22 +8,20 @@ class MainApp < Sinatra::Base
       cond = if @public_mode then {public:true} else {} end
       query = BbsThread.where(cond)
       if qs then
+        query = query.right_join(BbsItem,thread_id: :id).qualify.distinct
         qs.strip.split(/\s+/).each{|q|
-          # 一件もヒットしないダミーのクエリ
-          # TODO: 以下をする正しい方法
-          qb = BbsThread.where(id: -1)
-          [
+          qb = [
             :title,
-            BbsThread.comments.user_name,
-            BbsThread.comments.body
-          ].each{|sym|
-            # TODO: クエリのエスケープ
-            qb |= BbsThread.all(sym.like => "%#{q}%")
-          }
-          query &= qb
+            :bbs_items__body,
+            :bbs_items__user_name
+          ].map{|x|
+            # TODO: escape query
+            Sequel.like(x,"%#{q}%")
+          }.inject(:|)
+          query = query.where(qb)
         }
       end
-      query.paginate(page,BBS_THREADS_PER_PAGE).order(Sequel.desc(:last_comment_date),Sequel.desc(:id)).map{|t|
+      query.paginate(page,BBS_THREADS_PER_PAGE).order(Sequel.desc(:last_comment_date),Sequel.desc(:bbs_threads__id)).map{|t|
         items = t.comments.map{|c|c.show(@user,@public_mode)}
         t.select_attr(:id,:title,:public).merge(items:items,has_new_comment:t.has_new_comment(@user))
       }

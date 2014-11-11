@@ -98,11 +98,6 @@ Sequel.migration do
 #    end
 #    
     
-    create_table_custom(:addr_books, [:base] do
-      foreign_key :user_id, :users, null:false, unique:true
-      foreign_key :album_item_id, :album_items, on_delete: :set_null
-      String :text, text:true
-    end
     
 #    create_table_custom(:album_tags,[:base]) do
 #      String :name, size:50, null:false

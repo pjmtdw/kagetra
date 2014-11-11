@@ -25,13 +25,13 @@ GEM
     haml (4.0.5)
       tilt
     kgio (2.9.2)
-    mini_portile (0.6.0)
+    mini_portile (0.6.1)
     multi_json (1.10.1)
     mysql2 (0.3.16)
-    nokogiri (1.6.3.1)
-      mini_portile (= 0.6.0)
+    nokogiri (1.6.4.1)
+      mini_portile (~> 0.6.0)
     rack (1.5.2)
-    rack-coffee (1.0.1)
+    rack-coffee (1.0.3)
       coffee-script
       rack
     rack-protection (1.5.3)
@@ -55,7 +55,7 @@ GEM
     ruby-ole (1.2.11.7)
     rubyzip (1.1.6)
     sass (3.4.5)
-    sequel (4.15.0)
+    sequel (4.16.0)
     sinatra (1.4.5)
       rack (~> 1.4)
       rack-protection (~> 1.4)
@@ -90,7 +90,7 @@ DEPENDENCIES
   haml
   mysql2
   nokogiri
-  rack-coffee (= 1.0.1)
+  rack-coffee
   redcarpet
   rmagick
   rubyzip
@@ -99,6 +99,6 @@ DEPENDENCIES
   sinatra
   sinatra-contrib
   spreadsheet
-  tux (= 0.3.0)
+  tux
   unicorn
   zurb-foundation (= 4.3.2)

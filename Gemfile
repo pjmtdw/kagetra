@@ -32,6 +32,6 @@ gem 'sequel'
 #gem 'sqlite3' # used when importing mytoma wiki
 
 # only used for developing
-gem 'rack-coffee','1.0.1'
-gem 'tux','0.3.0' # CLI for sinatra
+gem 'rack-coffee'
+gem 'tux' # CLI for sinatra
 #gem 'mecab', '0.996'

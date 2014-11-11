@@ -37,12 +37,14 @@ class MainApp < Sinatra::Base
         r[:editable] = true
       end
 
-      uavid = UserAttribute.all(user_id:uid,fields:[:value_id]).map{|x|x.value_id}
-      uavs = Hash[UserAttributeValue.all(id:uavid,fields:[:attr_key_id,:value]).map{|x|[x.attr_key_id,x.value]}]
-      user_attrs = UserAttributeKey.all(:index.not => 0,fields:[:name,:id],order:[:index.asc]).map{|x|
-        [x.name,uavs[x.id]]
-      }
-      r[:user_attrs] = user_attrs
+      r[:user_attrs] = UserAttributeValue
+        .graph(UserAttributeKey, id: :attr_key_id)
+        .where(user_attribute: UserAttribute.where(user_id: uid))
+        .where{user_attribute_keys__index > 0}
+        .order(:user_attribute_keys__index)
+        .map{|x|
+          [x[:user_attribute_keys].name,x[:user_attribute_values].value]
+        }
       r
     end
     # TODO: パスワードを平文で送るのは危険
@@ -64,10 +66,14 @@ class MainApp < Sinatra::Base
       }
     end
     get '/recent' do
-      recents = AddrBook.all(fields:[:user_id,:updated_at],order:[:updated_at.desc])[0...ADDRBOOK_RECENT_MAX].map{|x|
-        next unless (x.user.nil?.! and x.updated_at)
-        [x.user.id,x.updated_at.strftime("%Y-%m-%d")+": "+x.user.name]
-      }.compact
+      recents = AddrBook.order(Sequel.desc(:addr_books__updated_at))
+        .where(Sequel.~({addr_books__updated_at:nil}))
+        .limit(ADDRBOOK_RECENT_MAX).graph(User, id: :user_id)
+        .map{|x|
+          ab = x[:addr_books]
+          u = x[:users]
+          [ab.user_id,ab.updated_at.strftime("%Y-%m-%d")+": "+u.name]
+        }
       list = [[@user.id,"自分"]]
       {list:list+recents}
     end

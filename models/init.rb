@@ -5,6 +5,7 @@ DB = Sequel.mysql2(
   password: CONF_DB_PASSWORD,
   database: CONF_DB_DATABASE
 )
+DB.extension(:graph_each)
 if CONF_DB_DEBUG then
   DB.loggers << Logger.new($stdout)
   DB.sql_log_level = :debug
@@ -34,10 +35,10 @@ WikiComment = nil # TODO
 require_relative 'misc'
 require_relative 'user'
 require_relative 'event'
+require_relative 'addrbook'
 #require_relative 'bbs'
 #require_relative 'schedule'
 #require_relative 'result'
-#require_relative 'addrbook'
 #require_relative 'album'
 #require_relative 'wiki'
 

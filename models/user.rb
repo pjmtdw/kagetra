@@ -11,6 +11,7 @@ class User < Sequel::Model(:users)
   one_to_many :login_logs, class:'UserLoginLog'
   
   one_to_many :event_user_choices
+  one_to_many :addr_books, class:'AddrBook'
   
   serialize_attributes Kagetra::serialize_flag([:sub_admin]), :permission
 
@@ -141,6 +142,7 @@ end
 class UserAttributeValue < Sequel::Model(:user_attribute_values)
   many_to_one :attr_key, class:'UserAttributeKey'
   one_to_many :user_attribute, key: :value_id
+  many_to_one :user
   # デフォルトは必ず一つ必要
   def before_create
     if self.attr_key.attr_values(default:true).count == 0 then

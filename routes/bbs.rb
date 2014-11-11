@@ -26,8 +26,10 @@ class MainApp < Sinatra::Base
         t.select_attr(:id,:title,:public).merge(items:items,has_new_comment:t.has_new_comment(@user))
       }
     end
-    def create_item(thread)
-      c = thread.comments.create(
+    def create_item(thread,is_first)
+      c = BbsItem.create(
+        thread: thread,
+        is_first: is_first,
         body: @json["body"],
         user: @user,
         user_name: @json["user_name"])
@@ -39,30 +41,30 @@ class MainApp < Sinatra::Base
     end
     post '/thread' do
       dm_response{
-        BbsItem.transaction{
+        DB.transaction{
           title = @json["title"]
           public = @public_mode || @json["public"]
           thread = BbsThread.create(title: title, public: public)
-          create_item(thread)
+          create_item(thread,true)
         }
       }
     end
     post '/item' do
       dm_response{
-        BbsThread.transaction{
+        DB.transaction{
           thread_id = @json["thread_id"]
-          thread = BbsThread.get(thread_id.to_i)
+          thread = BbsThread[thread_id.to_i]
           if @public_mode and not thread.public
             halt 403,"cannot write to private thread"
           end
           thread.touch # もう必要ないかも
-          create_item(thread)
+          create_item(thread,false)
         }
       }
     end
     put '/item/:id' do
       dm_response{
-        item = BbsItem.get(params[:id].to_i)
+        item = BbsItem[params[:id].to_i]
         halt(403,"you cannot edit this item") unless item.editable(@user)
         item.update(body:@json["body"])
       }

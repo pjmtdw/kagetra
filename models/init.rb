@@ -13,6 +13,7 @@ if CONF_DB_DEBUG then
 end
 
 Sequel::Model.plugin :touch
+Sequel::Model.plugin :timestamps
 Sequel::Model.plugin :string_stripper
 Sequel::Model.plugin :serialization
 require_relative 'sequel_helpers/input_transformer_custom'

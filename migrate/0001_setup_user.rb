@@ -2,7 +2,6 @@ require_relative './helper'
 Sequel.migration do
   change do
     create_table_custom(:users, [:base]) do
-      TrueClass :deleted, default:false, index:true
       String :name, size:24, null:false
       String :furigana, size:36, null:false
       Integer :furigana_row, null:false, index:true, comment:"振り仮名の最初の一文字が五十音順のどの行か"

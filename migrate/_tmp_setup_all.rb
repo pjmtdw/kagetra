@@ -8,7 +8,6 @@ Sequel.migration do
 #      Integer :album_item_id, null:false
 #      Bignum :user_id
 #      
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:user_id), 0)
 #      
 #      index [:user_id], name::index_album_comment_logs_user
 #      index [:revision, :album_item_id], name::unique_album_comment_logs_u1, unique:true
@@ -18,8 +17,6 @@ Sequel.migration do
 #      Bignum :event_id, null:false
 #      Bignum :album_group_id, null:false
 #      
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:event_id), 0)
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:album_group_id), 0)
 #      
 #      index [:album_group_id], name::index_album_group_events_album_group
 #      index [:event_id], name::index_album_group_events_event
@@ -41,7 +38,6 @@ Sequel.migration do
 #      Integer :item_count, default:0
 #      Bignum :owner_id
 #      
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:owner_id), 0)
 #      
 #      index [:dummy], name::index_album_groups_dummy
 #      index [:owner_id], name::index_album_groups_owner
@@ -66,7 +62,6 @@ Sequel.migration do
 #      String :tag_names, text:true
 #      Bignum :owner_id
 #      
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:owner_id), 0)
 #      
 #      index [:comment_revision], name::index_album_items_comment_revision
 #      index [:comment_updated_at], name::index_album_items_comment_updated_at
@@ -81,7 +76,6 @@ Sequel.migration do
 #      String :format, size:50
 #      Bignum :album_item_id, null:false
 #      
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:album_item_id), 0)
 #      
 #      index [:album_item_id], name::index_album_photos_album_item
 #      index [:album_item_id], name::unique_album_photos_album_item_id, unique:true
@@ -106,7 +100,6 @@ Sequel.migration do
 #      Integer :radius
 #      Bignum :album_item_id, null:false
 #      
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:album_item_id), 0)
 #      
 #      index [:album_item_id], name::index_album_tags_album_item
 #      index [:name], name::index_album_tags_name
@@ -119,38 +112,12 @@ Sequel.migration do
 #      String :format, size:50
 #      Bignum :album_item_id, null:false
 #      
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:album_item_id), 0)
 #      
 #      index [:album_item_id], name::index_album_thumbnails_album_item
 #      index [:album_item_id], name::unique_album_thumbnails_album_item_id, unique:true
 #      index [:path], name::unique_album_thumbnails_path, unique:true
 #    end
 #    
-#    create_table_custom(:bbs_items,[:base,:env]) do
-#      TrueClass :deleted, default:false
-#      String :body, text:true, null:false
-#      String :user_name, size:24, null:false
-#      String :real_name, size:24
-#      Bignum :thread_id, null:false
-#      Bignum :user_id
-#      
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:thread_id), 0)
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:user_id), 0)
-#      
-#      index [:thread_id], name::index_bbs_items_thread
-#      index [:user_id], name::index_bbs_items_user
-#    end
-#    
-#    create_table_custom(:bbs_threads,[:base,:thread]) do
-#      TrueClass :deleted, default:false
-#      String :title, size:48, null:false
-#      TrueClass :public, default:false
-#      Bignum :first_item_id
-#      
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:first_item_id), 0)
-#      
-#      index [:first_item_id], name::index_bbs_threads_first_item
-#    end
 #    
 #    create_table_custom(:contest_classes,[:base]) do
 #      Integer :event_id, null:false
@@ -214,9 +181,6 @@ Sequel.migration do
 #      Bignum :contest_user_id, null:false
 #      Bignum :event_id, null:false
 #      
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:contest_prize_id), 0)
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:contest_user_id), 0)
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:event_id), 0)
 #      
 #      index [:contest_prize_id], name::index_contest_promotion_caches_contest_prize
 #      index [:contest_user_id], name::index_contest_promotion_caches_contest_user
@@ -231,7 +195,6 @@ Sequel.migration do
 #      String :prizes, text:true
 #      Bignum :event_id, null:false
 #      
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:event_id), 0)
 #      
 #      index [:event_id], name::index_contest_result_caches_event
 #    end
@@ -275,7 +238,6 @@ Sequel.migration do
 #      TrueClass :class_rank
 #      Bignum :contest_class_id, null:false
 #      
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:contest_class_id), 0)
 #      
 #      index [:contest_class_id], name::index_contest_users_contest_class
 #      index [:name], name::index_contest_users_name
@@ -309,7 +271,6 @@ Sequel.migration do
 #      String :description, text:true
 #      Bignum :owner_id, null:false
 #      
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:owner_id), 0)
 #      
 #      index [:date], name::index_schedule_items_date
 #      index [:owner_id], name::index_schedule_items_owner
@@ -324,8 +285,6 @@ Sequel.migration do
 #      Bignum :owner_id, null:false
 #      Bignum :wiki_item_id, null:false
 #      
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:owner_id), 0)
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:wiki_item_id), 0)
 #      
 #      index [:owner_id], name::index_wiki_attached_files_owner
 #      index [:wiki_item_id], name::index_wiki_attached_files_wiki_item
@@ -340,7 +299,6 @@ Sequel.migration do
 #      Integer :wiki_item_id, null:false
 #      Bignum :user_id
 #      
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:user_id), 0)
 #      
 #      index [:user_id], name::index_wiki_item_logs_user
 #      index [:revision, :wiki_item_id], name::unique_wiki_item_logs_u1, unique:true
@@ -355,7 +313,6 @@ Sequel.migration do
 #      Bignum :owner_id
 #      Integer :attached_count, default:0
 #      
-#      check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:owner_id), 0)
 #      
 #      index [:owner_id], name::index_wiki_items_owner
 #      index [:title], name::unique_wiki_items_title, unique:true

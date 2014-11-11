@@ -3,15 +3,15 @@ class MainApp < Sinatra::Base
   BBS_THREADS_PER_PAGE = 5
   namespace '/api/bbs' do
     get '/threads' do
-      page = params["page"].to_i - 1
+      page = params["page"].to_i
       qs = params["qs"]
       cond = if @public_mode then {public:true} else {} end
-      query = BbsThread.all(cond)
+      query = BbsThread.where(cond)
       if qs then
         qs.strip.split(/\s+/).each{|q|
           # 一件もヒットしないダミーのクエリ
           # TODO: 以下をする正しい方法
-          qb = BbsThread.all(id: -1)
+          qb = BbsThread.where(id: -1)
           [
             :title,
             BbsThread.comments.user_name,
@@ -23,8 +23,7 @@ class MainApp < Sinatra::Base
           query &= qb
         }
       end
-      # chunksを使うときはorderに同じ物がある可能性があるものを指定するとバグるので:id.descも一緒に指定すること
-      query.all(order: [:last_comment_date.desc,:id.desc]).chunks(BBS_THREADS_PER_PAGE)[page].map{|t|
+      query.paginate(page,BBS_THREADS_PER_PAGE).order(Sequel.desc(:last_comment_date),Sequel.desc(:id)).map{|t|
         items = t.comments.map{|c|c.show(@user,@public_mode)}
         t.select_attr(:id,:title,:public).merge(items:items,has_new_comment:t.has_new_comment(@user))
       }

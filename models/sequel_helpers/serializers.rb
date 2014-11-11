@@ -3,13 +3,22 @@ module Sequel
     module Serialization
       module InstanceMethods
         # 普通の Model#to_hash はデシリアライズしないので自分で実装
-        def to_deserialized_hash
+        # ついでに引数でフィルタリングできるようにする
+        def select_attr(*args)
+          self.to_deserialized_hash(*args)
+        end
+        def to_deserialized_hash(*args)
           self.class.serialized_columns.each{|c|
             # デシリアライズする 
             self.send(c)
           }
           # 一度デシリアライズしたものは deserialized_values に格納される
-          self.to_hash.merge(self.deserialized_values)
+          h = self.to_hash.merge(self.deserialized_values)
+          if args.empty?
+            h
+          else
+            h.select{|x|args.include?(x)}
+          end
         end
       end
     end

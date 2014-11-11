@@ -1,12 +1,6 @@
 #module ModelBase
 #  def self.included(base)
 #    base.class_eval do
-#      include DataMapper::Resource
-#      p = DataMapper::Property
-#      property :id, p::Serial
-#      # Automatically set/updated by dm-timestamps
-#      property :created_at, p::DateTime, index: true, lazy: true
-#      property :updated_at, p::DateTime, index: true, lazy: true
 #
 #      def self.all_month(prop,year,month,cond={})
 #        from = Date.new(year,month,1)
@@ -76,60 +70,60 @@ module UserEnv
   end
 end
 #
-#module CommentBase
-#  # このモジュールをincludeするクラスは belongs_to :thread を持たなければならない
-#  # TODO: include時に belongs_to :thread の引数を指定できない？
-#  def self.included(base)
-#    base.class_eval do
-#      property :deleted, p::ParanoidBoolean, lazy: false
-#      property :body, p::TrimText, required: true # 内容
-#      property :user_name, p::TrimString, length: 24, allow_nil: false # 書き込んだ人の名前
-#      property :real_name, p::TrimString, length: 24 # 内部的な名前と書き込んだ名前が違う場合に使用
-#      belongs_to :user, required: false # 内部的なユーザID
-#
-#      before :save do
-#        if self.user and self.user_name.to_s.empty? then
-#          self.user_name = self.user.name
-#        end
-#        if self.user and self.user_name != self.user.name then
-#          self.real_name = self.user.name
-#        end
-#      end
-#      after :create do
-#        # コメント数の更新
-#        th = self.thread
-#        th.update(comment_count: th.comments.count,
-#                  last_comment_user: self.user,
-#                  last_comment_date: self.created_at)
-#      end
-#      after :destroy do
-#        th = self.thread
-#        th.update(comment_count: th.comments.count)
-#      end
-#      def is_new(user)
-#        user.nil?.! and
-#        (self.user_id.nil? or self.user_id != user.id) and
-#        user.show_new_from.nil?.! and
-#        self.created_at >= user.show_new_from
-#      end
-#      def editable(user)
-#        user.nil?.! and (user.admin || (self.user_id && self.user_id == user.id))
-#      end
-#      def show(user,public_mode)
-#        r = self.select_attr(:id,:body,:user_name).merge(
-#          {
-#            date: self.created_at.strftime("%Y-%m-%d %H:%M"),
-#            is_new: self.is_new(user),
-#            editable: self.editable(user)
-#          })
-#        if not public_mode then
-#          r[:real_name] = self.real_name if self.real_name
-#        end
-#        r
-#      end
-#    end
-#  end
-#end
+module CommentBase
+  # このモジュールをincludeするクラスは many_to_one :thread を持たなければならない
+  # TODO: include時に belongs_to :thread の引数を指定できない？
+  def self.included(base)
+    base.class_eval do
+      original_commentbase_before_save = instance_method(:before_save)
+      original_commentbase_after_create = instance_method(:after_create)
+      original_commentbase_after_destroy = instance_method(:after_destroy)
+      define_method (:before_save){
+        if self.user and self.user_name.to_s.empty? then
+          self.user_name = self.user.name
+        end
+        if self.user and self.user_name != self.user.name then
+          self.real_name = self.user.name
+        end
+        original_commentbase_before_save.bind(self).()
+      }
+      define_method(:after_create){
+        # コメント数の更新
+        th = self.thread
+        th.update(comment_count: th.comments.count,
+                  last_comment_user: self.user,
+                  last_comment_date: self.created_at)
+        original_commentbase_after_create.bind(self).()
+      }
+      define_method(:after_destroy){
+        th = self.thread
+        th.update(comment_count: th.comments.count)
+        original_commentbase_after_destroy.bind(self).()
+      }
+      def is_new(user)
+        user.nil?.! and
+        (self.user_id.nil? or self.user_id != user.id) and
+        user.show_new_from.nil?.! and
+        self.created_at >= user.show_new_from
+      end
+      def editable(user)
+        user.nil?.! and (user.admin || (self.user_id && self.user_id == user.id))
+      end
+      def show(user,public_mode)
+        r = self.select_attr(:id,:body,:user_name).merge(
+          {
+            date: self.created_at.strftime("%Y-%m-%d %H:%M"),
+            is_new: self.is_new(user),
+            editable: self.editable(user)
+          })
+        if not public_mode then
+          r[:real_name] = self.real_name if self.real_name
+        end
+        r
+      end
+    end
+  end
+end
 #
 #module PatchBase
 #  def self.included(base)
@@ -189,67 +183,6 @@ end
 #        row
 #      else
 #        create(merger ? (conditions.merge(attributes)) : attributes )
-#      end
-#    end
-#  end
-#  class Property
-#    class HourMin < DataMapper::Property::String
-#      def custom?
-#        true
-#      end
-#      def load(value)
-#        case value
-#        when ::String
-#          ::Kagetra::HourMin.parse(value)
-#        when ::NilClass,::Kagetra::HourMin
-#          value
-#        else
-#          raise Exception.new("invalid class: #{value.class.name}")
-#        end
-#      end
-#      def dump(value)
-#        case value
-#        when ::NilClass,::String
-#          value
-#        when ::Kagetra::HourMin
-#          value.to_s
-#        else
-#          raise Exception.new("invalid class: #{value.class.name}")
-#        end
-#      end
-#      def typecast(value)
-#        load(value)
-#      end
-#    end
-#  end
-#  class Property
-#    class TrimString < DataMapper::Property::String
-#      accept_options :remove_whitespace
-#      remove_whitespace(false)
-#      def initialize(model, name, options = {})
-#        super
-#        @remove_whitespace = options.fetch(:remove_whitespace,false)
-#      end
-#      def custom?
-#        true
-#      end
-#      def dump(value)
-#        return nil if value.nil?
-#        r = value.to_s.strip
-#        if @remove_whitespace then
-#          r.gsub!(/\s+/,"")
-#        end
-#        if r.empty? then nil else r end
-#      end
-#    end
-#    class TrimText < DataMapper::Property::Text
-#      def custom?
-#        true
-#      end
-#      def dump(value)
-#        return nil if value.nil?
-#        r = value.to_s.strip
-#        if r.empty? then nil else r end
 #      end
 #    end
 #  end

@@ -22,7 +22,9 @@ function d(){
   local t2="$DB_TO.$2"
   echo "DELETE FROM $t1 WHERE id IN (SELECT id FROM (SELECT $t1.id FROM $t1 LEFT JOIN $t2 ON $t1.$3 = $t2.id WHERE $t2.id IS NULL) AS delete_task);"
 }
+exec 1> >(tee >(m) >&2)
 echo 'BEGIN;'
+p my_confs
 p users
 p user_attribute_keys
 p user_attribute_values

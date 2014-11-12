@@ -80,7 +80,7 @@ class MainApp < Sinatra::Base
       }
     end
     get '/item/:id' do
-      item = WikiItem.get(params[:id].to_i)
+      item = WikiItem[params[:id].to_i]
       halt 403 unless (not @public_mode or (@public_mode and item.public))
       r = item.select_attr(:title,:revision,:public,:attached_count)
       if not @public_mode then
@@ -98,7 +98,7 @@ class MainApp < Sinatra::Base
         # HOMEは削除できない
         halt 403
       end
-      item = WikiItem.get(params[:id].to_i)
+      item = WikiItem[params[:id].to_i]
       # destory するには関連するmodelを削除しないといけないけどそれはイヤなので deleted フラグを付けるだけ
       # ただし title が unique なので削除したはずのものと同じ名前ページを作ろうとするとエラーが出るのを防ぐ
       item.update(deleted:true,title:"__DELETED__:" + item.title)
@@ -123,7 +123,7 @@ class MainApp < Sinatra::Base
     end
 
     put '/item/:id' do
-      item = WikiItem.get(params[:id].to_i)
+      item = WikiItem[params[:id].to_i]
       update_or_create_item(item)
     end
     post '/item', private:true do
@@ -147,7 +147,7 @@ class MainApp < Sinatra::Base
     end
     get '/log/:id', private:true do
       page = if params[:page].to_s.empty?.! then params[:page].to_i else 1 end
-      item = WikiItem.get(params[:id].to_i)
+      item = WikiItem[params[:id].to_i]
       list = item.each_diff_htmls_until(WIKI_LOG_PER_PAGE,WIKI_LOG_PER_PAGE*(page-1)).map{|x|
         log = x[:log]
         # TODO: これだと <ins> や </ins> のある行しか表示されないので
@@ -167,7 +167,7 @@ class MainApp < Sinatra::Base
 
     end
     delete '/attached/:id' do
-      WikiAttachedFile.get(params[:id].to_i).destroy
+      WikiAttachedFile[params[:id].to_i].destroy
     end
   end
   comment_routes("/api/wiki",WikiItem,WikiComment,true)
@@ -178,12 +178,12 @@ class MainApp < Sinatra::Base
     # content-dispositionでutf8を使う方法は各ブラウザで統一されていないので
     # :filenameの部分にダウンロードさせるファイル名を入れるという古くから使える方法を取る
     attached_base = File.join(G_STORAGE_DIR,"attached")
-    attached = WikiAttachedFile.get(params[:id].to_i)
+    attached = WikiAttachedFile[params[:id].to_i]
     halt 404 if attached.nil?
     send_file(File.join(attached_base,attached.path),disposition:nil)
   end
   post '/wiki/attached/:id', private:true do
-    item = WikiItem.get(params[:id].to_i)
+    item = WikiItem[params[:id].to_i]
     attached =  if params[:attached_id] then
                   item.attacheds.get(params[:attached_id])
                 end

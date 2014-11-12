@@ -4,7 +4,7 @@
       エラー: #{@message}
   %div
     - if @uid
-      ユーザ名: #{User.get(@uid).name}
+      ユーザ名: #{User[@uid].name}
       %a(href='?reset=true') [別ユーザでログイン]
       %input(type='hidden' name='uid' value='#{@uid}')
     - else

@@ -134,7 +134,7 @@ def import_login_log
         rank = index
         prev_num = num
       end
-      user = User.get(uid.to_i)
+      user = User[uid.to_i]
       if user.nil? then
         puts "USER ID:#{uid} not found: ignoring login log"
         next
@@ -176,7 +176,7 @@ def import_bbs
         pat = /<!--ID:(\d+)-->$/
         user = nil
         if pat =~ name then
-          user = User.get($1)
+          user = User[$1]
           name.sub!(pat,"")
         end
         item_props = {
@@ -871,7 +871,7 @@ def import_event_comment
     else
       raise Exception.new("invalid filename: #{fn}")
     end
-    evt = Event.get(taikainum)
+    evt = Event[taikainum]
     if not evt then
       puts "WARNING: event with id='#{taikainum}' not found. ignoring comment file '#{fn}'"
       next
@@ -1000,7 +1000,7 @@ def import_album_stage1
       group = nil if group and group.empty?
       dm_response(line){
         ag = if group.nil?.! then
-          AlbumGroup.get(group)
+          AlbumGroup[group]
         else
           if year.to_s.empty? then year = nil end
           # 年が整数値でないものはそういう名前のグループを作る
@@ -1041,7 +1041,7 @@ def import_album_stage2(old_ids)
         next
       end
       lines = File.readlines(File.join(CONF_HAGAKURE_BASE,"album/#{prefix}.cgi"))
-      item = AlbumItem.get(item_id)
+      item = AlbumItem[item_id]
 
       create = ->(item,klass,path){
         abs_path = File.join(CONF_HAGAKURE_BASE,"album",path)
@@ -1207,7 +1207,7 @@ def import_wiki
     db.execute("select p.id,p.object_id,p.revision,p.datetime,p.patch,a.username from wiki_markuppatch p join auth_user a on a.id = p.user_id"){|id,object_id,revision,datetime,patch,user_id|
       next if patch.strip.to_s.empty?
       if revision == 1 then
-        WikiItem.get(object_id).update!(owner_id:user_id)
+        WikiItem[object_id].update!(owner_id:user_id)
       end
       WikiItemLog.create(wiki_item_id:object_id,revision:revision,created_at:DateTime.parse(datetime),user_id:user_id,patch:patch)
     }

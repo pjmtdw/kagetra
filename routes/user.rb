@@ -106,23 +106,23 @@ class MainApp < Sinatra::Base
           ContestUser.all(name:u.name,user_id:nil).update(user_id:u.id)
           x.each{|k,v|
             next unless k.start_with?("attr_")
-            u.attrs.create(value:UserAttributeValue.get(v.to_i))
+            u.attrs.create(value:UserAttributeValue[v.to_i])
           }
         }
       }
     end
     post '/change_attr/:promotion_event/:user_id' do
       User.transaction{
-        u = User.get(params[:user_id].to_i)
+        u = User[params[:user_id].to_i]
         @json["values"].each{|v|
-          new_value = UserAttributeValue.get(v.to_i)
+          new_value = UserAttributeValue[v.to_i]
           key = new_value.attr_key
           cur_value = u.attrs.first(value:key.values).value
           u.attrs.create(value_id:v.to_i)
           Event.all(done:false).choices.user_choices(user:u,attr_value:cur_value).each{|choice|
             ev_choice = choice.event_choice
             ev = ev_choice.event
-            promotion_event = Event.get(params[:promotion_event].to_i)
+            promotion_event = Event[params[:promotion_event].to_i]
             if ev.forbidden_attrs.include?(v.to_i) then
               choice.destroy
               if ev_choice.positive then

@@ -16,6 +16,7 @@ Sequel::Model.plugin :touch
 Sequel::Model.plugin :timestamps
 Sequel::Model.plugin :string_stripper
 Sequel::Model.plugin :serialization
+Sequel::Model.plugin :update_or_create
 require_relative 'sequel_helpers/input_transformer_custom'
 require_relative 'sequel_helpers/serializers'
 Sequel::Plugins::Serialization.register_format(:hourmin,*Kagetra::serialize_hourmin)

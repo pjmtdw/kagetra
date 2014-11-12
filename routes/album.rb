@@ -36,7 +36,7 @@ class MainApp < Sinatra::Base
     end
     get '/group/:gid' do
       item_fields = [:id,:tag_count,:comment,:tag_names,:rotate,:owner_id]
-      group = AlbumGroup.get(params[:gid].to_i)
+      group = AlbumGroup[params[:gid].to_i]
       halt 404 if group.nil?
       r = group.select_attr(:id,:name,:year,:place,:comment,:start_at,:end_at)
       r[:event_id] = AlbumGroupEvent.get_event_id(group.id)
@@ -71,7 +71,7 @@ class MainApp < Sinatra::Base
       r
     end
     delete '/group/:gid' do
-      group = AlbumGroup.get(params[:gid].to_i)
+      group = AlbumGroup[params[:gid].to_i]
       if group.nil?.! then
         AlbumItem.transaction{
           group.update!(deleted:true)
@@ -79,18 +79,18 @@ class MainApp < Sinatra::Base
       end
     end
     put '/group/:gid' do
-      group = AlbumGroup.get(params[:gid].to_i)
+      group = AlbumGroup[params[:gid].to_i]
       dm_response{
         AlbumGroup.transaction{
           if @json.has_key?("item_order") then
             @json["item_order"].each_with_index{|item,i|
-              AlbumItem.get(item).update(group_index:i)
+              AlbumItem[item].update(group_index:i)
             }
             @json.delete("item_order")
           end
           if @json.has_key?("add_rotate") then
             @json["add_rotate"].each{|k,v|
-              item = AlbumItem.get(k)
+              item = AlbumItem[k]
               item.update(rotate:(item.rotate.to_i+v)%360)
               update_thumbnail(item)
             }
@@ -101,7 +101,7 @@ class MainApp < Sinatra::Base
       }
     end
     get '/item/:id' do
-      item = AlbumItem.get(params[:id].to_i)
+      item = AlbumItem[params[:id].to_i]
       halt 404 if item.nil?
       r = item.select_attr(:id,:rotate,:name,:place,:date,:comment,:daily_choose,:comment_revision)
       r[:owner_name] = if item.owner.nil? then "" else item.owner.name end
@@ -132,7 +132,7 @@ class MainApp < Sinatra::Base
       r
     end
     put '/item/:id' do
-      item = AlbumItem.get(params[:id].to_i)
+      item = AlbumItem[params[:id].to_i]
       dm_response{
         AlbumItem.transaction{
           orig_rotate = @json["orig_rotate"]
@@ -161,13 +161,13 @@ class MainApp < Sinatra::Base
                   obj["album_item_id"] = item.id
                   AlbumTag.create(obj)
                 else
-                  tag = AlbumTag.get(obj["id"])
+                  tag = AlbumTag[obj["id"]]
                   obj.delete("id")
                   tag.update(obj) if tag
                 end
               when "destroy"
                 if k.to_i >= 0 then
-                  t = AlbumTag.get(k.to_i)
+                  t = AlbumTag[k.to_i]
                   if t.nil?.! then
                     t.destroy()
                   end
@@ -251,7 +251,7 @@ class MainApp < Sinatra::Base
       }
     end
     post '/complement_event' do
-      group = AlbumGroup.get(params[:group_id])
+      group = AlbumGroup[params[:group_id]]
       query = params[:q]
       results = if query.empty? then
                   if group.start_at then
@@ -280,7 +280,7 @@ class MainApp < Sinatra::Base
 
     end
     get '/thumb_info/:id' do
-      item = AlbumItem.get(params[:id].to_i)
+      item = AlbumItem[params[:id].to_i]
       item.id_with_thumb
     end
     ALBUM_COMMENTS_PER_PAGE = 40
@@ -326,7 +326,7 @@ class MainApp < Sinatra::Base
     end
     post '/move_group' do
       AlbumItem.transaction{
-        to_group = AlbumGroup.get(@json["group_id"].to_i)
+        to_group = AlbumGroup[@json["group_id"].to_i]
         index = to_group.items.aggregate(fields:[:group_index.max]) || -1
         from_groups = {}
         AlbumItem.all(id:@json["item_ids"],order:[:group_index.asc]).each{|item|
@@ -349,7 +349,7 @@ class MainApp < Sinatra::Base
       }
     end
     delete '/item/:id' do
-      item = AlbumItem.get(params[:id].to_i)
+      item = AlbumItem[params[:id].to_i]
       halt 403 unless (@user.admin or item.owner_id == @user.id)
       if item.nil?.! then
         AlbumItem.transaction{
@@ -362,7 +362,7 @@ class MainApp < Sinatra::Base
     delete '/delete_items/:group_id' do
       item_ids = @json["item_ids"]
       AlbumItem.transaction{
-        ag = AlbumGroup.get(params[:group_id])
+        ag = AlbumGroup[params[:group_id]]
         cond = if @user.admin then {} else {owner_id:@user.id} end
         items = AlbumItem.all(cond.merge({id:item_ids}))
         deleted_ids = items.map{|x|x.id}
@@ -379,9 +379,9 @@ class MainApp < Sinatra::Base
     end
     post '/set_event' do
       dm_response{
-        ag = AlbumGroup.get(@json["album_group_id"].to_i)
+        ag = AlbumGroup[@json["album_group_id"].to_i]
         eid = @json["event_id"].to_i
-        ag.event = if eid == -1 then nil else Event.get(eid) end
+        ag.event = if eid == -1 then nil else Event[eid] end
         ag.save
       }
     end
@@ -483,7 +483,7 @@ class MainApp < Sinatra::Base
     res = dm_response{
       AlbumItem.transaction{
         group = if params[:group_id] then
-          AlbumGroup.get(params[:group_id])
+          AlbumGroup[params[:group_id]]
         else
           attrs = params.select_attr("start_at","end_at","place","name","comment")
           if attrs["start_at"].to_s.empty? then attrs["start_at"] = nil end
@@ -556,12 +556,12 @@ class MainApp < Sinatra::Base
   namespace '/static/album' do
     # キャッシュを防ぐために回転の度数ごとに別URLにする
     get '/thumb/:id.?:rotate?' do
-      p = AlbumThumbnail.get(params[:id].to_i)
+      p = AlbumThumbnail[params[:id].to_i]
       # サムネイルは作成時にrotate済みなのでそのまま送る
       send_photo(p,0)
     end
     get '/photo/:id.?:rotate?' do
-      p = AlbumPhoto.get(params[:id].to_i)
+      p = AlbumPhoto[params[:id].to_i]
       send_photo(p,params[:rotate].to_i)
     end
   end

@@ -20,7 +20,7 @@ class MainApp < Sinatra::Base
       uid = params[:uid].to_i
       ab = AddrBook.first(user_id:uid)
       r = if ab.nil? then
-        u2 = if uid == @user.id then @user else User.get(uid) end
+        u2 = if uid == @user.id then @user else User[uid] end
         {
           found:false,
           uid: u2.id,

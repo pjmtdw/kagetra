@@ -49,7 +49,7 @@ class MainApp < Sinatra::Base
               if id == "latest" then
                 cond & Event.all(order: [:date.desc,:id.desc])
               else
-                [Event.get(id.to_i)]
+                [Event[id.to_i]]
               end
             ).first
       return [nil,[]] if evt.nil?
@@ -251,7 +251,7 @@ class MainApp < Sinatra::Base
     end
     get '/group/:id' do
       page = if params[:page].to_s.empty?.! then params[:page].to_i else 1 end
-      group = EventGroup.get(params[:id].to_i)
+      group = EventGroup[params[:id].to_i]
       r = group.select_attr(:name,:description)
       chunks = group.events.all(done:true,order:[:date.desc]).chunks(EVENT_GROUP_PER_PAGE)
       list = chunks[page-1].map{|ev|
@@ -260,7 +260,7 @@ class MainApp < Sinatra::Base
       r.merge({list:list,cur_page:page,pages:chunks.size})
     end
     get '/players/:id' do
-      ev = Event.get(params[:id].to_i)
+      ev = Event[params[:id].to_i]
       cc = ev.result_classes.all(order:[:index.asc])
       classes = cc.map{|x|[x.id,x.class_name]}
       users = Hash[ev.result_users.map{|x|[x.id,x.name]}]
@@ -289,7 +289,7 @@ class MainApp < Sinatra::Base
           kid = p if q.map{|x|x.to_s}.include?(k.to_s)
         }
         raise Exception.new("class id #{k.inspect} not found in #{json['user_classes'].inspect}") if kid.nil?
-        klass = ContestClass.get(kid)
+        klass = ContestClass[kid]
         raise Exception.new("class id #{kid} not found") if klass.nil?
         if k.to_s.start_with?("new_")
           us = User.first(name:v)
@@ -297,7 +297,7 @@ class MainApp < Sinatra::Base
           u = ContestUser.create(name:v,event_id:ev.id,contest_class_id:klass.id,user_id:user_id)
           new_ids[k] = u.id
         else
-          u = ContestUser.get(k)
+          u = ContestUser[k]
           u.update(contest_class:klass)
           if ev.team_size == 1 then
             u.games.update(contest_class_id:klass.id)
@@ -312,7 +312,7 @@ class MainApp < Sinatra::Base
     put '/players/:id' do
       dm_response{
         ContestUser.transaction{
-          ev = Event.get(params[:id].to_i)
+          ev = Event[params[:id].to_i]
           @json["classes"].each_with_index{|(k,v),i|
             if k.to_s.start_with?("new_")
               kl = ContestClass.create(class_name:v,event_id:ev.id,index:i)
@@ -324,7 +324,7 @@ class MainApp < Sinatra::Base
                 end
               }
             else
-              ContestClass.get(k).update(index:i)
+              ContestClass[k].update(index:i)
             end
           }
           if ev.team_size > 1 then
@@ -337,13 +337,13 @@ class MainApp < Sinatra::Base
               @json["team_classes"].each{|p,q|
                 kid = p if q.map{|x|x.to_s}.include?(tid.to_s)
               }
-              klass = ContestClass.get(kid)
+              klass = ContestClass[kid]
               members = @json["user_teams"][tid]
 
               team =  if tid.to_s.start_with?("new_")
                         ContestTeam.create(name:tname,contest_class_id:klass.id)
                       else
-                        t = ContestTeam.get(tid)
+                        t = ContestTeam[tid]
                         t.update(contest_class_id:klass.id)
                         t
                       end
@@ -357,7 +357,7 @@ class MainApp < Sinatra::Base
               team.save
             }
             @json["deleted_teams"].each{|x|
-              t = ContestTeam.get(x)
+              t = ContestTeam[x]
               t.members.destroy
               if not t.destroy then raise Exception.new("cannot destroy #{t.inspect}") end
             }
@@ -365,11 +365,11 @@ class MainApp < Sinatra::Base
             update_result_users(ev,@json)
           end
           @json["deleted_users"].each{|x|
-            cu = ContestUser.get(x)
+            cu = ContestUser[x]
             if not cu.destroy then raise Exception.new("cannot destroy #{cu.inspect}") end
           }
           @json["deleted_classes"].each{|x|
-            cc = ContestClass.get(x)
+            cc = ContestClass[x]
             if not cc.destroy then raise Exception.new("cannot destroy #{cc.inspect}") end
           }
         }
@@ -381,7 +381,7 @@ class MainApp < Sinatra::Base
           Hash[@json["data"].map{|x|
             np = x["num_person"]
             np = if np.to_i == 0 then nil else np.to_i end
-            c = ContestClass.get(x["class_id"])
+            c = ContestClass[x["class_id"]]
             c.update(num_person: np)
             [c.id,c.num_person]
           }]
@@ -392,7 +392,7 @@ class MainApp < Sinatra::Base
       fields = ["score_str","opponent_name","opponent_belongs","comment","result"]
       dm_response{
         ContestGame.transaction{
-          klass = ContestClass.get(@json["class_id"])
+          klass = ContestClass[@json["class_id"]]
           round = @json["round"].to_i
           if not @json.has_key?("team_id")
             # 個人戦
@@ -410,7 +410,7 @@ class MainApp < Sinatra::Base
           else
             # 団体戦
             fields << "opponent_order"
-            team = ContestTeam.get(@json["team_id"])
+            team = ContestTeam[@json["team_id"]]
             rname = @json["round_name"]
             rkind = @json["round_kind"].to_sym
             opname = @json["op_team_name"]
@@ -453,7 +453,7 @@ class MainApp < Sinatra::Base
     end
     post '/update_prize' do
       dm_response{
-        klass = ContestClass.get(@json["class_id"])
+        klass = ContestClass[@json["class_id"]]
         ContestPrize.transaction{
           @json["prizes"].each{|p|
             cond = {contest_class_id:klass.id,contest_user_id:p["cuid"]}
@@ -475,7 +475,7 @@ class MainApp < Sinatra::Base
         }]
         res = {prizes: prizes}
         if @json.has_key?("team_id")
-          team = ContestTeam.get(@json["team_id"])
+          team = ContestTeam[@json["team_id"]]
           team.update(prize:@json["team_prize"])
           res[:team_prize] = team.prize
         end
@@ -487,6 +487,6 @@ class MainApp < Sinatra::Base
     haml :result
   end
   get '/result/excel/:id/:filename' do
-    send_excel(Event.get(params[:id]))
+    send_excel(Event[params[:id]])
   end
 end

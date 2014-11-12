@@ -20,8 +20,8 @@ class Event < Sequel::Model(:events)
   def validate
     super
     error.add(:date,"cannot be null for contest") if self.kind == :contest and self.date.nil?
-    error.add(:owners,"is invalid") unless self.owners.all?{|o| o.is_a?(Integer) and User.get(o) }
-    error.add(:forbidden_attrs,"is invalid") unless self.forbidden_attrs.all?{|o| o.is_a?(Integer) and UserAttributeValue.get(o) }
+    error.add(:owners,"is invalid") unless self.owners.all?{|o| o.is_a?(Integer) and User[o] }
+    error.add(:forbidden_attrs,"is invalid") unless self.forbidden_attrs.all?{|o| o.is_a?(Integer) and UserAttributeValue[o] }
   end
   def self.new_events(user)
     search_from = [user.show_new_from||DateTime.now,DateTime.now-G_NEWLY_DAYS_MAX].max

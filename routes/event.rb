@@ -64,7 +64,7 @@ class MainApp < Sinatra::Base
         r.merge!(get_participant(ev,opts[:edit])) unless opts[:no_participant]
         if opts[:edit]
           r[:all_attrs] = get_all_attrs
-          r[:owners_str] = ev.owners.map{|u|User.get(u).name}.join(" , ")
+          r[:owners_str] = ev.owners.map{|u|User[u].name}.join(" , ")
           r[:all_event_groups] = get_all_event_groups
           r.merge!(ev.select_attr(:forbidden_attrs,:hide_choice,:register_done,:aggregate_attr_id))
         end
@@ -113,7 +113,7 @@ class MainApp < Sinatra::Base
       }
     end
     get '/item/:id' do
-      ev = Event.get(params[:id].to_i)
+      ev = Event[params[:id].to_i]
       return {} if ev.nil?
       opts = Hash[[:detail,:edit,:no_participant].map{|x|[x,params[x]=="true"]}]
       event_info(ev,@user,opts)
@@ -121,7 +121,7 @@ class MainApp < Sinatra::Base
     delete '/item/:id' do
       # 関連するクラスを全て削除しないとdestroyできない
       Event.transaction{
-        ev = Event.get(params[:id].to_i)
+        ev = Event[params[:id].to_i]
         ev.result_users.destroy!
         ev.result_classes.destroy!
         ContestResultCache.all(event_id:ev.id).destroy!
@@ -208,7 +208,7 @@ class MainApp < Sinatra::Base
       dm_response{
         # TODO: ev が使われていない
         #       event_choice_id がちゃんとそのEventに属しているか念のためにチェック
-        ev = Event.get(params[:id].to_i)
+        ev = Event[params[:id].to_i]
         EventUserChoice.transaction{
           @json["log"].each{|name,v|
             (cmd,attr,choice) = v
@@ -231,7 +231,7 @@ class MainApp < Sinatra::Base
       }
     end
     get '/group_list/:id' do
-      EventGroup.get(params[:id].to_i).events(order:[:date.desc])[0...10].map{|x|
+      EventGroup[params[:id].to_i].events(order:[:date.desc])[0...10].map{|x|
         x.select_attr(:id,:name,:date)
       }
     end
@@ -241,7 +241,7 @@ class MainApp < Sinatra::Base
     end
     put '/group/:id' do
       dm_response{
-        EventGroup.get(params[:id].to_i).update(@json)
+        EventGroup[params[:id].to_i].update(@json)
       }
     end
     get '/deadline_alert' do

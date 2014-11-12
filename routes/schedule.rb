@@ -1,7 +1,7 @@
 class MainApp < Sinatra::Base
   namespace '/api/schedule' do
     post '/copy/:id', private:true do
-      item = ScheduleItem.get(params[:id].to_i)
+      item = ScheduleItem[params[:id].to_i]
       params[:list].each{|d|
         date = Date.parse(d)
         ScheduleItem.create(item.attributes.merge(
@@ -28,7 +28,7 @@ class MainApp < Sinatra::Base
       emph = if id.nil? then
                []
              else
-               ScheduleItem.get(id).emphasis
+               ScheduleItem[id].emphasis
              end
       [:name,:place,:start_at,:end_at].each{|s|
         key = "emph_#{s}"
@@ -59,7 +59,7 @@ class MainApp < Sinatra::Base
       r
     end
     get '/detail/item/:id' do
-      make_detail_item(ScheduleItem.get(params[:id]))
+      make_detail_item(ScheduleItem[params[:id]])
     end
     post '/detail/item',private:true do
       dm_response{
@@ -73,7 +73,7 @@ class MainApp < Sinatra::Base
     end
     delete '/detail/item/:id' do
       dm_response{
-        ScheduleItem.get(params[:id].to_i).destroy
+        ScheduleItem[params[:id].to_i].destroy
       }
     end
     get '/detail/:year-:mon-:day' do
@@ -167,8 +167,6 @@ class MainApp < Sinatra::Base
         [ScheduleItem,:item,:make_item,Array,cbase],
         [Event,:event,:make_event,Array,cbase]
       ].map{|klass,sym,func,obj,cond|
-        # 原因不明: DataMapperに対して.each_with_object を使うとき(?)は .to_a しないと x に同じものが出現する
-        # TODO: 原因の探求
         from = Date.new(year,mon,1)
         to = from.next_month
         query = klass.where{(date >= from) & (date < to)}

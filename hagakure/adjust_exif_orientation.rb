@@ -10,7 +10,7 @@
 # で実行する
 def adjust_exif_orientation
   AlbumItem.aggregate(fields:[:id]).each{|item_id|
-    item = AlbumItem.get(item_id)
+    item = AlbumItem[item_id]
     path = File.join(G_STORAGE_DIR,"album",item.photo.path)
     img = Magick::Image::read(path).first
     orient = Hash[img.get_exif_by_entry("Orientation")]["Orientation"]

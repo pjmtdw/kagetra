@@ -54,7 +54,7 @@ class MainApp < Sinatra::Base
     post '/apply_edit' do
       User.transaction{
         @json.each{|x|
-          u = User.get(x["uid"].to_i)
+          u = User[x["uid"].to_i]
           case x["type"]
           when "attr"
             u.attrs.create(value_id:x["new_val"].to_i)
@@ -79,7 +79,7 @@ class MainApp < Sinatra::Base
               created_keys << k
             end
           else
-            k = UserAttributeKey.get(x["key_id"])
+            k = UserAttributeKey[x["key_id"]]
             if x["deleted"] then
               UserAttribute.all(value:k.values).destroy!
               k.values.each{|y|y.destroy!}

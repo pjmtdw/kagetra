@@ -83,7 +83,7 @@ class MainApp < Sinatra::Base
     post '/' do
       furigana = if params[:uid] then
                    @uid = params[:uid]
-                   User.get(params[:uid]).furigana
+                   User[params[:uid]].furigana
                  else
                    params[:furigana]
                  end

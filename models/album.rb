@@ -1,27 +1,10 @@
 # -* coding: utf-8 -*-
 
-# アルバムのグループ
-class AlbumGroup
-  include ModelBase
-  property :deleted, ParanoidBoolean, lazy: false
-  property :name, TrimString, length: 72
-  property :place, TrimString, length: 128 # 場所
-  property :comment, TrimText
-  belongs_to :owner, 'User', required: false
-
-  property :start_at, Date # 開始日
-  property :end_at, Date # 終了日
-
-  property :dummy, Boolean, index: true, default: false # どのグループにも属していない写真のための擬似的なグループ
-  property :year, Integer, index: true # 年ごとの集計のためにキャッシュする
-
-  property :daily_choose_count, Integer, default: 0 # 所属写真の今日の一枚の選ばれる数
-  property :has_comment_count, Integer, default: 0 # コメントの入っている写真の数
-  property :has_tag_count, Integer, default: 0 # タグの入っている写真の数
-  property :item_count, Integer, default: 0 # 毎回aggregateするのは遅いのでキャッシュ
-  has 1, :event, 'Event', through: :album_group_event # 関連大会
-  has n, :items, 'AlbumItem', child_key: [:group_id]
-  before :save do
+class AlbumGroup < Sequel::Model(:album_groups)
+  many_to_one :owner, class:'User'
+  one_through_one :event, join_table: :album_group_events
+  one_to_many :items, class:'AlbumItem', key: :group_id
+  def before_save
     if not self.dummy then
       self.year = if self.start_at.nil? then nil else start_at.year end
     end
@@ -38,53 +21,34 @@ class AlbumGroup
   end
 end
 
-# アルバムの各写真の情報
-class AlbumItem
-  include ModelBase
-  property :deleted, ParanoidBoolean, lazy: false
-  property :name, TrimString, length: 72
-  property :place, TrimString, length: 128 # 場所
-  belongs_to :owner, 'User', required: false
-  property :comment, TrimText
-  property :comment_revision, Integer, default: 0, index: true
-  property :comment_updated_at, DateTime, index: true
+class AlbumItem < Sequel::Model(:album_items)
+  many_to_one :owner, class:'User'
+  #property :hourmin , HourMin # 撮影時刻
+  many_to_one :group, class:'AlbumGroup'
 
-  property :date , Date # 撮影日
-  property :hourmin , HourMin # 撮影時刻
-  property :daily_choose, Boolean, default: true # 今日の一枚として選ばれるかどうか
-  property :group_id, Integer,  required: true, index: true
-  belongs_to :group, 'AlbumGroup'
-  property :group_index, Integer, allow_nil: false # グループの中での表示順
-  property :rotate, Integer, default:0 # 回転 (右向き, 0,90,180,270のどれか)
-  property :orig_filename, String, length: 128, lazy: true # アップロードされた元のファイル名
-
-  property :tag_count, Integer, default: 0
-
-  has 1, :photo, 'AlbumPhoto'
-  has 1, :thumb, 'AlbumThumbnail'
-  has n, :tags, 'AlbumTag'
-
-  property :tag_names, Text # タグ名の入った配列をJSON化したもの(like検索用なので型JsonじゃなくてText)
+  one_to_one :photo, class:'AlbumPhoto'
+  one_to_one :thumb, class:'AlbumThumbnail'
+  one_to_many :tags, class:'AlbumTag'
 
   # 順方向の関連写真
-  has n, :album_relations_r, 'AlbumRelation', child_key: [:source_id]
-  has n, :relations_r, self, through: :album_relations_r, via: :target
+  # has n, :album_relations_r, 'AlbumRelation', child_key: [:source_id]
+  # has n, :relations_r, self, through: :album_relations_r, via: :target
   # 逆方向の関連写真
-  has n, :album_relations_l, 'AlbumRelation', child_key: [:target_id]
-  has n, :relations_l, self, through: :album_relations_l, via: :source
+  # has n, :album_relations_l, 'AlbumRelation', child_key: [:target_id]
+  # has n, :relations_l, self, through: :album_relations_l, via: :source
 
-  has n, :comment_logs, 'AlbumCommentLog' # コメントの編集履歴
+  one_to_many :comment_logs, class:'AlbumCommentLog' # コメントの編集履歴
 
 
-  validates_with_block(:rotate){
-    if not [0,90,180,270].include?(self.rotate.to_i) then
-      [false, "rotate must be one of 0,90,180,270 not #{self.rotate}"]
-    else
-      true
-    end
-  }
+  #validates_with_block(:rotate){
+  #  if not [0,90,180,270].include?(self.rotate.to_i) then
+  #    [false, "rotate must be one of 0,90,180,270 not #{self.rotate}"]
+  #  else
+  #    true
+  #  end
+  #}
 
-  before :create do
+  def before_create
     if self.group_index.nil? then
       ag = self.group
       self.group_index = ag.items.count
@@ -104,7 +68,7 @@ class AlbumItem
     self.update!(tag_count:self.tags.count,tag_names:tag_names)
     self.group.update_count
   end
-  after :save do
+  def after_save
     self.group.update_count
   end
 
@@ -123,71 +87,39 @@ class AlbumItem
   end
 end
 
-# 関連写真
-class AlbumRelation
-  include ModelBase
-  property :source_id, Integer, unique_index: :u1, required: true, index: true
-  belongs_to :source, 'AlbumItem'
-  property :target_id, Integer, unique_index: :u1, required: true, index: true
-  belongs_to :target, 'AlbumItem'
+class AlbumRelation < Sequel::Model(:album_relations)
+  many_to_one :source, class:'AlbumItem'
+  many_to_one :target, class:'AlbumItem'
   # (source,target) と (target,source) はどちらかしか存在できない
-  after :save do
+  def after_save
     r = self.class.first(source:self.target, target:self.source)
     if r.nil?.! then r.destroy end
   end
 end
 
-# サムネイルと写真両方に共通する情報
-module AlbumBase
-  def self.included(base)
-    base.class_eval do
-      p = DataMapper::Property
-      property :path, p::FilePath, required: true, unique: true
-      property :width, p::Integer
-      property :height, p::Integer
-      property :format, p::String
-      belongs_to :album_item, unique: true
-    end
-  end
+class AlbumPhoto < Sequel::Model(:album_photos)
+  many_to_one :album_item, class:'AlbumItem'
+end
+class AlbumThumbnail < Sequel::Model(:album_thumbnails)
+  many_to_one :album_item, class:'AlbumItem'
 end
 
-# 実際の写真
-class AlbumPhoto
-  include ModelBase
-  include AlbumBase
-end
-# サムネイル
-class AlbumThumbnail
-  include ModelBase
-  include AlbumBase
-end
-
-# コメントの編集履歴(created_atが編集日時)
-class AlbumCommentLog
-  include ModelBase
-  include PatchBase
-  property :album_item_id, Integer, unique_index: :u1, required: true
-  belongs_to :album_item
-  after :save do
+class AlbumCommentLog < Sequel::Model(:album_comment_logs)
+  #include PatchBase
+  many_to_one :album_item
+  def after_save
     self.album_item.update!(comment_updated_at:self.created_at)
   end
 end
 
-# タグ
-class AlbumTag
-  include ModelBase
-  property :name, TrimString, required: true, index: true, remove_whitespace: true
-  property :coord_x, Integer # 写真の中のX座標
-  property :coord_y, Integer # 写真の中のY座標
-  property :radius, Integer # 円の半径
-  belongs_to :album_item
+class AlbumTag < Sequel::Model(:album_tags)
+  many_to_one :album_item
 end
 
 # アルバムと大会の関連
-class AlbumGroupEvent
-  include ModelBase
-  belongs_to :album_group, unique: true
-  belongs_to :event
+class AlbumGroupEvent < Sequel::Model(:album_group_events)
+  # belongs_to :album_group, unique: true
+  # belongs_to :event
   # event_idやalbum_group_idだけを取ってくるならaggregate使った方が余計なJOINが発生しないで済む
   def self.get_event_id(album_group_id)
     self.aggregate(fields:[:event_id],album_group_id:album_group_id)[0]

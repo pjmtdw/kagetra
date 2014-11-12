@@ -63,5 +63,22 @@ d bbs_items bbs_threads thread_id
 p bbs_items "$(c bbs_items is_first),0 as is_first"
 p schedule_date_infos
 p schedule_items
+p album_groups
+p album_group_events
+d album_items album_groups group_id
+p album_items
+d album_relations album_items target_id
+p album_relations
+d album_comment_logs album_items album_item_id
+p album_comment_logs
+d album_tags album_items album_item_id
+p album_tags
+p album_photos
+p album_thumbnails
 echo "UPDATE ${DB_TO}.bbs_items SET is_first = 1 WHERE id in (SELECT first_item_id FROM ${DB_FROM}.bbs_threads);"
 echo 'COMMIT;'
+# wait for mysql to finish
+MYSQL_PID=$(lsof -d 1 | grep '^[m]ysql' | awk '{print $2}')
+while kill -0 $MYSQL_PID &>/dev/null; do
+  sleep 1
+done

@@ -39,9 +39,9 @@ require_relative 'user'
 require_relative 'event'
 require_relative 'bbs'
 require_relative 'schedule'
-#require_relative 'addrbook'
+require_relative 'album'
+require_relative 'addrbook'
 #require_relative 'result'
-#require_relative 'album'
 #require_relative 'wiki'
 WikiItem = nil # TODO
 WikiComment = nil # TODO

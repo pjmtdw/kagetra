@@ -146,6 +146,8 @@ class MainApp < Sinatra::Base
       }
       arr
     end
+    
+
     get '/cal/:year-:mon' do
       year = params[:year].to_i
       mon = params[:mon].to_i
@@ -156,8 +158,9 @@ class MainApp < Sinatra::Base
       after_day = 7 - lday.cwday
       today = Date.today.day
 
-      cbase = if @public_mode then {public:true} else {} end
-      cbase[:order] = [:start_at.asc,:end_at.asc]
+      cbase = {}
+      cbase[:where] = if @public_mode then {public:true} end
+      cbase[:order] = [Sequel.asc(:start_at),Sequel.asc(:end_at)]
 
       (day_infos,items,events) = [
         [ScheduleDateInfo,:info,:make_info,Hash,{}],
@@ -166,8 +169,16 @@ class MainApp < Sinatra::Base
       ].map{|klass,sym,func,obj,cond|
         # 原因不明: DataMapperに対して.each_with_object を使うとき(?)は .to_a しないと x に同じものが出現する
         # TODO: 原因の探求
-        klass.all_month(:date,year,mon,cond).to_a
-        .each_with_object(if obj == Array then Hash.new{[]} else {} end){|x,h|
+        from = Date.new(year,mon,1)
+        to = from.next_month
+        query = klass.where{(date >= from) & (date < to)}
+        if cond[:where] then
+          query = query.where(cond[:where])
+        end
+        if cond[:order] then
+          query = query.order(*cond[:order])
+        end
+        query.all.each_with_object(if obj == Array then Hash.new{[]} else {} end){|x,h|
           if obj == Array then
             h[x.date.day] <<= send(func,x)
           else

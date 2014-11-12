@@ -2,18 +2,6 @@
 #  def self.included(base)
 #    base.class_eval do
 #
-#      def self.all_month(prop,year,month,cond={})
-#        from = Date.new(year,month,1)
-#        to = from.next_month
-#        all(cond.merge({prop.gte => from, prop.lt => to}))
-#      end
-#
-#      def select_attr(*symbols)
-#        Hash[symbols.map{|s|
-#          [s,self.send(s)]
-#        }]
-#      end
-#
 #      # for wiki and album comment
 #      # the included module have to implement `patch_syms` method
 #      def each_revisions_until(limit,&block)

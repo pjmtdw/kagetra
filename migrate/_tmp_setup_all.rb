@@ -251,31 +251,6 @@ Sequel.migration do
 #      index [:name], name::unique_my_confs_name, unique:true
 #    end
 #    
-#    create_table_custom(:schedule_date_infos,[:base]) do
-#      Date :date, null:false
-#      String :names, text:true
-#      TrueClass :holiday, default:false
-#      
-#      index [:date], name::unique_schedule_date_infos_date, unique:true
-#    end
-#    
-#    create_table_custom(:schedule_items,[:base]) do
-#      Date :date, null:false
-#      TrueClass :kind
-#      TrueClass :public, default:true
-#      Integer :emphasis
-#      String :name, size:48, null:false
-#      String :start_at, size:50
-#      String :end_at, size:50
-#      String :place, size:48
-#      String :description, text:true
-#      Bignum :owner_id, null:false
-#      
-#      
-#      index [:date], name::index_schedule_items_date
-#      index [:owner_id], name::index_schedule_items_owner
-#    end
-#    
 #    create_table_custom(:wiki_attached_files,[:base]) do
 #      TrueClass :deleted, default:false
 #      String :path, size:255

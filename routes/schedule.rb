@@ -4,31 +4,34 @@ class MainApp < Sinatra::Base
       item = ScheduleItem[params[:id].to_i]
       params[:list].each{|d|
         date = Date.parse(d)
-        ScheduleItem.create(item.attributes.merge(
-          id:nil,
-          created_at:nil,
-          updated_at:nil,
-          owner:@user,
-          date:date))
+        ScheduleItem.create(item.select_attr
+          .merge(
+            owner:@user,
+            date:date)
+          .delete_if{|x|[:id,:created_at,:updated_at].include?(x)})
       }
 
     end
     post '/update_holiday', private:true do
       @json.each{|day,obj|
-        ScheduleDateInfo.first_or_create(date:Date.parse(day)).update(
-          names:obj["names"],
-          holiday: obj["holiday"]
-        )
+        ScheduleDateInfo.find_or_create(date:Date.parse(day)){|item|
+          item.names = obj["names"]
+          item.holiday = obj["holiday"]
+        }
       }
     end
     def update_or_create(id, user, json)
+      old_item = if not id.nil? then ScheduleItem[id] end
+      if not id.nil? and old_item.nil? then
+        raise Exception.new("schedule_item not found:#{id}")
+      end
       date = if id.nil? then
         Date.new(json["year"],json["mon"],json["day"])
       end
-      emph = if id.nil? then
+      emph = if old_item.nil? then
                []
              else
-               ScheduleItem[id].emphasis
+               old_item.emphasis
              end
       [:name,:place,:start_at,:end_at].each{|s|
         key = "emph_#{s}"
@@ -40,15 +43,18 @@ class MainApp < Sinatra::Base
           end
         end
       }
-      json["emphasis"] = emph.compact
-      data = { emphasis: emph }
-      if id.nil? then
-        data["owner_id"] = user.id
+      data = { emphasis: emph }.merge(ScheduleItem.make_deserialized_data(json.select_attr("name","place","description","start_at","end_at")))
+      if old_item.nil? then
+        data[:owner_id] = user.id
       end
-      ScheduleItem.update_or_create(
-        {id: id},
-        data.merge(if date then {date: date} else {} end).merge(json.select_attr("name","place","description","start_at","end_at"))
-      )
+      if date then
+        data[:date] = date
+      end
+      if old_item.nil? then
+        ScheduleItem.create(data)
+      else
+        old_item.update(data)
+      end
     end
     def make_detail_item(x)
       r = x.select_attr(:id,:start_at,:end_at,:name,:place,:description,:public)
@@ -120,26 +126,30 @@ class MainApp < Sinatra::Base
         mon: mon,
         day: day,
         info: make_info(ScheduleDateInfo.first(date:date)),
-        item: ScheduleItem.all(date:date,order:[:start_at.asc,:end_at.asc]).map{|x|make_item(x)}
+        item: ScheduleItem.where(date:date).order(Sequel.asc(:start_at),Sequel.asc(:end_at)).map{|x|make_item(x)}
       }
     end
 
     SCHEDULE_PANEL_DAYS = 3
     get '/panel',private:true do
       today = Date.today
-      cond = {:date.gte => today, :date.lt => today + SCHEDULE_PANEL_DAYS}
-      order = {order:[:start_at.asc,:end_at.asc]}
+      append_cond = lambda{|klass|
+        klass.where{ (date >= today) & (date < today + SCHEDULE_PANEL_DAYS) }
+      }
+      append_order = lambda{|dataset|
+        dataset.order(Sequel.asc(:start_at),Sequel.asc(:end_at))
+      }
       arr = (0...SCHEDULE_PANEL_DAYS).map{|i|
         d = today + i
         {year: d.year, mon: d.mon, day: d.day}
       }
       [
-        [ScheduleDateInfo,:info,:make_info,Hash,{}],
-        [ScheduleItem,:item,:make_item,Array,order],
-        [Event,:event,:make_event,Array,order]
-      ].each{|klass,sym,func,obj,acond|
-        # 原因不明: ここに to_a を付けないと結果に重複が出る
-        klass.all(cond.merge(acond)).to_a.each{|x|
+        [ScheduleDateInfo,:info,:make_info,Hash,lambda{|x|x}],
+        [ScheduleItem,:item,:make_item,Array,append_order],
+        [Event,:event,:make_event,Array,append_order]
+      ].each{|klass,sym,func,obj,order_func|
+        dataset = order_func.call(append_cond.call(klass))
+        dataset.each{|x|
           p = arr[x.date-today]
           p[sym] ||= obj.new
           if obj == Array then
@@ -204,9 +214,11 @@ class MainApp < Sinatra::Base
     SCHEDULE_EVENT_DONE_PER_PAGE = 40
     get '/ev_done',private:true do
       page = if params[:page].to_s.empty?.! then params[:page].to_i else 1 end
-      chunks = Event.all(:kind.not=>:contest,done:true,order:[:updated_at.desc,:id.desc]).chunks(SCHEDULE_EVENT_DONE_PER_PAGE)
-      pages = chunks.size
-      list = chunks[page-1].map{|x|
+      # TODO: serialized されたカラムを where で検索する方法ってこれでいいの?
+      serialized_contest_kind = Event.serialization_map[:kind].call(:contest)
+      chunk = Event.where(Sequel.~(kind: serialized_contest_kind),done:true).order(Sequel.desc(:updated_at),Sequel.desc(:id)).paginate(page,SCHEDULE_EVENT_DONE_PER_PAGE)
+      pages = chunk.page_count
+      list = chunk.map{|x|
         x.select_attr(:id,:name,:place,:comment_count,:start_at,:end_at,:date).merge({has_new_comment:x.has_new_comment(@user)})
       }
       {

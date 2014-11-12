@@ -13,9 +13,9 @@ if CONF_DB_DEBUG then
 end
 
 Sequel::Model.plugin :touch
-Sequel::Model.plugin :timestamps
+Sequel::Model.plugin :timestamps, update_on_create:true
 Sequel::Model.plugin :string_stripper
-Sequel::Model.plugin :serialization
+Sequel::Model.plugin :serialization_modification_detection
 Sequel::Model.plugin :update_or_create
 require_relative 'sequel_helpers/input_transformer_custom'
 require_relative 'sequel_helpers/serializers'
@@ -24,6 +24,7 @@ Sequel::Plugins::Serialization.register_format(:hourmin,*Kagetra::serialize_hour
 module Sequel
   class Dataset
     def find_or_create(vals,id_column)
+      # Sequel::Model には find_or_create があるけど Dataset の方にはないので自分で定義
       # association から取得した Dataset にはどの column で結合したかの情報が失われているので
       # id_column を explicit に与える必要がある
       # TODO: id_column を与えなくても良いようにできない？ Dataset にはどの column で where するかの情報があるので可能なはず．

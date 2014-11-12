@@ -1,6 +1,16 @@
 module Sequel
   module Plugins
     module Serialization
+      module ClassMethods
+        # update や create に渡せるようにデシリアライズする
+        def make_deserialized_data(data)
+          data.map{|k,v|
+            s = k.to_sym
+            f = self.deserialization_map[s]
+            [s, if f then f.call(v) else v end]
+          }.to_h
+        end
+      end
       module InstanceMethods
         # 普通の Model#to_hash はデシリアライズしないので自分で実装
         # ついでに引数でフィルタリングできるようにする
@@ -32,14 +42,18 @@ module Kagetra
   #     serialize_attributes Kagetra::serialize_enum([:apple,:banana,:orange]), :fruits
   #   end
   def self.serialize_enum(enums)
-    raise Exception.new("#{enums} is not an array") unless enums.is_a?(Array)
+    raise Exception.new("#{enums} is #{enums.class}, it should be Array") unless enums.is_a?(Array)
     serializer = lambda{|x|
-      raise Exception.new("#{x} is not a symbol") unless x.is_a?(Symbol)
-      enums.index(x) + 1
+      if not x.nil? then
+        raise Exception.new("#{x} is #{x.class}, it should be Symbol") unless x.is_a?(Symbol)
+        enums.index(x) + 1
+      end
     }
     deserializer = lambda{|x|
-      raise Exception.new("#{x} is not a numeric") unless x.is_a?(Numeric)
-      enums[x-1]
+      if not x.nil? then
+        raise Exception.new("#{x} is #{x.class}, it should be Numeric") unless x.is_a?(Numeric)
+        enums[x-1]
+      end
     }
     [serializer,deserializer]
   end
@@ -50,18 +64,22 @@ module Kagetra
   #     serialize_attributes Kagetra::serialize_flag([:is_women,:is_japanese,:is_married]), :person, 
   #   end
   def self.serialize_flag(flags)
-    raise Exception.new("#{flags} is not an array") unless flags.is_a?(Array)
+    raise Exception.new("#{flags} is #{flags.class}, it should be Array") unless flags.is_a?(Array)
     serializer = lambda{|x|
-      raise Exception.new("#{x} is not an array") unless x.is_a?(Array)
-      x.inject(0){|sum,y|
-        sum + (1 << flags.index(y))
-      }
+      if not x.nil? then
+        raise Exception.new("#{x} is #{x.class}, it should be Array") unless x.is_a?(Array)
+        x.inject(0){|sum,y|
+          sum + (1 << flags.index(y))
+        }
+      end
     }
     deserializer = lambda{|x|
-      raise Exception.new("#{x} is not a numeric") unless x.is_a?(Numeric)
-      flags.each_with_index.map{|y,i|
-        (x & (1 << i) != 0) ? y : nil
-      }.compact
+      if not x.nil? then
+        raise Exception.new("#{x} is #{x.class}, it should be Numeric") unless x.is_a?(Numeric)
+        flags.each_with_index.map{|y,i|
+          (x & (1 << i) != 0) ? y : nil
+        }.compact
+      end
     }
     [serializer,deserializer]
   end
@@ -74,12 +92,16 @@ module Kagetra
   #   end
   def self.serialize_hourmin
     serializer = lambda{|x|
-      raise Exception.new("#{x} is not HourMin") unless x.is_a?(Kagetra::HourMin)
-      x.to_s
+      if not x.nil? then
+        raise Exception.new("#{x} is #{x.class}, it should be HourMin") unless x.is_a?(Kagetra::HourMin)
+        x.to_s
+      end
     }
     deserializer = lambda{|x|
-      raise Exception.new("#{x} is not a string") unless x.is_a?(String)
-      Kagetra::HourMin.parse(x)
+      if not x.nil? then
+        raise Exception.new("#{x} is #{x.class}, it should be String") unless x.is_a?(String)
+        Kagetra::HourMin.parse(x)
+      end
     }
     [serializer,deserializer]
   end

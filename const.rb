@@ -6,16 +6,15 @@ G_DIMAPA = DiffPatchMatch.new
 
 G_MOBILE_BASE = "/mobile"
 
-G_DB_RAISE_SAVE_FAILURE = true # DataMapperがsave失敗したときにErrorをraiseする
-
 G_STORAGE_DIR = "./storage" # Wikiの添付ファイルとアルバムの写真が置かれるディレクトリ
 
 G_WEEKDAY_JA = ['日','月','火','水','木','金','土']
 
 G_ADDRBOOK_CONFIRM_STR = 'kagetra_addrbook' # 名簿でパスワードが正しいかの確認用
 
-# 一つのサーバで複数のkagetraを起動する場合はこの辺を変更すること
-G_SESSION_COOKIE_NAME = "kagetra.session" # ブラウザが閉じられると消える
+# 一つのドメインで複数のkagetraを起動する場合はこの辺を変更すること
+# TODO: 変更しなくて良いように Set-Cookie の Path= を自動設定する
+G_SESSION_COOKIE_NAME = "kagetra.session" # ブラウザを閉じると消える
 G_PERMANENT_COOKIE_NAME = "kagetra.permanent" # 3ヶ月保存される
 
 G_NEWLY_DAYS_MAX = 75 # 新着コメントとして表示される最大の日数

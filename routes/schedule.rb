@@ -79,12 +79,17 @@ class MainApp < Sinatra::Base
     get '/detail/:year-:mon-:day' do
       (year,mon,day) = [:year,:mon,:day].map{|x|params[x].to_i}
       date = Date.new(year,mon,day)
-      cond = if @public_mode then {public:true} else {} end
-      cond[:order] = [:start_at.asc,:end_at.asc]
-      list = ScheduleItem.all(cond.merge({date:date})).map{|x|
+      append_cond = lambda{|klass|
+        klass = klass.where(date:date)
+        if @public_mode then
+          klass = klass.where(public:true)
+        end
+        klass.order(Sequel.asc(:start_at),Sequel.asc(:end_at))
+      }
+      list = append_cond.call(ScheduleItem).map{|x|
         make_detail_item(x)
       }
-      events = Event.all(cond.merge({date:date})).map{|x|
+      events = append_cond.call(Event).map{|x|
         x.select_attr(:id,:name,:place,:comment_count,:start_at,:end_at)
       }
       info = ScheduleDateInfo.first(date:date)

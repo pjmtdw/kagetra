@@ -61,38 +61,38 @@ class User < Sequel::Model(:users)
       0
     end
   end
-#  after :create do
-#    UserAttributeValue.all(default:true).each{|v|
-#      self.attrs.create(value:v)
-#    }
-#  end
-#  before :save do
-#    self.furigana_row = Kagetra::Utils.gojuon_row_num(self.furigana)
-#  end
-#
-#  def sub_admin
-#    self.permission.include?(:sub_admin)
-#  end
-#
-#  def last_login_str
-#    pre = self.show_new_from
-#    last_count = self.login_latest.updated_at
-#    r1 = if pre.nil? then
-#      "初ログイン<br/>#{CONF_FIRST_LOGIN_MESSAGE}<br/>"
-#    else
-#      days = (last_count-pre).to_f
-#      if days < 2/24.0
-#        "#{(days*1440).to_i}分前"
-#      elsif days < 2.0
-#        "#{(days*24).to_i}時間前"
-#      else
-#        "#{days.to_i}日前"
-#      end
-#    end
-#    r2 = (1440*(DateTime.now-last_count).to_f).to_i
-#    r3 = (r2 >= MIN_LOGIN_SPAN)
-#    [r1,r2,r3]
-#  end
+  def after_create
+    UserAttributeValue.all(default:true).each{|v|
+      self.attrs.create(value:v)
+    }
+  end
+  def before_save
+    self.furigana_row = Kagetra::Utils.gojuon_row_num(self.furigana)
+  end
+
+  def sub_admin
+    self.permission.include?(:sub_admin)
+  end
+
+  def last_login_str
+    pre = self.show_new_from
+    last_count = self.login_latest.updated_at
+    r1 = if pre.nil? then
+      "初ログイン<br/>#{CONF_FIRST_LOGIN_MESSAGE}<br/>"
+    else
+      days = (last_count-pre).to_f
+      if days < 2/24.0
+        "#{(days*1440).to_i}分前"
+      elsif days < 2.0
+        "#{(days*24).to_i}時間前"
+      else
+        "#{days.to_i}日前"
+      end
+    end
+    r2 = (1440*(DateTime.now-last_count).to_f).to_i
+    r3 = (r2 >= MIN_LOGIN_SPAN)
+    [r1,r2,r3]
+  end
 end
 
 class UserLoginLatest < Sequel::Model(:user_login_latests)

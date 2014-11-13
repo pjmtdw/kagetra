@@ -22,14 +22,16 @@ class AlbumGroup < Sequel::Model(:album_groups)
 end
 
 class AlbumItem < Sequel::Model(:album_items)
+  include PatchedItem
   many_to_one :owner, class:'User'
-  #property :hourmin , HourMin # 撮影時刻
+  plugin :serialization, :hourmin, :hourmin
   many_to_one :group, class:'AlbumGroup'
 
   one_to_one :photo, class:'AlbumPhoto'
   one_to_one :thumb, class:'AlbumThumbnail'
   one_to_many :tags, class:'AlbumTag'
 
+  # TODO
   # 順方向の関連写真
   # has n, :album_relations_r, 'AlbumRelation', child_key: [:source_id]
   # has n, :relations_r, self, through: :album_relations_r, via: :target
@@ -39,14 +41,10 @@ class AlbumItem < Sequel::Model(:album_items)
 
   one_to_many :comment_logs, class:'AlbumCommentLog' # コメントの編集履歴
 
-
-  #validates_with_block(:rotate){
-  #  if not [0,90,180,270].include?(self.rotate.to_i) then
-  #    [false, "rotate must be one of 0,90,180,270 not #{self.rotate}"]
-  #  else
-  #    true
-  #  end
-  #}
+  def validate
+    super
+    error.add(:rotate,"must be one of 0,90,180,270") unless [0,90,180,270].include?(self.rotate.to_i)
+  end
 
   def before_create
     if self.group_index.nil? then
@@ -118,8 +116,8 @@ end
 
 # アルバムと大会の関連
 class AlbumGroupEvent < Sequel::Model(:album_group_events)
-  # belongs_to :album_group, unique: true
-  # belongs_to :event
+  many_to_one :album_group
+  many_to_one :event
   # event_idやalbum_group_idだけを取ってくるならaggregate使った方が余計なJOINが発生しないで済む
   def self.get_event_id(album_group_id)
     self.aggregate(fields:[:event_id],album_group_id:album_group_id)[0]

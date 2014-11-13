@@ -1,44 +1,41 @@
-#module ModelBase
-#  def self.included(base)
-#    base.class_eval do
-#
-#      # for wiki and album comment
-#      # the included module have to implement `patch_syms` method
-#      def each_revisions_until(limit,&block)
-#        Enumerator.new{|enu|
-#          cur = self.send(patch_syms[:cur_body]).to_s
-#          last_rev = self.send(patch_syms[:last_rev])
-#          revs = last_rev.downto(last_rev-limit+1)
-#          logs = self.send(patch_syms[:logs]).all(revision:revs,order:[:revision.desc])
-#          enu.yield ({text:cur})
-#          logs.compact.each{|lg|
-#            p = lg.patch
-#            ps = G_DIMAPA.patch_fromText(p)
-#            (cur,_) = G_DIMAPA.patch_apply(ps,cur)
-#            enu.yield ({text:cur, log:lg})
-#          }
-#        }.each(&block)
-#      end
-#      def each_diff_htmls_until(limit,offset=0,&block)
-#        Enumerator.new{|enu|
-#          arr = each_revisions_until(limit+offset).to_a[offset..-1]
-#          if arr.nil?.! and arr.length >= 2 then
-#            arr[0...-1].zip(arr[1..-1]).each{|cur,prev|
-#              ctxt = cur[:text].escape_html
-#              ptxt = prev[:text].escape_html
-#              next if ctxt == ptxt
-#              diffs = G_DIMAPA.diff_main(ptxt,ctxt)
-#              html = G_DIMAPA.diff_prettyHtml(diffs)
-#              enu.yield ({html:html,log:prev[:log]} )
-#            }
-#          end
-#        }.each(&block)
-#      end
-#
-#    end
-#  end
-#end
-#
+module PatchedItem
+  # the included module have to implement `patch_syms` method
+  def self.included(base)
+    base.class_eval do
+      def each_revisions_until(limit,&block)
+        Enumerator.new{|enu|
+          cur = self.send(patch_syms[:cur_body]).to_s
+          last_rev = self.send(patch_syms[:last_rev])
+          revs = last_rev.downto(last_rev-limit+1)
+          logs = self.send(patch_syms[:logs]).all(revision:revs,order:[:revision.desc])
+          enu.yield ({text:cur})
+          logs.compact.each{|lg|
+            p = lg.patch
+            ps = G_DIMAPA.patch_fromText(p)
+            (cur,_) = G_DIMAPA.patch_apply(ps,cur)
+            enu.yield ({text:cur, log:lg})
+          }
+        }.each(&block)
+      end
+      def each_diff_htmls_until(limit,offset=0,&block)
+        Enumerator.new{|enu|
+          arr = each_revisions_until(limit+offset).to_a[offset..-1]
+          if arr.nil?.! and arr.length >= 2 then
+            arr[0...-1].zip(arr[1..-1]).each{|cur,prev|
+              ctxt = cur[:text].escape_html
+              ptxt = prev[:text].escape_html
+              next if ctxt == ptxt
+              diffs = G_DIMAPA.diff_main(ptxt,ctxt)
+              html = G_DIMAPA.diff_prettyHtml(diffs)
+              enu.yield ({html:html,log:prev[:log]} )
+            }
+          end
+        }.each(&block)
+      end
+    end
+  end
+end
+
 module UserEnv
   def self.included(base)
     def set_env(req)

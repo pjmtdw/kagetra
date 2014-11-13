@@ -27,13 +27,11 @@ module Sequel
         }
       },
       image: lambda{|x|
-        lambda{|x|
           String :path, size:255, null:false, unique: true
           Integer :width
           Integer :height
           String :format, size:50
           foreign_key :album_item_id, :album_items, null:false, unique:true, on_delete: :cascade
-        }
       }
     }
     def create_table_custom(name, extra_blocks, options=OPTS, &block)

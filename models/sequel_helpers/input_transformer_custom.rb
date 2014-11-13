@@ -26,8 +26,10 @@ module Sequel
         # { column_name: [transformer1, transformer2, ...] }
         attr_reader :input_transformer_customs
         Plugins.inherited_instance_variables(self, :@input_transformer_customs => :hash_dup)
-        def add_input_transformer_custom(column_name, &block)
-          @input_transformer_customs[column_name].push(block)
+        def add_input_transformer_custom(*column_name, &block)
+          column_name.each{|c|
+            @input_transformer_customs[c].push(block)
+          }
         end
       end
       module InstanceMethods

@@ -17,6 +17,7 @@ Sequel::Model.plugin :timestamps, update_on_create:true
 Sequel::Model.plugin :string_stripper
 Sequel::Model.plugin :serialization_modification_detection
 Sequel::Model.plugin :update_or_create
+Sequel::Model.plugin :validation_helpers
 require_relative 'sequel_helpers/input_transformer_custom'
 require_relative 'sequel_helpers/serializers'
 Sequel::Plugins::Serialization.register_format(:hourmin,*Kagetra::serialize_hourmin)
@@ -41,7 +42,7 @@ require_relative 'bbs'
 require_relative 'schedule'
 require_relative 'album'
 require_relative 'addrbook'
-#require_relative 'result'
+require_relative 'result'
 #require_relative 'wiki'
 WikiItem = nil # TODO
 WikiComment = nil # TODO

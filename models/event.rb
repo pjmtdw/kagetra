@@ -11,7 +11,7 @@ class Event < Sequel::Model(:events)
 
   one_to_one :result_cache, class:'ContestResultCache'
 
-  many_to_many :album_groups, class:'AlbumGroup', join_table: :album_group_event
+  many_to_many :album_groups, class:'AlbumGroup', join_table: :album_group_events
 
   one_to_many :choices, class:'EventChoice'
   one_to_many :result_classes, class:'ContestClass'
@@ -68,8 +68,12 @@ class EventChoice < Sequel::Model(:event_choices)
   many_to_one :event
   # 注意: EventUserChoiceにはuserがnilのものも存在するので user_choices.count と users.count は一致しない
   one_to_many :user_choices, class:'EventUserChoice'
-  # TODO
-  # one_to_many :users, through: :user_choices , via: :user
+  # TODO: 下記のクエリって非効率的？ one_through_one とかでできない？そもそも必要？
+  #       DataMapper では has n, :users, :through: :user_choices, via: :user
+  #       でやってたころの名残で同じAPI用意しただけなので不要と思ったら削除するべし
+  def users
+    EventUserChoice.where(event_choice:self).graph(User,id: :user).map{|x|x[:users]}
+  end
 end
 
 # どのユーザがどの選択肢を選んだか

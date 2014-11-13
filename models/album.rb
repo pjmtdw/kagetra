@@ -33,11 +33,9 @@ class AlbumItem < Sequel::Model(:album_items)
 
   # TODO
   # 順方向の関連写真
-  # has n, :album_relations_r, 'AlbumRelation', child_key: [:source_id]
-  # has n, :relations_r, self, through: :album_relations_r, via: :target
+  many_to_many :relations_r, class:'AlbumItem', join_table: :album_relations, left_key: :source_id, right_key: :target_id
   # 逆方向の関連写真
-  # has n, :album_relations_l, 'AlbumRelation', child_key: [:target_id]
-  # has n, :relations_l, self, through: :album_relations_l, via: :source
+  many_to_many :relations_l, class:'AlbumItem', join_table: :album_relations, left_key: :target_id, right_key: :source_id
 
   one_to_many :comment_logs, class:'AlbumCommentLog' # コメントの編集履歴
 

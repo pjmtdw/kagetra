@@ -201,16 +201,17 @@ class MainApp < Sinatra::Base
       }
     end
     get '/years' do
-      aggr = AlbumGroup.aggregate(:item_count.sum, fields:[:year], unique: true, order: [:year.desc])
-      comment_updated = AlbumItem.aggregate(:comment_updated_at.max)
+      aggr = AlbumGroup.select_group(:year).select_append{sum(item_count).as(sum_item_count)}.order(Sequel.desc(:year)).distinct
+      comment_updated = AlbumItem.max(:comment_updated_at)
       if comment_updated then
         comment_updated = comment_updated.strftime("%m月%d日 %H:%M")
       end
-      total = aggr.map{|x|x[1]}.sum
-      recent = AlbumGroup.all(order:[:created_at.desc],dummy:false)[0...ALBUM_RECENT_GROUPS].map{|x|
+      total = aggr.map{|x|x[:sum_item_count]}.sum
+      recent = AlbumGroup.where(dummy:false).order(Sequel.desc(:created_at)).limit(ALBUM_RECENT_GROUPS).map{|x|
         album_group_info(x)
       }
-      {list: aggr,total: total,recent:{list:recent}, comment_updated:comment_updated}
+      list = aggr.map{|x|[x.year,x[:sum_item_count]]}
+      {list: list,total: total,recent:{list:recent}, comment_updated:comment_updated}
     end
     post '/search' do
       cond = {}

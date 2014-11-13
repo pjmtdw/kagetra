@@ -49,13 +49,7 @@ Sequel.migration do
       index [:source_id, :target_id], name: :unique_album_relations_u1, unique:true
     end
 
-    create_table_custom(:album_comment_logs,[:base],comment:"アルバムのコメントの変更履歴(created_atが編集日時)") do
-      Integer :revision, null:false
-      String :patch, text:true, null:false, comment:"差分情報"
-
-      foreign_key :user_id, :users, on_delete: :set_null
-      foreign_key :album_item_id, :album_items, on_delete: :cascade  
-      index [:revision, :album_item_id], name: :unique_album_comment_logs_u1, unique:true
+    create_table_custom(:album_comment_logs,[:base,[:patch,:album_items,:album_item_id]],comment:"アルバムのコメントの変更履歴(created_atが編集日時)") do
     end
     
     create_table_custom(:album_tags,[:base],comment:"写真の特定の位置にタグ付けできる") do

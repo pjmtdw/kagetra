@@ -105,8 +105,8 @@ class AlbumThumbnail < Sequel::Model(:album_thumbnails)
 end
 
 class AlbumCommentLog < Sequel::Model(:album_comment_logs)
-  #include PatchBase
   many_to_one :album_item
+  many_to_one :user
   def after_save
     self.album_item.update!(comment_updated_at:self.created_at)
   end

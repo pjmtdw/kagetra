@@ -26,6 +26,16 @@ module Sequel
           foreign_key :user_id, :users, on_delete: :set_null
         }
       },
+      patch: lambda{|table,table_pk|
+        lambda{|x|
+          Integer :revision, null:false
+          String :patch, text:true, null:false, comment:"差分情報"
+
+          foreign_key :user_id, :users, on_delete: :set_null
+          foreign_key table_pk, table, on_delete: :cascade  
+          index [:revision, table_pk], unique:true
+        }
+      },
       image: lambda{|x|
           String :path, size:255, null:false, unique: true
           Integer :width

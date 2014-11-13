@@ -5,17 +5,18 @@ DB = Sequel.mysql2(
   password: CONF_DB_PASSWORD,
   database: CONF_DB_DATABASE
 )
-DB.extension(:graph_each)
-DB.extension(:pagination)
+
 if CONF_DB_DEBUG then
   DB.loggers << Logger.new($stdout)
   DB.sql_log_level = :debug
 end
 
+DB.extension(:graph_each)
+DB.extension(:pagination)
 Sequel::Model.plugin :touch
 Sequel::Model.plugin :timestamps, update_on_create:true
 Sequel::Model.plugin :string_stripper
-Sequel::Model.plugin :serialization_modification_detection
+Sequel::Model.plugin :serialization_modification_detection # 自動的に :serialization も読み込む
 Sequel::Model.plugin :update_or_create
 Sequel::Model.plugin :validation_helpers
 require_relative 'sequel_helpers/input_transformer_custom'
@@ -43,7 +44,4 @@ require_relative 'schedule'
 require_relative 'album'
 require_relative 'addrbook'
 require_relative 'result'
-#require_relative 'wiki'
-WikiItem = nil # TODO
-WikiComment = nil # TODO
-
+require_relative 'wiki'

@@ -1,24 +1,18 @@
 class WikiItem
-  include ModelBase
   include ThreadBase
-  property :deleted, ParanoidBoolean, lazy: false
-  property :title, TrimString, length: 72, required: true, unique: true
-  property :public, Boolean, default: false # 外部公開されているか
-  property :body, TrimText, required: true
-  property :revision, Integer, default: 0
-  property :attached_count, Integer, default: 0
-  belongs_to :owner, 'User', required: false
-  has n, :attacheds, 'WikiAttachedFile'
-  has n, :item_logs, 'WikiItemLog'
-  has n, :comments, 'WikiComment', child_key: [:thread_id] # コメント
-  
-  validates_with_block :title do
-    if self.title.include?("/")
-      [false, "You cannot use '/' in title"]
-    else
-      true
-    end
-  end
+  many_to_one :owner, class:'User', required: false
+  one_to_many, :attacheds, class:'WikiAttachedFile'
+  one_to_many, :item_logs, class:'WikiItemLog'
+  one_to_many, :comments, class:'WikiComment', key: :thread_id
+ 
+  # TODO
+  #validates_with_block :title do
+  #  if self.title.include?("/")
+  #    [false, "You cannot use '/' in title"]
+  #  else
+  #    true
+  #  end
+  #end
 
 
   # each_revisions_until を使うにはこの関数を実装しておく必要がある
@@ -32,33 +26,23 @@ class WikiItem
 
 end
 class WikiItemLog
-  include ModelBase
-  include PatchBase
-  property :wiki_item_id, Integer, unique_index: :u1, required: true
-  belongs_to :wiki_item
+  one_to_many :wiki_item
+  many_to_one :user
 end
 
-# 添付ファイル
 class WikiAttachedFile
-  include ModelBase
-  property :deleted, ParanoidBoolean, lazy: false
-  belongs_to :owner, 'User'
-  belongs_to :wiki_item
-  property :path, FilePath
-  property :orig_name, TrimString, length: 128 # 元の名前
-  property :description, TrimText # 説明
-  property :size, Integer, required: true
+  many_to_one :owner, class:'User'
+  many_to_one :wiki_item
   def update_attached_count
     wi = self.wiki_item
     wi.update(attached_count:wi.attacheds.count)
   end
-  after :create, :update_attached_count
-  after :destroy, :update_attached_count
+  # TODO
+  # after :create, :update_attached_count
+  # after :destroy, :update_attached_count
 end
 
-# Wikiコメント
 class WikiComment
-  include ModelBase
   include CommentBase
-  belongs_to :thread, 'WikiItem'
+  many_to_one :thread, class:'WikiItem'
 end

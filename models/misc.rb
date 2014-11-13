@@ -60,7 +60,7 @@ end
 #
 module CommentBase
   # このモジュールをincludeするクラスは many_to_one :thread を持たなければならない
-  # TODO: include時に belongs_to :thread の引数を指定できない？
+  # TODO: include時に many_to_one :thread の引数を指定できない？
   def self.included(base)
     base.class_eval do
       original_commentbase_before_save = instance_method(:before_save)
@@ -112,18 +112,7 @@ module CommentBase
     end
   end
 end
-#
-#module PatchBase
-#  def self.included(base)
-#    base.class_eval do
-#      p = DataMapper::Property
-#      property :revision, p::Integer, unique_index: :u1, required: true
-#      property :patch, p::Text, required: true # 逆向きのdiff ( $ diff new old )
-#      belongs_to :user, required: false # 編集者
-#    end
-#  end
-#end
-#
+
 module ThreadBase
   # このモジュールをincludeするクラスは one_to_many :comments を持たなければならない
   # TODO: include時に one_to_many :comments の引数を指定できない？

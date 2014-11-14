@@ -21,8 +21,9 @@ class MainApp < Sinatra::Base
   end
   namespace '/api/album' do
     get '/random' do
-      item = AlbumItem.all[rand(AlbumItem.all.count)]
-      group_items = AlbumItem.aggregate(fields:[:id],group_id:item.group_id,order:[:group_index.asc])
+      r = rand(AlbumItem.count)
+      item = AlbumItem.offset(r).first
+      group_items = item.group.items_dataset.order(Sequel.asc(:group_index)).map(&:id)
       {id:item.id,group_items: group_items}
     end
     get '/year/:year' do
@@ -41,7 +42,7 @@ class MainApp < Sinatra::Base
       r[:event_id] = group.event.id if group.event
       tags = Hash.new{[]}
       owners = Hash.new{[]}
-      r[:items] = AlbumItem.where(group:group).order(Sequel.asc(:group_index)).map{|x|
+      r[:items] = group.items_dataset.order(Sequel.asc(:group_index)).map{|x|
         if x.tag_names then
           JSON.parse(x.tag_names).each{|t|
             tags[t] <<= x.id
@@ -213,9 +214,9 @@ class MainApp < Sinatra::Base
       {list: list,total: total,recent:{list:recent}, comment_updated:comment_updated}
     end
     post '/search' do
-      cond = {}
       qs = params[:qs]
       page = if params[:page] then params[:page].to_i else 1 end
+      dataset = AlbumItem.dataset
       if /(?:^|\s)([0-9\-]+)(?:$|\s)/ =~ qs then
         qs = $` + " " + $'
         mt = $1
@@ -229,24 +230,27 @@ class MainApp < Sinatra::Base
         else
           (year_s,year_e) = [mt.to_i]*2
         end
-        cond[:date.gte] = Date.new(year_s.to_i,1,1) unless year_s.nil?
-        cond[:date.lt] = Date.new(year_e.to_i+1,1,1) unless year_e.nil?
+        if year_s then
+          dataset = dataset.where{date >= Date.new(year_s.to_i,1,1)}
+        end
+        if year_e then
+          dataset = dataset.where{date < Date.new(year_e.to_i+1,1,1)}
+        end
       end
-      query = AlbumItem.all(cond)
       qs.strip.split(/\s+/).each{|q|
-        qa = AlbumItem.all(id: -1) # 空のクエリ
-        [:name,:place,:comment,:tag_names].each{|sym|
-          qa |= AlbumItem.all(sym.like => "%#{q}%")
-        }
-        query &= qa
+        qb = [:name,:place,:comment,:tag_names].map{|sym|
+          # TODO: escape query
+          Sequel.like(sym,"%#{q}%")
+        }.inject(:|)
+        dataset = dataset.where(qb)
       }
-      chunks = query.all(order:[:date.desc]).chunks(ALBUM_SEARCH_PER_PAGE)
-      list = chunks[page-1].map{|x| x.id_with_thumb }
+      chunks = dataset.order(Sequel.desc(:date)).paginate(page,ALBUM_SEARCH_PER_PAGE)
+      list = chunks.map{|x| x.id_with_thumb }
       {
         list: list,
-        pages: chunks.size,
+        pages: chunks.page_count,
         cur_page: page,
-        count: chunks.count,
+        count: chunks.pagination_record_count,
         qs: params[:qs]
       }
     end

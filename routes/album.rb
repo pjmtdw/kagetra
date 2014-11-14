@@ -27,22 +27,21 @@ class MainApp < Sinatra::Base
     end
     get '/year/:year' do
       year = if params[:year] == "_else_" then nil else params[:year] end
-      groups = AlbumGroup.all(year:year, dummy:false).map{|x|
+      groups = AlbumGroup.where(year:year, dummy:false).map{|x|
         album_group_info(x)
       }
-      items = AlbumGroup.all(year:year, dummy:true).items.map{|x|x.select_attr(:id,:name,:date).merge({type:"item"})}
-
+      dummies = AlbumGroup.first(year:year, dummy:true)
+      items = if dummies then dummies.items.map{|x|x.select_attr(:id,:name,:date).merge({type:"item"})} else [] end
       {list:groups+items}
     end
     get '/group/:gid' do
-      item_fields = [:id,:tag_count,:comment,:tag_names,:rotate,:owner_id]
       group = AlbumGroup[params[:gid].to_i]
       halt 404 if group.nil?
       r = group.select_attr(:id,:name,:year,:place,:comment,:start_at,:end_at)
-      r[:event_id] = AlbumGroupEvent.get_event_id(group.id)
+      r[:event_id] = group.event.id if group.event
       tags = Hash.new{[]}
       owners = Hash.new{[]}
-      r[:items] = AlbumItem.all(group_id:group.id,fields:item_fields,order:[:group_index.asc]).map{|x|
+      r[:items] = AlbumItem.where(group:group).order(Sequel.asc(:group_index)).map{|x|
         if x.tag_names then
           JSON.parse(x.tag_names).each{|t|
             tags[t] <<= x.id
@@ -62,7 +61,7 @@ class MainApp < Sinatra::Base
         end
         data
       }
-      users = Hash[User.aggregate(id:owners.keys,fields:[:id,:name]).map{|id,name|[id,name]}]
+      users = User.where(id:owners.keys).to_hash(:id,:name)
       r[:owners] = owners.to_a.map{|k,v|
         [users[k]||"不明",v]
       }.sort_by{|k,v|v.size}.reverse

@@ -10,7 +10,7 @@ class AlbumGroup < Sequel::Model(:album_groups)
     end
   end
   def update_count
-    # item_countのupdateは本当はAlbumItemのcreate時だけでいいけど
+    # item_countのupdateは本当はAlbumItemのcreate/destroy時だけでいいけど
     # ParanoidBooleanとの都合上update(deleted:true)みたいなことしないといけないので
     # update時にも毎回更新する
     dc = self.items(daily_choose:true).count
@@ -30,14 +30,13 @@ class AlbumItem < Sequel::Model(:album_items)
   one_to_one :photo, class:'AlbumPhoto'
   one_to_one :thumb, class:'AlbumThumbnail'
   one_to_many :tags, class:'AlbumTag'
+  one_to_many :comment_logs, class:'AlbumCommentLog' # コメントの編集履歴
 
-  # TODO
   # 順方向の関連写真
   many_to_many :relations_r, class:'AlbumItem', join_table: :album_relations, left_key: :source_id, right_key: :target_id
   # 逆方向の関連写真
   many_to_many :relations_l, class:'AlbumItem', join_table: :album_relations, left_key: :target_id, right_key: :source_id
 
-  one_to_many :comment_logs, class:'AlbumCommentLog' # コメントの編集履歴
 
   def validate
     super
@@ -116,11 +115,4 @@ end
 class AlbumGroupEvent < Sequel::Model(:album_group_events)
   many_to_one :album_group
   many_to_one :event
-  # event_idやalbum_group_idだけを取ってくるならaggregate使った方が余計なJOINが発生しないで済む
-  def self.get_event_id(album_group_id)
-    self.aggregate(fields:[:event_id],album_group_id:album_group_id)[0]
-  end
-  def self.get_album_group_ids(event_id)
-    self.aggregate(fields:[:album_group_id],event_id:event_id)
-  end
 end

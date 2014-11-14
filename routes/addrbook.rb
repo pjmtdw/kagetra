@@ -67,7 +67,7 @@ class MainApp < Sinatra::Base
     end
     get '/recent' do
       recents = AddrBook.order(Sequel.desc(:addr_books__updated_at))
-        .where(Sequel.~({addr_books__updated_at:nil}))
+        .where(Sequel.~(addr_books__updated_at:nil))
         .limit(ADDRBOOK_RECENT_MAX).graph(User, id: :user_id)
         .map{|x|
           ab = x[:addr_books]

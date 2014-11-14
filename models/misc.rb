@@ -115,13 +115,16 @@ module ThreadBase
   # TODO: include時に one_to_many :comments の引数を指定できない？
   def self.included(base)
     base.class_eval do
-      def self.new_threads(user,cond={})
-        search_from = [user.show_new_from||DateTime.now,DateTime.now-G_NEWLY_DAYS_MAX].max
-        c0 = self.all(
-          cond.merge({:last_comment_date.gte => search_from}))
-        c1 = self.all(:last_comment_user_id => nil)
-        c2 = self.all(:last_comment_user_id.not => user.id)
-        (c0 & (c1 | c2)).all(order: [:last_comment_date.desc])
+      def self.new_threads(user,cond=nil)
+        search_from = [user.show_new_from||Time.now,Time.now-G_NEWLY_DAYS_MAX*86400].max
+        c0 = Sequel.expr{last_comment_date >= search_from}
+        if cond then
+          c0 = c0 & Sequel.expr(cond)
+        end
+        c1 = Sequel.expr(last_comment_user_id:nil)
+        c2 = Sequel.~(last_comment_user_id:user.id)
+
+        self.where(c0 & (c1 | c2)).order(Sequel.desc(:last_comment_date))
       end
       def has_new_comment(user)
         return false if user.nil?

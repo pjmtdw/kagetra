@@ -54,7 +54,7 @@ class User < Sequel::Model(:users)
   # 今月のログイン数
   def log_mon_count
     dt = Date.today
-    monthly = self.login_monthlies.first(year_month:UserLoginMonthly.year_month(dt.year,dt.month))
+    monthly = self.login_monthlies_dataset.first(year_month:UserLoginMonthly.year_month(dt.year,dt.month))
     if monthly then
       monthly.count
     else
@@ -80,7 +80,7 @@ class User < Sequel::Model(:users)
     r1 = if pre.nil? then
       "初ログイン<br/>#{CONF_FIRST_LOGIN_MESSAGE}<br/>"
     else
-      days = (last_count-pre).to_f
+      days = ((last_count-pre)/86400.0).to_f
       if days < 2/24.0
         "#{(days*1440).to_i}分前"
       elsif days < 2.0
@@ -89,7 +89,7 @@ class User < Sequel::Model(:users)
         "#{days.to_i}日前"
       end
     end
-    r2 = (1440*(DateTime.now-last_count).to_f).to_i
+    r2 = ((Time.now-last_count).to_f/60.0).to_i
     r3 = (r2 >= MIN_LOGIN_SPAN)
     [r1,r2,r3]
   end

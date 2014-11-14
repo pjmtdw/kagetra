@@ -24,21 +24,22 @@ class Event < Sequel::Model(:events)
     error.add(:forbidden_attrs,"is invalid") unless self.forbidden_attrs.all?{|o| o.is_a?(Integer) and UserAttributeValue[o] }
   end
   def self.new_events(user)
-    search_from = [user.show_new_from||DateTime.now,DateTime.now-G_NEWLY_DAYS_MAX].max
-    self.all(done:false,:created_at.gte => search_from,order: [:created_at.desc])
+    search_from = [user.show_new_from||Time.now,Time.now-G_NEWLY_DAYS_MAX*86400].max
+    self.where(done:false).where{created_at >= search_from}.order(Sequel.desc(:created_at))
   end
   def self.my_events(user)
-    evs = self.all(done:false)
+    evs = self.where(done:false)
     if user.admin
-      return evs
+      evs.all
+    else
+      evs.all.select{|x|x.owners.include?(user.id)}
     end
-    evs.select{|x|x.owners.include?(user.id)}
   end
   def self.new_participants(user)
-    search_from = [user.show_new_from||DateTime.now,DateTime.now-G_NEWLY_DAYS_MAX].max
+    search_from = [user.show_new_from||Time.now,Time.now-G_NEWLY_DAYS_MAX*86400].max
     self.my_events(user).map{|ev|
-      all = ev.choices(positive: true).user_choices.all(:created_at.gte => search_from)
-      res = [ev.id,ev.name,all.map{|x|x.user_name}]
+      all = EventUserChoice.where(event_choice:ev.choices_dataset.where(positive:true)).where{created_at >= search_from}.all
+      res = [ev.id,ev.name,all.map(&:user_name)]
       if all.empty? then nil else res end
     }.compact
   end

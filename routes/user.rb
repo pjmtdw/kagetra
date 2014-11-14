@@ -78,14 +78,15 @@ class MainApp < Sinatra::Base
     get '/newly_message' do
       new_events = Event.new_events(@user).map{|x|x.select_attr(:name,:id)}
       participants = Event.new_participants(@user)
+      serialized_contest_kind = Event.serialization_map[:kind].call(:contest)
       {
         last_login: @user.last_login_str,
         log_mon: @user.log_mon_count,
         wiki: WikiItem.new_threads(@user).map{|x|x.select_attr(:title,:id)},
         event_comment: Event.new_threads(@user,{done:false}).map{|x|x.select_attr(:name,:id)},
-        result_comment: Event.new_threads(@user,{done:true,kind: :contest}).map{|x|x.select_attr(:name,:id)},
-        ev_done_comment: Event.new_threads(@user,{done:true,:kind.not=>:contest}).map{|x|x.select_attr(:name,:id)},
-        bbs: BbsThread.new_threads(@user).chunks(BBS_THREADS_PER_PAGE).to_enum.with_index(1).to_a.map{|xs,i|xs.map{|x|x.select_attr(:title,:id).merge(page:i)}}.flatten,
+        result_comment: Event.new_threads(@user,{done:true,kind: serialized_contest_kind}).map{|x|x.select_attr(:name,:id)},
+        ev_done_comment: Event.new_threads(@user,Sequel.expr(done:true) & Sequel.~(kind:serialized_contest_kind)).map{|x|x.select_attr(:name,:id)},
+        bbs: BbsThread.new_threads(@user).each_page(BBS_THREADS_PER_PAGE).with_index(1).to_a.map{|xs,i|xs.map{|x|x.select_attr(:title,:id).merge(page:i)}}.flatten,
         new_events: new_events,
         participants: participants
       }

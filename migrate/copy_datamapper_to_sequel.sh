@@ -9,6 +9,15 @@ function m(){
 function c(){
   m <<< "SHOW COLUMNS FROM $DB_TO.$1" | cut -f 1 | grep -v "^${2}$" | sed -e 's/\(.*\)/`\1`/' | tr '\n' ',' | sed -e 's/,$//'
 }
+
+function insert_event_owners(){
+  m <<< "SELECT created_at,updated_at,id,owners FROM $DB_FROM.events WHERE CHAR_LENGTH(owners) > 2" | while IFS=$'\t' read created_at updated_at event_id owners; do
+    tr -d '["]' <<< "$owners" | tr ',' '\n' | while read user_id; do
+      echo >&8 "INSERT INTO $DB_TO.event_owners (created_at,updated_at,user_id,event_id) VALUES ('$created_at','$updated_at',$user_id,$event_id);"
+    done
+  done
+}
+
 function p(){
   if [ "$2" ];then
     local t="$2"
@@ -56,12 +65,13 @@ p user_login_logs
 d user_login_monthlies users user_id
 p user_login_monthlies
 p event_groups
-p events
+p events "$(c events owners)"
 d event_choices events event_id
 p event_choices
 p event_comments
 d event_user_choices event_choices event_choice_id
 p event_user_choices
+insert_event_owners
 p bbs_threads
 d bbs_items bbs_threads thread_id
 p bbs_items "$(c bbs_items is_first),0 as is_first"

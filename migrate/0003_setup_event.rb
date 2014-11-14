@@ -24,7 +24,6 @@ Sequel.migration do
       TrueClass :register_done, default:false, comment:"登録者確認済み(締切を過ぎてからN日経過のメッセージを表示しない)"
       Integer :participant_count, default:0, comment:"参加者数(毎回aggregateするのは遅いのでキャッシュ)"
       Integer :contest_user_count, default:0, comment:"result_usersのcount(毎回aggregateするのは遅いのでキャッシュ)"
-      String :owners, text:true, comment:"管理者のusers.idのリスト(json形式)"
       String :forbidden_attrs, text:true, comment:"登録不可属性(user_attribute_values.idのリスト,json形式)"
       TrueClass :hide_choice, default:false, comment:"ユーザがどれを選択したかを管理者以外には分からなくする"
       foreign_key :event_group_id, :event_groups, on_delete: :set_null
@@ -48,6 +47,12 @@ Sequel.migration do
       foreign_key :attr_value_id, :user_attribute_values, null:false
       foreign_key :event_choice_id, :event_choices, null:false
       foreign_key :user_id, :users, on_delete: :set_null, comment:"usersにない人でも登録できるようにNULLを許可する"
+    end
+
+    create_table_custom(:event_owners,[:base],comment:"大会行事を編集する権限のある人") do
+      foreign_key :user_id, :users, null:false, on_delete: :cascade
+      foreign_key :event_id, :events, null:false, on_delete: :cascade
+      index [:user_id,:event_id], unique:true
     end
   end
 end

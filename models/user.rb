@@ -12,7 +12,7 @@ class User < Sequel::Model(:users)
   
   one_to_many :event_user_choices
   one_to_one :addr_book, class:'AddrBook'
-  
+
   serialize_attributes Kagetra::serialize_flag([:sub_admin]), :permission
 
 

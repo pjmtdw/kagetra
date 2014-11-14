@@ -4,7 +4,7 @@ class Event < Sequel::Model(:events)
   include ThreadBase
   serialize_attributes Kagetra::serialize_enum([:contest, :party, :etc]), :kind
   plugin :serialization, :hourmin, :start_at, :end_at
-  plugin :serialization, :json, :owners, :forbidden_attrs
+  plugin :serialization, :json, :forbidden_attrs
 
   many_to_one :event_group
   many_to_one :aggregate_attr, class:'UserAttributeKey'
@@ -12,6 +12,7 @@ class Event < Sequel::Model(:events)
   one_to_one :result_cache, class:'ContestResultCache'
 
   many_to_many :album_groups, class:'AlbumGroup', join_table: :album_group_events
+  many_to_many :owners, class:'User', right_key: :user_id, join_table: :event_owners
 
   one_to_many :choices, class:'EventChoice'
   one_to_many :result_classes, class:'ContestClass'
@@ -20,7 +21,6 @@ class Event < Sequel::Model(:events)
   def validate
     super
     error.add(:date,"cannot be null for contest") if self.kind == :contest and self.date.nil?
-    error.add(:owners,"is invalid") unless self.owners.all?{|o| o.is_a?(Integer) and User[o] }
     error.add(:forbidden_attrs,"is invalid") unless self.forbidden_attrs.all?{|o| o.is_a?(Integer) and UserAttributeValue[o] }
   end
   def self.new_events(user)
@@ -30,9 +30,9 @@ class Event < Sequel::Model(:events)
   def self.my_events(user)
     evs = self.where(done:false)
     if user.admin
-      evs.all
+      evs
     else
-      evs.all.select{|x|x.owners.include?(user.id)}
+      evs.where(owners:user)
     end
   end
   def self.new_participants(user)

@@ -16,7 +16,7 @@ class WikiItem < Sequel::Model(:wiki_items)
     {
       cur_body: :body,
       last_rev: :revision,
-      logs: :item_logs
+      logs: :item_logs_dataset
     }
   end
 

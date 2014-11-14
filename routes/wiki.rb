@@ -61,17 +61,16 @@ class MainApp < Sinatra::Base
     end
     get '/item/all' do
       page = if params[:page] then params[:page].to_i else 1 end
-      # chunksを使うときはorderに同じ物がある可能性があるものを指定するとバグるので:id.descも一緒に指定すること
       cond = if @public_mode then {public:true} else {} end
-      chunks = WikiItem.all(cond.merge({order:[:updated_at.desc,:id.desc]})).chunks(WIKI_ALL_PER_PAGE)
+      chunks = WikiItem.where(cond).order(Sequel.desc(:updated_at),Sequel.desc(:id)).paginate(page,WIKI_ALL_PER_PAGE)
       html = ""
       if page > 1 then
         html += "<a class='goto-page' data-page-num='#{page-1}'>前のページ</a>"
       end
-      html += "<ul>" + chunks[page-1].map{|x|
+      html += "<ul>" + chunks.map{|x|
           "<li>[#{x.updated_at.to_date}] <a data-link-id='#{x.id}' class='link-page'>#{x.title}</a></li>"
       }.join() + "</ul>"
-      if page < chunks.size then
+      if page < chunks.page_count then
         html += "<a class='goto-page' data-page-num='#{page+1}'>次のページ</a>"
       end
       {
@@ -135,9 +134,9 @@ class MainApp < Sinatra::Base
 
     get '/attached_list/:id', private:true do
       page = (params[:page] || 1).to_i
-      chunks = WikiAttachedFile.all(wiki_item_id:params[:id].to_i,order:[:created_at.desc,:id.desc]).chunks(ATTACHED_LIST_PER_PAGE)
-      pages = chunks.size
-      list = chunks[page-1].map{|x|
+      chunks = WikiAttachedFile.where(wiki_item_id:params[:id].to_i).order(Sequel.desc(:created_at),Sequel.desc(:id)).paginate(page,ATTACHED_LIST_PER_PAGE)
+      pages = chunks.page_count
+      list = chunks.map{|x|
         x.select_attr(:id,:orig_name,:description,:size).merge({
           date:x.created_at.to_date.strftime('%Y-%m-%d'),
           editable: @user.admin || x.owner_id == @user.id

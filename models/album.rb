@@ -77,7 +77,7 @@ class AlbumItem < Sequel::Model(:album_items)
     {
       cur_body: :comment,
       last_rev: :comment_revision,
-      logs: :comment_logs
+      logs: :comment_logs_dataset
     }
   end
 end

@@ -60,22 +60,22 @@ class MainApp < Sinatra::Base
   def self.comment_routes(namespace,klass,klass_comment,private=false)
     get "#{namespace}/comment/list/:id",private:private do
       page = if params[:page] then params[:page].to_i else 1 end
-      thread = klass.get(params[:id].to_i)
+      thread = klass[params[:id].to_i]
       return [] if thread.nil?
-      chunks = thread.comments(order: [:created_at.desc,:id.desc]).chunks(COMMENTS_PER_PAGE)
+      chunks = thread.comments_dataset.order(Sequel.desc(:created_at),Sequel.desc(:id)).paginate(page,COMMENTS_PER_PAGE)
       uidmap = {}
       
       tsym = [:name,:title].find{|s|thread.respond_to?(s)}
       tname = tsym && thread.send(tsym)
 
-      list = chunks[page-1].map{|x|x.show(@user,@public_mode)}
+      list = chunks.map{|x|x.show(@user,@public_mode)}
       {
         thread_name: tname,
         list: list,
         comment_count: thread.comment_count,
         has_new_comment: thread.has_new_comment(@user),
         cur_page: page,
-        pages: chunks.size
+        pages: chunks.page_count
       }
     end
     post "#{namespace}/comment/item",private:private do

@@ -6,10 +6,10 @@ module PatchedItem
         Enumerator.new{|enu|
           cur = self.send(patch_syms[:cur_body]).to_s
           last_rev = self.send(patch_syms[:last_rev])
-          revs = last_rev.downto(last_rev-limit+1)
-          logs = self.send(patch_syms[:logs]).all(revision:revs,order:[:revision.desc])
+          revs = last_rev.downto(last_rev-limit+1).to_a
+          logs = self.send(patch_syms[:logs]).where(revision:revs).order(Sequel.desc(:revision))
           enu.yield ({text:cur})
-          logs.compact.each{|lg|
+          logs.each{|lg|
             p = lg.patch
             ps = G_DIMAPA.patch_fromText(p)
             (cur,_) = G_DIMAPA.patch_apply(ps,cur)

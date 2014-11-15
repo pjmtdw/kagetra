@@ -80,22 +80,22 @@ class MainApp < Sinatra::Base
     end
     post "#{namespace}/comment/item",private:private do
       dm_response{
-        evt = klass.get(@json["thread_id"].to_i)
-        c = evt.comments.create(@json.select_attr("user_name","body").merge({user:@user}))
+        evt = klass[@json["thread_id"].to_i]
+        c = klass_comment.create(@json.select_attr("user_name","body").merge({user:@user,thread:evt}))
         c.set_env(request)
         c.save()
       }
     end
     put "#{namespace}/comment/item/:id" do
       dm_response{
-        item = klass_comment.get(params[:id].to_i)
+        item = klass_comment[params[:id].to_i]
         halt(403,"you cannot edit this item") unless item.editable(@user)
         item.update(@json.select_attr("user_name","body"))
       }
     end
     delete "#{namespace}/comment/item/:id" do
       dm_response{
-        item = klass_comment.get(params[:id])
+        item = klass_comment.get[params[:id]]
         halt(403,"you cannot delete this item") unless item.editable(@user)
         item.destroy()
       }

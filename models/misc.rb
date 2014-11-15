@@ -60,6 +60,7 @@ module CommentBase
   # TODO: include時に many_to_one :thread の引数を指定できない？
   def self.included(base)
     base.class_eval do
+      many_to_one :user
       original_commentbase_before_save = instance_method(:before_save)
       original_commentbase_after_create = instance_method(:after_create)
       original_commentbase_after_destroy = instance_method(:after_destroy)
@@ -76,7 +77,7 @@ module CommentBase
         # コメント数の更新
         th = self.thread
         th.update(comment_count: th.comments.count,
-                  last_comment_user: self.user,
+                  last_comment_user_id: self.user.id,
                   last_comment_date: self.created_at)
         original_commentbase_after_create.bind(self).()
       }
@@ -131,7 +132,7 @@ module ThreadBase
         if self.last_comment_date.nil?.! then
           if user.show_new_from.nil?.! then
             if self.last_comment_date > user.show_new_from and
-              (self.last_comment_user.nil? or self.last_comment_user_id != user.id) then
+              (self.last_comment_user_id.nil? or self.last_comment_user_id != user.id) then
                 return true
             end
           end

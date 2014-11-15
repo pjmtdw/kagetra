@@ -3,8 +3,6 @@
 class BbsThread < Sequel::Model(:bbs_threads)
   include ThreadBase
   one_to_many :comments, class:'BbsItem', key: :thread_id
-  many_to_one :last_comment_user, class: 'User'
-
 end
 
 class BbsItem < Sequel::Model(:bbs_items)

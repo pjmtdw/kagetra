@@ -43,5 +43,6 @@ end
 
 class WikiComment < Sequel::Model(:wiki_comments)
   include CommentBase
+  include UserEnv
   many_to_one :thread, class:'WikiItem'
 end

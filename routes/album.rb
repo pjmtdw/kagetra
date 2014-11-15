@@ -261,22 +261,26 @@ class MainApp < Sinatra::Base
                   if group.start_at then
                     st = group.start_at - ALBUM_EVENT_COMPLEMENT_DAYS
                     ed = group.start_at + ALBUM_EVENT_COMPLEMENT_DAYS
-                    Event.all(:date.gte=>st,:date.lte=>ed,done:true,kind: :contest,order:[:date.desc]).map{|x|
-                      {id:x.id,text:"#{x.name}@#{x.date}"}
-                    }
+                    
+                    Event.where{ (date >= st) & (date <= ed)}
+                         .where(done:true,kind:Event.kind_contest)
+                         .order(Sequel.desc(:date))
+                         .map{|x|
+                           {id:x.id,text:"#{x.name}@#{x.date}"}
+                         }
                   else
                     []
                   end
                 else
-                  cond = {order:[:date.desc]}
+                  qr = Event.order(Sequel.desc(:date))
                   if /\d{4}/ =~ query then
                     year = $&.to_i
                     query.sub!(/\s*\d{4}\s*/,"")
-                    cond[:date.gte] = Date.new(year,1,1)
-                    cond[:date.lte] = Date.new(year,12,31)
+                    qr = qr.where{ (date >= Date.new(year,1,1)) & (date < Date.new(year+1,1,1))}
                   end
                   query.gsub!(/\s+/,"")
-                  Event.all(cond.merge({:name.like => "%#{query}%"}))[0...ALBUM_EVENT_COMPLEMENT_LIMIT].map{|x|
+                  # TODO: escape query
+                  qr.where(Sequel.like(:name,"%#{query}%")).limit(ALBUM_EVENT_COMPLEMENT_LIMIT).map{|x|
                     {id:x.id,text:"#{x.name}@#{x.date}"}
                   }
                 end

@@ -43,7 +43,9 @@ class MainApp < Sinatra::Base
           end
         end
       }
-      data = { emphasis: emph }.merge(ScheduleItem.make_deserialized_data(json.select_attr("name","place","description","start_at","end_at")))
+      data = { emphasis: emph }.merge(
+          ScheduleItem.make_deserialized_data(
+            json.select_attr("name","place","description","start_at","end_at")))
       if old_item.nil? then
         data[:owner_id] = user.id
       end
@@ -214,12 +216,13 @@ class MainApp < Sinatra::Base
     SCHEDULE_EVENT_DONE_PER_PAGE = 40
     get '/ev_done',private:true do
       page = if params[:page].to_s.empty?.! then params[:page].to_i else 1 end
-      # TODO: serialized されたカラムを where で検索する方法ってこれでいいの?
-      serialized_contest_kind = Event.serialization_map[:kind].call(:contest)
-      chunk = Event.where(Sequel.~(kind: serialized_contest_kind),done:true).order(Sequel.desc(:updated_at),Sequel.desc(:id)).paginate(page,SCHEDULE_EVENT_DONE_PER_PAGE)
+      chunk = Event.where(Sequel.~(kind: Event.kind_contest),done:true)
+                   .order(Sequel.desc(:updated_at),Sequel.desc(:id))
+                   .paginate(page,SCHEDULE_EVENT_DONE_PER_PAGE)
       pages = chunk.page_count
       list = chunk.map{|x|
-        x.select_attr(:id,:name,:place,:comment_count,:start_at,:end_at,:date).merge({has_new_comment:x.has_new_comment(@user)})
+        x.select_attr(:id,:name,:place,:comment_count,:start_at,:end_at,:date)
+         .merge({has_new_comment:x.has_new_comment(@user)})
       }
       {
         list:list,

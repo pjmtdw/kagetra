@@ -31,7 +31,7 @@ AlbumGroup.all.each{|ag|
       }}
 }
 # 大会結果をシャッフル
-EventGroup.transaction{
+DB.transaction{
   EventGroup.all.each{|gr|
     events = gr.events(:date.lte => Date.today)
     next if events.count <= 1
@@ -53,7 +53,7 @@ EventGroup.transaction{
   }
 }
 # ユーザ名をランダムなものに変更
-User.transaction{
+DB.transaction{
   namemap = {}
   User.all.each{|u|
     c = RandomName.choose
@@ -87,7 +87,7 @@ User.transaction{
 }
 # 掲示板や大会行事コメントなどの中の固有名詞とメールアドレスと電話番号を置換
 # TODO: NKFで一々utf-8に変換するのは遅い(?)．元々がutf-8って分かっているので内部encodingをascii8bit->utf-8に変えるだけでいい
-BbsThread.transaction{
+DB.transaction{
   mecab = MeCab::Tagger.new("")
   namemap = {}
   [

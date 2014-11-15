@@ -54,7 +54,7 @@ class MainApp < Sinatra::Base
       Kagetra::Utils.single_exec{
         raise Exception.new("旧パスワードが違います") unless addrbook_check_password(cpass)
 
-        AddrBook.transaction{
+        DB.transaction{
           AddrBook.all.each{|x|
             # 古いパスワードでデコードし，新しいパスワードでエンコードする
             plain = Kagetra::Utils.openssl_dec(x.text,cpass)

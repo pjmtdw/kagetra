@@ -17,8 +17,8 @@ Sequel.migration do
     end
 
     create_table_custom(:album_group_events,[:base],comment:"大会結果とアルバムの関連付け") do
+      foreign_key :album_group_id, :album_groups, unique:true, null:false, on_delete: :cascade
       foreign_key :event_id, :events, null:false, on_delete: :cascade
-      foreign_key :album_group_id, :album_groups, null:false, on_delete: :cascade
       index [:album_group_id], name: :unique_album_group_events_album_group_id, unique:true
     end
 

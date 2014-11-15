@@ -73,7 +73,7 @@ class MainApp < Sinatra::Base
     delete '/group/:gid' do
       group = AlbumGroup[params[:gid].to_i]
       if group.nil?.! then
-        AlbumItem.transaction{
+        DB.transaction{
           group.update!(deleted:true)
         }
       end
@@ -81,7 +81,7 @@ class MainApp < Sinatra::Base
     put '/group/:gid' do
       group = AlbumGroup[params[:gid].to_i]
       dm_response{
-        AlbumGroup.transaction{
+        DB.transaction{
           if @json.has_key?("item_order") then
             @json["item_order"].each_with_index{|item,i|
               AlbumItem[item].update(group_index:i)
@@ -134,7 +134,7 @@ class MainApp < Sinatra::Base
     put '/item/:id' do
       item = AlbumItem[params[:id].to_i]
       dm_response{
-        AlbumItem.transaction{
+        DB.transaction{
           orig_rotate = @json["orig_rotate"]
           @json.delete("orig_rotate")
           if @json.has_key?("tag_edit_log")
@@ -333,7 +333,7 @@ class MainApp < Sinatra::Base
       {results:results}
     end
     post '/move_group' do
-      AlbumItem.transaction{
+      DB.transaction{
         to_group = AlbumGroup[@json["group_id"].to_i]
         index = to_group.items.aggregate(fields:[:group_index.max]) || -1
         from_groups = {}
@@ -360,7 +360,7 @@ class MainApp < Sinatra::Base
       item = AlbumItem[params[:id].to_i]
       halt 403 unless (@user.admin or item.owner_id == @user.id)
       if item.nil?.! then
-        AlbumItem.transaction{
+        DB.transaction{
           ag = item.group
           item.update!(deleted:true)
           ag.update_count
@@ -369,7 +369,7 @@ class MainApp < Sinatra::Base
     end
     delete '/delete_items/:group_id' do
       item_ids = @json["item_ids"]
-      AlbumItem.transaction{
+      DB.transaction{
         ag = AlbumGroup[params[:group_id]]
         cond = if @user.admin then {} else {owner_id:@user.id} end
         items = AlbumItem.all(cond.merge({id:item_ids}))
@@ -387,10 +387,16 @@ class MainApp < Sinatra::Base
     end
     post '/set_event' do
       dm_response{
-        ag = AlbumGroup[@json["album_group_id"].to_i]
+        gid = @json["album_group_id"].to_i
         eid = @json["event_id"].to_i
-        ag.event = if eid == -1 then nil else Event[eid] end
-        ag.save
+        if eid == -1 then
+          AlbumGroupEvent.first(album_group_id:gid).destroy
+        else
+          AlbumGroupEvent.update_or_create(album_group_id:gid){|x|
+            x.event_id = eid
+          }
+
+        end
       }
     end
     get '/stat' do
@@ -494,7 +500,7 @@ class MainApp < Sinatra::Base
   end
   post '/album/upload' do
     res = dm_response{
-      AlbumItem.transaction{
+      DB.transaction{
         group = if params[:group_id] then
           AlbumGroup[params[:group_id]]
         else

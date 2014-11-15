@@ -52,7 +52,7 @@ class MainApp < Sinatra::Base
       }
     end
     post '/apply_edit' do
-      User.transaction{
+      DB.transaction{
         @json.each{|x|
           u = User[x["uid"].to_i]
           case x["type"]
@@ -68,7 +68,7 @@ class MainApp < Sinatra::Base
     end
 
     post '/update_attr' do
-      UserAttributeKey.transaction{
+      DB.transaction{
         created_keys = []
         @json["list"].to_enum.with_index(1){|x,index|
           k = nil

@@ -95,7 +95,7 @@ class MainApp < Sinatra::Base
       User.all(id:@json["uids"].map{|x|x.to_i}).update!(deleted:true)
     end
     post '/create_users' do
-      User.transaction{
+      DB.transaction{
         shared = MyConf.first(name: "shared_password").value
         hash = shared["hash"]
         salt = shared["salt"]
@@ -112,7 +112,7 @@ class MainApp < Sinatra::Base
       }
     end
     post '/change_attr/:promotion_event/:user_id' do
-      User.transaction{
+      DB.transaction{
         u = User[params[:user_id].to_i]
         @json["values"].each{|v|
           new_value = UserAttributeValue[v.to_i]

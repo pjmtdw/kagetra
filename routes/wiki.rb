@@ -97,10 +97,7 @@ class MainApp < Sinatra::Base
         # HOMEは削除できない
         halt 403
       end
-      item = WikiItem[params[:id].to_i]
-      # destory するには関連するmodelを削除しないといけないけどそれはイヤなので deleted フラグを付けるだけ
-      # ただし title が unique なので削除したはずのものと同じ名前ページを作ろうとするとエラーが出るのを防ぐ
-      item.update(deleted:true,title:"__DELETED__:" + item.title)
+      WikiItem[params[:id].to_i].destroy
     end
 
     def update_or_create_item(item)
@@ -207,7 +204,7 @@ class MainApp < Sinatra::Base
         Kagetra::Utils.unique_file(@user,["attached-",".dat"],target_dir)
       end
     res = begin
-      WikiAttachedFile.transaction{
+      DB.transaction{
         FileUtils.cp(tempfile.path,target_file) if tempfile
         if attached then
           base = params.select_attr("description")
@@ -218,14 +215,14 @@ class MainApp < Sinatra::Base
           attached.update(base)
         else
           rel_path = Pathname.new(target_file).relative_path_from(Pathname.new(attached_base))
-          item.attacheds.create(owner:@user,path:rel_path,orig_name:filename,description:params[:description],size:File.size(target_file))
+          WikiAttachedFile.create(wiki_item:item,owner:@user,path:rel_path,orig_name:filename,description:params[:description],size:File.size(target_file))
         end
       }
       {result:"OK"}
     rescue Exception=>e
-      FileUtils.rm(target_file) unless attached
       logger.warn e.message
       $stderr.puts e.message
+      FileUtils.rm(target_file,force:true) unless attached
       {_error_:"送信失敗"}
     end
     "<div id='response'>#{res.to_json}</div>"

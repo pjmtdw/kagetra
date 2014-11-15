@@ -311,7 +311,7 @@ class MainApp < Sinatra::Base
     end
     put '/players/:id' do
       dm_response{
-        ContestUser.transaction{
+        DB.transaction{
           ev = Event[params[:id].to_i]
           @json["classes"].each_with_index{|(k,v),i|
             if k.to_s.start_with?("new_")
@@ -377,7 +377,7 @@ class MainApp < Sinatra::Base
     end
     post '/num_person' do
       dm_response{
-        ContestClass.transaction{
+        DB.transaction{
           Hash[@json["data"].map{|x|
             np = x["num_person"]
             np = if np.to_i == 0 then nil else np.to_i end
@@ -391,7 +391,7 @@ class MainApp < Sinatra::Base
     post '/update_round' do
       fields = ["score_str","opponent_name","opponent_belongs","comment","result"]
       dm_response{
-        ContestGame.transaction{
+        DB.transaction{
           klass = ContestClass[@json["class_id"]]
           round = @json["round"].to_i
           if not @json.has_key?("team_id")
@@ -454,7 +454,7 @@ class MainApp < Sinatra::Base
     post '/update_prize' do
       dm_response{
         klass = ContestClass[@json["class_id"]]
-        ContestPrize.transaction{
+        DB.transaction{
           @json["prizes"].each{|p|
             cond = {contest_class_id:klass.id,contest_user_id:p["cuid"]}
             if p["prize"].to_s.empty? then

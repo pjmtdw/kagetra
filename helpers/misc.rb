@@ -133,7 +133,7 @@ module MiscHelpers
       today = Date.today.to_s
       conf = MyConf.first(name:DAILY_JOB_KEY)
       return if (conf.nil?.! and conf.value["date"] == today)
-      MyConf.transaction{
+      DB.transaction{
         # put daily tasks here
         choose_daily_album_photo
         clean_login_log
@@ -160,7 +160,7 @@ module MiscHelpers
       yearmon = "#{today.year}-#{today.month}"
       conf = MyConf.first(name:MONTHLY_JOB_KEY)
       return if (conf.nil?.! and conf.value["yearmon"] == yearmon)
-      MyConf.transaction{
+      DB.transaction{
         # put monthly tasks here
         (pyear,pmonth) = Kagetra::Utils.inc_month(today.year,today.month,-1)
         update_login_ranking(pyear,pmonth)

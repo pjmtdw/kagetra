@@ -14,7 +14,7 @@ $stdin.noecho{|stdin|
     exit
   end
 }
-MyConf.transaction{
+DB.transaction{
   hash = Kagetra::Utils.hash_password(pass1)
   if MyConf.first(name: "shard_password").nil? then
     MyConf.create(name: "shared_password",value: Kagetra::Utils.hash_password(pass1))

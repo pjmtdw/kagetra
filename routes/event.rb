@@ -119,7 +119,7 @@ class MainApp < Sinatra::Base
     end
     delete '/item/:id' do
       # 関連するクラスを全て削除しないとdestroyできない
-      Event.transaction{
+      DB.transaction{
         ev = Event[params[:id].to_i]
         ev.result_users.destroy
         ev.result_classes.destroy
@@ -135,7 +135,7 @@ class MainApp < Sinatra::Base
       @json.delete("all_event_groups")
 
       dm_response{
-        Event.transaction{
+        DB.transaction{
           choices = if @json.has_key?("choices") then
             @json.delete("choices")
           end
@@ -208,7 +208,7 @@ class MainApp < Sinatra::Base
         # TODO: ev が使われていない
         #       event_choice_id がちゃんとそのEventに属しているか念のためにチェック
         ev = Event[params[:id].to_i]
-        EventUserChoice.transaction{
+        DB.transaction{
           @json["log"].each{|name,v|
             (cmd,attr,choice) = v
             case cmd

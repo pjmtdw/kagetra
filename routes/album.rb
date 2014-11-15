@@ -294,8 +294,8 @@ class MainApp < Sinatra::Base
     ALBUM_COMMENTS_PER_PAGE = 40
     get '/all_comment_log' do
       page = if params[:page].to_s.empty?.! then params[:page].to_i else 1 end
-      chunks = AlbumItem.all(fields:[:comment,:id],:comment_revision.gte => 1,:comment_updated_at.not=>nil,order:[:comment_updated_at.desc,:id.desc]).chunks(ALBUM_COMMENTS_PER_PAGE)
-      res = chunks[page-1].map{|x|
+      chunks = AlbumItem.where{comment_revision >= 1}.where(Sequel.~(comment_updated_at:nil)).order(Sequel.desc(:comment_updated_at),Sequel.desc(:id)).paginate(page,ALBUM_COMMENTS_PER_PAGE)
+      res = chunks.map{|x|
         dff = x.each_diff_htmls_until(1).to_a.last
         r = x.id_with_thumb
         r[:diff_html] = dff[:html]
@@ -394,11 +394,13 @@ class MainApp < Sinatra::Base
       }
     end
     get '/stat' do
-      uploaders = AlbumItem.aggregate(fields:[:id.count,:owner_id],:owner_id.not=>nil).sort_by{|x,y|x}.reverse
+      uploaders = AlbumItem.group_and_count(:owner_id).where(Sequel.~(owner_id:nil)).order(Sequel.desc(:count))
       uploader_stat = [] 
       prev_count = nil
       rank = 1
-      uploaders.to_enum.with_index(1){|(count,owner_id),index|
+      uploaders.to_enum.with_index(1){|x,index|
+        count = x[:count]
+        owner_id = x[:owner_id]
         if count != prev_count
           rank = index
           prev_count = count
@@ -408,13 +410,16 @@ class MainApp < Sinatra::Base
           uploader_stat << [rank,count,owner_id,is_mine]
         end
       }
-      uploader_names = Hash[User.aggregate(fields:[:id,:name],id:uploader_stat.map{|ar|ar[2]})]
 
-      tags = AlbumTag.aggregate(fields:[:id.count,:name]).sort_by{|x,y|x}.reverse[0..20]
+      uploader_names = User.where(id:uploader_stat.map{|x|x[2]}).to_hash(:id,:name)
+
+      tags = AlbumTag.group_and_count(:name).order(Sequel.desc(:count)).limit(20)
       tag_stat = []
       prev_count = nil
       has_mine = false
-      tags.to_enum.with_index(1){|(count,name),index|
+      tags.to_enum.with_index(1){|x,index|
+        count = x[:count]
+        name = x[:name]
         if count != prev_count
           rank = index
           prev_count = count
@@ -424,7 +429,7 @@ class MainApp < Sinatra::Base
         tag_stat << [rank,count,name,is_mine]
       }
       if not has_mine then
-        count = AlbumTag.aggregate(fields:[:id.count],name:@user.name)
+        count = AlbumTag.where(name:@user.name).count
         tag_stat << ["??",count,@user.name,true]
       end
       {uploader_stat:uploader_stat,uploader_names:uploader_names,tag_stat:tag_stat}

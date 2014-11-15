@@ -96,7 +96,7 @@ class MainApp < Sinatra::Base
             }
             @json.delete("add_rotate")
           end
-          group.update(@json)
+          group.update(@json.except("id"))
         }
       }
     end
@@ -193,9 +193,9 @@ class MainApp < Sinatra::Base
           item.do_after_tag_updated
           (updates,updates_patch) = make_comment_log_patch(item,@json,"comment","comment_revision")
           if updates then @json.merge!(updates) end
-          item.update(@json)
+          item.update(@json.except("id"))
           if updates_patch
-            item.comment_logs.create(updates_patch.merge({user:@user}))
+            AlbumCommentLog.create(updates_patch.merge({user:@user,album_item:item}))
           end
         }
       }

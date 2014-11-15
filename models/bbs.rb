@@ -11,6 +11,7 @@ class BbsItem < Sequel::Model(:bbs_items)
   many_to_one :thread, class:'BbsThread'
   many_to_one :user, class:'User'
   # include した CommentBase の中で各model hookをmonkey patchingしてるのでオリジナルを呼べるようにしておく
+  # TODO: 本当にこの処置は必要？pluginsの中にはbefore_updateとかをoverrideしてるものもあるみたいだけど
   original_bbsitem_before_save = instance_method(:before_save)
   define_method(:before_save){
     if self.user_name.to_s.empty? and self.thread.public and self.user and self.user.bbs_public_name.to_s.empty?.! then

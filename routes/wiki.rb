@@ -106,7 +106,7 @@ class MainApp < Sinatra::Base
           (updates,updates_patch) = make_comment_log_patch(item,@json,"body","revision")
           if updates then @json.merge!(updates) end
           if item then
-            item.update(@json.reject{|k,v|k=="id"})
+            item.update(@json.except("id"))
           else
             item = WikiItem.create(@json.merge(owner_id:@user.id))
           end

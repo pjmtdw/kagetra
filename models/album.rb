@@ -11,12 +11,12 @@ class AlbumGroup < Sequel::Model(:album_groups)
   end
   def update_count
     # item_countのupdateは本当はAlbumItemのcreate/destroy時だけでいいけど
-    # ParanoidBooleanとの都合上update(deleted:true)みたいなことしないといけないので
     # update時にも毎回更新する
+    # TODO: これはDataMapperを使ってたころの名残りなので create/destroy時だけで良いと思ったら該当部分を削除すること
     dc = self.items_dataset.where(daily_choose:true).count
-    hc = self.items_dataset.where(:comment.not => nil).count
-    ic = self.items.count
-    tc = self.items_dataset.where(:tag_count.gt => 0).count
+    hc = self.items_dataset.where(Sequel.~(comment:nil)).count
+    ic = self.items_dataset.count
+    tc = self.items_dataset.where{tag_count > 0}.count
     self.update!(daily_choose_count:dc,has_comment_count:hc,item_count:ic,has_tag_count:tc)
   end
 end

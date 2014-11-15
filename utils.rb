@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
 
 class Hash
-  # {a:1,b:2,c:3}.select_attr(:a,:c) =>{a:1,c:3}
+  # {a:1,b:2,c:3}.select_attr(:a,:c) => {a:1,c:3}
   def select_attr(*symbols)
     Hash[symbols.map{|s|if self.has_key?(s) then [s,self[s]] end}.compact]
+  end
+  # Active Record の Hash#except と同じ
+  # {a:1,b:2,c:3}.except(:b) => {a:1,c:3}
+  def except(*symbols)
+    select_attr(*(self.keys - symbols))
   end
 end
 

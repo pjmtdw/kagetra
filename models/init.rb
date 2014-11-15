@@ -34,6 +34,33 @@ module Sequel
       first(vals) || model.create(vals.merge(id_column => model_object.pk))
     end
   end
+  module Plugins
+    # timestamps プラグインは自動的に updated_at を更新するが，更新したくない時もあるので
+    # update! メソッドを用意する
+    # sequel/lib/sequel/plugins/timestamp.rb 参照
+    module Timestamps
+      module ClassMethods
+        attr_accessor :timpstamp_preserve
+      end
+      module InstanceMethods
+        # timestamps の before_update を上書きする
+        def before_update
+          if not @timestamp_preserve then
+            set_update_timestamp
+          end
+          super
+        end
+        # これを使うとtimestampを更新しないupdateできる
+        def update!(hash)
+          orig = @timestamp_preserve
+          @timestamp_preserve = true
+          r = update(hash)
+          @timestamp_preserve = orig
+          r
+        end
+      end
+    end
+  end
 end
 
 require_relative 'misc'

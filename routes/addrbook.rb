@@ -39,7 +39,7 @@ class MainApp < Sinatra::Base
 
       r[:user_attrs] = UserAttributeValue
         .graph(UserAttributeKey, id: :attr_key_id)
-        .where(user_attribute: UserAttribute.where(user_id: uid))
+        .where(user_attributes: UserAttribute.where(user_id: uid))
         .where{user_attribute_keys__index > 0}
         .order(:user_attribute_keys__index)
         .map{|x|

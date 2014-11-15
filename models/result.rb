@@ -164,7 +164,7 @@ class ContestGame < Sequel::Model(:contest_games)
   def after_save
     u = self.contest_user
     updates = Hash[[:win,:lose].map{|sym|
-      [sym,u.games(result:sym).count]
+      [sym,u.games_dataset.where(result:sym).count]
     }]
     u.update(updates)
     u.event.update_cache_winlose

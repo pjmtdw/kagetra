@@ -186,7 +186,7 @@ class MainApp < Sinatra::Base
               AlbumRelation.all(source_id:dels,target_id:item.id).destroy()
             end
             adds.each{|i|
-              item.album_relations_r.create(target_id:i)
+              item.right_relations.create(target_id:i)
             }
             @json.delete("relations")
           end
@@ -471,7 +471,7 @@ class MainApp < Sinatra::Base
       width: img.columns,
       height: img.rows
     )
-    img.destroy!
+    img.destroy
   end
 
   def update_thumbnail(item)
@@ -481,7 +481,7 @@ class MainApp < Sinatra::Base
     img.rotate!(item.rotate.to_i)
     img.write(File.join(base,item.thumb.path)){self.quality = CONF_ALBUM_THUMB_QUALITY}
     item.thumb.update(width:img.columns,height:img.rows)
-    img.destroy!
+    img.destroy
   end
   post '/album/upload' do
     res = dm_response{
@@ -552,7 +552,7 @@ class MainApp < Sinatra::Base
       img = Magick::Image::read(path).first
       img.rotate!(rotate)
       blob = img.to_blob
-      img.destroy!
+      img.destroy
       blob
     end
   end

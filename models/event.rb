@@ -87,7 +87,7 @@ class EventUserChoice < Sequel::Model(:event_user_choices)
           self.attr_value = self.user.attrs.values.first(attr_key: ev.aggregate_attr)
         end
         # 一つの行事を複数選択することはできない
-        ucs = ev.choices.user_choices(user:self.user)
+        ucs = EventUserChoice.where(user:self.user,event_choice:ev.choices)
         if ucs.empty?.! and ucs.first.event_choice.positive then
           self.cancel = true
         end
@@ -100,7 +100,7 @@ class EventUserChoice < Sequel::Model(:event_user_choices)
       self.event_choice.event.tap{|ev|
         if ev then
           # 参加者数の更新
-          ev.update(participant_count:ev.choices(positive: true).user_choices.count)
+          ev.update(participant_count:ev.choices_dataset.where(positive: true).user_choices.count)
         end
       }
     }

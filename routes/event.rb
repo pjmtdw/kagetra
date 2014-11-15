@@ -56,7 +56,7 @@ class MainApp < Sinatra::Base
                      t = EventChoice.first(event:ev,user_choices:user.event_user_choices)
                      t && t.id
                    end
-      opts[:user_attr_values] ||= UserAttributeValue.where(user_attribute:user.attrs_dataset).map(&:id)
+      opts[:user_attr_values] ||= UserAttributeValue.where(user_attributes:user.attrs_dataset).map(&:id)
       forbidden = (ev.forbidden_attrs & opts[:user_attr_values]).empty?.!
       r[:forbidden] = true if forbidden
       if opts[:detail]
@@ -121,10 +121,10 @@ class MainApp < Sinatra::Base
       # 関連するクラスを全て削除しないとdestroyできない
       Event.transaction{
         ev = Event[params[:id].to_i]
-        ev.result_users.destroy!
-        ev.result_classes.destroy!
-        ContestResultCache.all(event_id:ev.id).destroy!
-        ContestGame.all(event_id:ev.id).destroy!
+        ev.result_users.destroy
+        ev.result_classes.destroy
+        ContestResultCache.all(event_id:ev.id).destroy
+        ContestGame.all(event_id:ev.id).destroy
         ev.update!(deleted:true)
       }
     end
@@ -189,7 +189,7 @@ class MainApp < Sinatra::Base
       else
         # 各eventごとに取得するのは遅いのでまとめて取得しておく
         user_choices = EventChoice.where(event:events,user_choices:@user.event_user_choices_dataset).to_hash(:event_id,:id)
-        user_attr_values = UserAttributeValue.where(user_attribute:@user.attrs_dataset).map(&:id)
+        user_attr_values = UserAttributeValue.where(user_attributes:@user.attrs_dataset).map(&:id)
 
         events.map{|ev|
           event_info(ev,@user,{user_choices:user_choices,user_attr_values:user_attr_values})

@@ -13,10 +13,10 @@ class AlbumGroup < Sequel::Model(:album_groups)
     # item_countのupdateは本当はAlbumItemのcreate/destroy時だけでいいけど
     # ParanoidBooleanとの都合上update(deleted:true)みたいなことしないといけないので
     # update時にも毎回更新する
-    dc = self.items(daily_choose:true).count
-    hc = self.items(:comment.not => nil).count
+    dc = self.items_dataset.where(daily_choose:true).count
+    hc = self.items_dataset.where(:comment.not => nil).count
     ic = self.items.count
-    tc = self.items(:tag_count.gt => 0).count
+    tc = self.items_dataset.where(:tag_count.gt => 0).count
     self.update!(daily_choose_count:dc,has_comment_count:hc,item_count:ic,has_tag_count:tc)
   end
 end
@@ -33,9 +33,9 @@ class AlbumItem < Sequel::Model(:album_items)
   one_to_many :comment_logs, class:'AlbumCommentLog' # コメントの編集履歴
 
   # 順方向の関連写真
-  many_to_many :relations_r, class:'AlbumItem', join_table: :album_relations, left_key: :source_id, right_key: :target_id
+  many_to_many :right_relations, class:'AlbumItem', join_table: :album_relations, left_key: :source_id, right_key: :target_id
   # 逆方向の関連写真
-  many_to_many :relations_l, class:'AlbumItem', join_table: :album_relations, left_key: :target_id, right_key: :source_id
+  many_to_many :left_relations, class:'AlbumItem', join_table: :album_relations, left_key: :target_id, right_key: :source_id
 
 
   def validate
@@ -69,7 +69,7 @@ class AlbumItem < Sequel::Model(:album_items)
 
   # 順方向と逆方向の両方の関連写真
   def relations
-    self.relations_r + self.relations_l
+    self.right_relations + self.left_relations
   end
 
   # each_revisions_until を使うにはこの関数を実装しておく必要がある

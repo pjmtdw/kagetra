@@ -22,7 +22,7 @@ class WikiItem < Sequel::Model(:wiki_items)
 
 end
 class WikiItemLog < Sequel::Model(:wiki_item_logs)
-  one_to_many :wiki_item
+  many_to_one :wiki_item
   many_to_one :user
 end
 

@@ -53,10 +53,10 @@ class MainApp < Sinatra::Base
       r[:editable] = @user.admin || is_owner || (ev.done and ev.kind == :contest and @user.permission.include?(:sub_admin))
       r[:choice] = if opts.has_key?(:user_choices) then opts[:user_choices][ev.id]
                    else
-                     t = user.event_user_choices.event_choices.first(event:ev)
+                     t = EventChoice.first(event:ev,user_choices:user.event_user_choices)
                      t && t.id
                    end
-      opts[:user_attr_values] ||= user.attrs.value.map{|v|v.id}
+      opts[:user_attr_values] ||= UserAttributeValue.where(user_attribute:user.attrs_dataset).map(&:id)
       forbidden = (ev.forbidden_attrs & opts[:user_attr_values]).empty?.!
       r[:forbidden] = true if forbidden
       if opts[:detail]
@@ -73,36 +73,35 @@ class MainApp < Sinatra::Base
     end
     def get_participant(ev,edit_mode)
       participant_names = {}
-      participant_attrs = ev.aggregate_attr.values(:id.not => ev.forbidden_attrs).map{|x|[x.id,x.value]}
+      attr_query = UserAttributeValue.where(attr_key:ev.aggregate_attr).where(Sequel.~(id:ev.forbidden_attrs)).all
+      participant_attrs = attr_query.map{|x|[x.id,x.value]}
+      attr_value_index = attr_query.map{|x|[x.id,x.index]}.to_h
       sort_and_map = ->(h){
-        h.sort_by{|k,v|k.index}
+        h.sort_by{|k,v|attr_value_index[k]}
         .map{|k,v|
-          [k.id,v.map{|x|x.id}]}}
+          [k,v.map{|x|x.id}]}}
       add_participant_names = ->(ucs,hide_result){
         if hide_result and not edit_mode then return end
         participant_names.merge!(Hash[ucs.map{|u|[u.id,u.user_name]}])
       }
       cond = if edit_mode then {} else {positive:true} end
-      choices = ev.choices(cond)
+      choices = ev.choices_dataset.where(cond)
       res = if ev.hide_choice and not edit_mode then
               res = Hash.new{[]}
               choices.each{|c|
                 ucs = c.user_choices
                 add_participant_names.call(ucs,c.hide_result)
                 ucs.each{|uc|
-                  res[uc.attr_value] <<= uc
+                  res[uc.attr_value_id] <<= uc
                 }
               }
               {-1 => sort_and_map.call(res)}
             else
-              # DataMapperをeach_with_objectと一緒に使うとき(?)はto_aしておかないと
-              # 時々 c.hash が同じものが出現する(?)
-              # 原因不明だが一応.to_aを付けておく
               choices.to_a.each_with_object({}){|c,obj|
                 ucs = c.user_choices
                 add_participant_names.call(ucs,c.hide_result)
                 obj[c.id] = sort_and_map.call(
-                  ucs.group_by{|x|x.attr_value}
+                  ucs.group_by{|x|x.attr_value_id}
                 )
               }
             end
@@ -190,7 +189,7 @@ class MainApp < Sinatra::Base
       else
         # 各eventごとに取得するのは遅いのでまとめて取得しておく
         user_choices = EventChoice.where(event:events,user_choices:@user.event_user_choices_dataset).to_hash(:event_id,:id)
-        user_attr_values = UserAttributeValue.where(user_attribute:@user.attrs_dataset).map{|v|v.id}
+        user_attr_values = UserAttributeValue.where(user_attribute:@user.attrs_dataset).map(&:id)
 
         events.map{|ev|
           event_info(ev,@user,{user_choices:user_choices,user_attr_values:user_attr_values})

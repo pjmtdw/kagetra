@@ -140,7 +140,7 @@ class UserAttributeKey < Sequel::Model(:user_attribute_keys)
 end
 
 class UserAttributeValue < Sequel::Model(:user_attribute_values)
-  many_to_one :attr_key, class:'UserAttributeKey'
+  many_to_one :attr_key, class:'UserAttributeKey', key: :attr_key_id
   one_to_many :user_attribute, key: :value_id
   many_to_one :user
   # デフォルトは必ず一つ必要

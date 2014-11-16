@@ -105,7 +105,8 @@ class EventUserChoice < Sequel::Model(:event_user_choices)
       self.event_choice.event.tap{|ev|
         if ev then
           # 参加者数の更新
-          ev.update(participant_count:ev.choices_dataset.where(positive: true).user_choices.count)
+          count = EventUserChoice.count(event_choice:ev.choices_dataset.where(positive: true))
+          ev.update(participant_count:count)
         end
       }
     }
@@ -116,4 +117,10 @@ end
 class EventComment < Sequel::Model(:event_comments)
   include CommentBase
   many_to_one :thread, class:'Event'
+end
+
+# 大会/行事の所有者
+class EventOwner < Sequel::Model(:event_owners)
+  many_to_one :user
+  many_to_one :event
 end

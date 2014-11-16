@@ -42,16 +42,17 @@ module Kagetra
   #     serialize_attributes Kagetra::serialize_enum([:apple,:banana,:orange]), :fruits
   #   end
   def self.serialize_enum(enums)
-    raise Exception.new("#{enums} is #{enums.class}, it should be Array") unless enums.is_a?(Array)
+    raise Exception.new("#{enums.inspect} is #{enums.class}, it should be Array") unless enums.is_a?(Array)
     serializer = lambda{|x|
       if not x.nil? then
-        raise Exception.new("#{x} is #{x.class}, it should be Symbol") unless x.is_a?(Symbol)
+        if x.is_a?(String) then x = x.to_sym end
+        raise Exception.new("#{x.inspect} is #{x.class}, it should be Symbol") unless x.is_a?(Symbol)
         enums.index(x) + 1
       end
     }
     deserializer = lambda{|x|
       if not x.nil? then
-        raise Exception.new("#{x} is #{x.class}, it should be Numeric") unless x.is_a?(Numeric)
+        raise Exception.new("#{x.inspect} is #{x.class}, it should be Numeric") unless x.is_a?(Numeric)
         enums[x-1]
       end
     }
@@ -64,10 +65,10 @@ module Kagetra
   #     serialize_attributes Kagetra::serialize_flag([:is_women,:is_japanese,:is_married]), :person, 
   #   end
   def self.serialize_flag(flags)
-    raise Exception.new("#{flags} is #{flags.class}, it should be Array") unless flags.is_a?(Array)
+    raise Exception.new("#{flags.inspect} is #{flags.class}, it should be Array") unless flags.is_a?(Array)
     serializer = lambda{|x|
       if not x.nil? then
-        raise Exception.new("#{x} is #{x.class}, it should be Array") unless x.is_a?(Array)
+        raise Exception.new("#{x.inspect} is #{x.class}, it should be Array") unless x.is_a?(Array)
         x.inject(0){|sum,y|
           sum + (1 << flags.index(y))
         }
@@ -75,7 +76,7 @@ module Kagetra
     }
     deserializer = lambda{|x|
       if not x.nil? then
-        raise Exception.new("#{x} is #{x.class}, it should be Numeric") unless x.is_a?(Numeric)
+        raise Exception.new("#{x.inspect} is #{x.class}, it should be Numeric") unless x.is_a?(Numeric)
         flags.each_with_index.map{|y,i|
           (x & (1 << i) != 0) ? y : nil
         }.compact
@@ -93,13 +94,16 @@ module Kagetra
   def self.serialize_hourmin
     serializer = lambda{|x|
       if not x.nil? then
-        raise Exception.new("#{x} is #{x.class}, it should be HourMin") unless x.is_a?(Kagetra::HourMin)
+        if x.is_a?(String) then
+          x = Kagetra::HourMin.parse(x)
+        end
+        raise Exception.new("#{x.inspect} is #{x.class}, it should be HourMin") unless x.is_a?(Kagetra::HourMin)
         x.to_s
       end
     }
     deserializer = lambda{|x|
       if not x.nil? then
-        raise Exception.new("#{x} is #{x.class}, it should be String") unless x.is_a?(String)
+        raise Exception.new("#{x.inspect} is #{x.class}, it should be String") unless x.is_a?(String)
         Kagetra::HourMin.parse(x)
       end
     }

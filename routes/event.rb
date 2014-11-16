@@ -14,7 +14,7 @@ class MainApp < Sinatra::Base
         all_attrs: get_all_attrs,
         all_event_groups: get_all_event_groups,
         aggregate_attr_id: UserAttributeKey.first(name:CONF_CONTEST_DEFAULT_AGGREGATE_ATTR).id,
-        forbidden_attrs: CONF_CONTEST_DEFAULT_FORBIDDEN_ATTRS.map{|k,v|UserAttributeKey.first(name:k).values(value:v).map{|x|x.id}}.flatten
+        forbidden_attrs: CONF_CONTEST_DEFAULT_FORBIDDEN_ATTRS.map{|k,v|UserAttributeKey.where(name:k).first.attr_values(value:v).map{|x|x.id}}.flatten
       }
     end
     get '/item/party' do
@@ -31,10 +31,10 @@ class MainApp < Sinatra::Base
     end
 
     def get_all_attrs
-      UserAttributeKey.all(order:[:index.asc]).map{|x|[[x.id,x.name],x.values.map{|y|[y.id,y.value]}]}
+      UserAttributeKey.order(Sequel.asc(:index)).map{|x|[[x.id,x.name],x.attr_values.map{|y|[y.id,y.value]}]}
     end
     def get_all_event_groups
-      EventGroup.all(order:[:name.asc]).map{|x|x.select_attr(:id,:name)}
+      EventGroup.order(Sequel.asc(:name)).map{|x|x.select_attr(:id,:name)}
     end
 
     def event_info(ev,user,opts = {})
@@ -64,7 +64,7 @@ class MainApp < Sinatra::Base
         r.merge!(get_participant(ev,opts[:edit])) unless opts[:no_participant]
         if opts[:edit]
           r[:all_attrs] = get_all_attrs
-          r[:owners_str] = ev.owners.map{|u|User[u].name}.join(" , ")
+          r[:owners_str] = ev.owners.map{|u|u.name}.join(" , ")
           r[:all_event_groups] = get_all_event_groups
           r.merge!(ev.select_attr(:forbidden_attrs,:hide_choice,:register_done,:aggregate_attr_id))
         end
@@ -129,7 +129,7 @@ class MainApp < Sinatra::Base
       }
     end
 
-    def update_or_create_item
+    def update_or_create_item(update_mode)
       # get時に付加したmodelにない情報なので削除する．TODO: 不要な情報なのでクライアント側で削除する
       @json.delete("all_attrs")
       @json.delete("all_event_groups")
@@ -139,8 +139,9 @@ class MainApp < Sinatra::Base
           choices = if @json.has_key?("choices") then
             @json.delete("choices")
           end
+          owners_update = nil
           if @json.has_key?("owners_str") then
-            owners = @json["owners_str"].to_s.split(/\s*,\s*/).map{|s|
+            owners_update = @json["owners_str"].to_s.split(/\s*,\s*/).map{|s|
               u = User.first(name:s)
               if u.nil? then
                 raise Exception.new("invalid owner name: #{s}")
@@ -148,21 +149,33 @@ class MainApp < Sinatra::Base
               u.id
             }
             @json.delete("owners_str")
-            @json["owners"] = owners
           end
           if @json.has_key?("forbidden_attrs")
             # 一つしかない場合は Array じゃなくて String で送られてくる
             @json["forbidden_attrs"] = [@json["forbidden_attrs"]].flatten.map{|x|x.to_i}
           end
-          ev = Event.update_or_create({id:params[:id]},@json)
+          updata = @json.except("id")
+          if update_mode
+            ev = Event[params[:id]]
+            if updata.empty?.! then
+              ev.update(updata)
+            end
+          else
+            ev = Event.create(updata)
+            end
+          if owners_update then
+            owners_update.each{|uid|
+              EventOwner.create(user_id:uid,event_id:ev.id)
+            }
+          end
           if choices.nil?.! then
             choice_ids = ev.choices.map{|c|c.id}
             choices.each_with_index{|o,i|
               cond = o.select_attr("name","positive").merge({index:i})
               if o["id"] < 0 then
-                ev.choices.create(cond)
+                EventChoice.create(cond.merge(event:ev))
               else
-                ev.choices.get(o["id"]).update(cond)
+                ev.choices_dataset.where(id:o["id"]).each{|x|x.update(cond)}
                 choice_ids.delete(o["id"])
               end
             }
@@ -176,10 +189,10 @@ class MainApp < Sinatra::Base
     end
 
     put '/item/:id' do
-      update_or_create_item
+      update_or_create_item(true)
     end
     post '/item' do
-      update_or_create_item
+      update_or_create_item(false)
     end
     get '/list' do
       events = Event.where(done:false)
@@ -230,7 +243,7 @@ class MainApp < Sinatra::Base
       }
     end
     get '/group_list/:id' do
-      EventGroup[params[:id].to_i].events(order:[:date.desc])[0...10].map{|x|
+      EventGroup[params[:id].to_i].events_dataset.order(Sequel.desc(:date)).limit(10).map{|x|
         x.select_attr(:id,:name,:date)
       }
     end

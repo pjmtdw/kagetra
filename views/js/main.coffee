@@ -1,8 +1,8 @@
 requirejs.config
   paths:
-    jquery: "libs/jquery/jquery"
+    jquery: "libs/jquery/dist/jquery"
     jquery_placeholder: "libs/jquery-placeholder/jquery.placeholder"
-    simplemodal: "libs/bolster.simplemodal/src/jquery.simplemodal"
+    simplemodal: "libs/ericmmartin.simplemodal/src/jquery.simplemodal"
     backbone: "libs/backbone/backbone"
     underscore: "libs/underscore/underscore"
     foundation: "libs/foundation/js/foundation/foundation"
@@ -68,6 +68,7 @@ require ["jquery","backbone","myutil","select2","jquery_placeholder"
     # という訳なので reveal を使うときは必ず myutil.coffee の _.reveal_view() を使うこと．
     $(document).foundation('topbar dropdown section alerts tooltips')
     .foundation('reveal',closeOnBackgroundClick:false,dismissModalClass:'my-close-reveal-modal')
+
   $(->
     hamls = $("body").data("haml")
     deferreds = []

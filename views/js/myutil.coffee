@@ -2,6 +2,15 @@ define (require, exports, module) ->
   _ = require("underscore")
   $ = require("jquery")
   Backbone = require("backbone")
+  
+  # backbone 1.1.0 からは constructor に与えられた引数をを自動的に optionsに保存しなくなったので自前でやる
+  # http://stackoverflow.com/questions/19325323/backbone-1-1-0-views-reading-options
+  Backbone.View = ((View) ->
+    return View.extend
+      constructor: (options) ->
+        this.options = options || {}
+        View.apply(this, arguments)
+  )(Backbone.View)
 
   String.prototype.endsWith = (x)->
     @indexOf(x,@length-x.length) != -1

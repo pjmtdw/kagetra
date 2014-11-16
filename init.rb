@@ -21,7 +21,7 @@ require 'nkf'
 require 'redcarpet'
 require './libs/diff_match_patch-ruby/diff_match_patch.rb'
 require 'RMagick'
-require 'zip' # RubyZip
+require 'zip'
 
 require 'nokogiri'
 

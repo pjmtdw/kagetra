@@ -169,7 +169,7 @@ class MainApp < Sinatra::Base
                 if k.to_i >= 0 then
                   t = AlbumTag[k.to_i]
                   if t.nil?.! then
-                    t.destroy()
+                    t.destroy
                   end
                 end
               end
@@ -182,8 +182,8 @@ class MainApp < Sinatra::Base
             adds = rids_new - rids_old
             dels = rids_old - rids_new
             if dels.empty?.! then
-              AlbumRelation.all(source_id:item.id,target_id:dels).destroy()
-              AlbumRelation.all(source_id:dels,target_id:item.id).destroy()
+              AlbumRelation.all(source_id:item.id,target_id:dels).destroy
+              AlbumRelation.all(source_id:dels,target_id:item.id).destroy
             end
             adds.each{|i|
               item.right_relations.create(target_id:i)
@@ -452,7 +452,8 @@ class MainApp < Sinatra::Base
     img.resize!(scale)
   end
 
-  def process_image(group,index,orig_filename,abs_path)
+  def process_image(group,index,orig_filename,tfile)
+    abs_path = Pathname.new(tfile).realpath
     item = AlbumItem.create(
       group.select_attr(:place,:name).merge({
         group_id:group.id,
@@ -460,7 +461,7 @@ class MainApp < Sinatra::Base
         group_index:index,
         owner_id:@user.id
     }))
-    rel_path = Pathname.new(abs_path).relative_path_from(Pathname.new(File.join(G_STORAGE_DIR,"album")).realpath)
+    rel_path = abs_path.relative_path_from(Pathname.new(File.join(G_STORAGE_DIR,"album")).realpath)
     img = Magick::Image::read(abs_path).first
     prev_columns = img.columns
     prev_rows = img.rows
@@ -478,7 +479,7 @@ class MainApp < Sinatra::Base
       height: img.rows
     )
     resize_to_pixels!(img,CONF_ALBUM_THUMB_SIZE)
-    img.write(abs_path+"_thumb"){self.quality = CONF_ALBUM_THUMB_QUALITY}
+    img.write(abs_path.to_s+"_thumb"){self.quality = CONF_ALBUM_THUMB_QUALITY}
     AlbumThumbnail.create(
       album_item_id:item.id,
       path:rel_path.to_s+"_thumb",
@@ -486,7 +487,7 @@ class MainApp < Sinatra::Base
       width: img.columns,
       height: img.rows
     )
-    img.destroy
+    img.destroy!
   end
 
   def update_thumbnail(item)
@@ -496,7 +497,7 @@ class MainApp < Sinatra::Base
     img.rotate!(item.rotate.to_i)
     img.write(File.join(base,item.thumb.path)){self.quality = CONF_ALBUM_THUMB_QUALITY}
     item.thumb.update(width:img.columns,height:img.rows)
-    img.destroy
+    img.destroy!
   end
   post '/album/upload' do
     res = dm_response{
@@ -516,14 +517,14 @@ class MainApp < Sinatra::Base
         else
           tempfile = pfile[:tempfile]
           filename = pfile[:filename]
-          min_index = 1 + (group.items.aggregate(fields:[:group_index.max]) || -1)
+          min_index = 1 + (group.items_dataset.max(:group_index) || -1)
           date = Date.today
           target_dir = File.join(G_STORAGE_DIR,"album",date.year.to_s,date.month.to_s)
           FileUtils.mkdir_p(target_dir)
           case filename.downcase
           when /\.zip$/
             tmp = Dir.mktmpdir(nil,target_dir)
-            Zip::ZipFile.new(tempfile).select{|x|x.file? and [".jpg",".png",".gif"].any?{|s|x.name.downcase.end_with?(s)}}
+            Zip::File.open(tempfile).select{|x|x.file? and [".jpg",".png",".gif"].any?{|s|x.name.downcase.end_with?(s)}}
               .to_enum.with_index(min_index){|entry,i|
                 fn = File.join(tmp,i.to_s)
                 File.open(fn,"w"){|f|
@@ -535,8 +536,7 @@ class MainApp < Sinatra::Base
           when /\.jpg$/, /\.png$/, /\.gif$/
             tfile = Kagetra::Utils.unique_file(@user,["img-",".dat"],target_dir)
             FileUtils.cp(tempfile.path,tfile)
-            abs_path = Pathname.new(tfile).realpath.to_s
-            process_image(group,min_index,filename,abs_path)
+            process_image(group,min_index,filename,tfile)
             {result:"OK",group_id:group.id}
           else
             {_error_:"ファイルの拡張子が間違いです: #{filename.downcase}"}
@@ -567,7 +567,7 @@ class MainApp < Sinatra::Base
       img = Magick::Image::read(path).first
       img.rotate!(rotate)
       blob = img.to_blob
-      img.destroy
+      img.destroy!
       blob
     end
   end

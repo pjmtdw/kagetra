@@ -735,8 +735,13 @@ define (require,exports,module)->
           # 現在のページをリロード
           Backbone.history.loadUrl( Backbone.history.fragment )
         else
-          window.album_router.navigate("group/#{res.group_id}", trigger:true)
-        $("#container-album-upload").foundation("reveal","close")
+          # なぜか reveal を closed してからしばらく経たないと router.navigate できない
+          # TODO: 原因調査
+          $(that.options.target).one("closed", ->
+            f = -> window.album_router.navigate("group/#{res.group_id}", trigger:true)
+            window.setTimeout(f,300))
+
+        $(that.options.target).foundation("reveal","close")
       when_error = ->
         obj = that.$el.find("input[type='submit']")
         obj.show()

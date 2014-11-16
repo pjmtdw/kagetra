@@ -186,7 +186,7 @@ class MainApp < Sinatra::Base
               AlbumRelation.all(source_id:dels,target_id:item.id).destroy
             end
             adds.each{|i|
-              item.right_relations.create(target_id:i)
+              AlbumRelation.create(source_id:item.id,target_id:i)
             }
             @json.delete("relations")
           end
@@ -316,15 +316,15 @@ class MainApp < Sinatra::Base
     post '/search_group' do
       query = params[:q]
       qs = query.split(/\s+/)
-      res = AlbumGroup.all(:id.not => params[:exclude].to_i)
+      res = AlbumGroup.where(Sequel.~(id:params[:exclude].to_i))
       qs.each{|q|
         if /^\d{4}$/=~ q then
-          res &= AlbumGroup.all(year:q.to_i)
+          res = res.where(year:q.to_i)
         else
-          res &= AlbumGroup.all(:name.like => "%#{q}%")
+          res = res.where(Sequel.like(:name,"%#{q}%"))
         end
       }
-      results = res.all(order:[:start_at.desc]).map{|x|
+      results = res.order(Sequel.desc(:start_at)).map{|x|
         {
           id:x.id,
           text:x.name.to_s + "@#{x.start_at}"
@@ -335,16 +335,16 @@ class MainApp < Sinatra::Base
     post '/move_group' do
       DB.transaction{
         to_group = AlbumGroup[@json["group_id"].to_i]
-        index = to_group.items.aggregate(fields:[:group_index.max]) || -1
+        index = to_group.items_dataset.max(:group_index) || -1
         from_groups = {}
-        AlbumItem.all(id:@json["item_ids"],order:[:group_index.asc]).each{|item|
+        AlbumItem.where(id:@json["item_ids"]).order(Sequel.asc(:group_index)).each{|item|
           next if item.group_id == to_group.id
           from_groups[item.group_id] = true
           index += 1
           item.update(group_id:to_group.id, group_index:index)
         }
         to_group.update_count
-        AlbumGroup.all(id:from_groups.keys).each{|x|
+        AlbumGroup.where(id:from_groups.keys).each{|x|
           x.update_count
         }
       }
@@ -353,7 +353,7 @@ class MainApp < Sinatra::Base
       item_ids = @json["item_ids"]
       @json.delete("item_ids")
       dm_response{
-        AlbumItem.all(id:item_ids).update(@json)
+        AlbumItem.where(id:item_ids).each{|x|x.update(@json)}
       }
     end
     delete '/item/:id' do
@@ -372,17 +372,17 @@ class MainApp < Sinatra::Base
       DB.transaction{
         ag = AlbumGroup[params[:group_id]]
         cond = if @user.admin then {} else {owner_id:@user.id} end
-        items = AlbumItem.all(cond.merge({id:item_ids}))
+        items = AlbumItem.where(cond.merge({id:item_ids}))
         deleted_ids = items.map{|x|x.id}
-        items.update!(deleted:true)
+        items.destroy
         ag.update_count
         {list:deleted_ids}
       }
     end
     post '/tag_complete' do
-      item_ids = AlbumItem.aggregate(fields:[:id],group_id:params[:group_id].to_i)
-      tags = AlbumTag.aggregate(fields:[:name],:name.like => "%#{params[:q]}%", album_item_id:item_ids)
-      list = User.aggregate(fields:[:name],:name.like => "%#{params[:q]}%",order:[:updated_at.desc])
+      items = AlbumItem.where(group_id:params[:group_id].to_i)
+      tags = AlbumTag.where(Sequel.like(:name,"%#{params[:q]}%")).where(album_item:items).map(&:name)
+      list = User.where(Sequel.like(:name,"%#{params[:q]}%")).order(Sequel.desc(:updated_at)).map(&:name)
       {results:(tags+list).uniq}
     end
     post '/set_event' do

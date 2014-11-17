@@ -216,7 +216,7 @@ class MainApp < Sinatra::Base
     SCHEDULE_EVENT_DONE_PER_PAGE = 40
     get '/ev_done',private:true do
       page = if params[:page].to_s.empty?.! then params[:page].to_i else 1 end
-      chunk = Event.where(Sequel.~(kind: Event.kind_contest),done:true)
+      chunk = Event.where(Sequel.~(kind: Event.kind__contest),done:true)
                    .order(Sequel.desc(:updated_at),Sequel.desc(:id))
                    .paginate(page,SCHEDULE_EVENT_DONE_PER_PAGE)
       pages = chunk.page_count

@@ -4,29 +4,28 @@ class MainApp < Sinatra::Base
   RESULT_SEARCH_NAME_LIMIT = 100
   namespace '/api/result_misc' do
     get '/year/:year' do
-      minyear = Event.aggregate(:date.min,kind:[:contest]).year
+      minyear = Event.where(kind:Event.kind__contest).min(:date).year
       year = params[:year].to_i
       sday = Date.new(year,1,1)
       eday = Date.new(year+1,1,1)
-      list = Event.all(:date.gte => sday, :date.lt => eday, done: true, kind:[:contest], order:[:date.desc],fields:[:id,:name,:date,:official,:contest_user_count]).map{|x|
+      list = Event.where{ (date >= sday) & (date < eday)}.where(done:true,kind:Event.kind__contest).order(Sequel.desc(:date)).map{|x|
         result_summary(x)
       }
       {list:list,minyear:minyear,maxyear:Date.today.year,curyear:year}
     end
     post '/search_name' do
-      query = params[:q]
-      list1 = ContestUser.aggregate(fields:[:name,:id.count],:name.like=>"%#{query}%",unique:true)[0...(RESULT_SEARCH_NAME_LIMIT/2)].sort_by{|x,y|y}.reverse.map{|x,y|
-        x
-      }
-      list2 = ContestGame.aggregate(fields:[:opponent_name,:id.count],:opponent_name.like=>"%#{query}%",unique:true)[0...(RESULT_SEARCH_NAME_LIMIT/2)].sort_by{|x,y|y}.reverse.map{|x,y|
-        x
-      }
+      query = "%#{params[:q]}%"
+      list1 = ContestUser.where(Sequel.like(:name,query)).limit(RESULT_SEARCH_NAME_LIMIT/2)
+        .select(Sequel.function(:count,1).as("count"),:name).order(Sequel.desc(:count)).group(:name).map(&:name)
+      list2 = ContestGame.where(Sequel.like(:opponent_name,query)).limit(RESULT_SEARCH_NAME_LIMIT/2)
+        .select(Sequel.function(:count,1).as("count"),:opponent_name).order(Sequel.desc(:count)).group(:opponent_name).map(&:opponent_name)
       results = (list1+list2).uniq
       {results:results}
 
     end
 
     post '/record' do
+      # TODO: とにかく遅い．しかし根本的に複雑な処理なので結果をキャッシュするぐらいしか速くする方法はないような気がする
       name = @json["name"]
       if name == "myself" then
         name = @user.name
@@ -75,18 +74,20 @@ class MainApp < Sinatra::Base
           eids = x.map{|z|z.id}
           # 勝ち数負け数ポイント(味方として出場した場合)
           res = ContestUser.where(id:cusers,event_id:eids).select(
-            Sequel.function(:sum,:win).as("win"),
-            Sequel.function(:sum,:lose).as("lose"),
+            Sequel.function(:coalesce,Sequel.function(:sum,:win),0).as("win"),
+            Sequel.function(:coalesce,Sequel.function(:sum,:lose),0).as("lose"),
             Sequel.function(:count,1).as("count"),
-            Sequel.function(:sum,:point).as("point"),
-            Sequel.function(:sum,:point_local).as("point_local")).first
+            Sequel.function(:coalesce,Sequel.function(:sum,:point),0).as("point"),
+            Sequel.function(:coalesce,Sequel.function(:sum,:point_local),0).as("point_local")).first
           res = res.to_hash.merge(year:y)
+          
+
           if not games_op.empty? then
             # 勝ち数負け数(敵として出場した場合)
             c = {event_id:eids,id:games_op.map(&:id)}
-            res[:win] += ContestGame.where(c.merge({result: :lose})).count
-            res[:lose] += ContestGame.where(c.merge({result: :win})).count
-            res[:count] += ContestGame.where(c.merge({fields:[:event_id],unique:true})).size
+            res[:win] += ContestGame.where(c.merge({result: ContestGame.result__lose})).count
+            res[:lose] += ContestGame.where(c.merge({result: ContestGame.result__win})).count
+            res[:count] += ContestGame.where(c).count
           end
           res[:win_percent] = if res[:win]+res[:lose] == 0 then "0.0" else "%.1f"%((res[:win]/(res[:win]+res[:lose]).to_f)*100) end
           res[:prize_contests] = eids.select{|z|prizes.has_key?(z)}

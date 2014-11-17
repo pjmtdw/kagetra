@@ -2,6 +2,17 @@ module Sequel
   module Plugins
     module Serialization
       module ClassMethods
+        # serializedされたカラムをwhere検索するのに必要
+        # serialized_attr_accessor :kind__contest,:promotion__rank_up しておくと
+        # Klass.kind__contest, Klass.promotion__rank_up でシリアライズされたデータが取得できる
+        def serialized_attr_accessor(*syms)
+          syms.each{|x|
+            (k,c) = x.to_s.split("__")
+            define_singleton_method(x){
+              self.serialization_map[k.to_sym].call(c.to_sym)
+            }
+          }
+        end
         # update や create に渡せるようにデシリアライズする
         def make_deserialized_data(data)
           data.map{|k,v|

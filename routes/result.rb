@@ -44,7 +44,7 @@ class MainApp < Sinatra::Base
 
     # 日時順に並べたときの前後の大会
     def recent_contests(id)
-      base = Event.where(kind:Event.kind_contest, done:true).where{contest_user_count > 0}
+      base = Event.where(kind:Event.kind__contest, done:true).where{contest_user_count > 0}
       evt = if id == "latest"
               then base.order(Sequel.desc(:date),Sequel.desc(:id)).first
               else Event[id.to_i] end
@@ -152,7 +152,7 @@ class MainApp < Sinatra::Base
         }
       }
       # 自分が負けた以降の順番は負けた相手の成績順になる
-      games.where(result: ContestGame.result_lose).order(Sequel.desc(:round)).each{|m|
+      games.where(result: ContestGame.result__lose).order(Sequel.desc(:round)).each{|m|
         x = temp_res.find{|uid,v|users[uid] == m.opponent_name}
         if x then
           temp_res[m.contest_user_id][:score][m.round..-1] = x[1][:score][m.round..-1]
@@ -234,7 +234,7 @@ class MainApp < Sinatra::Base
     end
 
     def result_summary(ev)
-      cache = ContestResultCache.first(event_id:ev.id,fields:[:win,:lose,:prizes])
+      cache = ContestResultCache.first(event_id:ev.id)
       r = ev.select_attr(:id,:name,:date,:official)
       r.merge({
         user_count: ev.contest_user_count,
@@ -247,11 +247,11 @@ class MainApp < Sinatra::Base
       page = if params[:page].to_s.empty?.! then params[:page].to_i else 1 end
       group = EventGroup[params[:id].to_i]
       r = group.select_attr(:name,:description)
-      chunks = group.events.all(done:true,order:[:date.desc]).chunks(EVENT_GROUP_PER_PAGE)
-      list = chunks[page-1].map{|ev|
+      chunks = group.events_dataset.where(done:true).order(Sequel.desc(:date)).paginate(page,EVENT_GROUP_PER_PAGE)
+      list = chunks.map{|ev|
         result_summary(ev)
       }
-      r.merge({list:list,cur_page:page,pages:chunks.size})
+      r.merge({list:list,cur_page:page,pages:chunks.page_count})
     end
     get '/players/:id' do
       ev = Event[params[:id].to_i]

@@ -3,11 +3,11 @@ class MainApp < Sinatra::Base
   PROMOTION_RECENT_MAX_DAY = 365
   namespace '/api/result_promotion' do
     get '/recent' do
-      event_ids = Event.all(kind: :contest, team_size: 1, :date.gte => Date.today - PROMOTION_RECENT_MAX_DAY, fields:[:id]).map{|x|x.id}
-      list = ContestPromotionCache.all(event_id:event_ids,promotion: :rank_up).map{|prom|
+      event_ids = Event.where(kind:Event.kind__contest,team_size:1).where{Sequel.expr(:date) >= (Date.today - PROMOTION_RECENT_MAX_DAY)}.map(&:id)
+      list = ContestPromotionCache.where(event_id:event_ids,promotion:ContestPrize.promotion__rank_up).map{|prom|
         cuser = prom.contest_user
         u = cuser.user
-        attr_values = if u.nil? then [] else u.attrs.value.map{|x|x[:id]} end
+        attr_values = if u.nil? then [] else u.attrs.map(&:value).flatten.map{|x|x[:id]} end
         {
           class_name: prom.class_name,
           name: prom.user_name,
@@ -19,8 +19,8 @@ class MainApp < Sinatra::Base
       }.sort_by{|x|
         x[:event][:date]
       }.reverse
-      attrs = UserAttributeKey.all(name:CONF_PROMOTION_ATTRS,order:[:index.asc]).map{|x|
-        [x.name,x.values.map{|y|[y.value,y.id]}]
+      attrs = UserAttributeKey.where(name:CONF_PROMOTION_ATTRS).order(Sequel.asc(:index)).map{|x|
+        [x.name,x.attr_values.map{|y|[y.value,y.id]}]
       }
       {list:list,attrs:attrs}
     end
@@ -36,9 +36,9 @@ class MainApp < Sinatra::Base
                  when "a_champ" then :a
                  else prev_rank.call(params["to"])
                  end
-      ranks = (top_rank..bottom_rank).to_a
-      names = ContestPromotionCache.all(class_rank:top_rank,fields:[:user_name],unique:true).map{|x|x.user_name}
-      query = ContestPromotionCache.all(user_name:names,class_rank:ranks,fields:[:id,:user_name,:contests,:event_name,:event_date,:event_id])
+      ranks = (top_rank..bottom_rank).map{|x|ContestClass.serialization_map[:class_rank].call(x)}
+      names = ContestPromotionCache.distinct(:user_name).where(class_rank:ContestClass.serialization_map[:class_rank].call(top_rank)).map(&:user_name)
+      query = ContestPromotionCache.where(user_name:names,class_rank:ranks)
       res = Hash.new{{contests:0,start:nil,end:nil}}
       query.each{|x|
         next if params["mode"] != "list" and x.class_rank == :a and x.a_champ_count != 1
@@ -51,13 +51,14 @@ class MainApp < Sinatra::Base
           r[:end] = info
         end
         if params["from"] == "debut"
-          dt = if r[:start].nil? then x[:debut_date] else [x[:debut_date],r[:start][:event_date]].min end
+          dt = if r[:start].nil? then x.debut_date else [x.debut_date,r[:start][:event_date]].min end
           r[:start] = {event_date:previous_april.call(dt)}
         elsif x.class_rank == bottom_rank
           r[:start] = info
         end
         res[x.user_name] = r
       }
+      p res
       list = res.to_a.map{|k,v|
         if v[:start].nil? or v[:end].nil? then
           nil
@@ -86,8 +87,10 @@ class MainApp < Sinatra::Base
       {display:"ranking",list:list,median:median}
     end
     get '/ranking' do
-      # A級優勝一覧
-      query = ContestPromotionCache.all(class_rank: :a,promotion: :a_champ,fields:[:id,:user_name,:event_name,:event_date,:event_id],order:[:event_date.asc])
+      # A級優勝一覧(一つ上の/rankingでpassされるとここに辿り付く)
+      query = ContestPromotionCache.where(class_rank: ContestClass.class_rank__a,
+                                          promotion: ContestPrize.promotion__a_champ)
+                                    .order(Sequel.asc(:event_date))
       nth_champ = 0
       list = query.map{|x|
         info = if x.a_champ_count == 1 then

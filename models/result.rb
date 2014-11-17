@@ -3,6 +3,7 @@
 class ContestClass < Sequel::Model(:contest_classes)
   many_to_one :event
   serialize_attributes Kagetra::serialize_enum([:a,:b,:c,:d,:e,:f,:g]), :class_rank
+  serialized_attr_accessor :class_rank__a
 
   plugin :serialization, :json, :round_name
 
@@ -66,6 +67,8 @@ class ContestResultCache < Sequel::Model(:contest_result_caches)
 end
 
 class ContestPromotionCache < Sequel::Model(:contest_promotion_caches)
+  many_to_one :contest_user
+  serialize_attributes Kagetra::serialize_enum([:a,:b,:c,:d,:e,:f,:g]), :class_rank
   serialize_attributes Kagetra::serialize_enum([:rank_up, :dash, :a_champ]), :promotion # 昇級, ダッシュ, A級優勝
   def validate
     super
@@ -84,6 +87,8 @@ class ContestPrize < Sequel::Model(:contest_prizes)
   many_to_one :contest_user
   add_input_transformer_custom(:prize){|v|v.gsub(/\s+/,"")}
   serialize_attributes Kagetra::serialize_enum([:rank_up, :dash, :a_champ]), :promotion # 昇級, ダッシュ, A級優勝
+  serialized_attr_accessor :promotion__rank_up, :promotion__a_champ
+
   def before_save
     self.contest_class_id = self.contest_user.contest_class_id
     if self.prize.to_s.empty?.! then
@@ -154,9 +159,7 @@ class ContestGame < Sequel::Model(:contest_games)
   many_to_one :contest_user
   add_input_transformer_custom(:opponent_name,:opponent_belongs){|v|v.gsub(/\s+/,"")}
   serialize_attributes Kagetra::serialize_enum([:now,:win,:lose,:default_win]), :result
-  def self.result_lose
-    self.serialization_map[:result].call(:lose)
-  end
+  serialized_attr_accessor :result__lose,:result__win
 
   def before_save
     self.event = self.contest_user.event if self.event.nil?

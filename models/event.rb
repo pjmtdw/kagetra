@@ -18,11 +18,8 @@ class Event < Sequel::Model(:events)
   one_to_many :result_classes, class:'ContestClass'
   one_to_many :result_users, class:'ContestUser'
   one_to_many :comments, class:'EventComment', key: :thread_id
-  
-  # serialized されたカラムを where 検索するのに必要
-  def self.kind_contest
-    self.serialization_map[:kind].call(:contest)
-  end
+ 
+  serialized_attr_accessor :kind__contest
   def validate
     super
     error.add(:date,"cannot be null for contest") if self.kind == :contest and self.date.nil?

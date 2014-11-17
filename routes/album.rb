@@ -263,7 +263,7 @@ class MainApp < Sinatra::Base
                     ed = group.start_at + ALBUM_EVENT_COMPLEMENT_DAYS
                     
                     Event.where{ (date >= st) & (date <= ed)}
-                         .where(done:true,kind:Event.kind_contest)
+                         .where(done:true,kind:Event.kind__contest)
                          .order(Sequel.desc(:date))
                          .map{|x|
                            {id:x.id,text:"#{x.name}@#{x.date}"}

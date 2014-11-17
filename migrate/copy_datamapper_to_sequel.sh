@@ -11,10 +11,14 @@ function c(){
 }
 
 function insert_event_owners(){
-  m <<< "SELECT created_at,updated_at,id,owners FROM $DB_FROM.events WHERE CHAR_LENGTH(owners) > 2" | while IFS=$'\t' read created_at updated_at event_id owners; do
-    tr -d '["]' <<< "$owners" | tr ',' '\n' | while read user_id; do
-      echo >&8 "INSERT INTO $DB_TO.event_owners (created_at,updated_at,user_id,event_id) VALUES ('$created_at','$updated_at',$user_id,$event_id);"
-    done
+  m <<< "SELECT created_at,updated_at,id,owners FROM $DB_FROM.events WHERE CHAR_LENGTH(owners) > 2" | \
+    while IFS=$'\t' read created_at updated_at event_id owners; do
+      local c=$(m <<< "SELECT count(*) FROM $DB_FROM.events WHERE id = $event_id AND deleted != 1")
+      if [ "1" = "$c" ] ;then
+        tr -d '["]' <<< "$owners" | tr ',' '\n' | while read user_id; do
+          echo >&8 "INSERT INTO $DB_TO.event_owners (created_at,updated_at,user_id,event_id) VALUES ('$created_at','$updated_at',$user_id,$event_id);"
+          done
+      fi
   done
 }
 

@@ -89,7 +89,7 @@ class EventUserChoice < Sequel::Model(:event_user_choices)
       self.user_name = self.user.name
       self.event_choice.event.tap{|ev|
         if self.attr_value.nil? then
-          self.attr_value = self.user.attrs.values.first(attr_key: ev.aggregate_attr)
+          self.attr_value = ev.aggregate_attr.attr_values_dataset.first(id:user.attrs.map(&:value_id))
         end
         # 一つの行事を複数選択することはできない
         ucs = EventUserChoice.where(user:self.user,event_choice:ev.choices)
@@ -105,7 +105,7 @@ class EventUserChoice < Sequel::Model(:event_user_choices)
       self.event_choice.event.tap{|ev|
         if ev then
           # 参加者数の更新
-          count = EventUserChoice.count(event_choice:ev.choices_dataset.where(positive: true))
+          count = EventUserChoice.where(event_choice:ev.choices_dataset.where(positive: true)).count
           ev.update(participant_count:count)
         end
       }

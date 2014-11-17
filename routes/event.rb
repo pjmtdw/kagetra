@@ -211,9 +211,13 @@ class MainApp < Sinatra::Base
     end
     put '/choose/:cid' do
       dm_response{
-        c = EventChoice.first(id:params[:cid].to_i)
-        c.user_choices.create(user:@user)
-        {count: c.event.participant_count,event_name:c.event.name,choice:c.name}
+        c = EventChoice.first(id:params[:cid])
+        EventUserChoice.create(user:@user,event_choice:c)
+        {
+          count: c.event.participant_count,
+          event_name:c.event.name,
+          choice:c.name
+        }
       }
     end
     put '/participants/:id' do

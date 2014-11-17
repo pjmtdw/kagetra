@@ -31,7 +31,7 @@ class WikiAttachedFile < Sequel::Model(:wiki_attached_files)
   many_to_one :wiki_item
   def update_attached_count
     wi = self.wiki_item
-    wi.update(attached_count:wi.attacheds.count)
+    wi.update(attached_count:wi.attacheds_dataset.count)
   end
   def after_create
     update_attached_count

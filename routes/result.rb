@@ -22,7 +22,7 @@ class MainApp < Sinatra::Base
       gr = evt.event_group
       group = if gr then
                 fdate = if evt.date.nil? then Date.today else evt.date + 365*5 end
-                gr.events(done:true, :date.lte => fdate, order:[:date.desc])[0...DROPDOWN_EVENT_GROUP_MAX]
+                gr.events_dataset.where(done:true).where{date <= fdate}.order(Sequel.desc(:date)).limit(DROPDOWN_EVENT_GROUP_MAX)
                 .map{|x| x.select_attr(:id,:name,:date)}
               else [] end
 
@@ -33,7 +33,7 @@ class MainApp < Sinatra::Base
       contest_classes = Hash[evt.result_classes.map{|c| [c.id,c.select_attr(:class_name,:num_person)]}]
 
       evt.select_attr(:id,:name,:team_size,:date,:event_group_id,:kind,:official).merge({
-        album_groups: AlbumGroupEvent.get_album_group_ids(evt.id),
+        album_groups: evt.album_groups.map(&:id),
         recent_list: recent_list,
         group: group,
         team_size: evt.team_size,
@@ -44,23 +44,17 @@ class MainApp < Sinatra::Base
 
     # 日時順に並べたときの前後の大会
     def recent_contests(id)
-      cond = Event.all(kind: :contest, done:true, :contest_user_count.gt => 0)
-      evt = (
-              if id == "latest" then
-                cond & Event.all(order: [:date.desc,:id.desc])
-              else
-                [Event[id.to_i]]
-              end
-            ).first
+      base = Event.where(kind:Event.kind_contest, done:true).where{contest_user_count > 0}
+      evt = if id == "latest"
+              then base.order(Sequel.desc(:date),Sequel.desc(:id)).first
+              else Event[id.to_i] end
       return [nil,[]] if evt.nil?
 
-      (pre,post) = [[:lt,:desc],[:gt,:asc]].map{|p,q|
-        (cond & (Event.all(date:evt.date, :id.send(p) => evt.id) | Event.all(:date.send(p) => evt.date)))
-        .all(order: [:date.send(q), :id.send(q)])[0...EVENTS_PER_PAGE]
+      (pre,post) = [[:<,:desc],[:>,:asc]].map{|p,q|
+        c1 = Sequel.expr(date:evt.date) & Sequel.expr{Sequel.expr(:id).send(p,evt.id)}
+        c2 = Sequel.expr{date.send(p,evt.date)}
+        base.where(c1|c2).order(Sequel.send(q,:date),Sequel.send(q,:id)).limit(EVENTS_PER_PAGE).to_a
       }
-      # 実際にクエリ実行する(この行を入れないとうまく動かない)
-      pre = pre.to_a
-      post = post.to_a
 
       first_is_most_recent = (post.size <= EVENT_HALF_PAGE)
 
@@ -85,9 +79,9 @@ class MainApp < Sinatra::Base
     # 個人戦の結果
     def contest_results_single(evt)
       # 後で少しずつ取得するのは遅いのでまとめて取得
-      cls = evt.result_classes(order:[:index.asc])
+      cls = evt.result_classes_dataset.order(Sequel.asc(:index))
       ugattrs = [:result,:opponent_name,:opponent_belongs,:score_str,:comment,:round]
-      user_games = cls.single_games.all(order:[:round.asc],fields:[:contest_user_id,*ugattrs]).map{|gm|
+      user_games = cls.map{|x|x.single_games_dataset.order(Sequel.asc(:round)).all}.flatten.map{|gm|
         [gm.contest_user_id,gm.select_attr(*ugattrs)]
       }.each_with_object(Hash.new{[]}){|(uid,attrs),h|
         if h[uid].empty?.! and attrs[:round] > h[uid].last[:round] +1 then
@@ -98,7 +92,7 @@ class MainApp < Sinatra::Base
       }
 
       prattrs = [:prize, :point, :point_local]
-      prizes = Hash[cls.prizes.all(fields:[:contest_user_id,*prattrs]).map{|p|
+      prizes = Hash[cls.map(&:prizes).flatten.map{|p|
         [p.contest_user_id, p.select_attr(*prattrs)]
       }]
 
@@ -114,7 +108,7 @@ class MainApp < Sinatra::Base
     end
 
     def get_klass_rounds(klass)
-      round_num = ContestGame.aggregate(contest_class_id:klass.id,fields:[:round.max]) || 0
+      round_num = ContestGame.where(contest_class_id:klass.id).max(:round) || 0
       (1..round_num).map{|x|
         rn = klass.round_name
         {
@@ -124,7 +118,7 @@ class MainApp < Sinatra::Base
     end
 
     def get_team_rounds(team)
-      ops = team.opponents(order: :round.asc)
+      ops = team.opponents_dataset.order(Sequel.asc(:round))
       ops.to_enum.with_index(1).map{|x,i|{
         name: x.round_name,
         kind: x.kind,
@@ -135,11 +129,11 @@ class MainApp < Sinatra::Base
 
     # 勝ち数の多い順に並べる
     def result_sort(klass,user_games,round_num,prizes)
-      games = ContestGame.all(contest_class_id:klass.id,fields:[:opponent_name,:round,:contest_user_id])
+      games = ContestGame.where(contest_class_id:klass.id)
       temp_res = {}
 
       # 後で少しずつ取得するのは遅いのでまとめて取得
-      users = Hash[ContestUser.aggregate(contest_class_id:klass.id,fields:[:id,:name])]
+      users = ContestUser.where(contest_class_id:klass.id).to_hash(:id,:name)
 
       users.keys.each{|uid|
         score = ["Z"] * round_num
@@ -158,7 +152,7 @@ class MainApp < Sinatra::Base
         }
       }
       # 自分が負けた以降の順番は負けた相手の成績順になる
-      games.all(result: :lose, order: :round.desc).each{|m|
+      games.where(result: ContestGame.result_lose).order(Sequel.desc(:round)).each{|m|
         x = temp_res.find{|uid,v|users[uid] == m.opponent_name}
         if x then
           temp_res[m.contest_user_id][:score][m.round..-1] = x[1][:score][m.round..-1]
@@ -193,15 +187,15 @@ class MainApp < Sinatra::Base
 
     # 団体戦の結果
     def contest_results_team(evt)
-      teams = evt.result_classes.all(order:[:index.asc]).teams
+      teams = evt.result_classes_dataset.order(Sequel.asc(:index)).map(&:teams).flatten
       
       teams.map{|team|
-        op_rounds = Hash[ContestTeamOpponent.aggregate(contest_team_id:team.id,fields:[:id,:round])]
+        op_rounds = team.opponents_dataset.to_hash(:id,:round)
         max_round = op_rounds.size
-        members = team.members.all(order:[:order_num.asc]).map{|x|x.contest_user}
-        prizes = Hash[ContestPrize.all(contest_user_id:members.map{|x|x.id},fields:[:contest_user_id,:prize,:point_local]).map{|x|[x.contest_user_id,x]}]
+        members = team.members_dataset.order(Sequel.asc(:order_num)).map(&:contest_user)
+        prizes = Hash[ContestPrize.where(contest_user:members).map{|x|[x.contest_user_id,x]}]
         game_fields = [:opponent_name,:result,:score_str,:comment,:opponent_order,:opponent_belongs]
-        games = ContestGame.all(contest_team_opponent_id:op_rounds.keys,fields:game_fields+[:contest_user_id,:contest_team_opponent_id]).group_by{|game| game.contest_user_id}
+        games = ContestGame.where(contest_team_opponent_id:op_rounds.keys).all.group_by{|game| game.contest_user_id}
         user_results = members.map{|user|
           results = games[user.id] || []
           res = Hash[results.map{|game|

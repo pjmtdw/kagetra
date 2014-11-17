@@ -46,7 +46,7 @@ class AlbumItem < Sequel::Model(:album_items)
   def before_create
     if self.group_index.nil? then
       ag = self.group
-      self.group_index = ag.items.count
+      self.group_index = ag.items_dataset.count
     end
   end
 
@@ -60,7 +60,7 @@ class AlbumItem < Sequel::Model(:album_items)
   # TODO: 規約に頼らずHookとか使って上記のことを強制する方法
   def do_after_tag_updated
     tag_names = self.tags.map{|x|x.name}.to_json
-    self.update!(tag_count:self.tags.count,tag_names:tag_names)
+    self.update!(tag_count:self.tags_dataset.count,tag_names:tag_names)
     self.group.update_count
   end
   def after_save

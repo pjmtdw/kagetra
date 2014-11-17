@@ -154,6 +154,9 @@ class ContestGame < Sequel::Model(:contest_games)
   many_to_one :contest_user
   add_input_transformer_custom(:opponent_name,:opponent_belongs){|v|v.gsub(/\s+/,"")}
   serialize_attributes Kagetra::serialize_enum([:now,:win,:lose,:default_win]), :result
+  def self.result_lose
+    self.serialization_map[:result].call(:lose)
+  end
 
   def before_save
     self.event = self.contest_user.event if self.event.nil?

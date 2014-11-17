@@ -32,35 +32,39 @@ class MainApp < Sinatra::Base
         name = @user.name
       end
 
-      # .all() 使うより .aggregate() 使う方が速い
-      cusers_all = ContestUser.aggregate(fields:[:id],name:name)
+      cusers_all = ContestUser.where(name:name)
       game_struct = Struct.new(:id,:event_id)
-      games_my = if cusers_all.empty? then [] else ContestGame.aggregate(fields:[:id,:event_id],contest_user_id:cusers_all).map{|x,y|game_struct.new(x,y)} end
+      games_my = ContestGame.where(contest_user:cusers_all).map{|x|game_struct.new(x.id,x.event_id)}
 
       # 一つの大会で敵味方両方で出てる場合は味方のみを取得する(同会対決とかなので)
-      op_cond = if games_my.empty? then {} else {:event_id.not => games_my.map{|x|x.event_id}} end
-
-      games_op = ContestGame.aggregate(op_cond.merge({fields:[:id,:event_id],opponent_name:name})).map{|x,y|game_struct.new(x,y)}
-
-      eids = (games_my.map{|x|x.event_id} + games_op.map{|x|x.event_id}).uniq
-      (mindate,maxdate) = Event.aggregate(fields:[:date.min,:date.max],id:eids)
-
-      evcond = {fields:[:id,:name,:date],id:eids,order:[:date.desc]}
-      # 勝ち数やポイントなどを集計する大会
-      events = if @json["span"] == "recent" then
-        Event.all(evcond)[0...RESULT_RECORD_PER_PAGE]
-      else
-        Event.all(evcond)
+      query_op = ContestGame.where(opponent_name:name)
+      if not games_my.empty? then
+        query_op = query_op.where(Sequel.~(event_id:games_my.map(&:event_id)))
       end
+      games_op = query_op.map{|x|game_struct.new(x.id,x.event_id)}
 
-      cusers = if events.empty? then [] else ContestUser.aggregate(fields:[:id],name:name,event_id:events.map{|x|x.id}) end
+      eids = (games_my.map(&:event_id) + games_op.map(&:event_id)).uniq
+      aggr_date = Event.where(id:eids)
+                        .select(
+                                 Sequel.function(:max,:date).as("max_date"),
+                                 Sequel.function(:min,:date).as("min_date")).first
+
+      event_all_q = Event.where(id:eids).order(Sequel.desc(:date))
+      event_q = event_all_q
+      # 勝ち数やポイントなどを集計する大会
+      if @json["span"] == "recent" then
+        event_q = event_q.limit(RESULT_RECORD_PER_PAGE)
+      end
+      events = event_q.all
+
+      cusers = if events.empty? then [] else ContestUser.where(name:name,event_id:events.map(&:id)).map(&:id) end
 
       if @json["no_aggr"] then
         prizes = []
         aggr = []
       else
         # 入賞
-        prizes = Hash[ContestPrize.all(contest_user_id:cusers).map{|x|
+        prizes = Hash[ContestPrize.where(contest_user_id:cusers).map{|x|
             [x.contest_class.event_id,x.select_attr(:prize,:point,:point_local,:promotion)]
         }]
 
@@ -70,17 +74,19 @@ class MainApp < Sinatra::Base
         }.map{|y,x|
           eids = x.map{|z|z.id}
           # 勝ち数負け数ポイント(味方として出場した場合)
-          r = ContestUser.aggregate(fields:[:win.sum,:lose.sum,:id.count,:point.sum,:point_local.sum],event_id:eids,id:cusers) || [0,0,0,0,0]
-          res = {year:y}
-          [:win,:lose,:count,:point,:point_local].each_with_index{|s,i|
-            res[s] = r[i] || 0
-          }
+          res = ContestUser.where(id:cusers,event_id:eids).select(
+            Sequel.function(:sum,:win).as("win"),
+            Sequel.function(:sum,:lose).as("lose"),
+            Sequel.function(:count,1).as("count"),
+            Sequel.function(:sum,:point).as("point"),
+            Sequel.function(:sum,:point_local).as("point_local")).first
+          res = res.to_hash.merge(year:y)
           if not games_op.empty? then
             # 勝ち数負け数(敵として出場した場合)
-            c = {event_id:eids,id:games_op.map{|z|z.id}}
-            res[:win] += ContestGame.all(c.merge({result: :lose})).count
-            res[:lose] += ContestGame.all(c.merge({result: :win})).count
-            res[:count] += ContestGame.all(c.merge({fields:[:event_id],unique:true})).size
+            c = {event_id:eids,id:games_op.map(&:id)}
+            res[:win] += ContestGame.where(c.merge({result: :lose})).count
+            res[:lose] += ContestGame.where(c.merge({result: :win})).count
+            res[:count] += ContestGame.where(c.merge({fields:[:event_id],unique:true})).size
           end
           res[:win_percent] = if res[:win]+res[:lose] == 0 then "0.0" else "%.1f"%((res[:win]/(res[:win]+res[:lose]).to_f)*100) end
           res[:prize_contests] = eids.select{|z|prizes.has_key?(z)}
@@ -89,18 +95,20 @@ class MainApp < Sinatra::Base
       end
       page = @json["page"] || 1
       # 詳細を表示する大会ID
-      chunks = events.chunks(RESULT_RECORD_PER_PAGE)
-      # chunks は Event.all()[0..10] のようにlimitを既にかけてるものでは使えない
+      chunks = event_all_q.each_page(RESULT_RECORD_PER_PAGE)
       if @json["span"] != "recent" then
         page_infos = chunks.map{|x|
-          z = repository(:default).adapter.select("SELECT MIN(date) as min_date, MAX(date) as max_date FROM (SELECT date FROM events WHERE id IN (#{x.map{|z|z.id}.join(',')})) t")[0]
-          z.min_date.strftime("%Y年%m月") + "-" + z.max_date.strftime("%Y年%m月")
+          z = DB.dataset.select(
+            Sequel.function(:min,:date).as("min_date"),
+            Sequel.function(:max,:date).as("max_date")
+          ).from(Event.select(:date).where(id:x.map(&:id))).first
+          z[:min_date].strftime("%Y年%m月") + "-" + z[:max_date].strftime("%Y年%m月")
         }
-        pages = chunks.size
+        pages = chunks.count
       else
         pages = 1
       end
-      event_details = chunks[page-1].map{|x|x.id}
+      event_details = event_all_q.paginate(page,RESULT_RECORD_PER_PAGE).map(&:id)
 
       # 入賞したことのある大会ID
       prize_events = aggr.map{|x|x[:prize_contests]}.flatten
@@ -119,8 +127,8 @@ class MainApp < Sinatra::Base
 
       # 級の名前と回戦の名前を取得(味方として出場した大会のみ)
 
-      clids = if eid_required.empty? or cusers.empty? then [] else ContestUser.aggregate(fields:[:contest_class_id],event_id:eid_required,id:cusers) end 
-      class_info = Hash[ContestClass.all(fields:[:event_id,:round_name,:class_name],id:clids).map{|c|
+      clids = if eid_required.empty? or cusers.empty? then [] else ContestUser.where(event_id:eid_required,id:cusers).map(&:contest_class_id) end 
+      class_info = Hash[ContestClass.where(id:clids).map{|c|
         r = c.select_attr(:class_name)
         # 空のとき c.round_name をそのまま返してしまうと後で更新するときに Immutable resources cannot be modified エラーが出る
         r[:round_name] = if c.round_name.empty? then {} else c.round_name end
@@ -133,12 +141,12 @@ class MainApp < Sinatra::Base
       my_belongs = {}
 
       # 詳細を取得
-      games = ContestGame.all(event_id:event_details,id:my_ids+op_ids).map{|x|
+      games = ContestGame.where(event_id:event_details,id:my_ids+op_ids).map{|x|
         is_op = op_ids.include?(x.id)
         res = {}
 
         # 相手の所属と級の情報
-        if x.type == :single then
+        if x.is_a?(ContestSingleGame) then
           res.merge!(x.select_attr(:round))
           if not class_info.has_key?(x.event_id)
             # class_infoには敵として出場した分は入っていないのでここで取得する
@@ -190,8 +198,8 @@ class MainApp < Sinatra::Base
 
       {
         name: name,
-        mindate: mindate,
-        maxdate: maxdate,
+        mindate: aggr_date[:min_date],
+        maxdate: aggr_date[:max_date],
         games: res_games,
         event_details: event_details,
         events: res_events,

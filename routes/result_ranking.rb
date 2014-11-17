@@ -22,53 +22,56 @@ class MainApp < Sinatra::Base
     end
     post '/search' do
       cond = {}
-      eventcond = {}
+      eventcond = []
       meta = {}
       if @json["start"].to_s.empty?.! then
         sdate = parse_month_date(@json["start"],false)
-        eventcond[:date.gte] = sdate
+        eventcond << Sequel.expr{ date >= sdate }
         meta[:start] = sdate
       end
       if @json["end"].to_s.empty?.! then
         edate = parse_month_date(@json["end"],true)
-        eventcond[:date.lte] = edate
+        eventcond << Sequel.expr{ date <= edate }
         meta[:end] = edate
       end
       meta[:filter] = @json["filter"]
       if @json["filter"] == "official" then
-        eventcond[:official] = true
+        eventcond << Sequel.expr(official:true)
       end
       if not eventcond.empty? then
-        cond[:event_id] = Event.all(eventcond.merge({fields:[:id]})).map{|x|x.id}
+        cond[:event_id] = Event.where(eventcond.inject(:&)).map(&:id)
       end
       if @json["filter"].to_s.empty?.! and @json["filter"] != "official" then
         cond[:class_rank] = @json["filter"].to_sym
       end
       data = {}
+      qbase = ContestUser.where(cond).distinct(:name)
       ["key1","key2"].each{|key|
         ll = case @json[key]
         when "win"
-          ContestUser.aggregate(cond.merge({fields:[:name,:win.sum],unique:true}))
+          qbase.select(:name,Sequel.function(:sum,:win).coalesce_0.as("val"))
         when "contest_num"
-          ContestUser.aggregate(cond.merge({fields:[:name,:id.count],unique:true}))
+          qbase.select(:name,Sequel.function(:count,1).as("val"),:name)
         when "win_percent"
-          ContestUser.aggregate(cond.merge({fields:[:name,:win.sum,:lose.sum],unique:true})).map{|name,win,lose|
-            w = win || 0
-            l = lose || 0
+          qbase.select(:name,
+                       Sequel.function(:sum,:win).coalesce_0.as("sum_win"),
+                       Sequel.function(:sum,:lose).coalesce_0.as("sum_lose")).map{|x|
+            w = x[:sum_win]
+            l = x[:sum_lose]
             percent = if w+l == 0 then 0 else ((w/(w+l).to_f)*100).to_i end
-            [name,percent]
+            {name:x.name,val:percent}
           }
         when "point"
-          ContestUser.aggregate(cond.merge({fields:[:name,:point.sum],unique:true}))
+          qbase.select(:name,Sequel.function(:sum,:point).coalesce_0.as("val"))
         when "point_local"
-          ContestUser.aggregate(cond.merge({fields:[:name,:point_local.sum],unique:true}))
+          qbase.select(:name,Sequel.function(:sum,:point_local).coalesce_0.as("val"))
         end
-        sum = ll.map{|x,y|y||0}.sum
+        sum = ll.map{|x|x[:val]}.sum
         meta[key] = {
           name: @json[key],
           sum: sum
         }
-        data[key] = Hash[ll.map{|x,y|[x,{key=>(y||0)}]}]
+        data[key] = Hash[ll.map{|x|[x[:name],{key=>x[:val]}]}]
       }
       ranking = data["key1"].merge(data["key2"]){|key,oldval,newval|
         oldval.merge(newval)
@@ -79,7 +82,7 @@ class MainApp < Sinatra::Base
     end
   end
   get '/result_ranking' do
-    @minyear = Event.aggregate(:date.min,kind:[:contest]).year
+    @minyear = Event.where(kind:Event.kind__contest).min(:date).year
     haml :result_ranking
   end
 end

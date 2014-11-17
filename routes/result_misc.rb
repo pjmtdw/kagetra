@@ -74,11 +74,11 @@ class MainApp < Sinatra::Base
           eids = x.map{|z|z.id}
           # 勝ち数負け数ポイント(味方として出場した場合)
           res = ContestUser.where(id:cusers,event_id:eids).select(
-            Sequel.function(:coalesce,Sequel.function(:sum,:win),0).as("win"),
-            Sequel.function(:coalesce,Sequel.function(:sum,:lose),0).as("lose"),
+            Sequel.function(:sum,:win).coalesce_0.as("win"),
+            Sequel.function(:sum,:lose).coalesce_0.as("lose"),
             Sequel.function(:count,1).as("count"),
-            Sequel.function(:coalesce,Sequel.function(:sum,:point),0).as("point"),
-            Sequel.function(:coalesce,Sequel.function(:sum,:point_local),0).as("point_local")).first
+            Sequel.function(:sum,:point).coalesce_0.as("point"),
+            Sequel.function(:sum,:point_local).coalesce_0.as("point_local")).first
           res = res.to_hash.merge(year:y)
           
 

@@ -24,6 +24,14 @@ require_relative 'sequel_helpers/serializers'
 Sequel::Plugins::Serialization.register_format(:hourmin,*Kagetra::serialize_hourmin)
 
 module Sequel
+  module SQL
+    class Function
+      # SQLのSUM()はデフォルトでは0を返してくれない
+      def coalesce_0
+        Sequel.function(:coalesce,self,0)
+      end
+    end
+  end
   class Dataset
     def find_or_create(vals,id_column)
       # Sequel::Model には find_or_create があるけど Dataset の方にはないので自分で定義

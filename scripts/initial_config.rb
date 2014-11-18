@@ -1,5 +1,23 @@
 #!/usr/bin/env ruby
-require './init'
+begin
+  require './init'
+rescue Sequel::DatabaseConnectionError => e
+  puts "DatabaseConnectionError: #{e.message}"
+  exit
+end
+
+begin
+  # try query
+  User.first
+rescue Sequel::DatabaseError => e
+  puts "no table found. executing migration."
+  # exec migrate
+  Sequel.extension :migration, :core_extensions
+  Sequel::Migrator.apply(DB, "migrate", 9)
+  puts "migration done. re-execute this script!"
+  exit
+end
+
 require 'io/console'
 pass1 = nil
 $stdin.noecho{|stdin|
@@ -33,8 +51,9 @@ DB.transaction{
     }
     puts "created user attributes"
   end
-  if User.first(name: "admin").nil? then
-    User.create(name: "admin", furigana: "admin",password_hash: hash[:hash], password_salt: hash[:salt], admin: true)
+  admin = User.first(name: "admin")
+  if admin.nil? then
+    admin = User.create(name: "admin", furigana: "admin",password_hash: hash[:hash], password_salt: hash[:salt], admin: true)
     puts "created user 'admin' and set password to shared password "
   end
   User.where(password_hash: nil).each{|user|
@@ -42,5 +61,6 @@ DB.transaction{
     puts "setting password of #{user.name}"
     user.update(password_hash: hash[:hash], password_salt: hash[:salt])
   }
-  puts "updated all users which password is empty to shared password"
+  puts "updated password of all users which password is empty to shared password"
+  WikiItem.create(title:"Home",body:"This is home page of this wiki",revision:1,owner_id:admin.id)
 }

@@ -156,7 +156,7 @@ class UserAttributeValue < Sequel::Model(:user_attribute_values)
   def after_save
     super
     if self.default then
-      self.attr_key.attr_values_dataset.where(default:true).where(Sequel.~(id:self.id)).update!(default:false)
+      self.attr_key.attr_values_dataset.where(default:true).where(Sequel.~(id:self.id)).each{|x|x.update!(default:false)}
     end
   end
   # 少なくとも一つはデフォルトがなくてはならない

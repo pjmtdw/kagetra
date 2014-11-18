@@ -19,6 +19,12 @@ Meta JavaScript:        CoffeeScript
 JavaScript Library:     bower, jQuery, underscore.js, Backbone.js, RequireJS
 Web UI Library:         Zurb Foundation 4
 
+[Howto Create DB Data]
+  $ cp conf.rb.sample conf.rb
+  $ vim conf.rb  # edit it
+  $ echo "create database kagtera" | mysql
+  $ bundle exec ./scripts/initial_config.rb
+
 [Howto Run]
 (0) Prepare Ruby environment
 for Ubuntu 14.04 -> 
@@ -43,20 +49,16 @@ for Ubuntu 14.04 ->
   $ cd kagetra && bundle exec rackup
 
 [For Production]
-(1) Compile Sass to CSS
-  $ bundle exec compass compile
-(2) Set shared password
-  $ bundle exec ./scripts/shared_password.rb
-(3) Compile & Optimize Sass and CoffeeScripts
+(1) Compile & Optimize Sass and CoffeeScripts
   $ npm install requirejs coffee-script
   $ cd deploy && make
   now public/css and public/js files are generated
-(4) Setup nginx
+(2) Setup nginx
   $ apt-get install nginx
   $ cp ./deploy/nginx.site.example /etc/nginx/sites-available/kagetra
   edit /etc/nginx/sites-available/kagetra and set proper path
   $ ln -s /etc/nginx/sites-available/kagetra /etc/nginx/sites-enabled/
-(5) Start unicorn and nginx
+(3) Start unicorn and nginx
   $ service start nginx
   $ ./scripts/unicorn_ctl.sh start
 

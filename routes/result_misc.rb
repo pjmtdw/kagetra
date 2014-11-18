@@ -16,9 +16,9 @@ class MainApp < Sinatra::Base
     post '/search_name' do
       query = "%#{params[:q]}%"
       list1 = ContestUser.where(Sequel.like(:name,query)).limit(RESULT_SEARCH_NAME_LIMIT/2)
-        .select(Sequel.function(:count,1).as("count"),:name).order(Sequel.desc(:count)).group(:name).map(&:name)
+        .group_and_count(:name).order(Sequel.desc(:count)).map(&:name)
       list2 = ContestGame.where(Sequel.like(:opponent_name,query)).limit(RESULT_SEARCH_NAME_LIMIT/2)
-        .select(Sequel.function(:count,1).as("count"),:opponent_name).order(Sequel.desc(:count)).group(:opponent_name).map(&:opponent_name)
+        .group_and_count(:opponent_name).order(Sequel.desc(:count)).map(&:opponent_name)
       results = (list1+list2).uniq
       {results:results}
 

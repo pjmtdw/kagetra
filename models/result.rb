@@ -61,8 +61,10 @@ class ContestResultCache < Sequel::Model(:contest_result_caches)
     self.update(prizes:prz)
   end
   def update_winlose
-    (w,l) = self.event.result_users.aggregate(:win.sum,:lose.sum)
-    self.update(win:w,lose:l)
+    x = self.event.result_users_dataset.select(
+      Sequel.function(:sum,:win).as("sum_win"),Sequel.function(:sum,:lose).as("sum_lose")
+    ).first
+    self.update(win:x[:sum_win],lose:x[:sum_lose])
   end
 end
 
@@ -154,7 +156,7 @@ end
 class ContestGame < Sequel::Model(:contest_games)
   plugin :input_transformer_custom
   plugin :single_table_inheritance, :type, model_map:{'single'=>:ContestSingleGame, 'team'=>:ContestTeamGame}
-  set_allowed_columns :type, :event_id, :contest_user_id, :result, :score_str, :score_int, :comment, :oppnent_name, :opponent_belongs
+  set_allowed_columns :type, :event_id, :contest_user_id, :result, :score_str, :score_int, :comment, :opponent_name, :opponent_belongs
   many_to_one :event
   many_to_one :contest_user
   add_input_transformer_custom(:opponent_name,:opponent_belongs){|v|v.gsub(/\s+/,"")}
@@ -170,7 +172,8 @@ class ContestGame < Sequel::Model(:contest_games)
   def after_save
     u = self.contest_user
     updates = Hash[[:win,:lose].map{|sym|
-      [sym,u.games_dataset.where(result:sym).count]
+      s = self.class.serialization_map[:result].call(sym)
+      [sym,u.games_dataset.where(result:s).count]
     }]
     u.update(updates)
     u.event.update_cache_winlose

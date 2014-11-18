@@ -34,9 +34,13 @@ module Sequel
       end
       module InstanceMethods
         def []=(k,v)
-          model.input_transformer_customs[k].each{|block|
-            block.call(v)
-          }
+          f = model.input_transformer_customs[k]
+          if f then
+            f.each{|block|
+              v = block.call(v)
+            }
+          end
+          super
         end
       end
     end

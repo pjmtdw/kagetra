@@ -397,10 +397,10 @@ class MainApp < Sinatra::Base
             end
             klass.save
             condbase = {
-                     type: :single,
                      contest_class_id: klass.id,
                      round: round
                    }
+            gameclass = ContestSingleGame
           else
             # 団体戦
             fields << "opponent_order"
@@ -416,17 +416,17 @@ class MainApp < Sinatra::Base
                 {contest_team_id:team.id,round:round},
                 {name: opname,round_name: rname ,kind: rkind})
               condbase = {
-                       type: :team,
                        contest_team_opponent_id: op_team.id,
                      }
+              gameclass = ContestTeamGame
             end
           end
           @json["results"].each{|x|
             cond = condbase.merge({contest_user_id: x["cuid"]})
             if x["result"].to_s.empty? then
-              ContestGame.first(cond).tap{|y|if y then y.destroy() end}
+              gameclass.first(cond).tap{|y|if y then y.destroy() end}
             else
-              ContestGame.update_or_create(
+              gameclass.update_or_create(
                 cond,
                 x.select_attr(*fields)
               )
@@ -439,7 +439,7 @@ class MainApp < Sinatra::Base
                      get_klass_rounds(klass)
                     end
           {
-            results: Hash[ContestGame.all(condbase.merge({fields:["contest_user_id"]+fields})).map{|x|[x.contest_user_id,x.select_attr(*fields)]}],
+            results: Hash[gameclass.where(condbase).map{|x|[x.contest_user_id,x.select_attr(*fields)]}],
             rounds: rounds
           }
         }

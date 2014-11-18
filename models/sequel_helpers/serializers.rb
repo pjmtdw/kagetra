@@ -14,6 +14,7 @@ module Sequel
           }
         end
         # update や create に渡せるようにデシリアライズする
+        # 深さ1までなので注意
         def make_deserialized_data(data)
           data.map{|k,v|
             s = k.to_sym
@@ -29,6 +30,7 @@ module Sequel
           self.to_deserialized_hash(*args)
         end
         def to_deserialized_hash(*args)
+          args = args.map{|x|x.to_sym}
           self.class.serialized_columns.each{|c|
             # デシリアライズする 
             self.send(c)

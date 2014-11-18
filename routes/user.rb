@@ -63,7 +63,7 @@ class MainApp < Sinatra::Base
     post '/change_password' do
       up = {password_hash: params[:hash], password_salt: params[:salt]}
       if params[:uids]
-        User.all(id:params[:uids].map{|x|x.to_i}).update(up)
+        User.where(id:params[:uids].map(&:to_i)).each{|x|x.update(up)}
       else
         @user.update(up)
       end
@@ -91,8 +91,7 @@ class MainApp < Sinatra::Base
       }
     end
     delete '/delete_users' do
-      # destroyだと関連するモデルを全部削除しないといけないのでフラグ立てるだけ
-      User.all(id:@json["uids"].map{|x|x.to_i}).update!(deleted:true)
+      User.where(id:@json["uids"].map(&:to_i)).each(&:destroy)
     end
     post '/create_users' do
       DB.transaction{

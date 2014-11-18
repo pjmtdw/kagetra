@@ -6,20 +6,20 @@ class MainApp < Sinatra::Base
     end
     get '/list' do
       user_attrs = Hash[
-        UserAttribute.aggregate(fields:[:user_id,:value_id])
-        .group_by{|x| x[0]}.map{|xs|[xs[0],xs[1].map{|x|x[1]}]}]
-      attr_values = Hash[UserAttributeValue.all
-        .map{|x| [x.id, x.select_attr(:index,:value,:default).merge({key_id:x.attr_key.id})]}]
-      key_names = UserAttributeKey.all(order: [:index.asc]).map{|x|[x.id,x.name]}
-      key_values = Hash[UserAttributeKey.all.map{|x|[x.id,x.values.map{|v|v.id}]}]
+        UserAttribute.all
+        .group_by(&:user_id).map{|xs|[xs[0],xs[1].map(&:value_id)]}]
+      attr_values = Hash[UserAttributeValue.map{|x| [x.id, x.select_attr(:index,:value,:default).merge({key_id:x.attr_key_id})]}]
+      key_names = UserAttributeKey.order(Sequel.asc(:index)).map{|x|[x.id,x.name]}
+      
+      key_values = Hash[UserAttributeKey.map{|x|[x.id,x.attr_values_dataset.map(&:id)]}]
 
-      values_indexes = Hash[UserAttributeValue.all.map{|x|[x.id,x.attr_key.index]}]
+      values_indexes = UserAttributeValue.join(UserAttributeKey,id: :attr_key_id).select(:user_attribute_keys__index,:user_attribute_values__id).to_hash(:id,:index)
 
-      login_latests = Hash[UserLoginLatest.all(fields:[:user_id,:updated_at]).map{|x|
+      login_latests = Hash[UserLoginLatest.map{|x|
         [x.user_id,x.updated_at.to_date]
       }]
       fields = [:id,:name,:furigana,:admin,:loginable,:permission]
-      list = User.all(fields:fields,order:[:furigana.asc]).map{|u|
+      list = User.order(Sequel.asc(:furigana)).map{|u|
         r = u.select_attr(*fields)
         r[:login_latest] = login_latests[u.id]
         a = user_attrs[u.id].sort_by{|x|values_indexes[x]} if user_attrs[u.id]
@@ -34,22 +34,32 @@ class MainApp < Sinatra::Base
       }
     end
     post '/permission' do
-      is_add = (@json["mode"] == "add")
-      sym = @json["type"].to_sym
-      users = User.all(id: @json["uids"])
-      case @json["type"]
-      when "admin","loginable" then
-        change_admin_or_loginable(is_add,sym,users)
-      else
-        change_permission(is_add,sym,users)
-      end
+      dm_response{
+        DB.transaction{
+          is_add = (@json["mode"] == "add")
+          sym = @json["type"].to_sym
+          users = User.where(id: @json["uids"])
+          case @json["type"]
+          when "admin","loginable" then
+            change_admin_or_loginable(is_add,sym,users)
+          else
+            change_permission(is_add,sym,users)
+          end
+        }
+      }
+      []
     end
 
     post '/change_attr' do
-      users = User.all(id: @json["uids"])
+      users = User.where(id: @json["uids"])
       dm_response{
-        users.map{|u|u.attrs.create(value_id:@json["value"].to_i)}
+        DB.transaction{
+          # UserAttribute.after_save の中で一つの属性valueしか持たないことを保証してくれてるからcreateするだけでいい
+          # TODO: createするだけで良いというのは仕様上分かりにくいのでどうにかする
+          users.map{|u|UserAttribute.create(user:u,value_id:@json["value"].to_i)}
+        }
       }
+      []
     end
     post '/apply_edit' do
       DB.transaction{
@@ -81,7 +91,7 @@ class MainApp < Sinatra::Base
           else
             k = UserAttributeKey[x["key_id"]]
             if x["deleted"] then
-              UserAttribute.all(value:k.values).destroy
+              UserAttribute.where(value:k.values).each(&:destroy)
               k.values.each{|y|y.destroy}
               k.destroy
               next
@@ -92,20 +102,24 @@ class MainApp < Sinatra::Base
           x["list"].each_with_index{|y,i|
             if y["value_id"] == "new" then
               next if y["deleted"]
-              c = k.values.create(value:y["value"],index:i,default:y["default"])
+              c = UserAttributeValue.create(attr_key:k,value:y["value"],index:i,default:y["default"])
             elsif y["deleted"] then
               next if y["default"]
-              UserAttribute.all(value_id:y["value_id"]).update!(value_id:k.values.first(default:true).id)
-              k.values.get(y["value_id"]).destroy
+              default_id = k.attr_values_dataset.where(default:true).first.id
+              # 削除する属性を持つユーザの値はデフォルト値に変更する
+              UserAttribute.where(value_id:y["value_id"]).each{|x|
+                x.update!(value_id:default_id)
+              }
+              k.attr_values_dataset[y["value_id"]].destroy
             else
-              k.values.get(y["value_id"]).update(index:i,default:y["default"])
+              k.attr_values_dataset[y["value_id"]].update(index:i,default:y["default"])
             end
           }
         }
         created_keys.each{|k|
-          d = k.values.first(default:true)
-          User.all.each{|u|
-            u.attrs.create(value:d)
+          d = k.attr_values_dataset.first(default:true)
+          User.each{|u|
+            UserAttribute.create(user:u,value:d)
           }
         }
       }
@@ -126,9 +140,9 @@ class MainApp < Sinatra::Base
       }
     end
     get '/attrs' do
-      list = UserAttributeKey.all(:index.gte => 1,order:[:index.asc]).map{|x|
+      list = UserAttributeKey.order(Sequel.asc(:index)).where{index >= 1}.map{|x|
         x.select_attr(:id,:name).merge({
-          values: x.values.all(order:[:index.asc]).map{|v|
+          values: x.attr_values_dataset.order(Sequel.asc(:index)).map{|v|
             v.select_attr(:id,:value,:default)
           }
         })

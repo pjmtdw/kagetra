@@ -38,11 +38,14 @@ define ->
         data: JSON.stringify(list:ar)
         contentType: "application/json"
         type: "POST")
-      .done(->
-        alert("編集しました")
-        button.toggleBtnText()
-        that.is_applying = false
-        that.model.fetch()
+      .done((data)->
+        if data._error_
+          alert(data._error_)
+        else
+          alert("編集しました")
+          button.toggleBtnText()
+          that.is_applying = false
+          that.model.fetch()
       )
 
     add_key: (ev) ->

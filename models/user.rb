@@ -127,10 +127,10 @@ end
 class UserAttribute < Sequel::Model(:user_attributes)
   many_to_one :user
   many_to_one :value, class:'UserAttributeValue'
-  def before_save
-    #一人のユーザは各属性keyにつき一つの属性valueしか持てない
+  def after_save
+    #一人のユーザは各属性keyにつき一つの属性valueしか持たないことを保証する
     values = self.value.attr_key.attr_values
-    self.user.attrs_dataset.where(attar_value: values).destroy
+    self.user.attrs_dataset.where(value: values).where(Sequel.~(id:self.id)).each(&:destroy)
   end
 end
 

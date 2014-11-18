@@ -99,10 +99,13 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
           data: elog
           contentType: "application/json"
           type: "POST")
-        aj.done( ->
-          alert("反映完了")
-          @edit_log = []
-          $("#edit-log-count").text(@edit_log.length)
+        aj.done( (data) ->
+          if data._error_?
+            alert(data._error_)
+          else
+            alert("反映完了")
+            @edit_log = []
+            $("#edit-log-count").text(@edit_log.length)
         )
     undo_last_edit: ->
       @edit_log.pop()
@@ -271,7 +274,7 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
       $.ajax("api/user/delete_users",
         data: JSON.stringify(uids: uids)
         contentType: "application/json"
-        type: "DELETE").done( -> alert("削除完了"))
+        type: "DELETE").done( (data) -> if data._error_? then alert(data._error_) else alert("削除完了"))
     get_uids: ->
       return (x.get("id") for x in @collection.models when x.get("selected"))
     change_attr: (ev)->
@@ -281,7 +284,7 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
                 uids: uids
                 value: @$el.find(".attr-value-names").val())
         contentType: "application/json"
-        type: "POST").done( -> alert("更新完了"))
+        type: "POST").done( (data) -> if data._error_? then alert(data._error_) else alert("更新完了"))
     change_passwd: (ev)->
       uids = @get_uids()
       el = @$el
@@ -308,7 +311,7 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
                 uids: uids
                 type: $("#permission-name").val())
         contentType: "application/json"
-        type: "POST").done( -> alert("更新完了"))
+        type: "POST").done( (data) -> if data._error_? then alert(data._error_) else alert("更新完了"))
 
     template: _.template($("#templ-admin-edit").html())
     initialize: -> @render()
@@ -331,7 +334,7 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
       $.ajax("api/user/create_users",
         data: JSON.stringify({list:list})
         contentType: "application/json"
-        type: "POST").done( -> alert("追加完了"))
+        type: "POST").done( (data) -> if data._error_? then alert(data._error_) else alert("追加完了"))
     initialize: ->
       @collection = @options.collection
       @render()

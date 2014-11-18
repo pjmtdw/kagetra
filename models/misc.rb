@@ -77,7 +77,7 @@ module CommentBase
         # コメント数の更新
         th = self.thread
         th.update(comment_count: th.comments_dataset.count,
-                  last_comment_user_id: self.user.id,
+                  last_comment_user_id: self.user && self.user.id,
                   last_comment_date: self.created_at)
         original_commentbase_after_create.bind(self).()
       }

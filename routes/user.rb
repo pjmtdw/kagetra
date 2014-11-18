@@ -100,11 +100,11 @@ class MainApp < Sinatra::Base
         @json["list"].each{|x|
           u = User.create(name:x["name"],furigana:x["furigana"],password_hash:hash,password_salt:salt)
           # 同名のユーザがあったらuser_idを関連付ける
-          EventUserChoice.all(user_name:u.name,user_id:nil).update(user_id:u.id)
-          ContestUser.all(name:u.name,user_id:nil).update(user_id:u.id)
+          EventUserChoice.where(user_name:u.name,user_id:nil).each{|x|x.update(user_id:u.id)}
+          ContestUser.where(name:u.name,user_id:nil).each{|x|x.update(user_id:u.id)}
           x.each{|k,v|
             next unless k.start_with?("attr_")
-            u.attrs.create(value:UserAttributeValue[v.to_i])
+            UserAttribute.create(user:u,value:UserAttributeValue[v.to_i])
           }
         }
       }
@@ -115,21 +115,21 @@ class MainApp < Sinatra::Base
         @json["values"].each{|v|
           new_value = UserAttributeValue[v.to_i]
           key = new_value.attr_key
-          cur_value = u.attrs.first(value:key.values).value
-          u.attrs.create(value_id:v.to_i)
-          Event.all(done:false).choices.user_choices(user:u,attr_value:cur_value).each{|choice|
+          cur_value = u.attrs_dataset.first(value_id:key.attr_values.map(&:id)).value
+          UserAttribute.create(user:u,value_id:v.to_i)
+          EventUserChoice.where(event_choice:Event.where(done:false).map(&:choices).flatten,user:u,attr_value:cur_value).each{|choice|
             ev_choice = choice.event_choice
             ev = ev_choice.event
             promotion_event = Event[params[:promotion_event].to_i]
             if ev.forbidden_attrs.include?(v.to_i) then
               choice.destroy
               if ev_choice.positive then
-                ev.comments.create(user_name:"ロビタ",body:"#{u.name}さんが#{promotion_event.name}で昇級して参加不能属性になったので登録を取り消しました。")
+                EventComment.create(thread:ev,user_name:"ロビタ",body:"#{u.name}さんが#{promotion_event.name}で昇級して参加不能属性になったので登録を取り消しました。")
               end
             else
-              ev_choice.user_choices.create(user:u)
+              EventUserChoice.create(user:u,event_choice:ev_choice)
               if ev_choice.positive then
-                ev.comments.create(user_name:"ロビタ",body:"#{u.name}さんが#{promotion_event.name}で昇級したので#{cur_value.value}から#{new_value.value}に登録変更しました。")
+                EventComment.create(thread:ev,user_name:"ロビタ",body:"#{u.name}さんが#{promotion_event.name}で昇級したので#{cur_value.value}から#{new_value.value}に登録変更しました。")
               end
             end
           }

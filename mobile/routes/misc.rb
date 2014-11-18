@@ -92,7 +92,7 @@ class MainApp < Sinatra::Base
       elsif params[:password].empty? then
         @message = "パスワードが空白です"
       else
-        users = User.all(:furigana.like => "#{furigana}%")
+        users = User.where(Sequel.like(:furigana,"#{furigana}%"))
         count = users.count
         if count == 0
           @message = "該当するユーザはいません"

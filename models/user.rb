@@ -63,8 +63,8 @@ class User < Sequel::Model(:users)
   end
   def after_create
     super
-    UserAttributeValue.all(default:true).each{|v|
-      self.attrs.create(value:v)
+    UserAttributeValue.where(default:true).each{|v|
+      UserAttribute.create(value:v,user:self)
     }
   end
   def before_save

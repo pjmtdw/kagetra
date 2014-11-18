@@ -44,7 +44,7 @@ class ContestResultCache < Sequel::Model(:contest_result_caches)
   plugin :serialization, :json, :prizes
   def update_prizes
     ev = self.event
-    prz = ev.result_classes.all(order:[:index.asc]).map{|c|
+    prz = ev.result_classes_dataset.order(Sequel.asc(:index)).map{|c|
       r = if ev.team_size > 1 then
             c.teams.map{|t|
               if t.prize.nil?.! then
@@ -52,7 +52,7 @@ class ContestResultCache < Sequel::Model(:contest_result_caches)
               end
             }.compact
           else [] end
-      r + c.prizes.all(order:[:rank.asc]).map{|x|
+      r + c.prizes_dataset.order(Sequel.asc(:rank)).map{|x|
         p = x.select_attr(:prize,:point,:point_local,:promotion)
         cuser = x.contest_user
         p.merge!({type: :person,name:cuser.name,user_id:cuser.user_id,class_name:c.class_name})
@@ -119,18 +119,21 @@ class ContestPrize < Sequel::Model(:contest_prizes)
   def save_promotion_cache
     event = self.contest_class.event
     user_name = self.contest_user.name
-    contest_users = ContestUser.all(name:user_name)
-    promotions = ContestPrize.all(contest_user_id:contest_users.map{|x|x.id},promotion: :rank_up)
-    prev_promotion = promotions.map{|x|x.contest_class.event}.select{|x|x.date < event.date}.sort_by{|x|x.date}.last
-    cond = if prev_promotion.nil? then {} else {:date.gt => prev_promotion.date} end
-    debut_date = Event.all(cond.merge(id:contest_users.map{|x|x.event_id},kind: :contest,order: [:date.asc])).first.date
+    contest_users = ContestUser.where(name:user_name)
+    promotions = ContestPrize.where(contest_user_id:contest_users.map(&:id),promotion: ContestPrize.promotion__rank_up)
+    prev_promotion = promotions.map{|x|x.contest_class.event}.select{|x|x.date < event.date}.sort_by(&:date).last
+    query_base = Event.where(kind:Event.kind__contest,id:contest_users.map(&:event_id)).order(Sequel.asc(:date))
+    if prev_promotion.nil?.! then
+      query_base = query_base.where{ date > prev_promotion.date}
+    end
+    debut_date = query_base.first.date
 
     # 東京都大会のように非公認大会であっても昇級できる大会もあるのでその分を考慮
-    contests = Event.all(id:contest_users.map{|x|x.event_id},kind: :contest,official:true,team_size:1,:date.gte => debut_date, :date.lt => event.date).count + 1
+    contests = Event.where(id:contest_users.map(&:event_id),kind: Event.kind__contest,official:true,team_size:1).where{ (date >= debut_date) & (date < event.date) }.count + 1
     class_rank = self.contest_class.class_rank || Kagetra::Utils.class_from_name(self.contest_class.class_name)
 
     a_champ_count = if self.promotion == :a_champ then
-      ContestPrize.all(contest_user_id:contest_users.map{|x|x.id},promotion: :a_champ).map{|x|x.contest_class.event}.select{|x|x.date < event.date}.size + 1
+      ContestPrize.where(contest_user_id:contest_users.map(&:id),promotion: ContestPrize.promotion__a_champ).map{|x|x.contest_class.event}.select{|x|x.date < event.date}.size + 1
     end
 
     data = {
@@ -147,9 +150,7 @@ class ContestPrize < Sequel::Model(:contest_prizes)
       class_rank: class_rank,
       a_champ_count: a_champ_count
     }
-    dm_response{
-      ContestPromotionCache.update_or_create({contest_prize_id:self.id},data)
-    }
+    ContestPromotionCache.update_or_create({contest_prize_id:self.id},data)
   end
 end
 
@@ -211,6 +212,7 @@ end
 
 # どのチームがどの級に出場しているか(団体戦)
 class ContestTeam < Sequel::Model(:contest_teams)
+  serialize_attributes Kagetra::serialize_enum([:rank_up, :rank_down]), :promotion # 昇級, 陥落
   many_to_one :contest_class
   one_to_many :members, class:'ContestTeamMember'
   one_to_many :opponents, class:'ContestTeamOpponent'

@@ -321,7 +321,6 @@ define (require,exports,module) ->
               delete r.prize
           that.do_after_apply?(result,data)
           window.result_view.refresh_chunk(cindex)
-
       )
     initialize: -> @render()
     render: ->
@@ -412,9 +411,12 @@ define (require,exports,module) ->
       "click .move-player" : "move_player"
     apply_edit: ->
       that = this
-      @model.save().done(->
-        window.result_view.collection.fetch()
-        $("#container-result-edit").foundation("reveal","close")
+      @model.save().done((data)->
+        if data._error_?
+          alert(data._error_)
+        else
+          window.result_view.collection.fetch()
+          $("#container-result-edit").foundation("reveal","close")
       )
     get_checked: ->
       $.makeArray(@$el.find("form :checked").map(->$(@).data("id")))

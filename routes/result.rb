@@ -255,23 +255,23 @@ class MainApp < Sinatra::Base
     end
     get '/players/:id' do
       ev = Event[params[:id].to_i]
-      cc = ev.result_classes.all(order:[:index.asc])
+      cc = ev.result_classes_dataset.order(Sequel.asc(:index))
       classes = cc.map{|x|[x.id,x.class_name]}
-      users = Hash[ev.result_users.map{|x|[x.id,x.name]}]
+      users = ev.result_users_dataset.to_hash(:id,:name)
       # 個人戦の場合は自由に移動できる
       not_movable = Hash[ev.result_users.map{|x|[x.id,ev.team_size > 1 && x.games.empty?.!]}]
       base = {users:users,classes:classes,not_movable:not_movable}
       if ev.team_size == 1 then
-        user_classes = Hash[cc.map{|x|[x.id,x.users.map{|y|y.id}]}]
+        user_classes = Hash[cc.map{|x|[x.id,x.users.map(&:id)]}]
         base.merge({user_classes:user_classes})
       else
-        tt = cc.teams
+        tt = cc.map(&:teams).flatten
         teams = Hash[tt.map{|x|[x.id,x.name]}]
-        team_classes = Hash[cc.map{|x|[x.id,x.teams.map{|y|y.id}]}]
-        user_teams = Hash[tt.map{|x|[x.id,x.members.all(order:[:order_num.asc]).map{|y|y.contest_user_id}]}]
+        team_classes = Hash[cc.map{|x|[x.id,x.teams.map(&:id)]}]
+        user_teams = Hash[tt.map{|x|[x.id,x.members_dataset.order(Sequel.asc(:order_num)).map(&:contest_user_id)]}]
         # どのチームにも所属していない選手
         uu = user_teams.map{|x,y|y}.flatten
-        neutral = Hash[cc.map{|x|[x.id,x.users.map{|y|y.id}-uu]}]
+        neutral = Hash[cc.map{|x|[x.id,x.users.map(&:id)-uu]}]
         base.merge({teams:teams,team_classes:team_classes,user_teams:user_teams,neutral:neutral})
       end
     end
@@ -294,7 +294,7 @@ class MainApp < Sinatra::Base
           u = ContestUser[k]
           u.update(contest_class:klass)
           if ev.team_size == 1 then
-            u.games.update(contest_class_id:klass.id)
+            u.games.each{|x|x.update(contest_class_id:klass.id)}
           end
           if u.prize then
             u.prize.update(contest_class_id:klass.id)
@@ -341,14 +341,13 @@ class MainApp < Sinatra::Base
                         t.update(contest_class_id:klass.id)
                         t
                       end
-              team.members.destroy
+              team.members.each(&:destroy)
               members.to_enum.with_index(1){|uid,i|
                 if uid.to_s.start_with?("new_")
                   uid = new_ids[uid]
                 end
-                team.members << ContestTeamMember.new(contest_user_id:uid,contest_team_id:team.id,order_num:i)
+                ContestTeamMember.create(contest_team:team,contest_user_id:uid,order_num:i)
               }
-              team.save
             }
             @json["deleted_teams"].each{|x|
               t = ContestTeam[x]

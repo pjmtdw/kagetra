@@ -56,8 +56,8 @@ Sequel.migration do
     
     create_table_custom(:contest_games,[:base],comment:"大会の試合結果") do
       String :type, size:8, null:false, comment:"single:個人戦, team:団体戦"
-      foreign_key :event_id, :events, null:false
-      foreign_key :contest_user_id, :contest_users, null:false
+      foreign_key :event_id, :events, null:false, on_delete: :cascade
+      foreign_key :contest_user_id, :contest_users, null:false, on_delete: :cascade
       Integer :result, null:false, comment:"勝敗 => 1:対戦中,2:勝ち,3:負け,4:不戦勝"
       String :score_str, size:8, comment:"枚数(文字),'棄'とか'3+1'とかあるので文字列を用意しておく"
       Integer :score_int, index:true, comment:"score_strをintとしてparseしたもの"

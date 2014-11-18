@@ -83,7 +83,7 @@ module MiscHelpers
     # sqrtの重み付け
     # 以下の方法はメモリを多少多めに利用するが
     # AlbumGroupの数は多くても数千，重みの最大は精々10程度で平均3ぐらいなので多分大丈夫
-    ag = AlbumGroup.all(:daily_choose_count.gt => 0).map{|ag|
+    ag = AlbumGroup.where{ daily_choose_count > 0}.map{|ag|
       w = Math.sqrt(ag.daily_choose_count).to_i
       [ag] * w
     }.flatten.sample
@@ -93,38 +93,36 @@ module MiscHelpers
   end
 
   def update_event_done_flag
-    dm_response{
-      events = Event.all(:date.lte => Date.today, done:false)
-      (events & Event.all(kind: :contest)).each{|ev|
-        # ContestUser と ContestClass を作る
-        value2klass = {}
-        ev.aggregate_attr.values.each{|v|
-          next if ev.forbidden_attrs.include?(v.id)
-          value2klass[v.id] = ContestClass.create(event_id:ev.id,class_name:v.value,index:v.index)
-        }
-        ev.choices.all(positive: true).each{|c|
-          c.user_choices.each{|uc|
-            av = uc.attr_value
-            next if av.nil?
-            klass = value2klass[av.id]
-            next if klass.nil?
-            ContestUser.create(event_id:ev.id,contest_class_id:klass.id,user:uc.user,name:uc.user_name)
-          }
+    events = Event.where(done:false).where{ date <= Date.today }
+    events.where(kind: Event.kind__contest).each{|ev|
+      # ContestUser と ContestClass を作る
+      value2klass = {}
+      ev.aggregate_attr.attr_values.each{|v|
+        next if ev.forbidden_attrs.include?(v.id)
+        value2klass[v.id] = ContestClass.create(event_id:ev.id,class_name:v.value,index:v.index)
+      }
+      ev.choices_dataset.where(positive: true).each{|c|
+        c.user_choices.each{|uc|
+          av = uc.attr_value
+          next if av.nil?
+          klass = value2klass[av.id]
+          next if klass.nil?
+          ContestUser.create(event_id:ev.id,contest_class_id:klass.id,user:uc.user,name:uc.user_name)
         }
       }
-      events.update(done: true)
     }
+    events.each{|x|x.update(done: true)}
   end
 
 
   def invalidate_expired_token
-    User.all(:token_expire.lt => DateTime.now).update(token:nil,token_expire:nil)
+    User.where{ token_expire < DateTime.now}.each{|x|x.update(token:nil,token_expire:nil)}
   end
 
   # 古いログイン履歴を削除
   def clean_login_log
     day_from = Date.today - G_LOGIN_LOG_DAYS
-    UserLoginLog.all(:created_at.lt => day_from).destroy
+    UserLoginLog.where{ created_at < day_from}.destroy
   end
   DAILY_JOB_KEY = "daily_job"
   DAILY_ALBUM_PHOTO_KEY = "daily_album_photo"

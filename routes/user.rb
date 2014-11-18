@@ -4,9 +4,8 @@ class MainApp < Sinatra::Base
     def login_jobs(user)
       uid = user.id
       user.update_login(request)
-      # TODO: implement exec_*_job
-      #exec_daily_job
-      #exec_monthly_job
+      exec_daily_job
+      exec_monthly_job
       session[:user_id] = uid
       session[:user_token] = user.token
       set_permanent("uid",uid)

@@ -130,7 +130,7 @@ class UserAttribute < Sequel::Model(:user_attributes)
   def after_save
     #一人のユーザは各属性keyにつき一つの属性valueしか持たないことを保証する
     values = self.value.attr_key.attr_values
-    self.user.attrs_dataset.where(value: values).where(Sequel.~(id:self.id)).each(&:destroy)
+    self.user.attrs_dataset.where(value: values).where(Sequel.~(id:self.id)).destroy
   end
 end
 
@@ -142,23 +142,22 @@ end
 class UserAttributeValue < Sequel::Model(:user_attribute_values)
   many_to_one :attr_key, class:'UserAttributeKey', key: :attr_key_id
   one_to_many :user_attributes, key: :value_id
-  # TODO: implement the following
   # デフォルトは必ず一つ必要
-  #def before_create
-  #  if self.attr_key.attr_values_dataset.where(default:true).count == 0 then
-  #    self.default = true
-  #  end
-  #end
+  def before_create
+    if self.attr_key.attr_values_dataset.where(default:true).count == 0 then
+      self.default = true
+    end
+  end
   # デフォルトが二つあってはいけない
-  #def after_save
-  #  if self.default then
-  #    self.attr_key.attr_values(default:true,:id.not => self.id).update!(default:false)
-  #  end
-  #end
+  def after_save
+    if self.default then
+      self.attr_key.attr_values_dataset.where(default:true).where(Sequel.~(id:self.id)).update!(default:false)
+    end
+  end
   # 少なくとも一つはデフォルトがなくてはならない
-  #def before_destroy
-  #  if self.default then
-  #    self.attr_key.attr_values(:id.not => self.id).first.update(default:true)
-  #  end
-  #end
+  def before_destroy
+    if self.default then
+      self.attr_key.attr_values_dataset.where(Sequel.~(id:self.id)).first.update(default:true)
+    end
+  end
 end

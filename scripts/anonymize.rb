@@ -42,13 +42,13 @@ DB.transaction{
     temp_ids = []
     old_ids.each_with_index{|id,i|
       t = id_max + i
-      ContestUser.all(event_id:id).update!(event_id:t)
-      ContestClass.all(event_id:id).update!(event_id:t)
+      ContestUser.where(event_id:id).each{|x|x.update!(event_id:t)}
+      ContestClass.where(event_id:id).each{|x|x.update!(event_id:t)}
       temp_ids << t
     }
     temp_ids.each_with_index{|t,i|
-      ContestUser.all(event_id:t).update!(event_id:new_ids[i])
-      ContestClass.all(event_id:t).update!(event_id:new_ids[i])
+      ContestUser.where(event_id:t).each{|x|x.update!(event_id:new_ids[i])}
+      ContestClass.where(event_id:t).each{|x|x.update!(event_id:new_ids[i])}
     }
   }
 }

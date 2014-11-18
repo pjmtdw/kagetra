@@ -55,7 +55,7 @@ class MainApp < Sinatra::Base
       dm_response{
         DB.transaction{
           # UserAttribute.after_save の中で一つの属性valueしか持たないことを保証してくれてるからcreateするだけでいい
-          # TODO: createするだけで良いというのは仕様上分かりにくいのでどうにかする
+          # TODO: updateするとかじゃなくてcreateするだけで良いというのは仕様上分かりにくいのでどうにかする
           users.map{|u|UserAttribute.create(user:u,value_id:@json["value"].to_i)}
         }
       }
@@ -67,7 +67,7 @@ class MainApp < Sinatra::Base
           u = User[x["uid"].to_i]
           case x["type"]
           when "attr"
-            u.attrs.create(value_id:x["new_val"].to_i)
+            UserAttribute.create(user:u,value_id:x["new_val"].to_i)
           when "furigana"
             u.update(furigana:x["new_val"])
           when "name"

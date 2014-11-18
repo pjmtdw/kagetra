@@ -52,7 +52,7 @@ module ResultExcelHelpers
       format = sheet.default_format.clone
       format.horizontal_align = :right
       row.set_format(6,format)
-      row[6] = ev.result_classes.all(order:[:index.asc]).map{|c| if c.num_person.to_i > 0 then "#{c.class_name.sub(/級/,'')}:#{c.num_person}" end}.compact.join(" ")
+      row[6] = ev.result_classes_dataset.order(Sequel.asc(:index)).map{|c| if c.num_person.to_i > 0 then "#{c.class_name.sub(/級/,'')}:#{c.num_person}" end}.compact.join(" ")
       sheet.merge_cells(num,6,num,10)
     end
 
@@ -64,18 +64,18 @@ module ResultExcelHelpers
     num += 1
     sheet.row(num).height = 9.0
 
-    classes = ev.result_classes.all(order:[:index.asc])
+    classes = ev.result_classes_dataset.order(Sequel.asc(:index))
     if ev.team_size != 1 then
-      teams = ContestTeam.all(contest_class:classes)
+      teams = ContestTeam.where(contest_class:classes)
     end
     # 試合結果
     round = 1
     loop{
       if ev.team_size == 1 then
-        games = ContestGame.all(contest_class:classes,round:round).group_by{|x|x.contest_class_id}
+        games = ContestSingleGame.where(contest_class:classes,round:round).all.group_by(&:contest_class_id)
       else
-        op_teams = ContestTeamOpponent.all(contest_team:teams,round:round)
-        games = ContestGame.all(contest_team_opponent:op_teams).group_by{|x|x.contest_team_opponent_id}
+        op_teams = ContestTeamOpponent.where(contest_team:teams,round:round)
+        games = ContestTeamGame.where(contest_team_opponent:op_teams).all.group_by(&:contest_team_opponent_id)
       end
       break if games.empty?
       (num,row) = inc_num.call(num)
@@ -111,7 +111,7 @@ module ResultExcelHelpers
                  g.result == :lose and cusers.include?([g.opponent_name,g.contest_user.name])
                }
              else
-               wls.sort_by{|g|team.members.first(contest_user:g.contest_user).order_num}
+               wls.sort_by{|g|team.members_dataset.first(contest_user:g.contest_user).order_num}
              end
         gs.each{|x|
           (num,row) = inc_num.call(num)
@@ -123,7 +123,7 @@ module ResultExcelHelpers
                    when :win then "○"
                    when :lose then "●"
                    end
-          order_num = if ev.team_size == 1 then "" else " (#{team.members.first(contest_user:x.contest_user).order_num})" end
+          order_num = if ev.team_size == 1 then "" else " (#{team.members_dataset.first(contest_user:x.contest_user).order_num})" end
           belongs = if ev.team_size == 1 then
                       x.opponent_belongs
                     elsif c.kind == :single then
@@ -169,7 +169,7 @@ module ResultExcelHelpers
     # 入賞
     prizes = if ev.team_size == 1 then
       classes.map{|x|
-        x.prizes.all(order:[:rank.asc]).map{|x|
+        x.prizes_dataset.order(Sequel.asc(:rank)).map{|x|
           prize = x.prize
           name = x.contest_user.name
           if /\(.*\)/ =~ prize then
@@ -181,7 +181,7 @@ module ResultExcelHelpers
       }.flatten
     else
       classes.map{|x|
-        x.teams.all(order:[:rank.asc]).map{|x|
+        x.teams_dataset.order(Sequel.asc(:rank)).map{|x|
           prize = x.prize
           name = x.name
           next unless prize

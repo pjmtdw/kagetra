@@ -129,7 +129,7 @@ class MainApp < Sinatra::Base
 
     # 勝ち数の多い順に並べる
     def result_sort(klass,user_games,round_num,prizes)
-      games = ContestGame.where(contest_class_id:klass.id)
+      games = ContestSingleGame.where(contest_class_id:klass.id)
       temp_res = {}
 
       # 後で少しずつ取得するのは遅いのでまとめて取得
@@ -152,7 +152,7 @@ class MainApp < Sinatra::Base
         }
       }
       # 自分が負けた以降の順番は負けた相手の成績順になる
-      games.where(result: ContestGame.result__lose).order(Sequel.desc(:round)).each{|m|
+      games.where(result: ContestSingleGame.result__lose).order(Sequel.desc(:round)).each{|m|
         x = temp_res.find{|uid,v|users[uid] == m.opponent_name}
         if x then
           temp_res[m.contest_user_id][:score][m.round..-1] = x[1][:score][m.round..-1]
@@ -195,7 +195,7 @@ class MainApp < Sinatra::Base
         members = team.members_dataset.order(Sequel.asc(:order_num)).map(&:contest_user)
         prizes = Hash[ContestPrize.where(contest_user:members).map{|x|[x.contest_user_id,x]}]
         game_fields = [:opponent_name,:result,:score_str,:comment,:opponent_order,:opponent_belongs]
-        games = ContestGame.where(contest_team_opponent_id:op_rounds.keys).all.group_by{|game| game.contest_user_id}
+        games = ContestTeamGame.where(contest_team_opponent_id:op_rounds.keys).all.group_by{|game| game.contest_user_id}
         user_results = members.map{|user|
           results = games[user.id] || []
           res = Hash[results.map{|game|

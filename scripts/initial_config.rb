@@ -28,7 +28,7 @@ DB.transaction{
     CONF_INITIAL_ATTRIBUTES.each_with_index{|(k,v),i|
       key = UserAttributeKey.create(name:k,index:i)
       v.each_with_index{|x,idx|
-        key.values.create(index:idx,value:x)
+        UserAttributeValue.create(attr_key:key,index:idx,value:x)
       }
     }
     puts "created user attributes"
@@ -37,7 +37,7 @@ DB.transaction{
     User.create(name: "admin", furigana: "admin",password_hash: hash[:hash], password_salt: hash[:salt], admin: true)
     puts "created user 'admin' and set password to shared password "
   end
-  User.all(password_hash: nil).each{|user|
+  User.where(password_hash: nil).each{|user|
     hash = Kagetra::Utils.hash_password(pass1)
     puts "setting password of #{user.name}"
     user.update(password_hash: hash[:hash], password_salt: hash[:salt])

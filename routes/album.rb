@@ -184,8 +184,8 @@ class MainApp < Sinatra::Base
             adds = rids_new - rids_old
             dels = rids_old - rids_new
             if dels.empty?.! then
-              AlbumRelation.all(source_id:item.id,target_id:dels).destroy
-              AlbumRelation.all(source_id:dels,target_id:item.id).destroy
+              AlbumRelation.where(source_id:item.id,target_id:dels).destroy
+              AlbumRelation.where(source_id:dels,target_id:item.id).destroy
             end
             adds.each{|i|
               AlbumRelation.create(source_id:item.id,target_id:i)

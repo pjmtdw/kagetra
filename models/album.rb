@@ -8,6 +8,7 @@ class AlbumGroup < Sequel::Model(:album_groups)
     if not self.dummy then
       self.year = if self.start_at.nil? then nil else start_at.year end
     end
+    super
   end
   def update_count
     # item_countのupdateは本当はAlbumItemのcreate/destroy時だけでいいけど
@@ -48,6 +49,7 @@ class AlbumItem < Sequel::Model(:album_items)
       ag = self.group
       self.group_index = ag.items_dataset.count
     end
+    super
   end
 
   def id_with_thumb
@@ -64,6 +66,7 @@ class AlbumItem < Sequel::Model(:album_items)
     self.group.update_count
   end
   def after_save
+    super
     self.group.update_count
   end
 
@@ -87,6 +90,7 @@ class AlbumRelation < Sequel::Model(:album_relations)
   many_to_one :target, class:'AlbumItem'
   # (source,target) と (target,source) はどちらかしか存在できない
   def after_save
+    super
     r = self.class.first(source:self.target, target:self.source)
     if r.nil?.! then r.destroy end
   end
@@ -103,6 +107,7 @@ class AlbumCommentLog < Sequel::Model(:album_comment_logs)
   many_to_one :album_item
   many_to_one :user
   def after_save
+    super
     self.album_item.update!(comment_updated_at:self.created_at)
   end
 end

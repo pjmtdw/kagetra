@@ -74,7 +74,9 @@ class MainApp < Sinatra::Base
       group = AlbumGroup[params[:gid].to_i]
       if group.nil?.! then
         DB.transaction{
-          group.update!(deleted:true)
+          dm_response{
+            group.destroy
+          }
         }
       end
     end
@@ -362,7 +364,7 @@ class MainApp < Sinatra::Base
       if item.nil?.! then
         DB.transaction{
           ag = item.group
-          item.update!(deleted:true)
+          item.destroy
           ag.update_count
         }
       end

@@ -62,12 +62,14 @@ class User < Sequel::Model(:users)
     end
   end
   def after_create
+    super
     UserAttributeValue.all(default:true).each{|v|
       self.attrs.create(value:v)
     }
   end
   def before_save
     self.furigana_row = Kagetra::Utils.gojuon_row_num(self.furigana)
+    super
   end
 
   def sub_admin
@@ -128,6 +130,7 @@ class UserAttribute < Sequel::Model(:user_attributes)
   many_to_one :user
   many_to_one :value, class:'UserAttributeValue'
   def after_save
+    super
     #一人のユーザは各属性keyにつき一つの属性valueしか持たないことを保証する
     values = self.value.attr_key.attr_values
     self.user.attrs_dataset.where(value: values).where(Sequel.~(id:self.id)).destroy
@@ -147,9 +150,11 @@ class UserAttributeValue < Sequel::Model(:user_attribute_values)
     if self.attr_key.attr_values_dataset.where(default:true).count == 0 then
       self.default = true
     end
+    super
   end
   # デフォルトが二つあってはいけない
   def after_save
+    super
     if self.default then
       self.attr_key.attr_values_dataset.where(default:true).where(Sequel.~(id:self.id)).update!(default:false)
     end
@@ -159,5 +164,6 @@ class UserAttributeValue < Sequel::Model(:user_attribute_values)
     if self.default then
       self.attr_key.attr_values_dataset.where(Sequel.~(id:self.id)).first.update(default:true)
     end
+    super
   end
 end

@@ -81,7 +81,6 @@ class EventUserChoice < Sequel::Model(:event_user_choices)
   many_to_one :attr_value, class:'UserAttributeValue'
 
   def before_save
-    super
     if self.user then
       self.user_name = self.user.name
       self.event_choice.event.tap{|ev|
@@ -96,6 +95,7 @@ class EventUserChoice < Sequel::Model(:event_user_choices)
         ucs.destroy
       }
     end
+    super
   end
   ["save","destroy"].each{|sym|
     define_method(("after_"+sym).to_sym){

@@ -118,14 +118,10 @@ class MainApp < Sinatra::Base
       event_info(ev,@user,opts)
     end
     delete '/item/:id' do
-      # 関連するクラスを全て削除しないとdestroyできない
       DB.transaction{
-        ev = Event[params[:id].to_i]
-        ev.result_users.destroy
-        ev.result_classes.destroy
-        ContestResultCache.all(event_id:ev.id).destroy
-        ContestGame.all(event_id:ev.id).destroy
-        ev.update!(deleted:true)
+        dm_response{
+          Event[params[:id].to_i].destroy
+        }
       }
     end
 

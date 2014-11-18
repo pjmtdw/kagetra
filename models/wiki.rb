@@ -34,9 +34,11 @@ class WikiAttachedFile < Sequel::Model(:wiki_attached_files)
     wi.update(attached_count:wi.attacheds_dataset.count)
   end
   def after_create
+    super
     update_attached_count
   end
   def after_destroy
+    super
     update_attached_count
   end
 end

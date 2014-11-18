@@ -23,7 +23,6 @@ Sequel.migration do
     end
 
     create_table_custom(:album_items,[:base],comment:"アルバムの各写真の情報") do
-      TrueClass :deleted, default:false
       String :name, size:72
       String :place, size:128
       String :comment, text:true

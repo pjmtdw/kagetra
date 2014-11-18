@@ -17,6 +17,7 @@ class ContestClass < Sequel::Model(:contest_classes)
                         # 公認大会でAからGの文字で始まっていないものは全てA級とみなす
                         Kagetra::Utils.class_from_name(self.class_name) || :a
                       end
+    super
   end
 end
 
@@ -31,9 +32,11 @@ class ContestUser < Sequel::Model(:contest_users)
 
   def before_save
     self.class_rank = self.contest_class.class_rank
+    super
   end
 
   def after_create
+    super
     ev = self.event
     ev.update(contest_user_count:ev.result_users.count)
   end
@@ -106,8 +109,10 @@ class ContestPrize < Sequel::Model(:contest_prizes)
       end
       self.rank = Kagetra::Utils.rank_from_prize(self.prize)
     end
+    super
   end
   def after_save
+    super
     if (self.point || 0) > 0 or (self.point_local || 0) > 0 then
       self.contest_user.update(point:self.point,point_local:self.point_local)
     end
@@ -167,10 +172,12 @@ class ContestGame < Sequel::Model(:contest_games)
   def before_save
     self.event = self.contest_user.event if self.event.nil?
     self.score_int = Kagetra::Utils.eval_score_char(self.score_str)
+    super
   end
 
   # TODO: 複数の勝ち負けの一括更新に対応
   def after_save
+    super
     u = self.contest_user
     updates = Hash[[:win,:lose].map{|sym|
       s = self.class.serialization_map[:result].call(sym)
@@ -227,8 +234,10 @@ class ContestTeam < Sequel::Model(:contest_teams)
       end
       self.rank = Kagetra::Utils.rank_from_prize(self.prize)
     end
+    super
   end
   def after_save
+    super
     self.contest_class.event.update_cache_prizes
   end
 end

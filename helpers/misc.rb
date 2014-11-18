@@ -116,7 +116,7 @@ module MiscHelpers
 
 
   def invalidate_expired_token
-    User.where{ token_expire < DateTime.now}.each{|x|x.update(token:nil,token_expire:nil)}
+    User.where{ token_expire < Time.now}.each{|x|x.update(token:nil,token_expire:nil)}
   end
 
   # 古いログイン履歴を削除

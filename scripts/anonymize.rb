@@ -33,7 +33,7 @@ AlbumGroup.all.each{|ag|
 # 大会結果をシャッフル
 DB.transaction{
   EventGroup.all.each{|gr|
-    events = gr.events(:date.lte => Date.today)
+    events = gr.events_dataset.where{ date <= Date.today }
     next if events.count <= 1
     old_ids = events.map{|x|x.id}
     new_ids = old_ids.shuffle

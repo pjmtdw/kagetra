@@ -14,7 +14,7 @@ class MainApp < Sinatra::Base
         all_attrs: get_all_attrs,
         all_event_groups: get_all_event_groups,
         aggregate_attr_id: UserAttributeKey.first(name:CONF_CONTEST_DEFAULT_AGGREGATE_ATTR).id,
-        forbidden_attrs: CONF_CONTEST_DEFAULT_FORBIDDEN_ATTRS.map{|k,v|UserAttributeKey.where(name:k).first.attr_values(value:v).map{|x|x.id}}.flatten
+        forbidden_attrs: CONF_CONTEST_DEFAULT_FORBIDDEN_ATTRS.map{|k,v|UserAttributeKey.where(name:k).first.attr_values_dataset.where(value:v).map(&:id)}.flatten
       }
     end
     get '/item/party' do

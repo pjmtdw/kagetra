@@ -20,6 +20,7 @@ require 'digest'
 require 'nkf'
 require 'redcarpet'
 require './libs/diff_match_patch-ruby/diff_match_patch.rb'
+G_DIMAPA = DiffPatchMatch.new
 require 'RMagick'
 require 'zip'
 
@@ -32,7 +33,6 @@ require 'securerandom'
 require 'tempfile'
 require 'resolv'
 
-require './const'
 require './models/init'
 require './app'
 require './helpers/init'

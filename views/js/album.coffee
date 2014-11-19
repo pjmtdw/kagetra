@@ -42,13 +42,12 @@ define (require,exports,module)->
         obj.on("change",->
           value = obj.select2("val")
           defer.resolve(value)
-          $.modal.close()
+          $.colorbox.close()
           )
         $("#album-tag-popup").select2("open")
     on_close = ->
       if defer.state() != "resolved" then defer.reject()
-      $.modal.close()
-    $.modal(templ(data:{tag:txt}),{onShow:on_show,overlayClose:true,onClose:on_close})
+    $.colorbox({html:templ(data:{tag:txt}),onComplete:on_show,onClosed:on_close,trapFocus:false,transition:"none",fadeOut:100})
     defer.promise()
   scroll_to_item = (selector) ->
     selector ||= (id )-> ".album-item[data-id='#{id}']"

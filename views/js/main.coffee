@@ -2,7 +2,7 @@ requirejs.config
   paths:
     jquery: "libs/jquery/dist/jquery"
     jquery_placeholder: "libs/jquery-placeholder/jquery.placeholder"
-    simplemodal: "libs/ericmmartin.simplemodal/src/jquery.simplemodal"
+    colorbox: "libs/jquery-colorbox/jquery.colorbox"
     backbone: "libs/backbone/backbone"
     underscore: "libs/underscore/underscore"
     foundation: "libs/foundation/js/foundation/foundation"
@@ -29,7 +29,7 @@ requirejs.config
     select2: deps: ["jquery"]
     blockui: deps: ["jquery"]
     schedule_item: deps: ["backbone"]
-    album: ["simplemodal"]
+    album: ["colorbox"]
     jquery: exports: "$"
     underscore: exports: "_"
     crypto: exports: "CryptoJS"

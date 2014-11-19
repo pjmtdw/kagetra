@@ -25,11 +25,11 @@ requirejs.config
 
   shim:
     jquery_placeholder: deps: ["jquery"]
+    colorbox: deps: ["jquery"]
     myutil: deps: ["underscore","jquery","backbone"]
     select2: deps: ["jquery"]
     blockui: deps: ["jquery"]
     schedule_item: deps: ["backbone"]
-    album: ["colorbox"]
     jquery: exports: "$"
     underscore: exports: "_"
     crypto: exports: "CryptoJS"
@@ -49,8 +49,9 @@ requirejs.config
     "crypto-pbkdf2": deps: ["crypto"]
     "crypto-aes": deps: ["crypto"]
 
-require ["jquery","backbone","myutil","select2","jquery_placeholder"
-     "foundation.reveal","foundation.topbar","foundation.dropdown","foundation.section","foundation.alerts","foundation.magellan","foundation.tooltips"], ->
+require ["jquery","backbone","myutil","select2","colorbox","jquery_placeholder",
+     "foundation.reveal","foundation.topbar","foundation.dropdown","foundation.section",
+     "foundation.alerts","foundation.magellan","foundation.tooltips"], ->
   $ = require("jquery")
   init_f = ->
     # alert if ajax failed

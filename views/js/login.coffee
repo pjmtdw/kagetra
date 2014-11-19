@@ -43,13 +43,13 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
           window.shared_passwd_view.remove()
           new LoginView()
         else
-          alert("パスワードが違います")
-          elem.val("")
-          elem.focus()
+          _.cb_alert("共通パスワードが違います").done(->
+             elem.val("")
+             elem.focus())
         that.submitting = false
       .fail ->
         that.submitting = false
-        alert('サーバエラー')
+        _.cb_alert('サーバエラー')
 
   LoginView = Backbone.View.extend
     el: "#container-login"
@@ -92,15 +92,16 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
           when "OK"
             window.location.href = "/top"
           when "WRONG_PASSWORD"
-            alert("パスワードが違います")
-            elem.val("")
-            elem.focus()
+            _.cb_alert("個人パスワードが違います").done(->
+              elem.val("")
+              elem.focus()
+            )
           when "NOT_LOGINABLE"
             alert("ログイン権限がありません")
         that.submitting = false
       .fail ->
         that.submitting = false
-        alert('サーバエラー')
+        _.cb_alert('サーバエラー')
   init: ->
     if $("#templ-user-name").length == 0
       window.shared_passwd_view = new SharedPasswdView()

@@ -31,6 +31,31 @@ define (require, exports, module) ->
   # メールアドレスにマッチする部分は PEAR::Mail_RFC822::isValidInetAddress()
   pat_url = new RegExp("((https?://[a-zA-Z0-9/:%#$&?()~.=+_-]+)|(([*+!.&#\$|\'\\%\/0-9a-z^_`{}=?~:-]+)@(([0-9a-z-]+\.)+[0-9a-z]{2,})))","gi")
   _.mixin
+    cb_alert: (msg) ->
+      defer = $.Deferred()
+      cb = $.colorbox(
+        html:"<div class='cb-container'><div>#{msg}</div><div class='buttons'><button class='small round closeButton'>閉じる</button></div></div>"
+        onClosed: ->
+          $(document).off("keydown.cbox")
+          defer.resolve()
+        transition:"none"
+        fadeOut:100
+        overlayClose:false
+        width:360
+        opacity:0.6
+        closeButton:false
+
+      )
+      $(document).on("keydown.cbox",(ev)->
+        if ev.keyCode == 13 || ev.keyCode == 27
+          ev.preventDefault()
+          $.colorbox.close()
+      )
+      $(".cb-container").one("click",".closeButton",(ev)->
+        $.colorbox.close()
+      )
+      defer.promise()
+
     ie9_placeholder: (target)->
       return unless g_is_ie9?
       # Internet Explorer 9 does not support placeholder
@@ -42,21 +67,23 @@ define (require, exports, module) ->
       return unless contents.find("body").html() # IEの場合は最初の読み込み時にもloadがtriggerされる
       html = contents.find("#response").html()
       if not html
-        alert("エラー: #{contents.find("title").text()}")
-        when_error?()
+        _.cb_alert("エラー: #{contents.find("title").text()}").done(->
+          when_error?()
+        )
         return
       try
         res = JSON.parse(html)
         if res._error_
-          alert(res._error_)
-          when_error?()
+          _.cb_alert(res._error_).done(->
+            when_error?()
+          )
         else if res.result == "OK"
           #alert("送信しました")
           when_success?(res)
         else
-          alert("エラー: 送信失敗(1)")
+          _.cb_alert("エラー: 送信失敗(1)")
       catch e
-        alert("エラー: 送信失敗(2)")
+        _.cb_alert("エラー: 送信失敗(2)")
 
     show_kind_symbol: (kind,official) ->
       s = switch kind
@@ -145,12 +172,12 @@ define (require, exports, module) ->
           else
             defer.reject(data)
         $.when(first()).then(second).then(third).then(fourth)
-          .done((data) -> alert("成功: " + data))
-          .fail((data) -> alert("失敗: " + data);console.log data)
+          .done((data) -> _.cb_alert("成功: " + data))
+          .fail((data) -> _.cb_alert("失敗: " + data);console.log data)
         false
       catch e
         console.log e.message
-        alert e.message
+        _.cb_alert(e.message)
         false
     show_new_comment: (data)->
       c = if data.has_new_comment
@@ -294,11 +321,12 @@ define (require, exports, module) ->
     save_model_alert: (model,obj,force,disallow_double) ->
       defer = $.Deferred()
       _.save_model(model,obj,force,disallow_double).done(->
-        alert("更新成功")
+        _.cb_alert("更新成功")
         defer.resolve()
       ).fail((error) ->
-        alert("更新失敗: " + error)
-        defer.reject(error))
+        _.cb_alert("更新失敗: " + error)
+        defer.reject(error)
+      )
       defer.promise()
     save_model: (model,obj,force,disallow_double)->
       defer = $.Deferred()

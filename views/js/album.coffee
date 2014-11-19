@@ -47,7 +47,17 @@ define (require,exports,module)->
         $("#album-tag-popup").select2("open")
     on_close = ->
       if defer.state() != "resolved" then defer.reject()
-    $.colorbox({html:templ(data:{tag:txt}),onComplete:on_show,onClosed:on_close,trapFocus:false,transition:"none",fadeOut:100})
+    $.colorbox(
+      html:templ(data:{tag:txt})
+      onComplete:on_show
+      onClosed:on_close
+      trapFocus:false
+      transition:"none"
+      fadeOut:100
+      width:360
+      opacity:0.6
+      closeButton:false
+    )
     defer.promise()
   scroll_to_item = (selector) ->
     selector ||= (id )-> ".album-item[data-id='#{id}']"
@@ -210,7 +220,7 @@ define (require,exports,module)->
         contentType: "application/json",
         type: "POST"
       }).done((data)->
-        alert("更新しました")
+        _.cb_alert("更新しました")
         $(that.options.target).foundation("reveal","close")
       )
     initialize: ->
@@ -272,7 +282,7 @@ define (require,exports,module)->
     multi_edit: ->
       checked = @get_checked()
       if checked.length == 0
-        alert("チェックボックスにチェックを入れて下さい")
+        _.cb_alert("チェックボックスにチェックを入れて下さい")
         return
       target = "#container-album-multi-edit"
       arr = $.makeArray(checked.map(->$(@).closest(".album-item").data("id")))
@@ -295,7 +305,7 @@ define (require,exports,module)->
       if prompt("削除するにはdeleteと入れて下さい","") == "delete"
         year = @model.get('year')
         @model.destroy().done(->
-          alert('削除しました')
+          _.cb_alert('削除しました')
           window.album_router.navigate("year/#{year}", trigger:true)
         )
 

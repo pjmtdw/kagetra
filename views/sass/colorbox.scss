@@ -12,6 +12,10 @@
 .cboxIframe{width:100%; height:100%; display:block; border:0; padding:0; margin:0;}
 #colorbox, #cboxContent, #cboxLoadedContent{box-sizing:content-box; -moz-box-sizing:content-box; -webkit-box-sizing:content-box;}
 
+/* colobox user style */
+
+#cboxOverlay{background:#000}
+
 /*
   workaround when using select2 with colorbox
   https://github.com/ivaynberg/select2/issues/1393
@@ -28,16 +32,16 @@
   z-index: 10002;
 }
 
-#tag-popup{
-  legend{
-    background: none;
-  }
+.cb-container{
   position: relative;
   height:auto;
-  width: 320px;
   color:black;
   background-color:#FED;
-  border:4px solid #666;
+  border:5px outset olive;
   padding:12px;
   margin: 10px auto;
+  .buttons{
+    margin-top: 14px;
+    text-align: center;
+  }
 }

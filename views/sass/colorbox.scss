@@ -40,8 +40,16 @@
   border:5px outset olive;
   padding:12px;
   margin: 10px auto;
+  div{
+    margin-top: 10px;
+  }
   .buttons{
-    margin-top: 14px;
     text-align: center;
+    button{
+      margin-right: 14px;
+    }
+  }
+  .cb-prompt-text{
+    width: 100%;
   }
 }

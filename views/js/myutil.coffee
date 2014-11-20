@@ -3,7 +3,7 @@ define (require, exports, module) ->
   $ = require("jquery")
   Backbone = require("backbone")
   
-  # backbone 1.1.0 からは constructor に与えられた引数をを自動的に optionsに保存しなくなったので自前でやる
+  # backbone 1.1.0 からは view の constructor に与えられた引数をを自動的に options に保存しなくなったので自前でやる
   # http://stackoverflow.com/questions/19325323/backbone-1-1-0-views-reading-options
   Backbone.View = ((View) ->
     return View.extend
@@ -28,33 +28,49 @@ define (require, exports, module) ->
       @history[0]
 
   # 前半はURL,後半はメールアドレスにマッチ
-  # メールアドレスにマッチする部分は PEAR::Mail_RFC822::isValidInetAddress()
+  # メールアドレスにマッチする部分は PEAR::Mail_RFC822::isValidInetAddress() からコピペしてきた
   pat_url = new RegExp("((https?://[a-zA-Z0-9/:%#$&?()~.=+_-]+)|(([*+!.&#\$|\'\\%\/0-9a-z^_`{}=?~:-]+)@(([0-9a-z-]+\.)+[0-9a-z]{2,})))","gi")
+
+
+  cb_common = (msg,body,default_focus,f_resolve)->
+    defer = $.Deferred()
+    el = $($.parseHTML("<div class='cb-container'><div>#{msg}</div>#{body}</div>"))
+    cb = $.colorbox(
+      html: el
+      onComplete: ->
+        el.one("click",".cancel-button",(ev)->
+          $.colorbox.close()
+        )
+        el.one("click",".ok-button",(ev)->
+          defer.resolve(f_resolve?(el))
+          $.colorbox.close()
+        )
+        el.find(default_focus).focus()
+      onClosed: ->
+        if defer.state() == "pending" then defer.reject()
+      transition:"none"
+      fadeOut:100
+      overlayClose:false
+      width:360
+      opacity:0.5
+      closeButton:false
+      escKey:true
+      returnFocus:false
+      trapFocus:false
+    )
+    defer.promise()
+
   _.mixin
     cb_alert: (msg) ->
-      defer = $.Deferred()
-      cb = $.colorbox(
-        html:"<div class='cb-container'><div>#{msg}</div><div class='buttons'><button class='small round closeButton'>閉じる</button></div></div>"
-        onClosed: ->
-          $(document).off("keydown.cbox")
-          defer.resolve()
-        transition:"none"
-        fadeOut:100
-        overlayClose:false
-        width:360
-        opacity:0.6
-        closeButton:false
+      cb_common(msg, "<div class='buttons'><button class='small round ok-button'>閉じる</button></div>", ".ok-button")
 
+    cb_confirm: (msg)->
+      cb_common(msg, "<div class='buttons'><button class='small round ok-button'>はい</button><button class='small round cancel-button'>いいえ</button></div>",".ok-button")
+
+    cb_prompt: (msg,default_value)->
+      cb_common(msg, "<div><input type='text' value='#{default_value || ""}' class='cb-prompt-text' /></div><div class='buttons'><button class='small round ok-button'>OK</button><button class='small round cancel-button'>キャンセル</button></div>",
+        ".cb-prompt-text", (el) -> el.find(".cb-prompt-text").val()
       )
-      $(document).on("keydown.cbox",(ev)->
-        if ev.keyCode == 13 || ev.keyCode == 27
-          ev.preventDefault()
-          $.colorbox.close()
-      )
-      $(".cb-container").one("click",".closeButton",(ev)->
-        $.colorbox.close()
-      )
-      defer.promise()
 
     ie9_placeholder: (target)->
       return unless g_is_ie9?
@@ -67,14 +83,14 @@ define (require, exports, module) ->
       return unless contents.find("body").html() # IEの場合は最初の読み込み時にもloadがtriggerされる
       html = contents.find("#response").html()
       if not html
-        _.cb_alert("エラー: #{contents.find("title").text()}").done(->
+        _.cb_alert("エラー: #{contents.find("title").text()}").always(->
           when_error?()
         )
         return
       try
         res = JSON.parse(html)
         if res._error_
-          _.cb_alert(res._error_).done(->
+          _.cb_alert(res._error_).always(->
             when_error?()
           )
         else if res.result == "OK"

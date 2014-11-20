@@ -43,7 +43,7 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
           window.shared_passwd_view.remove()
           new LoginView()
         else
-          _.cb_alert("共通パスワードが違います").done(->
+          _.cb_alert("共通パスワードが違います").always(->
              elem.val("")
              elem.focus())
         that.submitting = false
@@ -92,7 +92,7 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
           when "OK"
             window.location.href = "/top"
           when "WRONG_PASSWORD"
-            _.cb_alert("個人パスワードが違います").done(->
+            _.cb_alert("個人パスワードが違います").always(->
               elem.val("")
               elem.focus()
             )

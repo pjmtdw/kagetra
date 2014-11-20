@@ -69,10 +69,10 @@ define (require,exports,module)->
       "change #cur-group-list" : "copy_info"
       "click #add-contest-group" : "add_contest_group"
     add_contest_group: ->
-      if r = prompt("追加する恒例大会名:","")
+      _.cb_prompt("追加する恒例大会名:","").done((r)->
         $.post("api/event/group/new",name:r).done((data)->
           $("#event-groups").append($($.parseHTML(_.make_option(data.id,{value:data.id,text:data.name}))))
-        )
+        ))
       false
     copy_info: ->
       gid = parseInt($("#event-groups").val())
@@ -224,8 +224,9 @@ define (require,exports,module)->
       "click #move-to-done" : "move_to_done"
       "submit #event-edit-form" : "do_submit"
     move_to_done: ->
-      if confirm("この行事を予定表の過去の行事に移動します．よろしいですか？")
+      _.cb_confirm("この行事を予定表の過去の行事に移動します．よろしいですか？").done(->
         _.save_model_alert(@model,{done:true},null,true)
+      )
       false
     delete_event: ->
       if prompt("削除するにはdeleteと入れて下さい","") == "delete"

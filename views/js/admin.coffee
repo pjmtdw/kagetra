@@ -93,7 +93,7 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
       v = new AdminUserAddView(target:t,collection:@collection)
       _.reveal_view(t,v)
     apply_edit: ->
-      if confirm("#{@edit_log.length} 点の変更を反映してもいいですか？")
+      _.cb_confirm("#{@edit_log.length} 点の変更を反映してもいいですか？").done(->
         elog = JSON.stringify(@edit_log)
         aj = $.ajax("api/admin/apply_edit",
           data: elog
@@ -106,7 +106,7 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
             alert("反映完了")
             @edit_log = []
             $("#edit-log-count").text(@edit_log.length)
-        )
+        ))
     undo_last_edit: ->
       @edit_log.pop()
       $("#edit-log-count").text(@edit_log.length)

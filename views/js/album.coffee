@@ -301,12 +301,14 @@ define (require,exports,module)->
       that = this
       @model.fetch().done(-> that.edit_mode = false)
     album_delete: ->
-      if prompt("削除するにはdeleteと入れて下さい","") == "delete"
-        year = @model.get('year')
-        @model.destroy().done(_.with_error
-          '削除しました',
-          ->
-            window.album_router.navigate("year/#{year}", trigger:true))
+      that = this
+      _.cb_prompt("削除するにはdeleteと入れて下さい").done((r)->
+        if r == "delete"
+          year = that.model.get('year')
+          that.model.destroy().done(_.with_error
+            '削除しました',
+            ->
+              window.album_router.navigate("year/#{year}", trigger:true)))
 
     apply_edit: ->
       obj = $("#album-item-form").serializeObj()
@@ -561,11 +563,13 @@ define (require,exports,module)->
       _.reveal_view(target,v)
 
     album_delete: ->
-      if prompt("削除するにはdeleteと入れて下さい","") == "delete"
-        group_id = @model.get('group').id
-        @model.destroy().done(_.with_.error("削除しました",->
-          window.album_router.navigate("group/#{group_id}", trigger:true)
-        ))
+      that = this
+      _.cb_prompt("削除するにはdeleteと入れて下さい").done((r)->
+        if r == "delete"
+          group_id = that.model.get('group').id
+          that.model.destroy().done(_.with_.error("削除しました",->
+            window.album_router.navigate("group/#{group_id}", trigger:true)
+          )))
 
     apply_edit: ->
       obj = $("#album-item-form").serializeObj()
@@ -793,21 +797,23 @@ define (require,exports,module)->
       "click .delete-items" : "delete_items"
       "submit .multi-edit-form" : "update_attrs"
     delete_items: ->
-      return unless prompt("削除するにはdeleteと入れて下さい","") == "delete"
-      checked = @options.checked
-      obj = {item_ids:checked}
-      $.ajax("api/album/delete_items/#{@model.get('id')}",{
-        data: JSON.stringify(obj),
-        contentType: "application/json",
-        type: "DELETE"
-      }).done((data)->
-        if data.list.length != checked.length
-          _.cb_alert("#{data.list.length}枚削除しました．残りは貴方の写真でないため削除できませんでした")
-        else
-          _.cb_alert("削除しました")
-        for c in data.list
-          $("#album-items .album-item[data-id='#{c}']").remove()
-      )
+      that = this
+      _.cb_prompt("削除するにはdeleteと入れて下さい").done((r)->
+        if r == "delete"
+          checked = that.options.checked
+          obj = {item_ids:checked}
+          $.ajax("api/album/delete_items/#{that.model.get('id')}",{
+            data: JSON.stringify(obj),
+            contentType: "application/json",
+            type: "DELETE"
+          }).done((data)->
+            if data.list.length != checked.length
+              _.cb_alert("#{data.list.length}枚削除しました．残りは貴方の写真でないため削除できませんでした")
+            else
+              _.cb_alert("削除しました")
+            for c in data.list
+              $("#album-items .album-item[data-id='#{c}']").remove()
+          ))
 
     update_attrs: _.wrap_submit (ev)->
       obj = $(ev.currentTarget).serializeObj()

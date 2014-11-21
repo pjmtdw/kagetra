@@ -49,14 +49,18 @@ define ->
       )
 
     add_key: (ev) ->
-      if r = prompt("属性追加","")
-        t = @template_table(data:{id:"new",name:r})
+      that = this
+      _.cb_prompt("属性追加").done((r)->
+        t = that.template_table(data:{id:"new",name:r})
         $("#after-last-key").before(t)
         _.cb_alert("一番最後に追加しました")
+      )
     add_value: (ev)->
-      if r = prompt("属性追加","")
-        t = @template_row(data:{id:"new",value:r})
+      that = this
+      _.cb_prompt("属性追加").done((r)->
+        t = that.template_row(data:{id:"new",value:r})
         $(ev.currentTarget).closest("table").find(".after-last-value").before(t)
+      )
 
     delete_value: (ev)->
       o = $(ev.currentTarget).closest("[data-value-id]")

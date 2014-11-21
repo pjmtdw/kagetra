@@ -69,7 +69,7 @@ define (require,exports,module)->
       "change #cur-group-list" : "copy_info"
       "click #add-contest-group" : "add_contest_group"
     add_contest_group: ->
-      _.cb_prompt("追加する恒例大会名:","").done((r)->
+      _.cb_prompt("追加する恒例大会名:").done((r)->
         $.post("api/event/group/new",name:r).done((data)->
           $("#event-groups").append($($.parseHTML(_.make_option(data.id,{value:data.id,text:data.name}))))
         ))
@@ -106,13 +106,14 @@ define (require,exports,module)->
       )
     edit_choice: (ev) ->
       t = $(ev.currentTarget).text()
-      if r = prompt("選択肢名:",t)
-        $(ev.currentTarget).text(r)
+      _.cb_prompt("選択肢名:",t).done((r)->
+        $(ev.currentTarget).text(r))
 
     add_choice: _.wrap_submit (ev) ->
-      if r = prompt("選択肢名:","")
-        o = $("<div>",html:@template_choice(x:{positive:true,name:r,id:-1}))
-        $("#edit-choice-list").find("[data-positive='false']").first().before(o)
+      that = this
+      _.cb_prompt("選択肢名:").done((r)->
+        o = $("<div>",html:that.template_choice(x:{positive:true,name:r,id:-1}))
+        $("#edit-choice-list").find("[data-positive='false']").first().before(o))
 
     delete_choice: (ev) ->
       $(ev.currentTarget).parent(".choice-item").remove()
@@ -168,14 +169,14 @@ define (require,exports,module)->
       @edit_log[name]=["delete",attr,choice]
       item.remove()
     add_participant: (ev) ->
-      name = prompt("名前","")
-      if name
+      that = this
+      _.cb_prompt("名前").done((name)->
         item = $(ev.currentTarget)
-        newi = $($.parseHTML(@template_item(name:name)))
-        newi.append(@cross.clone())
+        newi = $($.parseHTML(that.template_item(name:name)))
+        newi.append(that.cross.clone())
         item.before(newi)
-        [attr,choice] = @get_choice_attr(item)
-        @edit_log[name]=["add",attr,choice]
+        [attr,choice] = that.get_choice_attr(item)
+        that.edit_log[name]=["add",attr,choice])
 
     toggle_edit: ->
       @edit_log = {}
@@ -230,8 +231,9 @@ define (require,exports,module)->
       )
       false
     delete_event: ->
-      if prompt("削除するにはdeleteと入れて下さい","") == "delete"
-        @model.destroy().done(_.with_error("削除しました", -> $("#container-event-edit").foundation("reveal","close")))
+      that = this
+      _.cb_prompt("削除するにはdeleteと入れて下さい").done((r)->
+        that.model.destroy().done(_.with_error("削除しました", -> $("#container-event-edit").foundation("reveal","close"))))
       false
     do_submit: ->
       obj = $("#event-edit-form").serializeObj()

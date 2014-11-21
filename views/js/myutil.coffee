@@ -42,7 +42,10 @@ define (require, exports, module) ->
           $.colorbox.close()
         )
         el.one("click",".ok-button",(ev)->
-          defer.resolve(f_resolve?(el))
+          if f_resolve?
+            f_resolve(defer,el)
+          else
+            defer.resolve()
           $.colorbox.close()
         )
         el.find(default_focus).focus()
@@ -68,8 +71,14 @@ define (require, exports, module) ->
       cb_common(msg, "<div class='buttons'><button class='small round ok-button'>はい</button><button class='small round cancel-button'>いいえ</button></div>",".ok-button")
 
     cb_prompt: (msg,default_value)->
+      f_r = (defer,el) ->
+        v = el.find(".cb-prompt-text").val()
+        if v
+          defer.resolve(v)
+        else
+          defer.reject()
       cb_common(msg, "<div><input type='text' value='#{default_value || ""}' class='cb-prompt-text' /></div><div class='buttons'><button class='small round ok-button'>OK</button><button class='small round cancel-button'>キャンセル</button></div>",
-        ".cb-prompt-text", (el) -> el.find(".cb-prompt-text").val()
+        ".cb-prompt-text", f_r
       )
 
     ie9_placeholder: (target)->

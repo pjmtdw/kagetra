@@ -134,11 +134,12 @@ define (require, exports, module) ->
     refresh_day: ->
       window.schedule_detail_view.options.parent_model.fetch()
     delete_item: ->
-      if prompt('削除するにはdeleteと入れて下さい','') == "delete"
-        that = this
-        @model.destroy().done(->
-          window.schedule_detail_view.refresh()
-          that.refresh_day())
+      that = this
+      _.cb_prompt('削除するにはdeleteと入れて下さい').done((res)->
+        if res == "delete"
+          that.model.destroy().done(->
+            window.schedule_detail_view.refresh()
+            that.refresh_day()))
     edit_done: ->
       obj = @$el.find('.item-detail-form').serializeObj()
       that = this

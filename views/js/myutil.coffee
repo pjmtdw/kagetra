@@ -301,10 +301,12 @@ define (require, exports, module) ->
           window.location.hash = window.location.hash + "@revealed"
         window.onhashchange = ->
           if not window.location.hash.endsWith("@revealed")
-            if obj.hasClass("form-changed") and not confirm("本当に変更を破棄して閉じますか？")
-              window.history.forward()
-              return
-            obj.foundation("reveal","close")
+            fwd = -> window.history.forward()
+            cls = -> obj.foundation("reveal","close")
+            if obj.hasClass("form-changed")
+              _.cb_confirm("本当に変更を破棄して閉じますか？").done(cls).fail(fwd)
+            else
+              cls()
 
         $(".reveal-modal-bg").on('click',->
           window.history.back()

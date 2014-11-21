@@ -224,8 +224,9 @@ define (require,exports,module)->
       "click #move-to-done" : "move_to_done"
       "submit #event-edit-form" : "do_submit"
     move_to_done: ->
+      that = this
       _.cb_confirm("この行事を予定表の過去の行事に移動します．よろしいですか？").done(->
-        _.save_model_alert(@model,{done:true},null,true)
+        _.save_model_alert(that.model,{done:true},null,true)
       )
       false
     delete_event: ->

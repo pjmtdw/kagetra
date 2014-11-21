@@ -65,18 +65,23 @@ define (require,exports,module) ->
       )
       false
     edit_cancel: ->
-      return if @changed and !confirm("内容が変更されています．キャンセルして良いですか？")
-      @changed = false
-      window.wiki_edit_view.remove()
-      if @model.isNew()
-        # 新規作成の場合は直前に閲覧していたページを表示
-        previd = window.wiki_viewlog[0][0]
-        @model.set('id',previd)
-        window.wiki_item_view = new WikiItemView(model:@model)
-        @model.fetch()
+      that = this
+      task = ->
+        that.changed = false
+        window.wiki_edit_view.remove()
+        if that.model.isNew()
+          # 新規作成の場合は直前に閲覧していたページを表示
+          previd = window.wiki_viewlog[0][0]
+          that.model.set('id',previd)
+          window.wiki_item_view = new WikiItemView(model:that.model)
+          that.model.fetch()
+        else
+          window.wiki_item_view = new WikiItemView(model:that.model)
+          window.wiki_item_view.render()
+      if @changed
+        _.cb_confirm("内容が変更されています．キャンセルして良いですか？").done(task)
       else
-        window.wiki_item_view = new WikiItemView(model:@model)
-        window.wiki_item_view.render()
+        task()
 
     edit_preview: ->
       target = "#container-wiki-preview"

@@ -582,11 +582,15 @@ define (require,exports,module)->
         )
       ).fail((msg)->_.cb_alert("更新失敗: " + msg))
     cancel_edit: ->
-      return if (@changed or not _.isEmpty(@tag_edit_log)) and !confirm("内容が変更されています．キャンセルして良いですか？")
-      @changed = false
-      @tag_edit_log = {}
       that = this
-      @model.fetch().done(-> that.edit_mode = false)
+      task = ->
+        that.changed = false
+        that.tag_edit_log = {}
+        that.model.fetch().done(-> that.edit_mode = false)
+      if @changed or not _.isEmpty(@tag_edit_log)
+        _.cb_confirm("内容が変更されています．キャンセルして良いですか？").done(task)
+      else
+        task()
 
     start_edit: ->
       hide_tag()
@@ -611,11 +615,12 @@ define (require,exports,module)->
       $("#album-item-form").one("change",":input",->that.changed=true)
 
     remove_relation: (ev)->
-      if confirm("関連写真を解除してもいいですか？")
-        id = $(ev.currentTarget).data("id")
-        newr = (r for r in @model.get("relations") when r.id != id)
-        @model.set("relations",newr)
-        @render_relations(true)
+      that = this
+      _.cb_confirm("関連写真を解除してもいいですか？").done(->
+          id = $(ev.currentTarget).data("id")
+          newr = (r for r in that.model.get("relations") when r.id != id)
+          that.model.set("relations",newr)
+          that.render_relations(true))
     get_pos: (ev)->
       if ev.offsetX? and ev.offsetY?
         [ev.offsetX,ev.offsetY]
@@ -731,7 +736,6 @@ define (require,exports,module)->
     events:
       "submit #album-item-form" : "do_submit"
     do_submit: ->
-      #return false unless confirm("アップロードしますか？")
       obj = @$el.find("input[type='submit']")
       obj.after($("<div>",id:"now-uploading-message",text:"アップロード中..."))
       obj.hide()

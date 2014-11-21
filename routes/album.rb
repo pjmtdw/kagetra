@@ -44,7 +44,7 @@ class MainApp < Sinatra::Base
       owners = Hash.new{[]}
       r[:items] = group.items_dataset.order(Sequel.asc(:group_index)).map{|x|
         if x.tag_names then
-          JSON.parse(x.tag_names).each{|t|
+          x.tag_names.each{|t|
             tags[t] <<= x.id
           }
         end

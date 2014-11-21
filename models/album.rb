@@ -26,6 +26,8 @@ class AlbumItem < Sequel::Model(:album_items)
   include PatchedItem
   many_to_one :owner, class:'User'
   plugin :serialization, :hourmin, :hourmin
+  plugin :serialization, :json, :tag_names
+  default_values[:tag_names] = "[]"
   many_to_one :group, class:'AlbumGroup'
 
   one_to_one :photo, class:'AlbumPhoto'
@@ -61,7 +63,7 @@ class AlbumItem < Sequel::Model(:album_items)
   # したがって AlbumTag の更新をした後はこの関数を呼ぶという規約にする
   # TODO: 規約に頼らずHookとか使って上記のことを強制する方法
   def do_after_tag_updated
-    tag_names = self.tags.map{|x|x.name}.to_json
+    tag_names = self.tags.map(&:name).to_json
     self.update!(tag_count:self.tags_dataset.count,tag_names:tag_names)
     self.group.update_count
   end

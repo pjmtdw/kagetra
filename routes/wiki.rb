@@ -42,7 +42,7 @@ class MainApp < Sinatra::Base
       end
 
       html.gsub!(/#{tag_link}:(\d+):/){
-        (keyword,text) = links[$1.to_i].split('|').map{|x|x.strip}
+        (keyword,text) = links[$1.to_i].split('|').map(&:strip)
         pattern = /\/(attached|comment|log)$/
         extra = ""
         if pattern =~ keyword then

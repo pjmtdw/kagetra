@@ -64,7 +64,7 @@ class MainApp < Sinatra::Base
         r.merge!(get_participant(ev,opts[:edit])) unless opts[:no_participant]
         if opts[:edit]
           r[:all_attrs] = get_all_attrs
-          r[:owners_str] = ev.owners.map{|u|u.name}.join(" , ")
+          r[:owners_str] = ev.owners.map(&:name).join(" , ")
           r[:all_event_groups] = get_all_event_groups
           r.merge!(ev.select_attr(:forbidden_attrs,:hide_choice,:register_done,:aggregate_attr_id))
         end
@@ -74,12 +74,13 @@ class MainApp < Sinatra::Base
     def get_participant(ev,edit_mode)
       participant_names = {}
       attr_query = UserAttributeValue.where(attr_key:ev.aggregate_attr).where(Sequel.~(id:ev.forbidden_attrs)).all
+      # TODO: all で実際に取得して二回も attr_query.map を呼んでるのは美しくない
       participant_attrs = attr_query.map{|x|[x.id,x.value]}
       attr_value_index = attr_query.map{|x|[x.id,x.index]}.to_h
       sort_and_map = ->(h){
         h.sort_by{|k,v|attr_value_index[k]}
         .map{|k,v|
-          [k,v.map{|x|x.id}]}}
+          [k,v.map(&:id)]}}
       add_participant_names = ->(ucs,hide_result){
         if hide_result and not edit_mode then return end
         participant_names.merge!(Hash[ucs.map{|u|[u.id,u.user_name]}])
@@ -148,7 +149,7 @@ class MainApp < Sinatra::Base
           end
           if @json.has_key?("forbidden_attrs")
             # 一つしかない場合は Array じゃなくて String で送られてくる
-            @json["forbidden_attrs"] = [@json["forbidden_attrs"]].flatten.map{|x|x.to_i}
+            @json["forbidden_attrs"] = [@json["forbidden_attrs"]].flatten.map(&:to_i)
           end
           updata = @json.except("id")
           if update_mode
@@ -165,7 +166,7 @@ class MainApp < Sinatra::Base
             }
           end
           if choices.nil?.! then
-            choice_ids = ev.choices.map{|c|c.id}
+            choice_ids = ev.choices.map(&:id)
             choices.each_with_index{|o,i|
               cond = o.select_attr("name","positive").merge({index:i})
               if o["id"] < 0 then
@@ -257,7 +258,7 @@ class MainApp < Sinatra::Base
       }
     end
     get '/deadline_alert' do
-      uav = @user.attrs.value.map{|v|v.id}
+      uav = @user.attrs.value.map(&:id)
       today = Date.today
       Event.where { (deadline >= today) & (deadline < today+G_DEADLINE_ALERT)}.map{|ev|
         next if (ev.forbidden_attrs & uav).empty?.!

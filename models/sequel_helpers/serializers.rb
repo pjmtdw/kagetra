@@ -30,7 +30,7 @@ module Sequel
           self.to_deserialized_hash(*args)
         end
         def to_deserialized_hash(*args)
-          args = args.map{|x|x.to_sym}
+          args = args.map(&:to_sym)
           self.class.serialized_columns.each{|c|
             # デシリアライズする 
             self.send(c)

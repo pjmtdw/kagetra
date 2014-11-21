@@ -280,7 +280,7 @@ class MainApp < Sinatra::Base
       json["users"].each{|k,v|
         kid = nil
         json["user_classes"].each{|p,q|
-          kid = p if q.map{|x|x.to_s}.include?(k.to_s)
+          kid = p if q.map(&:to_s).include?(k.to_s)
         }
         raise Exception.new("class id #{k.inspect} not found in #{json['user_classes'].inspect}") if kid.nil?
         klass = ContestClass[kid]
@@ -329,7 +329,7 @@ class MainApp < Sinatra::Base
             @json["teams"].each{|tid,tname|
               kid = nil
               @json["team_classes"].each{|p,q|
-                kid = p if q.map{|x|x.to_s}.include?(tid.to_s)
+                kid = p if q.map(&:to_s).include?(tid.to_s)
               }
               klass = ContestClass[kid]
               members = @json["user_teams"][tid]

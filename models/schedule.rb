@@ -2,6 +2,8 @@
 
 class ScheduleDateInfo < Sequel::Model(:schedule_date_infos)
   plugin :serialization, :json, :names
+  # MySQL では TEXT なカラムには DEFAULT を指定できないので Sequel の defaults_setter プラグインに頼る
+  default_values[:names] = "[]"
 end
 
 class ScheduleItem < Sequel::Model(:schedule_items)

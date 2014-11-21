@@ -71,7 +71,7 @@ class MainApp < Sinatra::Base
         aggr = events.group_by{|x|
           x.date.year
         }.map{|y,x|
-          eids = x.map{|z|z.id}
+          eids = x.map(&:id)
           # 勝ち数負け数ポイント(味方として出場した場合)
           res = ContestUser.where(id:cusers,event_id:eids).select(
             Sequel.function(:sum,:win).coalesce_0.as("win"),
@@ -118,7 +118,7 @@ class MainApp < Sinatra::Base
       eid_required = ( event_details + prize_events ).uniq
 
       # 大会情報
-      op_events = games_op.map{|x|x.event_id}.uniq
+      op_events = games_op.map(&:event_id).uniq
       res_events = Hash[events.map{|x|
         next unless eid_required.include?(x.id)
         r = x.select_attr(:name,:date,:official)
@@ -136,8 +136,8 @@ class MainApp < Sinatra::Base
         [c.event_id,r]
       }]
 
-      my_ids = games_my.select{|x|event_details.include?(x.event_id)}.map{|x|x.id}
-      op_ids = games_op.select{|x|event_details.include?(x.event_id)}.map{|x|x.id}
+      my_ids = games_my.select{|x|event_details.include?(x.event_id)}.map(&:id)
+      op_ids = games_op.select{|x|event_details.include?(x.event_id)}.map(&:id)
 
       my_belongs = {}
 

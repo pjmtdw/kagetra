@@ -129,7 +129,7 @@ class MainApp < Sinatra::Base
                 end
         rr.merge({coord_x:cx,coord_y:cy})
       }
-      r[:relations] = item.relations.map{|x|x.id_with_thumb}
+      r[:relations] = item.relations.map(&:id_with_thumb)
       r[:deletable] = @user.admin || item.owner_id == @user.id
       r
     end
@@ -179,7 +179,7 @@ class MainApp < Sinatra::Base
             @json.delete("tag_edit_log")
           end
           if @json.has_key?("relations")
-            rids_old = item.relations.map{|r|r.id }
+            rids_old = item.relations.map(&:id)
             rids_new = @json["relations"].map{|r|r["id"] }
             adds = rids_new - rids_old
             dels = rids_old - rids_new
@@ -247,7 +247,7 @@ class MainApp < Sinatra::Base
         dataset = dataset.where(qb)
       }
       chunks = dataset.order(Sequel.desc(:date)).paginate(page,ALBUM_SEARCH_PER_PAGE)
-      list = chunks.map{|x| x.id_with_thumb }
+      list = chunks.map(&:id_with_thumb)
       {
         list: list,
         pages: chunks.page_count,
@@ -375,7 +375,7 @@ class MainApp < Sinatra::Base
         ag = AlbumGroup[params[:group_id]]
         cond = if @user.admin then {} else {owner_id:@user.id} end
         items = AlbumItem.where(cond.merge({id:item_ids}))
-        deleted_ids = items.map{|x|x.id}
+        deleted_ids = items.map(&:id)
         items.destroy
         ag.update_count
         {list:deleted_ids}

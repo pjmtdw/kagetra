@@ -13,15 +13,19 @@ end
 
 DB.extension(:graph_each)
 DB.extension(:pagination)
+
+
 Sequel::Model.plugin :touch
 Sequel::Model.plugin :timestamps, update_on_create:true
 Sequel::Model.plugin :string_stripper
 Sequel::Model.plugin :serialization_modification_detection # 自動的に :serialization も読み込む
 Sequel::Model.plugin :update_or_create
 Sequel::Model.plugin :validation_helpers
-Sequel::Model.plugin :defaults_setter
 require_relative 'sequel_helpers/input_transformer_custom'
+require_relative 'sequel_helpers/defaults_setter_custom'
 require_relative 'sequel_helpers/serializers'
+Sequel::Model.plugin :defaults_setter_custom
+
 Sequel::Plugins::Serialization.register_format(:hourmin,*Kagetra::serialize_hourmin)
 
 module Sequel

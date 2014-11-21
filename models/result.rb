@@ -6,7 +6,7 @@ class ContestClass < Sequel::Model(:contest_classes)
   serialized_attr_accessor :class_rank__a
 
   plugin :serialization, :json, :round_name
-  default_values[:round_name] = "{}"
+  set_default_values_custom :round_name, "{}"
 
   one_to_many :single_games, class:'ContestSingleGame' # 試合結果(個人戦)
   one_to_many :prizes, class:'ContestPrize'
@@ -46,7 +46,7 @@ end
 class ContestResultCache < Sequel::Model(:contest_result_caches)
   many_to_one :event
   plugin :serialization, :json, :prizes
-  default_values[:prizes] = "[]"
+  set_default_values_custom :prizes,"[]"
   def update_prizes
     ev = self.event
     prz = ev.result_classes_dataset.order(Sequel.asc(:index)).map{|c|

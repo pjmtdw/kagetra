@@ -145,5 +145,5 @@ end
 
 class MyConf < Sequel::Model(:my_confs)
   plugin :serialization, :json, :value
-  default_values[:value] = "{}"
+  set_default_values_custom :value, "{}"
 end

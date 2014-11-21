@@ -27,7 +27,7 @@ class AlbumItem < Sequel::Model(:album_items)
   many_to_one :owner, class:'User'
   plugin :serialization, :hourmin, :hourmin
   plugin :serialization, :json, :tag_names
-  default_values[:tag_names] = "[]"
+  set_default_values_custom :tag_names,"[]"
   many_to_one :group, class:'AlbumGroup'
 
   one_to_one :photo, class:'AlbumPhoto'

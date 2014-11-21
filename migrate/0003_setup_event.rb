@@ -35,7 +35,7 @@ Sequel.migration do
       TrueClass :positive, null:false, comment:"「参加する」「はい」などの前向きな回答"
       TrueClass :hide_result, default:false, comment:"回答した人の一覧を表示しない"
       Integer :index, null:false, comment:"順序"
-      foreign_key :event_id, :events, null:false
+      foreign_key :event_id, :events, null:false, on_delete: :cascade
     end
     
     create_table_custom(:event_comments,[:base,:env,[:comment,:events]], comment:"大会/行事のコメント") do
@@ -45,7 +45,7 @@ Sequel.migration do
       String :user_name, size:24, null:false, comment:"後で改名する人やUserにない人を登録できるように用意しておく"
       TrueClass :cancel, default:false, comment:"登録取り消しフラグ"
       foreign_key :attr_value_id, :user_attribute_values, null:false
-      foreign_key :event_choice_id, :event_choices, null:false
+      foreign_key :event_choice_id, :event_choices, null:false, on_delete: :cascade
       foreign_key :user_id, :users, on_delete: :set_null, comment:"usersにない人でも登録できるようにNULLを許可する"
     end
 

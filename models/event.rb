@@ -5,7 +5,7 @@ class Event < Sequel::Model(:events)
   serialize_attributes Kagetra::serialize_enum([:contest, :party, :etc]), :kind
   plugin :serialization, :hourmin, :start_at, :end_at
   plugin :serialization, :json, :forbidden_attrs
-  default_values[:forbidden_attrs] = "[]"
+  set_default_values_custom :forbidden_attrs, "[]"
 
   many_to_one :event_group
   many_to_one :aggregate_attr, class:'UserAttributeKey'

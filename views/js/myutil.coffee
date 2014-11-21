@@ -32,7 +32,7 @@ define (require, exports, module) ->
   pat_url = new RegExp("((https?://[a-zA-Z0-9/:%#$&?()~.=+_-]+)|(([*+!.&#\$|\'\\%\/0-9a-z^_`{}=?~:-]+)@(([0-9a-z-]+\.)+[0-9a-z]{2,})))","gi")
 
 
-  cb_common = (msg,body,default_focus,f_resolve)->
+  cb_common = (msg,body,default_focus,close_selector,f_resolve)->
     defer = $.Deferred()
     el = $($.parseHTML("<div class='cb-container'><div>#{msg}</div>#{body}</div>"))
     cb = $.colorbox(
@@ -41,7 +41,7 @@ define (require, exports, module) ->
         el.one("click",".cancel-button",(ev)->
           $.colorbox.close()
         )
-        el.one("click",".ok-button",(ev)->
+        el.one("click", close_selector ,(ev)->
           if f_resolve?
             f_resolve(defer,el)
           else
@@ -65,10 +65,10 @@ define (require, exports, module) ->
 
   _.mixin
     cb_alert: (msg) ->
-      cb_common(msg, "<div class='buttons'><button class='small round ok-button'>閉じる</button></div>", ".ok-button")
+      cb_common(msg, "<div class='buttons'><button class='small round ok-button'>閉じる</button></div>", ".ok-button", null)
 
     cb_confirm: (msg)->
-      cb_common(msg, "<div class='buttons'><button class='small round ok-button'>はい</button><button class='small round cancel-button'>いいえ</button></div>",".ok-button")
+      cb_common(msg, "<div class='buttons'><button class='small round ok-button'>はい</button><button class='small round cancel-button'>いいえ</button></div>",".ok-button", ".ok-button")
 
     cb_prompt: (msg,default_value)->
       f_r = (defer,el) ->
@@ -78,7 +78,7 @@ define (require, exports, module) ->
         else
           defer.reject()
       cb_common(msg, "<div><input type='text' value='#{default_value || ""}' class='cb-prompt-text' /></div><div class='buttons'><button class='small round ok-button'>OK</button><button class='small round cancel-button'>キャンセル</button></div>",
-        ".cb-prompt-text", f_r
+        ".cb-prompt-text", ".ok-button", f_r
       )
 
     ie9_placeholder: (target)->

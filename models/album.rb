@@ -63,7 +63,7 @@ class AlbumItem < Sequel::Model(:album_items)
   # したがって AlbumTag の更新をした後はこの関数を呼ぶという規約にする
   # TODO: 規約に頼らずHookとか使って上記のことを強制する方法
   def do_after_tag_updated
-    tag_names = self.tags.map(&:name).to_json
+    tag_names = self.tags.map(&:name)
     self.update!(tag_count:self.tags_dataset.count,tag_names:tag_names)
     self.group.update_count
   end

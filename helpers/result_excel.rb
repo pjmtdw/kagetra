@@ -14,7 +14,7 @@ module ResultExcelHelpers
     # 列の長さを決めるためにあらかじめ選手名，対戦相手の名前の最大長さを取得しておく
     # 団体戦の場合は (将順) って文字を入れるので少し大きめにする
     namelen = (15 * ev.result_users.map{|x|x.name.size}.max) + if ev.team_size == 1 then 0 else 40 end
-    aitelen = (15 * ev.result_users.map{|x|x.games.map{|y|y.opponent_name}}.flatten.compact.map{|x|x.size}.max)
+    aitelen = (15 * ev.result_users.map{|x|x.games.map(&:opponent_name)}.flatten.compact.map(&:size).max)
     [19,31,12,33,19,namelen,12,40,12,aitelen,200,19].each_with_index{|w,i|
       # ピクセルからSpredsheet内部のwidthに変換
       sheet.column(i).width = w / 7.0

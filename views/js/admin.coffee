@@ -99,14 +99,11 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
           data: elog
           contentType: "application/json"
           type: "POST")
-        aj.done( (data) ->
-          if data._error_?
-            alert(data._error_)
-          else
-            alert("反映完了")
+        aj.done(_.with_error
+          "反映完了",
+          ->
             @edit_log = []
-            $("#edit-log-count").text(@edit_log.length)
-        ))
+            $("#edit-log-count").text(@edit_log.length)))
     undo_last_edit: ->
       @edit_log.pop()
       $("#edit-log-count").text(@edit_log.length)
@@ -211,7 +208,7 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
 
     do_reveal_edit: ->
       if parseInt($("#selected-count").text()) == 0
-        alert("編集対象をチェックして下さい")
+        _.cb_alert("編集対象をチェックして下さい")
       else
         target = "#admin-edit"
         v = new AdminEditView(collection: @collection,target:target)
@@ -274,7 +271,7 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
       $.ajax("api/user/delete_users",
         data: JSON.stringify(uids: uids)
         contentType: "application/json"
-        type: "DELETE").done( (data) -> if data._error_? then alert(data._error_) else alert("削除完了"))
+        type: "DELETE").done(_.with_error("削除完了"))
     get_uids: ->
       return (x.get("id") for x in @collection.models when x.get("selected"))
     change_attr: (ev)->
@@ -284,22 +281,22 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
                 uids: uids
                 value: @$el.find(".attr-value-names").val())
         contentType: "application/json"
-        type: "POST").done( (data) -> if data._error_? then alert(data._error_) else alert("更新完了"))
+        type: "POST").done(_.with_error("更新完了"))
     change_passwd: (ev)->
       uids = @get_uids()
       el = @$el
       if el.find(".pass-new").val().length == 0
-        alert("新パスワードが空白です")
+        _.cb_alert("新パスワードが空白です")
         return false
       if el.find(".pass-new").val() != el.find(".pass-retype").val()
-        alert("再確認のパスワードが一致しません")
+        _.cb_alert("再確認のパスワードが一致しません")
         return false
       hash = _.pbkdf2_password(el.find(".pass-new").val(),g_new_salt)
       p = $.post 'api/user/change_password',
         hash: hash
         salt: g_new_salt
         uids: uids
-      p.done(-> alert("パスワードを変更しました"))
+      p.done(_.with_error("パスワードを変更しました"))
       false
 
     change_permission: (ev,mode) ->
@@ -311,7 +308,7 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
                 uids: uids
                 type: $("#permission-name").val())
         contentType: "application/json"
-        type: "POST").done( (data) -> if data._error_? then alert(data._error_) else alert("更新完了"))
+        type: "POST").done(_.with_error("更新完了"))
 
     template: _.template($("#templ-admin-edit").html())
     initialize: -> @render()
@@ -334,7 +331,7 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
       $.ajax("api/user/create_users",
         data: JSON.stringify({list:list})
         contentType: "application/json"
-        type: "POST").done( (data) -> if data._error_? then alert(data._error_) else alert("追加完了"))
+        type: "POST").done(_.with_error("追加完了"))
     initialize: ->
       @collection = @options.collection
       @render()

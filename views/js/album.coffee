@@ -219,10 +219,9 @@ define (require,exports,module)->
         data: JSON.stringify(obj),
         contentType: "application/json",
         type: "POST"
-      }).done((data)->
-        _.cb_alert("更新しました")
+      }).done(_.with_error("更新しました", ->
         $(that.options.target).foundation("reveal","close")
-      )
+      ))
     initialize: ->
       @render()
     render: ->
@@ -304,10 +303,10 @@ define (require,exports,module)->
     album_delete: ->
       if prompt("削除するにはdeleteと入れて下さい","") == "delete"
         year = @model.get('year')
-        @model.destroy().done(->
-          _.cb_alert('削除しました')
-          window.album_router.navigate("year/#{year}", trigger:true)
-        )
+        @model.destroy().done(_.with_error
+          '削除しました',
+          ->
+            window.album_router.navigate("year/#{year}", trigger:true))
 
     apply_edit: ->
       obj = $("#album-item-form").serializeObj()
@@ -317,9 +316,9 @@ define (require,exports,module)->
       _.save_model(@model,obj,null,true).done(->
         that.model.fetch().done(->
           that.edit_mode = false
-          # alert("更新完了")
+          # _.cb_alert("更新完了")
         )
-      ).fail((msg)->alert("更新失敗: " + msg))
+      ).fail((msg)->_.cb_alert("更新失敗: " + msg))
     initialize: ->
       @model = new AlbumGroupModel()
       @listenTo(@model,"sync",@render)
@@ -551,7 +550,7 @@ define (require,exports,module)->
         $.get("api/album/thumb_info/#{id}").done((data)->
           $("#relation-start").after($("<div>",{class:"left relation",html:_.album_thumb(data)}))
           that.model.get("relations").push(data)
-          alert("関連写真に追加しました")
+          _.cb_alert("関連写真に追加しました")
           that.render_relations(true)
         )
       v = new $as.AlbumSearchView(
@@ -564,10 +563,9 @@ define (require,exports,module)->
     album_delete: ->
       if prompt("削除するにはdeleteと入れて下さい","") == "delete"
         group_id = @model.get('group').id
-        @model.destroy().done(->
-          alert('削除しました')
+        @model.destroy().done(_.with_.error("削除しました",->
           window.album_router.navigate("group/#{group_id}", trigger:true)
-        )
+        ))
 
     apply_edit: ->
       obj = $("#album-item-form").serializeObj()
@@ -580,9 +578,9 @@ define (require,exports,module)->
           that.model.unset("tag_edit_log")
           that.model.unset("orig_rotate")
           that.edit_mode = false
-          # alert("更新完了")
+          # _.cb_alert("更新完了")
         )
-      ).fail((msg)->alert("更新失敗: " + msg))
+      ).fail((msg)->_.cb_alert("更新失敗: " + msg))
     cancel_edit: ->
       return if (@changed or not _.isEmpty(@tag_edit_log)) and !confirm("内容が変更されています．キャンセルして良いですか？")
       @changed = false
@@ -800,9 +798,9 @@ define (require,exports,module)->
         type: "DELETE"
       }).done((data)->
         if data.list.length != checked.length
-          alert("#{data.list.length}枚削除しました．残りは貴方の写真でないため削除できませんでした")
+          _.cb_alert("#{data.list.length}枚削除しました．残りは貴方の写真でないため削除できませんでした")
         else
-          alert("削除しました")
+          _.cb_alert("削除しました")
         for c in data.list
           $("#album-items .album-item[data-id='#{c}']").remove()
       )
@@ -814,12 +812,7 @@ define (require,exports,module)->
         data: JSON.stringify(obj),
         contentType: "application/json",
         type: "POST"
-      }).done((data)->
-        if data._error_
-          alert(data._error_)
-        else
-          alert("更新しました")
-      )
+      }).done(_.with_error("更新しました"))
 
     do_move: ->
       group_id = @$el.find(".move-folder-target").select2("val")
@@ -834,7 +827,7 @@ define (require,exports,module)->
         contentType: "application/json",
         type: "POST"
       }).done(->
-        alert("移動しました")
+        _.cb_alert("移動しました")
         for c in checked
           $("#album-items .album-item[data-id='#{c}']").remove()
       )

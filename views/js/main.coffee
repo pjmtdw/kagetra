@@ -57,7 +57,7 @@ require ["jquery","backbone","myutil","select2","colorbox","jquery_placeholder",
     # alert if ajax failed
     $(document).ajaxError((evt,xhr,settings,error)->
       return if xhr.status == 0
-      alert("通信エラー(#{xhr.status}): #{xhr.statusText}"))
+      _.cb_alert("通信エラー(#{xhr.status}): #{xhr.statusText}"))
 
     # insert dummy element to detect whether it is small screen
     v = $("<div>",{class:'show-for-small'})

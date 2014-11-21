@@ -20,13 +20,13 @@ define ["crypto-aes", "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
       npass2 = fel.find("input[name='new-addrbook-pass-2']").val()
 
       if not g_addrbook_check_password(cpass)
-        alert('旧パスワードが間違っています')
+        _.cb_alert('旧パスワードが間違っています')
         return
       else if npass1.length == 0
-        alert('新パスワードが空白です')
+        _.cb_alert('新パスワードが空白です')
         return
       else if npass1 != npass2
-        alert('確認用パスワードが一致しません')
+        _.cb_alert('確認用パスワードが一致しません')
         return
 
       # TODO: パスワードを平文で送るのは危険
@@ -36,7 +36,7 @@ define ["crypto-aes", "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
           new_password: npass1
           )
         contentType: "application/json"
-        type: "POST").done(-> alert("完了"))
+        type: "POST").done(_.with_error("完了"))
 
 
 

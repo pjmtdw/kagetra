@@ -46,7 +46,7 @@ define (require,exports,module) ->
         data: JSON.stringify(obj),
         contentType: "application/json",
         type: "POST"
-      }).done(->alert("変更しました"))
+      }).done(_.with_error("変更しました"))
     initialize: ->
       @model = new ResultPromotionRecentModel()
       @listenTo(@model,"sync",@render)

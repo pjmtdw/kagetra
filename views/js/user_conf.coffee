@@ -8,7 +8,7 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
       "submit .form" : "do_submit"
     do_submit: ->
       @model.set(@$el.find('.form').serializeObj())
-      @model.save().done(-> alert("更新しました"))
+      @model.save().done(_.with_error("更新しました"))
       false
     initialize: ->
       _.bindAll(this,"render","do_submit")

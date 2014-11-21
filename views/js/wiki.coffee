@@ -47,7 +47,7 @@ define (require,exports,module) ->
       "click #delete-wiki" : "delete_wiki"
     delete_wiki:->
       if prompt("削除するにはdeleteと入れて下さい","") == "delete"
-        @model.destroy().done(->alert("削除しました"))
+        @model.destroy().done(->_.cb_alert("削除しました"))
     edit_done:->
       obj = $("#wiki-edit-form").serializeObj()
       is_new = @model.isNew()
@@ -181,8 +181,7 @@ define (require,exports,module) ->
       if prompt("削除するにはdeleteと入れて下さい","") == "delete"
         that = this
         aj = $.ajax("api/wiki/attached/#{@options.data.id}",{type: "DELETE"}).done(->
-          alert("削除しました")
-          that.options.when_success()
+          _.cb_alert("削除しました").always(that.options.when_success)
         )
     initialize: ->
       _.bindAll(@,"submit_done")

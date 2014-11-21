@@ -230,10 +230,7 @@ define (require,exports,module)->
       false
     delete_event: ->
       if prompt("削除するにはdeleteと入れて下さい","") == "delete"
-        @model.destroy().done(->
-          alert("削除しました")
-          $("#container-event-edit").foundation("reveal","close")
-        )
+        @model.destroy().done(_.with_error("削除しました", -> $("#container-event-edit").foundation("reveal","close")))
       false
     do_submit: ->
       obj = $("#event-edit-form").serializeObj()

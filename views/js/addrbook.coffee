@@ -30,11 +30,11 @@ define (require,exports,module)->
     do_when_submit: ->
       pass = $("#password").val()
       if g_addrbook_check_password(pass)
-        alert("名簿パスワードは正しいです")
+        _.cb_alert("名簿パスワードは正しいです")
         if not window.addrbook_view.decode_success
           window.addrbook_view.render()
       else
-        alert("名簿パスワードが違います")
+        _.cb_alert("名簿パスワードが違います")
       false
     initialize: ->
       _.bindAll(this,"render","refresh")
@@ -93,24 +93,25 @@ define (require,exports,module)->
       obj = $("#addrbook-form").serializeObj()
       for [key,patt,msg] in validations
         if not patt.test(obj[key])
-          alert(msg)
+          _.cb_alert(msg)
           return
 
       json = JSON.stringify(obj)
       pass = $("#password").val()
       if pass.length == 0
-        alert("名簿パスワードを入力して下さい")
-        $("#password").focus()
+        _.cb_alert("名簿パスワードを入力して下さい").always(->
+          $("#password").focus()
+        )
         return false
       else if not g_addrbook_check_password(pass)
-        alert("名簿パスワードが違います")
+        _.cb_alert("名簿パスワードが違います")
         $("#password").focus()
         return false
       text = CryptoJS.AES.encrypt(json,pass).toString(CryptoJS.enc.BASE64)
       @model.set("text",text)
       @model.set("album_item_id",@$el.find(".album-photo a[data-id]").data("id"))
       @model.set("found",true) # AddrBookViwe が render するときに text の方を使う
-      @model.save().done(-> alert("更新しました"))
+      @model.save().done(_.with_error("更新しました"))
 
     template_enc: _.template($("#templ-addrbook-body-enc").html())
     template_edit: _.template_braces($("#templ-addrbook-body-edit").html())

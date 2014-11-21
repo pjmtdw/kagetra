@@ -40,9 +40,9 @@ define ->
         type: "POST")
       .done((data)->
         if data._error_
-          alert(data._error_)
+          _.cb_alert(data._error_)
         else
-          alert("編集しました")
+          _.cb_alert("編集しました")
           button.toggleBtnText()
           that.is_applying = false
           that.model.fetch()
@@ -52,7 +52,7 @@ define ->
       if r = prompt("属性追加","")
         t = @template_table(data:{id:"new",name:r})
         $("#after-last-key").before(t)
-        alert("一番最後に追加しました")
+        _.cb_alert("一番最後に追加しました")
     add_value: (ev)->
       if r = prompt("属性追加","")
         t = @template_row(data:{id:"new",value:r})

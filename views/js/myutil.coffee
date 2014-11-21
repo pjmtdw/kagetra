@@ -94,7 +94,7 @@ define (require, exports, module) ->
             when_error?()
           )
         else if res.result == "OK"
-          #alert("送信しました")
+          #_.cb_alert("送信しました")
           when_success?(res)
         else
           _.cb_alert("エラー: 送信失敗(1)")
@@ -344,6 +344,12 @@ define (require, exports, module) ->
         defer.reject(error)
       )
       defer.promise()
+    with_error: (success_msg, other_job) ->
+      (data) ->
+        if data._error_?
+          _.cb_alert(data._error_)
+        else
+          _.cb_alert(success_msg).always(other_job || ()->{} )
     save_model: (model,obj,force,disallow_double)->
       defer = $.Deferred()
       if disallow_double

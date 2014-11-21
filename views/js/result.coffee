@@ -101,7 +101,7 @@ define (require,exports,module) ->
         type: "POST"
       }).done((data)->
         if data._error_?
-          alert(data._error_)
+          _.cb_alert(data._error_)
         else
           $("#container-result-edit").foundation("reveal","close")
           for r in result.get('user_results')
@@ -311,7 +311,7 @@ define (require,exports,module) ->
         type: "POST"
       }).done((data)->
         if data._error_?
-          alert(data._error_)
+          _.cb_alert(data._error_)
         else
           $("#container-result-edit").foundation("reveal","close")
           for r in result.get('user_results')
@@ -413,7 +413,7 @@ define (require,exports,module) ->
       that = this
       @model.save().done((data)->
         if data._error_?
-          alert(data._error_)
+          _.cb_alert(data._error_)
         else
           window.result_view.collection.fetch()
           $("#container-result-edit").foundation("reveal","close")
@@ -452,7 +452,7 @@ define (require,exports,module) ->
       for c in cs
         kls = @model.get(c)
         if not _.isEmpty(kls[cl])
-          alert("空でない級は削除できません")
+          _.cb_alert("空でない級は削除できません")
           return
       for c in cs
         kls = @model.get(c)
@@ -542,7 +542,7 @@ define (require,exports,module) ->
       return unless tid
       team = @model.get('user_teams')
       if not _.isEmpty(team[tid])
-        alert("空でないチームは削除できません")
+        _.cb_alert("空でないチームは削除できません")
         return
       delete team[tid]
       delete @model.get("teams")[tid]

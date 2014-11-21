@@ -97,7 +97,7 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
               elem.focus()
             )
           when "NOT_LOGINABLE"
-            alert("ログイン権限がありません")
+            _.cb_alert("ログイン権限がありません")
         that.submitting = false
       .fail ->
         that.submitting = false

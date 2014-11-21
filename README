@@ -10,7 +10,7 @@ Version Control System: Git
 Programming Language:   Ruby 2.1.4
 Ruby Management:        rbenv + bundler
 Web Framework:          Sinatra
-Testing:                RSpec
+Testing:                RSpec + Selenium
 ORM:                    Sequel
 Database:               MySQL
 HTML Template Engine:   Haml
@@ -48,6 +48,10 @@ for Ubuntu 14.04 ->
 (5) Run web app
   $ cd kagetra && bundle exec rackup
 
+[Howto Test with RSpec and Selenium]
+$ apt-get install xvfb firefox
+$ xvfb-run bundle exec rspec spec/test.rb
+
 [For Production]
 (1) Compile & Optimize Sass and CoffeeScripts
   $ npm install requirejs coffee-script
@@ -75,4 +79,3 @@ for Ubuntu 14.04 ->
 (4) execute 'bower update'
 (5) replace "/gems/zurb-foundation-<version>" in 'deploy/compass_conf.rb'
 (6) execute `bundle exec compass create hoobar -r zurb-foundation --using foundation` and merge 'hoobar/sass/*.scss' to 'views/sass/'
-

@@ -32,6 +32,8 @@ gem 'sequel'
 #gem 'sqlite3' # used when importing mytoma wiki
 
 # only used for developing
+gem 'rspec' # BDD Testing
+gem 'selenium-webdriver' # Testing in browser
 gem 'rack-coffee'
 gem 'tux' # CLI for sinatra
 #gem 'mecab', '0.996'

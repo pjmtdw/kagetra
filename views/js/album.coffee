@@ -305,10 +305,10 @@ define (require,exports,module)->
       _.cb_prompt("削除するにはdeleteと入れて下さい").done((r)->
         if r == "delete"
           year = that.model.get('year')
-          that.model.destroy().done(_.with_error
+          that.model.destroy().done(_.with_error(
             '削除しました',
             ->
-              window.album_router.navigate("year/#{year}", trigger:true)))
+              window.album_router.navigate("year/#{year}", trigger:true))))
 
     apply_edit: ->
       obj = $("#album-item-form").serializeObj()
@@ -567,7 +567,7 @@ define (require,exports,module)->
       _.cb_prompt("削除するにはdeleteと入れて下さい").done((r)->
         if r == "delete"
           group_id = that.model.get('group').id
-          that.model.destroy().done(_.with_.error("削除しました",->
+          that.model.destroy().done(_.with_error("削除しました",->
             window.album_router.navigate("group/#{group_id}", trigger:true)
           )))
 

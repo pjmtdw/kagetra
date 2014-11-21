@@ -3,7 +3,8 @@ DB = Sequel.mysql2(
   host: CONF_DB_HOST,
   username: CONF_DB_USERNAME,
   password: CONF_DB_PASSWORD,
-  database: CONF_DB_DATABASE
+  database: CONF_DB_DATABASE,
+  sql_mode: 'STRICT_ALL_TABLES'
 )
 
 if CONF_DB_DEBUG then

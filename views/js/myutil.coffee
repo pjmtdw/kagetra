@@ -48,6 +48,10 @@ define (require, exports, module) ->
             defer.resolve()
           $.colorbox.close()
         )
+        el.one("submit", ".cb-prompt-form", (ev)->
+          el.find(".ok-button").click()
+          false
+        )
         el.find(default_focus).focus()
       onClosed: ->
         if defer.state() == "pending" then defer.reject()
@@ -77,7 +81,7 @@ define (require, exports, module) ->
           defer.resolve(v)
         else
           defer.reject()
-      cb_common(msg, "<div><input type='text' value='#{default_value || ""}' class='cb-prompt-text' /></div><div class='buttons'><button class='small round ok-button'>OK</button><button class='small round cancel-button'>キャンセル</button></div>",
+      cb_common(msg, "<form class='cb-prompt-form'><div><input type='text' value='#{default_value || ""}' class='cb-prompt-text' /></div></form><div class='buttons'><button class='small round ok-button'>OK</button><button class='small round cancel-button'>キャンセル</button></div>",
         ".cb-prompt-text", ".ok-button", f_r
       )
 

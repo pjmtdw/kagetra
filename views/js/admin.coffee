@@ -96,15 +96,14 @@ define ["crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
       that = this
       _.cb_confirm("#{@edit_log.length} 点の変更を反映してもいいですか？").done(->
         elog = JSON.stringify(that.edit_log)
-        aj = $.ajax("api/admin/apply_edit",
+        $.ajax("api/admin/apply_edit",
           data: elog
           contentType: "application/json"
-          type: "POST")
-        aj.done(_.with_error
+          type: "POST").done(_.with_error(
           "反映完了",
           ->
             that.edit_log = []
-            $("#edit-log-count").text(that.edit_log.length)))
+            $("#edit-log-count").text(that.edit_log.length))))
     undo_last_edit: ->
       @edit_log.pop()
       $("#edit-log-count").text(@edit_log.length)

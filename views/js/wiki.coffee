@@ -188,9 +188,8 @@ define (require,exports,module) ->
       that = this
       _.cb_prompt("削除するにはdeleteと入れて下さい").done((res)->
         if res == "delete"
-          aj = $.ajax("api/wiki/attached/#{that.options.data.id}",{type: "DELETE"}).done(->
-            _.cb_alert("削除しました").always(that.options.when_success)
-          )
+          $.ajax("api/wiki/attached/#{that.options.data.id}",{type: "DELETE"}).done(
+            ->_.cb_alert("削除しました").always(that.options.when_success)))
     initialize: ->
       _.bindAll(@,"submit_done")
       @render()

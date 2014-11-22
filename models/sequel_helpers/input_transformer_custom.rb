@@ -5,7 +5,7 @@ module Sequel
     # Example1:
     #   Album.plugin :input_transformer_custom
     #   Album.add_input_transformer_custom(:name){|v| v.reverse}
-    #   album = Album.name(name:'foo')
+    #   album = Album.new(name:'foo')
     #   album.name # => 'oof'
     #
     # Example2:
@@ -14,7 +14,7 @@ module Sequel
     module InputTransformerCustom
       def self.apply(model,*)
         model.instance_eval do
-          @input_transformer_customs = Hash.new{Array.new}
+          @input_transformer_customs = Hash.new{[]}
         end
       end
       def self.configure(model, column_name = nil, &block)
@@ -28,7 +28,7 @@ module Sequel
         Plugins.inherited_instance_variables(self, :@input_transformer_customs => :hash_dup)
         def add_input_transformer_custom(*column_name, &block)
           column_name.each{|c|
-            @input_transformer_customs[c].push(block)
+            @input_transformer_customs[c] <<= block
           }
         end
       end

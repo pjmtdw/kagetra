@@ -49,8 +49,14 @@ for Ubuntu 14.04 ->
   $ cd kagetra && bundle exec rackup
 
 [Howto Test with RSpec and Selenium]
-$ apt-get install xvfb firefox
-$ xvfb-run bundle exec rspec spec/test.rb
+  $ apt-get install xvfb firefox
+  $ xvfb-run bundle exec rspec spec/test.rb
+  Watch the execution of selenium
+  $ apt-get install x11vnc
+  $ Xvfb :3
+  $ x11vnc -display :3 -frbport 25900 -shared -forever
+  ... connect to 25900 port with VNC client
+  $ DISPLAY=:3 bundle exec rspec spec/test.rb
 
 [For Production]
 (1) Compile & Optimize Sass and CoffeeScripts

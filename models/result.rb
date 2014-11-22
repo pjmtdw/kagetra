@@ -35,11 +35,19 @@ class ContestUser < Sequel::Model(:contest_users)
     self.class_rank = self.contest_class.class_rank
     super
   end
+  
+  def update_contest_user_count
+    ev = self.event
+    ev.update(contest_user_count:ev.result_users_dataset.count)
+  end
 
   def after_create
     super
-    ev = self.event
-    ev.update(contest_user_count:ev.result_users.count)
+    update_contest_user_count
+  end
+  def after_destroy
+    super
+    update_contest_user_count
   end
 end
 

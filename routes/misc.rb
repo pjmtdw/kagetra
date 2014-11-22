@@ -2,12 +2,11 @@
 class MainApp < Sinatra::Base
   def filter_public(splat)
     path = "/" + splat
-    halt(403,"this page is not public") unless G_TOP_BAR_ROUTE.any?{|x|
-      next unless x[:public]
-      r = x[:route]
+    # TODO: G_TOP_BAR_PUBLIC の wiki のページが増えるとここが非効率的になる
+    halt(403,"this page is not public") unless G_TOP_BAR_PUBLIC.any?{|x|
+      r = x[:route].sub(/#.*/,"")
       ["/"+r,"/api/"+r].any?{|z| path.start_with?(z)}
-    } or
-    path.start_with?("/haml/")
+    } or path.start_with?("/haml/")
     @public_mode = true
     call env.merge("PATH_INFO" => path)
   end

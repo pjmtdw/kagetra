@@ -113,7 +113,7 @@ Sequel.migration do
     end
     
     create_table_custom(:contest_result_caches,[:base],comment:"毎回aggregateするのは遅いのでキャッシュ") do
-      foreign_key :event_id, :events, null:false, on_delete: :cascade
+      foreign_key :event_id, :events, unique:true, null:false, on_delete: :cascade
       Integer :win, default:0, comment: "勝ち数の合計"
       Integer :lose, default:0, comment: "負け数の合計"
       String :prizes, text:true, comment: "入賞情報(JSON)" 

@@ -8,7 +8,7 @@ define (require,exports,module) ->
       window.result_list_view?.remove()
       window.result_list_view = new ResultListView(year:year)
   ResultListModel = Backbone.Model.extend
-    url: -> "api/result_misc/year/#{@get('year')}"
+    url: -> "api/result_list/year/#{@get('year')}"
   ResultListView = Backbone.View.extend
     template: _.template_braces($("#templ-result-list").html())
     events:

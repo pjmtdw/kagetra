@@ -3,16 +3,6 @@ class MainApp < Sinatra::Base
   RESULT_RECORD_PER_PAGE = 30
   RESULT_SEARCH_NAME_LIMIT = 100
   namespace '/api/result_misc' do
-    get '/year/:year' do
-      minyear = Event.where(kind:Event.kind__contest).min(:date).year
-      year = params[:year].to_i
-      sday = Date.new(year,1,1)
-      eday = Date.new(year+1,1,1)
-      list = Event.where{ (date >= sday) & (date < eday)}.where(done:true,kind:Event.kind__contest).order(Sequel.desc(:date)).map{|x|
-        result_summary(x)
-      }
-      {list:list,minyear:minyear,maxyear:Date.today.year,curyear:year}
-    end
     post '/search_name' do
       query = "%#{params[:q]}%"
       list1 = ContestUser.where(Sequel.like(:name,query)).limit(RESULT_SEARCH_NAME_LIMIT/2)
@@ -215,6 +205,24 @@ class MainApp < Sinatra::Base
       }
     end
 
+  end
+  get '/api/result_list/year/:year' do
+    year = params[:year].to_i
+    minyear = Event.where(kind:Event.kind__contest).min(:date).year
+    sday = Date.new(year,1,1)
+    eday = Date.new(year+1,1,1)
+    list = Event.where{ (date >= sday) & (date < eday)}
+                .where(done:true,kind:Event.kind__contest)
+                .order(Sequel.desc(:date))
+                .map{|x|
+                  r = result_summary(x)
+                  if @public_mode and r[:prizes].empty? then
+                    nil
+                  else
+                    r
+                  end
+                }.compact
+    {list:list,minyear:minyear,maxyear:Date.today.year,curyear:year}
   end
   get '/result_list' do
     haml :result_list

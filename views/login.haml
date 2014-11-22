@@ -6,8 +6,8 @@
 .row(style='padding-top:8px;')
   .columns
     %a(href='/mobile/') [携帯用]
-    - G_TOP_BAR_ROUTE.select{|x|x[:public]}.each do |p|
-      %a(href='public/#{p[:route]}') [公開#{p[:name]}]
+    - G_TOP_BAR_PUBLIC.each do |p|
+      %a(href='public/#{p[:route]}') [#{p[:name]}]
 
 #container-shared-pass
 #container-login

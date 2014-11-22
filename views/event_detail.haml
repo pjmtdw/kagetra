@@ -246,8 +246,13 @@
         {{x.date}}
       %td
         %div
-          %a.contest-link(href='result#contest/{{x.id}}') {{_.show_kind_symbol("contest",x.official)}} {{x.name}}
-        %div {{x.win}}勝{{x.lose}}敗 ({{x.user_count}}人)
+          - kind_name = '{{_.show_kind_symbol("contest",x.official)}} {{x.name}}'
+          - if @public_mode then
+            %span #{kind_name}
+          - else
+            %a.contest-link(href='result#contest/{{x.id}}')  #{kind_name}
+        - if !@public_mode then
+          %div {{x.win}}勝{{x.lose}}敗 ({{x.user_count}}人)
       %td
         <% _.each(x.prizes,function(p){ %>
         %div(class='{{p.type}} {{p.promotion}}') {-p.class_name-} {-p.prize-} {-p.name-} {{p.point?"["+p.point+"pt]":""}} {{p.point_local?"["+p.point_local+"kpt]":""}}

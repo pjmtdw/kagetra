@@ -26,15 +26,22 @@ G_EVENT_KINDS = {party:"コンパ/合宿/アフター等",etc:"アンケート/�
 
 G_TEAM_SIZES = {"1"=>"個人戦","3"=>"三人団体戦","5"=>"五人団体戦"}
 
-# public は外部公開されているかどうか
-G_TOP_BAR_ROUTE = [
-  {route:"top",      name:"TOP",      public: false},
-  {route:"bbs",      name:"掲示板",   public: true },
-  {route:"result",   name:"大会結果", public: false},
-  {route:"schedule", name:"予定表",   public: true },
-  {route:"wiki",     name:"Wiki",     public: true },
-  {route:"album",    name:"アルバム", public: false},
-  {route:"addrbook", name:"名簿",     public: false},
+G_TOP_BAR_PRIVATE = [
+  {route:"top",      name:"TOP"},
+  {route:"bbs",      name:"掲示板"},
+  {route:"result",   name:"大会結果"},
+  {route:"schedule", name:"予定表"},
+  {route:"wiki",     name:"Wiki"},
+  {route:"album",    name:"アルバム"},
+  {route:"addrbook", name:"名簿"},
+]
+
+G_TOP_BAR_PUBLIC = [
+  {route:"bbs",      name:"公開掲示板"},
+  {route:"schedule", name:"公開予定表"},
+  {route:"result_list", name:"入賞歴"},
+  {route:"wiki#page/41", name:"役職"},
+  {route:"wiki#page/15", name:"練習会場"},
 ]
 
 G_SINGLE_POINT = [1,2,4,8,16,32,64] # 個人戦でもらえるA級ポイント

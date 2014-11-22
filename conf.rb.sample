@@ -51,6 +51,7 @@ G_TEAM_POINT_LOCAL = [10,20,30,40,50] # 団体戦でもらえる会内ポイン�
 CONF_DB_USERNAME = "<user>"
 CONF_DB_PASSWORD = "<pass>"
 CONF_DB_HOST = "<host>"
+CONF_DB_PORT = port
 CONF_DB_DATABASE = "<db>"
 
 CONF_DB_DEBUG = true # stdout に DEBUG 情報を出力

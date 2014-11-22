@@ -1,6 +1,7 @@
 
 DB = Sequel.mysql2(
   host: CONF_DB_HOST,
+  port: CONF_DB_PORT,
   username: CONF_DB_USERNAME,
   password: CONF_DB_PASSWORD,
   database: CONF_DB_DATABASE,

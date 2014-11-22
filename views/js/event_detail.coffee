@@ -242,13 +242,12 @@ define (require,exports,module)->
       if m.get("id") == "contest" || m.get("id") == "party"
         m.unset("id")
       is_new = m.isNew()
-      _.save_model_alert(@model,obj,null,true).done(->
+      _.save_model_alert(m,obj,null,true).done(->
         $("#container-event-edit").foundation("reveal","close")
         if is_new and window.event_list_view?
           window.event_list_view.collection.add(m)
-        window.event_edit_view.options.do_when_done?(@model)
+        window.event_edit_view.options.do_when_done?(m)
       )
-
       false
     initialize: ->
       @listenTo(@model,"sync",@render)

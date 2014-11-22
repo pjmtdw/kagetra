@@ -113,7 +113,7 @@ define (require,exports,module) ->
               r.game_results[that.options.round-1] = data.results[r.cuid]
             else
               # 先の回戦がないか，全て休みの場合は削除 
-              # 休み以外がある場合は今の回回戦を休みにする
+              # 休み以外がある場合は今の回戦を休みにする
               break_flag = false
               if r.game_results.length > that.options.round
                 for i in [(r.game_results.length-1)..(that.options.round)]
@@ -584,9 +584,13 @@ define (require,exports,module) ->
       $ed.show_event_group(@collection.event_group_id)
       false
     contest_add: ->
+      dwd = (m)->
+        # なぜか reveal を closed してからしばらく経たないと router.navigate できない
+        # TODO: 原因調査
+        f = -> window.result_router.navigate("contest/#{m.get('id')}",trigger:true)
+        $("#container-event-edit").one("closed", -> window.setTimeout(f, 300))
       $ed.show_event_edit(
-        new $ed.EventItemModel(kind:"contest",id:"contest",done:true),
-        {do_when_done:(m)-> window.result_router.navigate("contest/#{m.get('id')}",trigger:true)}
+        new $ed.EventItemModel(kind:"contest",id:"contest",done:true),{do_when_done:dwd}
       )
     contest_link: (ev) ->
       id = $(ev.currentTarget).data('id')
@@ -606,21 +610,23 @@ define (require,exports,module) ->
       cur_class = null
       @chunks = []
       that = this
-      col.each (m,index)->
-        if m.get("class_id") != cur_class
-          cur_class = m.get("class_id")
-          cinfo = col.contest_classes[cur_class]
-          c = $("<div>",{class:"class-info"})
-          c.append($("<span>",{class:"class-name label round",text:cinfo.class_name}))
-          np = cinfo.num_person || 0
-          cl = $("<span>",{class:"num-person label",text:np + "人"})
-          c.append(cl)
-          cl.hide() if np == 0
-
-          $("#contest-result-body").append(c)
-        v = new ContestChunkView(model:m,chunk_index:index)
-        that.chunks.push(v)
-        $("#contest-result-body").append(v.$el)
+      if col.isEmpty() or col.every((x)->_.isEmpty(x.get("user_results")))
+        $("#contest-result-body").append($("<div>",{text:"※出場者のいない大会は「大会一覧」にのみ表示されます"}))
+      else
+        col.each (m,index)->
+          if m.get("class_id") != cur_class
+            cur_class = m.get("class_id")
+            cinfo = col.contest_classes[cur_class]
+            c = $("<div>",{class:"class-info"})
+            c.append($("<span>",{class:"class-name label round",text:cinfo.class_name}))
+            np = cinfo.num_person || 0
+            cl = $("<span>",{class:"num-person label",text:np + "人"})
+            c.append(cl)
+            cl.hide() if np == 0
+            $("#contest-result-body").append(c)
+          v = new ContestChunkView(model:m,chunk_index:index)
+          that.chunks.push(v)
+          $("#contest-result-body").append(v.$el)
 
       @$el.foundation('section','reflow')
       $co.section_comment(

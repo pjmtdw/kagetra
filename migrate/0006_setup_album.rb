@@ -32,7 +32,7 @@ Sequel.migration do
       String :hourmin, size:50, comment:"撮影時刻"
       TrueClass :daily_choose, default:true, comment:"今日の一枚として選ばれるかどうか"
       Integer :group_index, null:false, comment:"グループの中での表示順"
-      Integer :rotate, comment:"回転(右向き．0,90,180,270のどれか)"
+      Integer :rotate, default:0, comment:"回転(右向き．0,90,180,270のどれか)"
       String :orig_filename, size:128, comment:"アップロードされた元のファイル名"
       Integer :tag_count, default:0, comment:"写真にタグが何個付いているか"
       String :tag_names, text:true, comment:"タグ名の入った配列をJSON化したもの"

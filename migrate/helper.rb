@@ -38,8 +38,8 @@ module Sequel
       },
       image: lambda{|x|
           String :path, size:255, null:false, unique: true
-          Integer :width
-          Integer :height
+          Integer :width, null:false
+          Integer :height, null:false
           String :format, size:50
           foreign_key :album_item_id, :album_items, null:false, unique:true, on_delete: :cascade
       }

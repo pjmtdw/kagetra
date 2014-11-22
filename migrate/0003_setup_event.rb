@@ -11,7 +11,7 @@ Sequel.migration do
       String :name, size:48, null:false, comment:"名称"
       String :formal_name, size:96, comment:"正式名称"
       TrueClass :official, default:true, comment:"公認大会かどうか"
-      Integer :kind, index:true, comment:"1:大会,2:コンパ/合宿/アフター,3:アンケート/購入"
+      Integer :kind, index:true, null:false, comment:"1:大会,2:コンパ/合宿/アフター,3:アンケート/購入"
       Integer :team_size, default:1, comment:"1:個人戦,3:三人団体戦,5:五人団体戦"
       String :description, text:true, comment:"備考"
       Date :deadline, comment:"締切日"

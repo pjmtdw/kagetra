@@ -4,7 +4,7 @@ Sequel.migration do
     create_table_custom(:contest_classes,[:base],comment:"大会の各級の情報") do
       String :class_name, size:16, null:false, comment:"級の名前"
       Integer :class_rank, comment:"級のランク（団体戦や非公認大会ならNULL，その他は1=>A級,2=>B級,3=>C級,4=>D級...）"
-      Integer :index, comment:"順番"
+      Integer :index, null:false, comment:"順番"
       Integer :num_person, comment:"その級の他会の人も含む出場人数(個人戦のみ)"
       String :round_name, text:true, comment:'順位決定戦の名前(個人戦のみ)，{"4":"準決勝","5":"決勝"}のような形式'
       foreign_key :event_id, :events, null:false, on_delete: :cascade

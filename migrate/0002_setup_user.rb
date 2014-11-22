@@ -4,14 +4,14 @@ Sequel.migration do
     create_table_custom(:users, [:base]) do
       String :name, size:24, null:false
       String :furigana, size:36, null:false
-      Integer :furigana_row, null:false, index:true, comment:"振り仮名の最初の一文字が五十音順のどの行か"
+      Integer :furigana_row, null:false, index:true, default:-1, comment:"振り仮名の最初の一文字が五十音順のどの行か"
       String :password_hash, size:44, null:false
       String :password_salt, size:32, null:false
       String :token, size:32, comment:"認証用トークン"
       DateTime :token_expire 
       TrueClass :admin, default:false, comment:"管理者かどうか"
       TrueClass :loginable, default:true, comment:"ログインできるかどうか"
-      Integer :permission, comment:"最下位ビットが1なら副管理者"
+      Integer :permission, default:0, comment:"最下位ビットが1なら副管理者"
       String :bbs_public_name, size:24, comment:"掲示板の公開スレッドに書き込むときの名前"
       DateTime :show_new_from, comment:"掲示板やコメントなどの新着メッセージはこれ以降の日時のものを表示"
     end

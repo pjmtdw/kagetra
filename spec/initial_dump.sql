@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 5.5.40, for debian-linux-gnu (x86_64)
 --
--- Host: localhost    Database: test
+-- Host: localhost    Database: test2
 -- ------------------------------------------------------
 -- Server version	5.5.40-0ubuntu0.14.04.1
 
@@ -178,7 +178,7 @@ CREATE TABLE `album_items` (
   `hourmin` varchar(50) DEFAULT NULL COMMENT '撮影時刻',
   `daily_choose` tinyint(1) DEFAULT '1' COMMENT '今日の一枚として選ばれるかどうか',
   `group_index` int(11) NOT NULL COMMENT 'グループの中での表示順',
-  `rotate` int(11) DEFAULT NULL COMMENT '回転(右向き．0,90,180,270のどれか)',
+  `rotate` int(11) DEFAULT '0' COMMENT '回転(右向き．0,90,180,270のどれか)',
   `orig_filename` varchar(128) DEFAULT NULL COMMENT 'アップロードされた元のファイル名',
   `tag_count` int(11) DEFAULT '0' COMMENT '写真にタグが何個付いているか',
   `tag_names` text COMMENT 'タグ名の入った配列をJSON化したもの',
@@ -217,8 +217,8 @@ CREATE TABLE `album_photos` (
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL,
   `path` varchar(255) NOT NULL,
-  `width` int(11) DEFAULT NULL,
-  `height` int(11) DEFAULT NULL,
+  `width` int(11) NOT NULL,
+  `height` int(11) NOT NULL,
   `format` varchar(50) DEFAULT NULL,
   `album_item_id` int(11) NOT NULL,
   PRIMARY KEY (`id`),
@@ -317,8 +317,8 @@ CREATE TABLE `album_thumbnails` (
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL,
   `path` varchar(255) NOT NULL,
-  `width` int(11) DEFAULT NULL,
-  `height` int(11) DEFAULT NULL,
+  `width` int(11) NOT NULL,
+  `height` int(11) NOT NULL,
   `format` varchar(50) DEFAULT NULL,
   `album_item_id` int(11) NOT NULL,
   PRIMARY KEY (`id`),
@@ -426,7 +426,7 @@ CREATE TABLE `contest_classes` (
   `updated_at` datetime NOT NULL,
   `class_name` varchar(16) NOT NULL COMMENT '級の名前',
   `class_rank` int(11) DEFAULT NULL COMMENT '級のランク（団体戦や非公認大会ならNULL，その他は1=>A級,2=>B級,3=>C級,4=>D級...）',
-  `index` int(11) DEFAULT NULL COMMENT '順番',
+  `index` int(11) NOT NULL COMMENT '順番',
   `num_person` int(11) DEFAULT NULL COMMENT 'その級の他会の人も含む出場人数(個人戦のみ)',
   `round_name` text COMMENT '順位決定戦の名前(個人戦のみ)，{"4":"準決勝","5":"決勝"}のような形式',
   `event_id` int(11) NOT NULL,
@@ -938,7 +938,7 @@ CREATE TABLE `events` (
   `name` varchar(48) NOT NULL COMMENT '名称',
   `formal_name` varchar(96) DEFAULT NULL COMMENT '正式名称',
   `official` tinyint(1) DEFAULT '1' COMMENT '公認大会かどうか',
-  `kind` int(11) DEFAULT NULL COMMENT '1:大会,2:コンパ/合宿/アフター,3:アンケート/購入',
+  `kind` int(11) NOT NULL COMMENT '1:大会,2:コンパ/合宿/アフター,3:アンケート/購入',
   `team_size` int(11) DEFAULT '1' COMMENT '1:個人戦,3:三人団体戦,5:五人団体戦',
   `description` text COMMENT '備考',
   `deadline` date DEFAULT NULL COMMENT '締切日',
@@ -1007,7 +1007,7 @@ CREATE TABLE `my_confs` (
 
 LOCK TABLES `my_confs` WRITE;
 /*!40000 ALTER TABLE `my_confs` DISABLE KEYS */;
-INSERT INTO `my_confs` VALUES (1,'2014-11-22 06:47:55','2014-11-22 06:47:55','shared_password','{\"hash\":\"sDIw9MyaGKCXGdS3d6UqWIfktSMYKlbBuNXNH82TZUU=\",\"salt\":\"GDdgN+oxZC8FSSRW87KpPRbAm7gl59Sj\"}'),(2,'2014-11-22 06:47:55','2014-11-22 06:47:55','addrbook_confirm_enc','{\"text\":\"U2FsdGVkX19fnXKmokPk6E9nBlqCHOHc3UC/aGEUgl22G/KfsIVhDYxVlAzI25Nc\"}');
+INSERT INTO `my_confs` VALUES (1,'2014-11-22 11:14:44','2014-11-22 11:14:44','shared_password','{\"hash\":\"ogLsfG3KbZSBDd3S+uTBhO+UMnI3Hp16xc+KiSHiO0I=\",\"salt\":\"9M/hIYRb0TFUhzvO8ik2D7nGehhO5E78\"}'),(2,'2014-11-22 11:14:44','2014-11-22 11:14:44','addrbook_confirm_enc','{\"text\":\"U2FsdGVkX1/H59CmoUntEhTgn4ffyOwfIe4NMI9s1cuOavjz2gVBnczR0FpRNgzi\"}');
 /*!40000 ALTER TABLE `my_confs` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1127,7 +1127,7 @@ CREATE TABLE `user_attribute_keys` (
 
 LOCK TABLES `user_attribute_keys` WRITE;
 /*!40000 ALTER TABLE `user_attribute_keys` DISABLE KEYS */;
-INSERT INTO `user_attribute_keys` VALUES (1,'2014-11-22 06:47:55','2014-11-22 06:47:55','全員',0),(2,'2014-11-22 06:47:55','2014-11-22 06:47:55','性',1),(3,'2014-11-22 06:47:55','2014-11-22 06:47:55','学年',2),(4,'2014-11-22 06:47:55','2014-11-22 06:47:55','級',3),(5,'2014-11-22 06:47:55','2014-11-22 06:47:55','段位',4),(6,'2014-11-22 06:47:55','2014-11-22 06:47:55','全日協',5);
+INSERT INTO `user_attribute_keys` VALUES (1,'2014-11-22 11:14:44','2014-11-22 11:14:44','全員',0),(2,'2014-11-22 11:14:44','2014-11-22 11:14:44','性',1),(3,'2014-11-22 11:14:44','2014-11-22 11:14:44','学年',2),(4,'2014-11-22 11:14:44','2014-11-22 11:14:44','級',3),(5,'2014-11-22 11:14:44','2014-11-22 11:14:44','段位',4),(6,'2014-11-22 11:14:44','2014-11-22 11:14:44','全日協',5);
 /*!40000 ALTER TABLE `user_attribute_keys` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1160,7 +1160,7 @@ CREATE TABLE `user_attribute_values` (
 
 LOCK TABLES `user_attribute_values` WRITE;
 /*!40000 ALTER TABLE `user_attribute_values` DISABLE KEYS */;
-INSERT INTO `user_attribute_values` VALUES (1,'2014-11-22 06:47:55','2014-11-22 06:47:55',1,'全員',0,1),(2,'2014-11-22 06:47:55','2014-11-22 06:47:55',2,'男',0,1),(3,'2014-11-22 06:47:55','2014-11-22 06:47:55',2,'女',1,0),(4,'2014-11-22 06:47:55','2014-11-22 06:47:55',3,'1年',0,1),(5,'2014-11-22 06:47:55','2014-11-22 06:47:55',3,'2年',1,0),(6,'2014-11-22 06:47:55','2014-11-22 06:47:55',3,'3年',2,0),(7,'2014-11-22 06:47:55','2014-11-22 06:47:55',3,'4年',3,0),(8,'2014-11-22 06:47:55','2014-11-22 06:47:55',3,'院生',4,0),(9,'2014-11-22 06:47:55','2014-11-22 06:47:55',3,'社会人',5,0),(10,'2014-11-22 06:47:55','2014-11-22 06:47:55',4,'A級',0,1),(11,'2014-11-22 06:47:55','2014-11-22 06:47:55',4,'B級',1,0),(12,'2014-11-22 06:47:55','2014-11-22 06:47:55',4,'C級',2,0),(13,'2014-11-22 06:47:55','2014-11-22 06:47:55',4,'D級',3,0),(14,'2014-11-22 06:47:55','2014-11-22 06:47:55',4,'E級',4,0),(15,'2014-11-22 06:47:55','2014-11-22 06:47:55',5,'0',0,1),(16,'2014-11-22 06:47:55','2014-11-22 06:47:55',5,'1',1,0),(17,'2014-11-22 06:47:55','2014-11-22 06:47:55',5,'2',2,0),(18,'2014-11-22 06:47:55','2014-11-22 06:47:55',5,'3',3,0),(19,'2014-11-22 06:47:55','2014-11-22 06:47:55',5,'4',4,0),(20,'2014-11-22 06:47:55','2014-11-22 06:47:55',5,'5',5,0),(21,'2014-11-22 06:47:55','2014-11-22 06:47:55',5,'6',6,0),(22,'2014-11-22 06:47:55','2014-11-22 06:47:55',5,'7',7,0),(23,'2014-11-22 06:47:55','2014-11-22 06:47:55',5,'8',8,0),(24,'2014-11-22 06:47:55','2014-11-22 06:47:55',5,'9',9,0),(25,'2014-11-22 06:47:55','2014-11-22 06:47:55',6,'○',0,1),(26,'2014-11-22 06:47:55','2014-11-22 06:47:55',6,'×',1,0);
+INSERT INTO `user_attribute_values` VALUES (1,'2014-11-22 11:14:44','2014-11-22 11:14:44',1,'全員',0,1),(2,'2014-11-22 11:14:44','2014-11-22 11:14:44',2,'男',0,1),(3,'2014-11-22 11:14:44','2014-11-22 11:14:44',2,'女',1,0),(4,'2014-11-22 11:14:44','2014-11-22 11:14:44',3,'1年',0,1),(5,'2014-11-22 11:14:44','2014-11-22 11:14:44',3,'2年',1,0),(6,'2014-11-22 11:14:44','2014-11-22 11:14:44',3,'3年',2,0),(7,'2014-11-22 11:14:44','2014-11-22 11:14:44',3,'4年',3,0),(8,'2014-11-22 11:14:44','2014-11-22 11:14:44',3,'院生',4,0),(9,'2014-11-22 11:14:44','2014-11-22 11:14:44',3,'社会人',5,0),(10,'2014-11-22 11:14:44','2014-11-22 11:14:44',4,'A級',0,1),(11,'2014-11-22 11:14:44','2014-11-22 11:14:44',4,'B級',1,0),(12,'2014-11-22 11:14:44','2014-11-22 11:14:44',4,'C級',2,0),(13,'2014-11-22 11:14:44','2014-11-22 11:14:44',4,'D級',3,0),(14,'2014-11-22 11:14:44','2014-11-22 11:14:44',4,'E級',4,0),(15,'2014-11-22 11:14:44','2014-11-22 11:14:44',5,'0',0,1),(16,'2014-11-22 11:14:44','2014-11-22 11:14:44',5,'1',1,0),(17,'2014-11-22 11:14:44','2014-11-22 11:14:44',5,'2',2,0),(18,'2014-11-22 11:14:44','2014-11-22 11:14:44',5,'3',3,0),(19,'2014-11-22 11:14:44','2014-11-22 11:14:44',5,'4',4,0),(20,'2014-11-22 11:14:44','2014-11-22 11:14:44',5,'5',5,0),(21,'2014-11-22 11:14:44','2014-11-22 11:14:44',5,'6',6,0),(22,'2014-11-22 11:14:44','2014-11-22 11:14:44',5,'7',7,0),(23,'2014-11-22 11:14:44','2014-11-22 11:14:44',5,'8',8,0),(24,'2014-11-22 11:14:44','2014-11-22 11:14:44',5,'9',9,0),(25,'2014-11-22 11:14:44','2014-11-22 11:14:44',6,'○',0,1),(26,'2014-11-22 11:14:44','2014-11-22 11:14:44',6,'×',1,0);
 /*!40000 ALTER TABLE `user_attribute_values` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1193,7 +1193,7 @@ CREATE TABLE `user_attributes` (
 
 LOCK TABLES `user_attributes` WRITE;
 /*!40000 ALTER TABLE `user_attributes` DISABLE KEYS */;
-INSERT INTO `user_attributes` VALUES (1,'2014-11-22 06:47:55','2014-11-22 06:47:55',1,1),(2,'2014-11-22 06:47:55','2014-11-22 06:47:55',1,2),(3,'2014-11-22 06:47:55','2014-11-22 06:47:55',1,4),(4,'2014-11-22 06:47:55','2014-11-22 06:47:55',1,10),(5,'2014-11-22 06:47:55','2014-11-22 06:47:55',1,15),(6,'2014-11-22 06:47:55','2014-11-22 06:47:55',1,25);
+INSERT INTO `user_attributes` VALUES (1,'2014-11-22 11:14:44','2014-11-22 11:14:44',1,1),(2,'2014-11-22 11:14:44','2014-11-22 11:14:44',1,2),(3,'2014-11-22 11:14:44','2014-11-22 11:14:44',1,4),(4,'2014-11-22 11:14:44','2014-11-22 11:14:44',1,10),(5,'2014-11-22 11:14:44','2014-11-22 11:14:44',1,15),(6,'2014-11-22 11:14:44','2014-11-22 11:14:44',1,25);
 /*!40000 ALTER TABLE `user_attributes` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1308,14 +1308,14 @@ CREATE TABLE `users` (
   `updated_at` datetime NOT NULL,
   `name` varchar(24) NOT NULL,
   `furigana` varchar(36) NOT NULL,
-  `furigana_row` int(11) NOT NULL COMMENT '振り仮名の最初の一文字が五十音順のどの行か',
+  `furigana_row` int(11) NOT NULL DEFAULT '-1' COMMENT '振り仮名の最初の一文字が五十音順のどの行か',
   `password_hash` varchar(44) NOT NULL,
   `password_salt` varchar(32) NOT NULL,
   `token` varchar(32) DEFAULT NULL COMMENT '認証用トークン',
   `token_expire` datetime DEFAULT NULL,
   `admin` tinyint(1) DEFAULT '0' COMMENT '管理者かどうか',
   `loginable` tinyint(1) DEFAULT '1' COMMENT 'ログインできるかどうか',
-  `permission` int(11) DEFAULT NULL COMMENT '最下位ビットが1なら副管理者',
+  `permission` int(11) DEFAULT '0' COMMENT '最下位ビットが1なら副管理者',
   `bbs_public_name` varchar(24) DEFAULT NULL COMMENT '掲示板の公開スレッドに書き込むときの名前',
   `show_new_from` datetime DEFAULT NULL COMMENT '掲示板やコメントなどの新着メッセージはこれ以降の日時のものを表示',
   PRIMARY KEY (`id`),
@@ -1331,7 +1331,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'2014-11-22 06:47:55','2014-11-22 06:47:55','admin','admin',-1,'pUXWdn1+ObWJ6fdwh8SbX4qsMi546m/eP0rXuFpzC0g=','r6rWqAn2d6LcVbf5Ca5dUhn0kGX3E6G5',NULL,NULL,1,1,NULL,NULL,NULL);
+INSERT INTO `users` VALUES (1,'2014-11-22 11:14:44','2014-11-22 11:14:44','admin','admin',-1,'Ts0P6Y/q2m+tJ9XJjrOhrhiV/yPTxjMTNs0X09GD/J8=','+0uN+qjq6OQxXw07j8OzCELhCFWBDUJl',NULL,NULL,1,1,0,NULL,NULL);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1482,7 +1482,7 @@ CREATE TABLE `wiki_items` (
 
 LOCK TABLES `wiki_items` WRITE;
 /*!40000 ALTER TABLE `wiki_items` DISABLE KEYS */;
-INSERT INTO `wiki_items` VALUES (1,'2014-11-22 06:47:55','2014-11-22 06:47:55',NULL,NULL,0,'Home',0,'This is home page of this wiki',1,0,1);
+INSERT INTO `wiki_items` VALUES (1,'2014-11-22 11:14:45','2014-11-22 11:14:45',NULL,NULL,0,'Home',0,'This is home page of this wiki',1,0,1);
 /*!40000 ALTER TABLE `wiki_items` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -1495,4 +1495,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2014-11-22  6:48:44
+-- Dump completed on 2014-11-22 11:15:08

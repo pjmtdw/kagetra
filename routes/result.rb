@@ -304,164 +304,156 @@ class MainApp < Sinatra::Base
       new_ids
     end
     put '/players/:id' do
-      dm_response{
-        DB.transaction{
-          ev = Event[params[:id].to_i]
-          @json["classes"].each_with_index{|(k,v),i|
-            if k.to_s.start_with?("new_")
-              kl = ContestClass.create(class_name:v,event_id:ev.id,index:i)
-              ["user_classes","team_classes"].each{|key|
-                if @json.has_key?(key) then
-                  @json[key] = Hash[@json[key].map{|p,q|
-                    [if p == k then kl.id else p end,q]
-                  }]
-                end
-              }
-            else
-              ContestClass[k].update(index:i)
-            end
-          }
-          if ev.team_size > 1 then
-            @json["user_classes"] = Hash[@json["team_classes"].map{|k,v|
-              [k,v.map{|x|@json['user_teams'][x.to_s]}.flatten+(@json["neutral"][k]||[])]
-            }]
-            new_ids = update_result_users(ev,@json)
-            @json["teams"].each{|tid,tname|
-              kid = nil
-              @json["team_classes"].each{|p,q|
-                kid = p if q.map(&:to_s).include?(tid.to_s)
-              }
-              klass = ContestClass[kid]
-              members = @json["user_teams"][tid]
-
-              team =  if tid.to_s.start_with?("new_")
-                        ContestTeam.create(name:tname,contest_class_id:klass.id)
-                      else
-                        t = ContestTeam[tid]
-                        t.update(contest_class_id:klass.id)
-                        t
-                      end
-              team.members.each(&:destroy)
-              members.to_enum.with_index(1){|uid,i|
-                if uid.to_s.start_with?("new_")
-                  uid = new_ids[uid]
-                end
-                ContestTeamMember.create(contest_team:team,contest_user_id:uid,order_num:i)
-              }
-            }
-            @json["deleted_teams"].each{|x|
-              t = ContestTeam[x]
-              t.members.destroy
-              if not t.destroy then raise Exception.new("cannot destroy #{t.inspect}") end
+      with_update{
+        ev = Event[params[:id].to_i]
+        @json["classes"].each_with_index{|(k,v),i|
+          if k.to_s.start_with?("new_")
+            kl = ContestClass.create(class_name:v,event_id:ev.id,index:i)
+            ["user_classes","team_classes"].each{|key|
+              if @json.has_key?(key) then
+                @json[key] = Hash[@json[key].map{|p,q|
+                  [if p == k then kl.id else p end,q]
+                }]
+              end
             }
           else
-            update_result_users(ev,@json)
+            ContestClass[k].update(index:i)
           end
-          @json["deleted_users"].each{|x|
-            cu = ContestUser[x]
-            if not cu.destroy then raise Exception.new("cannot destroy #{cu.inspect}") end
+        }
+        if ev.team_size > 1 then
+          @json["user_classes"] = Hash[@json["team_classes"].map{|k,v|
+            [k,v.map{|x|@json['user_teams'][x.to_s]}.flatten+(@json["neutral"][k]||[])]
+          }]
+          new_ids = update_result_users(ev,@json)
+          @json["teams"].each{|tid,tname|
+            kid = nil
+            @json["team_classes"].each{|p,q|
+              kid = p if q.map(&:to_s).include?(tid.to_s)
+            }
+            klass = ContestClass[kid]
+            members = @json["user_teams"][tid]
+
+            team =  if tid.to_s.start_with?("new_")
+                      ContestTeam.create(name:tname,contest_class_id:klass.id)
+                    else
+                      t = ContestTeam[tid]
+                      t.update(contest_class_id:klass.id)
+                      t
+                    end
+            team.members.each(&:destroy)
+            members.to_enum.with_index(1){|uid,i|
+              if uid.to_s.start_with?("new_")
+                uid = new_ids[uid]
+              end
+              ContestTeamMember.create(contest_team:team,contest_user_id:uid,order_num:i)
+            }
           }
-          @json["deleted_classes"].each{|x|
-            cc = ContestClass[x]
-            if not cc.destroy then raise Exception.new("cannot destroy #{cc.inspect}") end
+          @json["deleted_teams"].each{|x|
+            t = ContestTeam[x]
+            t.members.destroy
+            if not t.destroy then raise Exception.new("cannot destroy #{t.inspect}") end
           }
+        else
+          update_result_users(ev,@json)
+        end
+        @json["deleted_users"].each{|x|
+          cu = ContestUser[x]
+          if not cu.destroy then raise Exception.new("cannot destroy #{cu.inspect}") end
+        }
+        @json["deleted_classes"].each{|x|
+          cc = ContestClass[x]
+          if not cc.destroy then raise Exception.new("cannot destroy #{cc.inspect}") end
         }
       }
     end
     post '/num_person' do
-      dm_response{
-        DB.transaction{
-          Hash[@json["data"].map{|x|
-            np = x["num_person"]
-            np = if np.to_i == 0 then nil else np.to_i end
-            c = ContestClass[x["class_id"]]
-            c.update(num_person: np)
-            [c.id,c.num_person]
-          }]
-        }
+      with_update{
+        Hash[@json["data"].map{|x|
+          np = x["num_person"]
+          np = if np.to_i == 0 then nil else np.to_i end
+          c = ContestClass[x["class_id"]]
+          c.update(num_person: np)
+          [c.id,c.num_person]
+        }]
       }
     end
     post '/update_round' do
       fields = ["score_str","opponent_name","opponent_belongs","comment","result"]
-      dm_response{
-        DB.transaction{
-          klass = ContestClass[@json["class_id"]]
-          round = @json["round"].to_i
-          if not @json.has_key?("team_id")
-            # 個人戦
-            if @json["round_name"].to_s.empty?.! then
-              klass.round_name[round.to_s] = @json["round_name"]
-            else
-              klass.round_name.delete(round.to_s)
-            end
-            klass.save
-            condbase = {
-                     contest_class_id: klass.id,
-                     round: round
-                   }
-            gameclass = ContestSingleGame
+      with_update{
+        klass = ContestClass[@json["class_id"]]
+        round = @json["round"].to_i
+        if not @json.has_key?("team_id")
+          # 個人戦
+          if @json["round_name"].to_s.empty?.! then
+            klass.round_name[round.to_s] = @json["round_name"]
           else
-            # 団体戦
-            fields << "opponent_order"
-            team = ContestTeam[@json["team_id"]]
-            rname = @json["round_name"]
-            rkind = @json["round_kind"].to_sym
-            opname = @json["op_team_name"]
-            if opname == "delete" then
-              team.opponents.first(round:round).destroy()
-              return
-            else
-              op_team = ContestTeamOpponent.update_or_create(
-                {contest_team_id:team.id,round:round},
-                {name: opname,round_name: rname ,kind: rkind})
-              condbase = {
-                       contest_team_opponent_id: op_team.id,
-                     }
-              gameclass = ContestTeamGame
-            end
+            klass.round_name.delete(round.to_s)
           end
-          @json["results"].each{|x|
-            cond = condbase.merge({contest_user_id: x["cuid"]})
-            if x["result"].to_s.empty? then
-              gameclass.first(cond).tap{|y|if y then y.destroy() end}
-            else
-              gameclass.update_or_create(
-                cond,
-                x.select_attr(*fields)
-              )
-            end
-          }
+          klass.save
+          condbase = {
+                   contest_class_id: klass.id,
+                   round: round
+                 }
+          gameclass = ContestSingleGame
+        else
+          # 団体戦
+          fields << "opponent_order"
+          team = ContestTeam[@json["team_id"]]
+          rname = @json["round_name"]
+          rkind = @json["round_kind"].to_sym
+          opname = @json["op_team_name"]
+          if opname == "delete" then
+            team.opponents.first(round:round).destroy()
+            return
+          else
+            op_team = ContestTeamOpponent.update_or_create(
+              {contest_team_id:team.id,round:round},
+              {name: opname,round_name: rname ,kind: rkind})
+            condbase = {
+                     contest_team_opponent_id: op_team.id,
+                   }
+            gameclass = ContestTeamGame
+          end
+        end
+        @json["results"].each{|x|
+          cond = condbase.merge({contest_user_id: x["cuid"]})
+          if x["result"].to_s.empty? then
+            gameclass.first(cond).tap{|y|if y then y.destroy() end}
+          else
+            gameclass.update_or_create(
+              cond,
+              x.select_attr(*fields)
+            )
+          end
+        }
 
-          rounds = if @json.has_key?("team_id")
-                     get_team_rounds(team)
-                    else
-                     get_klass_rounds(klass)
-                    end
-          {
-            results: Hash[gameclass.where(condbase).map{|x|[x.contest_user_id,x.select_attr(*fields)]}],
-            rounds: rounds
-          }
+        rounds = if @json.has_key?("team_id")
+                   get_team_rounds(team)
+                  else
+                   get_klass_rounds(klass)
+                  end
+        {
+          results: Hash[gameclass.where(condbase).map{|x|[x.contest_user_id,x.select_attr(*fields)]}],
+          rounds: rounds
         }
       }
     end
     post '/update_prize' do
-      dm_response{
+      with_update{
         klass = ContestClass[@json["class_id"]]
-        DB.transaction{
-          @json["prizes"].each{|p|
-            cond = {contest_class_id:klass.id,contest_user_id:p["cuid"]}
-            if p["prize"].to_s.empty? then
-              p = ContestPrize.first(cond)
-              if p.nil?.! then
-                p.destroy
-              end
-            else
-              ContestPrize.update_or_create(
-                cond,
-                p.select_attr("point","point_local","prize")
-              )
+        @json["prizes"].each{|p|
+          cond = {contest_class_id:klass.id,contest_user_id:p["cuid"]}
+          if p["prize"].to_s.empty? then
+            p = ContestPrize.first(cond)
+            if p.nil?.! then
+              p.destroy
             end
-          }
+          else
+            ContestPrize.update_or_create(
+              cond,
+              p.select_attr("point","point_local","prize")
+            )
+          end
         }
         prizes = Hash[klass.prizes.map{|x|
           [x.contest_user_id,x.select_attr("prize","point","point_local")]

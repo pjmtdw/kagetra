@@ -40,47 +40,41 @@ class MainApp < Sinatra::Base
       end
     end
     post '/thread' do
-      dm_response{
-        DB.transaction{
-          title = @json["title"]
-          public = @public_mode || @json["public"]
-          thread = BbsThread.create(title: title, public: public)
-          create_item(thread,true)
-        }
+      with_update{
+        title = @json["title"]
+        public = @public_mode || @json["public"]
+        thread = BbsThread.create(title: title, public: public)
+        create_item(thread,true)
       }
     end
     post '/item' do
-      dm_response{
-        DB.transaction{
-          thread_id = @json["thread_id"]
-          thread = BbsThread[thread_id.to_i]
-          if @public_mode and not thread.public
-            halt 403,"cannot write to private thread"
-          end
-          thread.touch # もう必要ないかも
-          create_item(thread,false)
-        }
+      with_update{
+        thread_id = @json["thread_id"]
+        thread = BbsThread[thread_id.to_i]
+        if @public_mode and not thread.public
+          halt 403,"cannot write to private thread"
+        end
+        thread.touch # もう必要ないかも
+        create_item(thread,false)
       }
     end
     put '/item/:id' do
-      dm_response{
+      with_update{
         item = BbsItem[params[:id].to_i]
         halt(403,"you cannot edit this item") unless item.editable(@user)
         item.update(body:@json["body"])
       }
     end
     delete '/item/:id' do
-      dm_response{
+      with_update{
         item = BbsItem[params[:id]]
         halt(403,"you cannot delete this item") unless item.editable(@user)
-        DB.transaction{
-          thread = item.thread
-          if item.is_first then
-            thread.destroy
-          else
-            item.destroy
-          end
-        }
+        thread = item.thread
+        if item.is_first then
+          thread.destroy
+        else
+          item.destroy
+        end
       }
     end
   end

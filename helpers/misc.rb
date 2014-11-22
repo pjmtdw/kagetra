@@ -21,9 +21,11 @@ module MiscHelpers
     str == Kagetra::Utils.openssl_dec(enc,pass)
   end
 
-  def dm_response
+  def with_update
     begin
-      yield
+      DB.transaction{
+        yield
+      }
     rescue Exception => e
       logger.warn e.message
       $stderr.puts e.message

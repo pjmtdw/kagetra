@@ -119,10 +119,8 @@ class MainApp < Sinatra::Base
       event_info(ev,@user,opts)
     end
     delete '/item/:id' do
-      DB.transaction{
-        dm_response{
-          Event[params[:id].to_i].destroy
-        }
+      with_update{
+        Event[params[:id].to_i].destroy
       }
     end
 
@@ -131,57 +129,55 @@ class MainApp < Sinatra::Base
       @json.delete("all_attrs")
       @json.delete("all_event_groups")
 
-      dm_response{
-        DB.transaction{
-          choices = if @json.has_key?("choices") then
-            @json.delete("choices")
-          end
-          owners_update = nil
-          if @json.has_key?("owners_str") then
-            owners_update = @json["owners_str"].to_s.split(/\s*,\s*/).map{|s|
-              u = User.first(name:s)
-              if u.nil? then
-                raise Exception.new("invalid owner name: #{s}")
-              end
-              u.id
-            }
-            @json.delete("owners_str")
-          end
-          if @json.has_key?("forbidden_attrs")
-            # 一つしかない場合は Array じゃなくて String で送られてくる
-            @json["forbidden_attrs"] = [@json["forbidden_attrs"]].flatten.map(&:to_i)
-          end
-          updata = @json.except("id")
-          if update_mode
-            ev = Event[params[:id]]
-            if updata.empty?.! then
-              ev.update(updata)
+      with_update{
+        choices = if @json.has_key?("choices") then
+          @json.delete("choices")
+        end
+        owners_update = nil
+        if @json.has_key?("owners_str") then
+          owners_update = @json["owners_str"].to_s.split(/\s*,\s*/).map{|s|
+            u = User.first(name:s)
+            if u.nil? then
+              raise Exception.new("invalid owner name: #{s}")
             end
-          else
-            ev = Event.create(updata)
-            end
-          if owners_update then
-            owners_update.each{|uid|
-              EventOwner.create(user_id:uid,event_id:ev.id)
-            }
+            u.id
+          }
+          @json.delete("owners_str")
+        end
+        if @json.has_key?("forbidden_attrs")
+          # 一つしかない場合は Array じゃなくて String で送られてくる
+          @json["forbidden_attrs"] = [@json["forbidden_attrs"]].flatten.map(&:to_i)
+        end
+        updata = @json.except("id")
+        if update_mode
+          ev = Event[params[:id]]
+          if updata.empty?.! then
+            ev.update(updata)
           end
-          if choices.nil?.! then
-            choice_ids = ev.choices.map(&:id)
-            choices.each_with_index{|o,i|
-              cond = o.select_attr("name","positive").merge({index:i})
-              if o["id"] < 0 then
-                EventChoice.create(cond.merge(event:ev))
-              else
-                ev.choices_dataset.where(id:o["id"]).each{|x|x.update(cond)}
-                choice_ids.delete(o["id"])
-              end
-            }
-            if choice_ids.empty?.! then
-              ev.choices_dataset.where(id:choice_ids).destroy
-            end
+        else
+          ev = Event.create(updata)
           end
-          event_info(ev,@user)
-        }
+        if owners_update then
+          owners_update.each{|uid|
+            EventOwner.create(user_id:uid,event_id:ev.id)
+          }
+        end
+        if choices.nil?.! then
+          choice_ids = ev.choices.map(&:id)
+          choices.each_with_index{|o,i|
+            cond = o.select_attr("name","positive").merge({index:i})
+            if o["id"] < 0 then
+              EventChoice.create(cond.merge(event:ev))
+            else
+              ev.choices_dataset.where(id:o["id"]).each{|x|x.update(cond)}
+              choice_ids.delete(o["id"])
+            end
+          }
+          if choice_ids.empty?.! then
+            ev.choices_dataset.where(id:choice_ids).destroy
+          end
+        end
+        event_info(ev,@user)
       }
     end
 
@@ -207,7 +203,7 @@ class MainApp < Sinatra::Base
       end
     end
     put '/choose/:cid' do
-      dm_response{
+      with_update{
         c = EventChoice.first(id:params[:cid])
         EventUserChoice.create(user:@user,event_choice:c)
         {
@@ -218,28 +214,26 @@ class MainApp < Sinatra::Base
       }
     end
     put '/participants/:id' do
-      dm_response{
+      with_update{
         # TODO: ev が使われていない
         #       event_choice_id がちゃんとそのEventに属しているか念のためにチェック
         ev = Event[params[:id].to_i]
-        DB.transaction{
-          @json["log"].each{|name,v|
-            (cmd,attr,choice) = v
-            case cmd
-            when "add" then
-              EventUserChoice.create(
-                event_choice_id:choice,
-                user_name:name,
-                user: User.first(name:name),
-                attr_value_id:attr)
-            when "delete" then
-              c = EventUserChoice.first(
-                event_choice_id:choice,
-                user_name:name,
-                attr_value_id:attr)
-              if c then c.destroy end
-            end
-          }
+        @json["log"].each{|name,v|
+          (cmd,attr,choice) = v
+          case cmd
+          when "add" then
+            EventUserChoice.create(
+              event_choice_id:choice,
+              user_name:name,
+              user: User.first(name:name),
+              attr_value_id:attr)
+          when "delete" then
+            c = EventUserChoice.first(
+              event_choice_id:choice,
+              user_name:name,
+              attr_value_id:attr)
+            if c then c.destroy end
+          end
         }
       }
     end
@@ -249,11 +243,13 @@ class MainApp < Sinatra::Base
       }
     end
     post '/group/new' do
-      name = params[:name]
-      EventGroup.create(name:name).select_attr(:id,:name)
+      with_update{
+        name = params[:name]
+        EventGroup.create(name:name).select_attr(:id,:name)
+      }
     end
     put '/group/:id' do
-      dm_response{
+      with_update{
         EventGroup[params[:id].to_i].update(@json)
       }
     end

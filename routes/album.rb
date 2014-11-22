@@ -71,35 +71,31 @@ class MainApp < Sinatra::Base
       r
     end
     delete '/group/:gid' do
-      group = AlbumGroup[params[:gid].to_i]
-      if group.nil?.! then
-        DB.transaction{
-          dm_response{
-            group.destroy
-          }
-        }
-      end
+      with_update{
+        group = AlbumGroup[params[:gid].to_i]
+        if group.nil?.! then
+              group.destroy
+        end
+      }
     end
     put '/group/:gid' do
       group = AlbumGroup[params[:gid].to_i]
-      dm_response{
-        DB.transaction{
-          if @json.has_key?("item_order") then
-            @json["item_order"].each_with_index{|item,i|
-              AlbumItem[item].update(group_index:i)
-            }
-            @json.delete("item_order")
-          end
-          if @json.has_key?("add_rotate") then
-            @json["add_rotate"].each{|k,v|
-              item = AlbumItem[k]
-              item.update(rotate:(item.rotate.to_i+v)%360)
-              update_thumbnail(item)
-            }
-            @json.delete("add_rotate")
-          end
-          group.update(@json.except("id"))
-        }
+      with_update{
+        if @json.has_key?("item_order") then
+          @json["item_order"].each_with_index{|item,i|
+            AlbumItem[item].update(group_index:i)
+          }
+          @json.delete("item_order")
+        end
+        if @json.has_key?("add_rotate") then
+          @json["add_rotate"].each{|k,v|
+            item = AlbumItem[k]
+            item.update(rotate:(item.rotate.to_i+v)%360)
+            update_thumbnail(item)
+          }
+          @json.delete("add_rotate")
+        end
+        group.update(@json.except("id"))
       }
     end
     get '/item/:id' do
@@ -135,71 +131,69 @@ class MainApp < Sinatra::Base
     end
     put '/item/:id' do
       item = AlbumItem[params[:id].to_i]
-      dm_response{
-        DB.transaction{
-          orig_rotate = @json["orig_rotate"]
-          @json.delete("orig_rotate")
-          if @json.has_key?("tag_edit_log")
-            @json["tag_edit_log"].each{|k,v|
-              (cmd,obj) = v
-              case cmd
-              when "update_or_create"
-                (xx,yy) = [obj["coord_x"],obj["coord_y"]]
-                (width,height) = [item.photo.width,item.photo.height]
-                (cx,cy) = case orig_rotate.to_i
-                        when 0
-                          [xx,yy]
-                        when 90
-                          [yy,height-xx]
-                        when 180
-                          [width-xx,height-yy]
-                        when 270
-                          [width-yy,xx]
-                        end
-                obj["coord_x"] = cx
-                obj["coord_y"] = cy
-                if k.to_i < 0 then
-                  obj.delete("id")
-                  obj["album_item_id"] = item.id
-                  AlbumTag.create(obj)
-                else
-                  tag = AlbumTag[obj["id"]]
-                  obj.delete("id")
-                  tag.update(obj) if tag
-                end
-              when "destroy"
-                if k.to_i >= 0 then
-                  t = AlbumTag[k.to_i]
-                  if t.nil?.! then
-                    t.destroy
-                  end
+      with_update{
+        orig_rotate = @json["orig_rotate"]
+        @json.delete("orig_rotate")
+        if @json.has_key?("tag_edit_log")
+          @json["tag_edit_log"].each{|k,v|
+            (cmd,obj) = v
+            case cmd
+            when "update_or_create"
+              (xx,yy) = [obj["coord_x"],obj["coord_y"]]
+              (width,height) = [item.photo.width,item.photo.height]
+              (cx,cy) = case orig_rotate.to_i
+                      when 0
+                        [xx,yy]
+                      when 90
+                        [yy,height-xx]
+                      when 180
+                        [width-xx,height-yy]
+                      when 270
+                        [width-yy,xx]
+                      end
+              obj["coord_x"] = cx
+              obj["coord_y"] = cy
+              if k.to_i < 0 then
+                obj.delete("id")
+                obj["album_item_id"] = item.id
+                AlbumTag.create(obj)
+              else
+                tag = AlbumTag[obj["id"]]
+                obj.delete("id")
+                tag.update(obj) if tag
+              end
+            when "destroy"
+              if k.to_i >= 0 then
+                t = AlbumTag[k.to_i]
+                if t.nil?.! then
+                  t.destroy
                 end
               end
-            }
-            @json.delete("tag_edit_log")
-          end
-          if @json.has_key?("relations")
-            rids_old = item.relations.map(&:id)
-            rids_new = @json["relations"].map{|r|r["id"] }
-            adds = rids_new - rids_old
-            dels = rids_old - rids_new
-            if dels.empty?.! then
-              AlbumRelation.where(source_id:item.id,target_id:dels).destroy
-              AlbumRelation.where(source_id:dels,target_id:item.id).destroy
             end
-            adds.each{|i|
-              AlbumRelation.create(source_id:item.id,target_id:i)
-            }
-            @json.delete("relations")
+          }
+          @json.delete("tag_edit_log")
+        end
+        if @json.has_key?("relations")
+          rids_old = item.relations.map(&:id)
+          rids_new = @json["relations"].map{|r|r["id"] }
+          adds = rids_new - rids_old
+          dels = rids_old - rids_new
+          if dels.empty?.! then
+            AlbumRelation.where(source_id:item.id,target_id:dels).destroy
+            AlbumRelation.where(source_id:dels,target_id:item.id).destroy
           end
-          item.do_after_tag_updated
-          (updates,updates_patch) = make_comment_log_patch(item,@json,"comment","comment_revision")
-          if updates then @json.merge!(updates) end
-          item.update(@json.except("id"))
-          if updates_patch
-            AlbumCommentLog.create(updates_patch.merge({user:@user,album_item:item}))
-          end
-        }
+          adds.each{|i|
+            AlbumRelation.create(source_id:item.id,target_id:i)
+          }
+          @json.delete("relations")
+        end
+        item.do_after_tag_updated
+        (updates,updates_patch) = make_comment_log_patch(item,@json,"comment","comment_revision")
+        if updates then @json.merge!(updates) end
+        item.update(@json.except("id"))
+        if updates_patch
+          AlbumCommentLog.create(updates_patch.merge({user:@user,album_item:item}))
+        end
       }
     end
     get '/years' do
@@ -335,7 +329,7 @@ class MainApp < Sinatra::Base
       {results:results}
     end
     post '/move_group' do
-      DB.transaction{
+      with_update{
         to_group = AlbumGroup[@json["group_id"].to_i]
         index = to_group.items_dataset.max(:group_index) || -1
         from_groups = {}
@@ -352,9 +346,9 @@ class MainApp < Sinatra::Base
       }
     end
     post '/update_attrs' do
-      item_ids = @json["item_ids"]
-      @json.delete("item_ids")
-      dm_response{
+      with_update{
+        item_ids = @json["item_ids"]
+        @json.delete("item_ids")
         AlbumItem.where(id:item_ids).each{|x|x.update(@json)}
       }
     end
@@ -362,7 +356,7 @@ class MainApp < Sinatra::Base
       item = AlbumItem[params[:id].to_i]
       halt 403 unless (@user.admin or item.owner_id == @user.id)
       if item.nil?.! then
-        DB.transaction{
+        with_update{
           ag = item.group
           item.destroy
           ag.update_count
@@ -371,7 +365,7 @@ class MainApp < Sinatra::Base
     end
     delete '/delete_items/:group_id' do
       item_ids = @json["item_ids"]
-      DB.transaction{
+      with_update{
         ag = AlbumGroup[params[:group_id]]
         cond = if @user.admin then {} else {owner_id:@user.id} end
         items = AlbumItem.where(cond.merge({id:item_ids}))
@@ -388,7 +382,7 @@ class MainApp < Sinatra::Base
       {results:(tags+list).uniq}
     end
     post '/set_event' do
-      dm_response{
+      with_update{
         gid = @json["album_group_id"].to_i
         eid = @json["event_id"].to_i
         if eid == -1 then
@@ -502,49 +496,47 @@ class MainApp < Sinatra::Base
     img.destroy!
   end
   post '/album/upload' do
-    res = dm_response{
-      DB.transaction{
-        group = if params[:group_id] then
-          AlbumGroup[params[:group_id]]
-        else
-          attrs = params.select_attr("start_at","end_at","place","name","comment")
-          if attrs["start_at"].to_s.empty? then attrs["start_at"] = nil end
-          if attrs["end_at"].to_s.empty? then attrs["end_at"] = nil end
-          attrs["owner_id"] = @user.id
-          AlbumGroup.create(attrs)
-        end
-        pfile = params[:file]
-        if pfile.nil? then
+    res = with_update{
+      group = if params[:group_id] then
+        AlbumGroup[params[:group_id]]
+      else
+        attrs = params.select_attr("start_at","end_at","place","name","comment")
+        if attrs["start_at"].to_s.empty? then attrs["start_at"] = nil end
+        if attrs["end_at"].to_s.empty? then attrs["end_at"] = nil end
+        attrs["owner_id"] = @user.id
+        AlbumGroup.create(attrs)
+      end
+      pfile = params[:file]
+      if pfile.nil? then
+        {result:"OK",group_id:group.id}
+      else
+        tempfile = pfile[:tempfile]
+        filename = pfile[:filename]
+        min_index = 1 + (group.items_dataset.max(:group_index) || -1)
+        date = Date.today
+        target_dir = File.join(G_STORAGE_DIR,"album",date.year.to_s,date.month.to_s)
+        FileUtils.mkdir_p(target_dir)
+        case filename.downcase
+        when /\.zip$/
+          tmp = Dir.mktmpdir(nil,target_dir)
+          Zip::File.open(tempfile).select{|x|x.file? and [".jpg",".png",".gif"].any?{|s|x.name.downcase.end_with?(s)}}
+            .to_enum.with_index(min_index){|entry,i|
+              fn = File.join(tmp,i.to_s)
+              File.open(fn,"w"){|f|
+                f.write(entry.get_input_stream.read)
+              }
+              process_image(group,i,entry.name,fn)
+            }
+          {result:"OK",group_id:group.id}
+        when /\.jpg$/, /\.png$/, /\.gif$/
+          tfile = Kagetra::Utils.unique_file(@user,["img-",".dat"],target_dir)
+          FileUtils.cp(tempfile.path,tfile)
+          process_image(group,min_index,filename,tfile)
           {result:"OK",group_id:group.id}
         else
-          tempfile = pfile[:tempfile]
-          filename = pfile[:filename]
-          min_index = 1 + (group.items_dataset.max(:group_index) || -1)
-          date = Date.today
-          target_dir = File.join(G_STORAGE_DIR,"album",date.year.to_s,date.month.to_s)
-          FileUtils.mkdir_p(target_dir)
-          case filename.downcase
-          when /\.zip$/
-            tmp = Dir.mktmpdir(nil,target_dir)
-            Zip::File.open(tempfile).select{|x|x.file? and [".jpg",".png",".gif"].any?{|s|x.name.downcase.end_with?(s)}}
-              .to_enum.with_index(min_index){|entry,i|
-                fn = File.join(tmp,i.to_s)
-                File.open(fn,"w"){|f|
-                  f.write(entry.get_input_stream.read)
-                }
-                process_image(group,i,entry.name,fn)
-              }
-            {result:"OK",group_id:group.id}
-          when /\.jpg$/, /\.png$/, /\.gif$/
-            tfile = Kagetra::Utils.unique_file(@user,["img-",".dat"],target_dir)
-            FileUtils.cp(tempfile.path,tfile)
-            process_image(group,min_index,filename,tfile)
-            {result:"OK",group_id:group.id}
-          else
-            {_error_:"ファイルの拡張子が間違いです: #{filename.downcase}"}
-          end
+          {_error_:"ファイルの拡張子が間違いです: #{filename.downcase}"}
         end
-      }
+      end
     }
     "<div id='response'>#{res.to_json}</div>"
   end

@@ -34,8 +34,7 @@ class MainApp < Sinatra::Base
       }
     end
     post '/permission' do
-      dm_response{
-        DB.transaction{
+      with_update{
           is_add = (@json["mode"] == "add")
           sym = @json["type"].to_sym
           users = User.where(id: @json["uids"])
@@ -45,24 +44,21 @@ class MainApp < Sinatra::Base
           else
             change_permission(is_add,sym,users)
           end
-        }
       }
-      []
+      {}
     end
 
     post '/change_attr' do
       users = User.where(id: @json["uids"])
-      dm_response{
-        DB.transaction{
-          # UserAttribute.after_save の中で一つの属性valueしか持たないことを保証してくれてるからcreateするだけでいい
-          # TODO: updateするとかじゃなくてcreateするだけで良いというのは仕様上分かりにくいのでどうにかする
-          users.map{|u|UserAttribute.create(user:u,value_id:@json["value"].to_i)}
-        }
+      with_update{
+        # UserAttribute.after_save の中で一つの属性valueしか持たないことを保証してくれてるからcreateするだけでいい
+        # TODO: updateするとかじゃなくてcreateするだけで良いというのは仕様上分かりにくいのでどうにかする
+        users.map{|u|UserAttribute.create(user:u,value_id:@json["value"].to_i)}
       }
-      []
+      {}
     end
     post '/apply_edit' do
-      DB.transaction{
+      with_update{
         @json.each{|x|
           u = User[x["uid"].to_i]
           case x["type"]
@@ -78,7 +74,7 @@ class MainApp < Sinatra::Base
     end
 
     post '/update_attr' do
-      DB.transaction{
+      with_update{
         created_keys = []
         @json["list"].to_enum.with_index(1){|x,index|
           k = nil

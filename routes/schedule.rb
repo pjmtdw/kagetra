@@ -70,17 +70,17 @@ class MainApp < Sinatra::Base
       make_detail_item(ScheduleItem[params[:id]])
     end
     post '/detail/item',private:true do
-      dm_response{
+      with_update{
         update_or_create(nil, @user, @json)
       }
     end
     put '/detail/item/:id' do
-      dm_response{
+      with_update{
         update_or_create(params[:id], @user, @json)
       }
     end
     delete '/detail/item/:id' do
-      dm_response{
+      with_update{
         ScheduleItem[params[:id].to_i].destroy
       }
     end

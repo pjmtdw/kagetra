@@ -101,20 +101,18 @@ class MainApp < Sinatra::Base
     end
 
     def update_or_create_item(item)
-      dm_response{
-        DB.transaction{
-          (updates,updates_patch) = make_comment_log_patch(item,@json,"body","revision")
-          if updates then @json.merge!(updates) end
-          if item then
-            item.update(@json.except("id"))
-          else
-            item = WikiItem.create(@json.merge(owner_id:@user.id))
-          end
-          if updates_patch
-            WikiItemLog.create(updates_patch.merge({wiki_item:item,user:@user}))
-          end
-          item.select_attr
-        }
+      with_update{
+        (updates,updates_patch) = make_comment_log_patch(item,@json,"body","revision")
+        if updates then @json.merge!(updates) end
+        if item then
+          item.update(@json.except("id"))
+        else
+          item = WikiItem.create(@json.merge(owner_id:@user.id))
+        end
+        if updates_patch
+          WikiItemLog.create(updates_patch.merge({wiki_item:item,user:@user}))
+        end
+        item.select_attr
       }
     end
 

@@ -271,6 +271,6 @@ class MainApp < Sinatra::Base
     if @public_mode then
       query = query.where(public:true)
     end
-    {list:query.map{|x|x.select_attr(:name,:official,:kind,:description,:deadline,:date,:start_at,:end_at,:place,:public)}}
+    {list:query.map{|x|x.select_attr(:id,:name,:official,:kind,:description,:deadline,:date,:start_at,:end_at,:place,:public)}}
   end
 end

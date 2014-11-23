@@ -69,13 +69,16 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
 
     on_login_submit: _.wrap_submit ->
       return if @submitting
-      @submitting = true
       that = this
       user_id =
         if @options.single_mode
           $("#login-uid").val()
         else
           $("#user-names").val()
+      if _.isEmpty(user_id)
+        _.cb_alert("ログインユーザを選択して下さい")
+        return
+      @submitting = true
       elem = $("#login input[type=password]")
       password = elem.val()
       first = ->

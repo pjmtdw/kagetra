@@ -30,7 +30,6 @@
   -# 注意: content_for :haml で読み込むhamlファイルはブラウザにキャッシュされるので
   -#      @userなどの動的な情報は含まれないようにすること(routesの 'get /haml/:prefix' 参照)
   %body(data-haml="#{yield_content(:haml)}")
-    %a(name="anchor-top")
     = yield
     #body-end.row
       %a.right(href="javascript:window.scrollTo(0,0);") &uArr; 一番上へ

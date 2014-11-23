@@ -207,7 +207,7 @@ class MainApp < Sinatra::Base
         c = EventChoice.first(id:params[:cid])
         EventUserChoice.create(user:@user,event_choice:c)
         {
-          count: c.event.participant_count,
+          count: c.event(true).participant_count, # デフォルトではキャッシュされてるので .event(true) とすることでキャッシュ無効化
           event_name:c.event.name,
           choice:c.name
         }

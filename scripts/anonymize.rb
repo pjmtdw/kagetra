@@ -8,6 +8,8 @@ require "MeCab"
 require_relative '../init'
 require_relative './wikipedia_name/random.rb'
 
+CONF_MEIBO_PASSWORD = "XXXX" # セキュリティのため使用した後は元に戻すこと
+
 # 写真をぼかす
 AlbumGroup.all.each{|ag|
   ag.items.each{|item|
@@ -15,9 +17,9 @@ AlbumGroup.all.each{|ag|
       old_path = x.path
       next if old_path.to_s.end_with?(".blurred")
       new_path = old_path.to_s+".blurred"
-      abs_path = File.join(CONF_HAGAKURE_BASE,"album",old_path)
+      abs_path = File.join(G_STORAGE_DIR,"album",old_path)
       x.update!(path:new_path)
-      new_abs_path = File.join(CONF_HAGAKURE_BASE,"album",new_path)
+      new_abs_path = File.join(G_STORAGE_DIR,"album",new_path)
       next if File.exist?(new_abs_path)
       if File.exist?(abs_path) and File.size(abs_path) > 0
         image = Magick::Image.read(abs_path).first

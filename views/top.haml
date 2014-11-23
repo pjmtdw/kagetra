@@ -10,4 +10,4 @@
 
 %script
   var g_daily_photo_str='#{@daily_photo and @daily_photo.to_json}';
-  var g_sub_admin = '#{@user.admin or @user.sub_admin}';
+  var g_sub_admin = #{!!(@user.admin or @user.sub_admin)};

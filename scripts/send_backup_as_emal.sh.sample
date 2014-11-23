@@ -28,7 +28,7 @@ SPLIT_SIZE="20MB" # backup files will be splitted in this size
 MSMTP_CONFIG="/path/to/msmtprc" # config file of msmtp
 
 function my_send_mail(){
-  echo "$MAIL_BODY" | mutt -e 'set sendmail="/usr/bin/msmtp -C '"$MSMTP_CONFIG"'"' -s "$MAIL_SUBJECT" -a "$1" -- "$2"
+  echo "$MAIL_BODY" | mutt -e 'set copy=no; set sendmail="/usr/bin/msmtp -C '"$MSMTP_CONFIG"'"' -s "$MAIL_SUBJECT" -a "$1" -- "$2"
 }
 
 function die(){

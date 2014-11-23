@@ -104,7 +104,7 @@ class EventUserChoice < Sequel::Model(:event_user_choices)
       # 一回のリクエストの中で participant_count を減らす -> 増やすした場合
       # Event#update がその変更を検知できずにUPDATEクエリが実行されない可能性があるので
       # ここでは self.event_choice.event を使わずに event をもう一回 DBから取得しなおす
-      ev = Event[self.event_choice.event_id]
+      ev = self.event_choice.event(true)
       if ev then
         # 参加者数の更新
         count = EventUserChoice.where(event_choice:ev.choices_dataset.where(positive: true)).count

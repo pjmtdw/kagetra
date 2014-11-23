@@ -26,11 +26,6 @@ gem 'rubyzip' # zip/unzip archive
 gem 'mysql2'
 gem 'sequel'
 
-# only used in hagakure scripts
-#gem 'parallel'
-#gem 'rake'
-#gem 'sqlite3' # used when importing mytoma wiki
-
 # only used for developing
 gem 'rspec' # BDD Testing
 gem 'selenium-webdriver' # Testing in browser

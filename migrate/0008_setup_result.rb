@@ -17,10 +17,10 @@ Sequel.migration do
       foreign_key :user_id, :users, on_delete: :set_null, comment:"usersテーブルから削除されたりした人のためにnullも許容"
       foreign_key :event_id, :events, null:false, on_delete: :cascade
       foreign_key :contest_class_id, :contest_classes, null:false, on_delete: :cascade
-      Integer :win, default:0, comment:"この大会の勝ち数(aggregateするのは遅いのでキャッシュ)"
-      Integer :lose, default:0, comment:"この大会の負け数(aggregateするのは遅いのでキャッシュ)"
-      Integer :point, default:0, comment:"A級のポイント(aggregateするのは遅いのでキャッシュ)"
-      Integer :point_local, default:0, comment:"会内ポイント(aggregateするのは遅いのでキャッシュ)"
+      Integer :win, null:false, default:0, comment:"この大会の勝ち数(aggregateするのは遅いのでキャッシュ)"
+      Integer :lose, null:false, default:0, comment:"この大会の負け数(aggregateするのは遅いのでキャッシュ)"
+      Integer :point, null:false, default:0, comment:"A級のポイント(aggregateするのは遅いのでキャッシュ)"
+      Integer :point_local, null:false, default:0, comment:"会内ポイント(aggregateするのは遅いのでキャッシュ)"
       Integer :class_rank, comment:"contest_classesのclass_rankのキャッシュ"
       
       index [:user_id, :event_id], name: :unique_contest_users_u1, unique:true
@@ -89,8 +89,8 @@ Sequel.migration do
       foreign_key :contest_user_id, :contest_users, null:false, on_delete: :cascade
       String :prize, size:32, null:false, comment:"実際の名前（優勝，全勝賞など）"
       Integer :promotion, comment:"1:昇級,2:ダッシュ,3:A級優勝"
-      Integer :point, default:0, comment:"A級のポイント"
-      Integer :point_local, default:0, comment: "会内ポイント"
+      Integer :point, null:false, default:0, comment:"A級のポイント"
+      Integer :point_local, null:false, default:0, comment: "会内ポイント"
       Integer :rank, comment:"順位=>1:優勝,2:準優勝,3:三位,..."
       
       index [:contest_class_id, :contest_user_id], name: :unique_contest_prizes_u1, unique:true
@@ -114,8 +114,8 @@ Sequel.migration do
     
     create_table_custom(:contest_result_caches,[:base],comment:"毎回aggregateするのは遅いのでキャッシュ") do
       foreign_key :event_id, :events, unique:true, null:false, on_delete: :cascade
-      Integer :win, default:0, comment: "勝ち数の合計"
-      Integer :lose, default:0, comment: "負け数の合計"
+      Integer :win, null:false, default:0, comment: "勝ち数の合計"
+      Integer :lose, null:false, default:0, comment: "負け数の合計"
       String :prizes, text:true, comment: "入賞情報(JSON)" 
     end
      

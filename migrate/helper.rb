@@ -15,7 +15,7 @@ module Sequel
       thread: lambda{|x|
         DateTime :last_comment_date, index: true, comment:"スレッドに最後に書き込んだ日時"
         foreign_key :last_comment_user_id, :users, on_delete: :set_null, comment: "スレッドに最後に書き込んだユーザ"
-        Integer :comment_count, default:0, comment:"コメント数(毎回aggregateするのは遅いのでキャッシュ)"
+        Integer :comment_count, null:false, default:0, comment:"コメント数(毎回aggregateするのは遅いのでキャッシュ)"
       },
       comment: lambda{|thread|
         lambda{|x|

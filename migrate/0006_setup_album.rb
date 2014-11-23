@@ -7,12 +7,12 @@ Sequel.migration do
       String :comment, text:true
       Date :start_at, comment:"開始日"
       Date :end_at, comment:"終了日"
-      TrueClass :dummy, index:true, default:false, comment:"どのグループにも属していない写真のための擬似的なグループ"
+      TrueClass :dummy, index:true, null:false, default:false, comment:"どのグループにも属していない写真のための擬似的なグループ"
       Integer :year, index:true, comment:"年ごとの集計のためにキャッシュする"
-      Integer :daily_choose_count, default:0, comment: "含まれる写真のうち今日の一枚の対象になっている数"
-      Integer :has_comment_count, default:0, comment: "コメントの入っている写真の数"
-      Integer :has_tag_count, default:0, comment: "タグの入っている写真の数"
-      Integer :item_count, default:0, comment:"含まれる写真数，毎回aggregateするのは遅いのでキャッッシュ"
+      Integer :daily_choose_count, null:false, default:0, comment: "含まれる写真のうち今日の一枚の対象になっている数"
+      Integer :has_comment_count, null:false, default:0, comment: "コメントの入っている写真の数"
+      Integer :has_tag_count, null:false, default:0, comment: "タグの入っている写真の数"
+      Integer :item_count, null:false, default:0, comment:"含まれる写真数，毎回aggregateするのは遅いのでキャッッシュ"
       foreign_key :owner_id, :users, on_delete: :set_null
     end
 
@@ -26,15 +26,15 @@ Sequel.migration do
       String :name, size:72
       String :place, size:128
       String :comment, text:true
-      Integer :comment_revision,index:true, default:0
+      Integer :comment_revision,index:true, null:false, default:0
       DateTime :comment_updated_at, index:true
       Date :date, comment:"撮影日"
       String :hourmin, size:50, comment:"撮影時刻"
-      TrueClass :daily_choose, default:true, comment:"今日の一枚として選ばれるかどうか"
+      TrueClass :daily_choose, null:false, default:true, comment:"今日の一枚として選ばれるかどうか"
       Integer :group_index, null:false, comment:"グループの中での表示順"
-      Integer :rotate, default:0, comment:"回転(右向き．0,90,180,270のどれか)"
+      Integer :rotate, null:false, default:0, comment:"回転(右向き．0,90,180,270のどれか)"
       String :orig_filename, size:128, comment:"アップロードされた元のファイル名"
-      Integer :tag_count, default:0, comment:"写真にタグが何個付いているか"
+      Integer :tag_count, null:false, default:0, comment:"写真にタグが何個付いているか"
       String :tag_names, text:true, comment:"タグ名の入った配列をJSON化したもの"
       
       foreign_key :owner_id, :users, on_delete: :set_null

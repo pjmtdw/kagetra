@@ -60,18 +60,23 @@ class MainApp < Sinatra::Base
       Kagetra::Utils.check_password(params,hash)
     end
     post '/change_password' do
-      up = {password_hash: params[:hash], password_salt: params[:salt]}
-      if params[:uids]
-        User.where(id:params[:uids].map(&:to_i)).each{|x|x.update(up)}
-      else
-        @user.update(up)
-      end
-      {result:"OK"}
+      with_update{
+        up = {password_hash: params[:hash], password_salt: params[:salt]}
+        if params[:uids]
+          # TODO: 本当はユーザごとに salt を変えないといけない
+          User.where(id:params[:uids].map(&:to_i)).each{|x|x.update(up)}
+        else
+          @user.update(up)
+        end
+        {result:"OK"}
+      }
     end
     post '/change_shared_password' do
-      up = {hash: params[:hash], salt: params[:salt]}
-      MyConf.first(name: "shared_password").update(value: up)
-      {result:"OK"}
+      with_update{
+        up = {hash: params[:hash], salt: params[:salt]}
+        MyConf.first(name: "shared_password").update(value: up)
+        {result:"OK"}
+      }
     end
 
     get '/newly_message' do

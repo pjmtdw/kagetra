@@ -40,6 +40,7 @@ G_TOP_BAR_PUBLIC = [
   {route:"bbs",      name:"公開掲示板"},
   {route:"schedule", name:"公開予定表"},
   {route:"result_list", name:"入賞歴"},
+  {route:"event_catalog", name:"大会/行事案内"},
   {route:"wiki#page/41", name:"役職"},
   {route:"wiki#page/15", name:"練習会場"},
 ]

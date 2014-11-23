@@ -113,6 +113,10 @@ define (require, exports, module) ->
           _.cb_alert("エラー: 送信失敗(1)")
       catch e
         _.cb_alert("エラー: 送信失敗(2)")
+    
+    date_range: (start_at, end_at) ->
+      tilde = if start_at or end_at then "&sim;" else ""
+      "#{start_at ? ''} #{tilde} #{end_at ? ''}"
 
     show_kind_symbol: (kind,official) ->
       s = switch kind

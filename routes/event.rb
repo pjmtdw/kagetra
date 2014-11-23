@@ -263,4 +263,14 @@ class MainApp < Sinatra::Base
     end
   end
   comment_routes("/api/event",Event,EventComment,true)
+  get '/event_catalog' do
+    haml :event_catalog
+  end
+  get '/api/event_catalog/list' do
+    query = Event.where(done:false).order(Sequel.asc(:date),Sequel.asc(:id))
+    if @public_mode then
+      query = query.where(public:true)
+    end
+    {list:query.map{|x|x.select_attr(:name,:official,:kind,:description,:deadline,:date,:start_at,:end_at,:place,:public)}}
+  end
 end

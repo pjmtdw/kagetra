@@ -31,8 +31,7 @@
       %fieldset.panel
         %legend 日時
         %div
-          <% tilde = (data.start_at || data.end_at)?"&sim;":"" %>
-          <%= data.date %> <%= data.start_at %> <%= tilde %> <%= data.end_at %>
+          <%= data.date %> <%= _.date_range(data.start_at,data.end_at) %>
     .large-2.columns
       %fieldset.panel
         %legend 締切日

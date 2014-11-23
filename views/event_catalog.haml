@@ -1,0 +1,34 @@
+- content_for :title do
+  大会行事案内
+- content_for :js_start do
+  event_catalog
+- content_for :css do
+  event_detail
+= haml :top_bar
+
+%div.row#event-catalog
+
+%script#templ-event-catalog-item(type='text/template')
+  %div.panel.columns
+    %div.row
+      %div.columns
+        %span.event-symbol {{_.show_kind_symbol(data.kind,data.official) }}
+        %span {- data.name -}
+    %div.row
+      %div.columns
+        %ul.large-block-grid-2.small-block-grid-1
+          %li
+            %span.column-title [日時]:
+            %span {{ data.date }} {{ _.date_range(data.start_at,data.end_at) }}
+          %li
+            %span.column-title [〆切]:
+            %span {{ data.deadline }}
+    %div.row
+      %div.columns
+        %span.column-title [場所]:
+        %span {- data.place -}
+    %hr
+    %div.row
+      %div.columns
+        %div.column-title [備考]:
+        .pre {{ _.replace_url_escape(data.description) }}

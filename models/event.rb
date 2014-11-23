@@ -117,6 +117,7 @@ end
 # 大会/行事のコメント
 class EventComment < Sequel::Model(:event_comments)
   include CommentBase
+  include UserEnv
   many_to_one :thread, class:'Event'
 end
 

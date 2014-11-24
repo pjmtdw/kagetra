@@ -42,7 +42,7 @@ class MainApp < Sinatra::Base
         cond[:event_id] = Event.where(eventcond.inject(:&)).map(&:id)
       end
       if @json["filter"].to_s.empty?.! and @json["filter"] != "official" then
-        cond[:class_rank] = @json["filter"].to_sym
+        cond[:class_rank] = ContestClass.serialization_map[:class_rank].call(@json["filter"].to_sym)
       end
       data = {}
       qbase = ContestUser.where(cond).distinct(:name)

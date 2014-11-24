@@ -60,7 +60,12 @@ class MainApp < Sinatra::Base
     end
     res = call env.merge(base)
     if res[0] == 200
-      JSON.parse(res[2][0])
+      begin
+        JSON.parse(res[2][0])
+      rescue JSON::ParserError => e
+        puts "#{method.inspect} #{path.inspect} #{params.inspect} => #{res[2][0].inspect}"
+        raise e
+      end
     else
       halt res[0], res[2][0]
     end

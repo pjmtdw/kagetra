@@ -85,6 +85,7 @@ class MainApp < Sinatra::Base
         c.set_env(request)
         c.save()
       }
+      []
     end
     put "#{namespace}/comment/item/:id" do
       with_update{

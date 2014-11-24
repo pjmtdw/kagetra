@@ -58,7 +58,6 @@ class MainApp < Sinatra::Base
         end
         res[x.user_name] = r
       }
-      p res
       list = res.to_a.map{|k,v|
         if v[:start].nil? or v[:end].nil? then
           nil

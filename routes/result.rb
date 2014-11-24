@@ -406,7 +406,7 @@ class MainApp < Sinatra::Base
             team.opponents.first(round:round).destroy()
             return
           else
-            op_team = ContestTeamOpponent.update_or_create(
+            op_team = ContestTeamOpponent.update_or_create_custom(
               {contest_team_id:team.id,round:round},
               {name: opname,round_name: rname ,kind: rkind})
             condbase = {

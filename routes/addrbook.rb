@@ -13,7 +13,7 @@ class MainApp < Sinatra::Base
   end
   namespace '/api/addrbook' do
     post '/item/:uid' do
-      ab = AddrBook.update_or_create({user_id:params[:uid]},{text:@json["text"],album_item_id:@json["album_item_id"]})
+      ab = AddrBook.update_or_create_custom({user_id:params[:uid]},{text:@json["text"],album_item_id:@json["album_item_id"]})
       make_addrbook_info(ab)
     end
     get '/item/:uid' do

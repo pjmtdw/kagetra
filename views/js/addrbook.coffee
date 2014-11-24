@@ -34,7 +34,10 @@ define (require,exports,module)->
         if not window.addrbook_view.decode_success
           window.addrbook_view.render()
       else
-        _.cb_alert("名簿パスワードが違います")
+        _.cb_alert("名簿パスワードが違います").always(->
+          $("#password").val("")
+          $("#password").focus()
+        )
       false
     initialize: ->
       _.bindAll(this,"render","refresh")

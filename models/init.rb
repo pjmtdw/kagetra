@@ -50,6 +50,15 @@ module Sequel
     end
   end
   module Plugins
+    module  UpdateOrCreate
+      module ClassMethods
+        # オリジナルの update_or_create は 更新するものがないときは nil を返す
+        # lib/sequel/plugins/update_or_create.rb 参照
+        def update_or_create_custom(attrs, set_attrs=nil, &block)
+          find_or_new(attrs, set_attrs, &block).tap(&:save_changes)
+        end
+      end
+    end
     # timestamps プラグインは自動的に updated_at を更新するが，更新したくない時もあるので
     # update! メソッドを用意する
     # sequel/lib/sequel/plugins/timestamp.rb 参照

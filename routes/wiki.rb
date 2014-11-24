@@ -179,7 +179,7 @@ class MainApp < Sinatra::Base
   post '/wiki/attached/:id', private:true do
     item = WikiItem[params[:id].to_i]
     attached =  if params[:attached_id] then
-                  item.attacheds.get(params[:attached_id])
+                  item.attacheds_dataset.first(id:params[:attached_id])
                 end
     attached_base = File.join(G_STORAGE_DIR,"attached")
     file =  if params[:file] then

@@ -78,7 +78,7 @@ class MainApp < Sinatra::Base
       participant_attrs = attr_query.map{|x|[x.id,x.value]}
       attr_value_index = attr_query.map{|x|[x.id,x.index]}.to_h
       sort_and_map = ->(h){
-        h.sort_by{|k,v|attr_value_index[k]}
+        h.sort_by{|k,v|attr_value_index[k] || 9999} # 後から参加不能属性が追加された場合参加不能属性の人でも参加している可能性はある
         .map{|k,v|
           [k,v.map(&:id)]}}
       add_participant_names = ->(ucs,hide_result){
@@ -158,8 +158,12 @@ class MainApp < Sinatra::Base
           ev = Event.create(updata)
           end
         if owners_update then
-          owners_update.each{|uid|
+          cur = ev.owners.map(&:id)
+          (owners_update-cur).each{|uid|
             EventOwner.create(user_id:uid,event_id:ev.id)
+          }
+          (cur-owners_update).each{|uid|
+            EventOwner.where(user_id:uid,event_id:ev.id).destroy
           }
         end
         if choices.nil?.! then
@@ -250,7 +254,7 @@ class MainApp < Sinatra::Base
     end
     put '/group/:id' do
       with_update{
-        EventGroup[params[:id].to_i].update(@json)
+        EventGroup[params[:id].to_i].update(@json.except("id"))
       }
     end
     get '/deadline_alert' do

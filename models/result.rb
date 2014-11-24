@@ -123,8 +123,10 @@ class ContestPrize < Sequel::Model(:contest_prizes)
   end
   def after_save
     super
-    if (self.point || 0) > 0 or (self.point_local || 0) > 0 then
-      self.contest_user.update(point:self.point,point_local:self.point_local)
+    pt = (self.point || 0)
+    pl = (self.point_local || 0)
+    if pt > 0 or pl > 0 then
+      self.contest_user.update(point:pt,point_local:pl)
     end
     self.contest_class.event.update_cache_prizes
     if [:rank_up,:a_champ].include?(self.promotion) then

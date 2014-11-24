@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 class User < Sequel::Model(:users)
-  plugin :input_transformer_custom
   add_input_transformer_custom(:name,:furigana){|v|v.gsub(/\s+/,"")}
 
   one_to_many :attrs, class:'UserAttribute'

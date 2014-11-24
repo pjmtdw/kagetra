@@ -39,7 +39,7 @@ class MainApp < Sinatra::Base
 
     def event_info(ev,user,opts = {})
       today = Date.today
-      is_owner = ev.owners.include?(@user.id) 
+      is_owner = ev.owners.map(&:id).include?(@user.id) 
       r = ev.to_deserialized_hash.select_attr(:place,:name,:date,:kind,:official,:deadline,:created_at,:id,:participant_count,:comment_count,:team_size,:event_group_id,:public,:last_comment_date)
       r[:has_new_comment] = ev.has_new_comment(user)
       r[:deadline_day] = (r[:deadline]-today).to_i if r[:deadline]

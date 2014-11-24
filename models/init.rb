@@ -27,6 +27,7 @@ require_relative 'sequel_helpers/input_transformer_custom'
 require_relative 'sequel_helpers/defaults_setter_custom'
 require_relative 'sequel_helpers/serializers'
 Sequel::Model.plugin :defaults_setter_custom
+Sequel::Model.plugin :input_transformer_custom
 
 Sequel::Plugins::Serialization.register_format(:hourmin,*Kagetra::serialize_hourmin)
 

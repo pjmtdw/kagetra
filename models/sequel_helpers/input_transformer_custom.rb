@@ -14,7 +14,7 @@ module Sequel
     module InputTransformerCustom
       def self.apply(model,*)
         model.instance_eval do
-          @input_transformer_customs = Hash.new{[]}
+          @input_transformer_customs = {}
         end
       end
       def self.configure(model, column_name = nil, &block)
@@ -28,6 +28,7 @@ module Sequel
         Plugins.inherited_instance_variables(self, :@input_transformer_customs => :hash_dup)
         def add_input_transformer_custom(*column_name, &block)
           column_name.each{|c|
+            @input_transformer_customs[c] ||= []
             @input_transformer_customs[c] <<= block
           }
         end

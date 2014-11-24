@@ -116,6 +116,7 @@ end
 
 class AlbumTag < Sequel::Model(:album_tags)
   many_to_one :album_item
+  add_input_transformer_custom(:name){|v|v.gsub(/\s+/,"")}
 end
 
 # アルバムと大会の関連

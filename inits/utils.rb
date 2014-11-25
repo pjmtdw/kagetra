@@ -240,6 +240,11 @@ module Kagetra
       end
       return r.join("")
     end
+    # CONF_HOGE='FUGA' みたいな形式で出力
+    def self.conf_export_to_bash
+      Object.constants.select{|x|x.to_s.start_with?("CONF_")}.each{|x|
+        puts "#{x}='#{Object.const_get(x).to_s.gsub("'","\\.")}'"
+      }
+    end
   end
-
 end

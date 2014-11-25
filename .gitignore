@@ -12,10 +12,9 @@ deploy/log/
 deploy/sock/
 deploy/pid/
 scripts/wikipedia_name/tmp/
-scripts/periodic_mysqldump.sh
 scripts/send_backup_as_emal.sh
-scripts/dump/
 scripts/bkup_work/
+backups/
 storage/
 views/js/libs/
 

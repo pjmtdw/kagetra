@@ -1,4 +1,4 @@
-require_relative './inits/init'
+require './inits/init'
 
 configure :development do
   Bundler.require(:default)

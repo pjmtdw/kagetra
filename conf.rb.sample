@@ -91,3 +91,6 @@ CONF_ALBUM_THUMB_SIZE = 30000
 CONF_ALBUM_THUMB_QUALITY = 87
 # 初ログイン時に表示されるメッセージ
 CONF_FIRST_LOGIN_MESSAGE = "競技かるた会用グループウェア「景虎」へようこそ．<br/>「その他」&rArr;「ユーザ設定」でパスワード変更できます．"
+
+# scripts/periodic_mysqldump.sh が出力するディレクトリ
+CONF_DUMP_DIR = "backups/dumps/"

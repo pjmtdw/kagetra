@@ -17,9 +17,9 @@ AlbumGroup.all.each{|ag|
       old_path = x.path
       next if old_path.to_s.end_with?(".blurred")
       new_path = old_path.to_s+".blurred"
-      abs_path = File.join(G_STORAGE_DIR,"album",old_path)
+      abs_path = File.join(CONF_STORAGE_DIR,"album",old_path)
       x.update!(path:new_path)
-      new_abs_path = File.join(G_STORAGE_DIR,"album",new_path)
+      new_abs_path = File.join(CONF_STORAGE_DIR,"album",new_path)
       next if File.exist?(new_abs_path)
       if File.exist?(abs_path) and File.size(abs_path) > 0
         image = Magick::Image.read(abs_path).first

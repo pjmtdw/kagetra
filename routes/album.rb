@@ -457,7 +457,7 @@ class MainApp < Sinatra::Base
         group_index:index,
         owner_id:@user.id
     }))
-    rel_path = abs_path.relative_path_from(Pathname.new(File.join(G_STORAGE_DIR,"album")).realpath)
+    rel_path = abs_path.relative_path_from(Pathname.new(File.join(CONF_STORAGE_DIR,"album")).realpath)
     img = Magick::Image::read(abs_path).first
     prev_columns = img.columns
     prev_rows = img.rows
@@ -487,7 +487,7 @@ class MainApp < Sinatra::Base
   end
 
   def update_thumbnail(item)
-    base = File.join(G_STORAGE_DIR,"album")
+    base = File.join(CONF_STORAGE_DIR,"album")
     img = Magick::Image::read(File.join(base,item.photo.path)).first
     resize_to_pixels!(img,CONF_ALBUM_THUMB_SIZE)
     img.rotate!(item.rotate.to_i)
@@ -514,7 +514,7 @@ class MainApp < Sinatra::Base
         filename = pfile[:filename]
         min_index = 1 + (group.items_dataset.max(:group_index) || -1)
         date = Date.today
-        target_dir = File.join(G_STORAGE_DIR,"album",date.year.to_s,date.month.to_s)
+        target_dir = File.join(CONF_STORAGE_DIR,"album",date.year.to_s,date.month.to_s)
         FileUtils.mkdir_p(target_dir)
         case filename.downcase
         when /\.zip$/
@@ -542,7 +542,7 @@ class MainApp < Sinatra::Base
   end
   def send_photo(p,rotate)
     content_type "image/#{p.format.downcase}"
-    path = File.join(G_STORAGE_DIR,"album",p.path)
+    path = File.join(CONF_STORAGE_DIR,"album",p.path)
     ext = case p.format.downcase
           when "jpeg" then "jpg"
           else p.format.downcase

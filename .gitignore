@@ -12,8 +12,6 @@ deploy/log/
 deploy/sock/
 deploy/pid/
 scripts/wikipedia_name/tmp/
-scripts/send_backup_as_emal.sh
-scripts/bkup_work/
 backups/
 storage/
 views/js/libs/

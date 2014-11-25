@@ -4,7 +4,11 @@
 SIZE_LIMIT="1024" # in megabytes
 ROOTDIR="$(dirname $(readlink -f $0))/../"
 cd "$ROOTDIR"
-source <(ruby -e 'require "./conf";require "./inits/utils"; Kagetra::Utils.conf_export_to_bash')
+
+if ! [ "$CONF_DUMP_DIR" ];then
+  echo "CONF_DUMP_DIR is empty. check conf.rb"
+  exit 1
+fi
 
 DUMPDIR="${ROOTDIR}/${CONF_DUMP_DIR}"
 

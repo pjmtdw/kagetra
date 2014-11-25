@@ -6,8 +6,6 @@ G_APP_NAME = "景虎"
 
 G_MOBILE_BASE = "/mobile"
 
-G_STORAGE_DIR = "./storage" # Wikiの添付ファイルとアルバムの写真が置かれるディレクトリ
-
 G_WEEKDAY_JA = ['日','月','火','水','木','金','土']
 
 G_ADDRBOOK_CONFIRM_STR = 'kagetra_addrbook' # 名簿でパスワードが正しいかの確認用
@@ -50,6 +48,8 @@ G_SINGLE_POINT_LOCAL = [1,2,4,8,16,32,64,128,256] # 個人戦でもらえる会�
 G_TEAM_POINT_LOCAL = [10,20,30,40,50] # 団体戦でもらえる会内ポイント
 
 ## 設定
+
+CONF_STORAGE_DIR = "./storage" # Wikiの添付ファイルとアルバムの写真が置かれるディレクトリ
 
 # これを設定しておけばサーバを再起動してもユーザのセッションが保持される．
 # require 'securerandom';SecureRandom.base64(48) で作ること，
@@ -94,3 +94,20 @@ CONF_FIRST_LOGIN_MESSAGE = "競技かるた会用グループウェア「景虎�
 
 # scripts/periodic_mysqldump.sh が出力するディレクトリ
 CONF_DUMP_DIR = "backups/dumps/"
+
+# scripts/send_backup_as_email.sh 関連
+CONF_BKUP_MAIL_TO="mailto@example.com" # バックアップを送る対象アドレス
+CONF_BKUP_MAIL_ENC_PASSWORD="hogefuga" # バックアップはこのパスワードで暗号化される
+
+CONF_BACKUP_SMTP_HOST="smtp.gmail.com" # gmail なら smtp.gmail.com
+CONF_BACKUP_SMTP_PORT="587" # gmail なら 587
+CONF_BACKUP_SMTP_USER="<user>" # アカウント名
+CONF_BACKUP_SMTP_PASSWORD="<password>" # パスワード
+CONF_BACKUP_SMTP_FROM="<user>@gmail.com" # From: に入る文字列．正しいメアド入れないと送れないかも．
+CONF_BACKUP_SMTP_TLS_TRUST_FILE="/etc/ssl/certs/ca-bundle.crt" # yum install ca-certificates で入る
+CONF_BACKUP_SMTP_LOGFILE="~/.msmtp.log"
+
+CONF_BKUP_WORKDIR = "backups/workdir/"
+CONF_BKUP_MAIL_SUBJECT="kagetra_backup"
+CONF_BKUP_MAIL_BODY="this is backup of kagetra"
+CONF_BKUP_MAIL_SPLIT_SIZE="20MB" # バックアップはこのサイズに分割される．gmail は最大 25MB なのでそれ以下にする

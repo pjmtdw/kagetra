@@ -12,5 +12,7 @@ fi
 export PATH="$HOME/.rbenv/bin:$PATH"
 eval "$(rbenv init -)"
 ROOTDIR="$(dirname $(readlink -f $0))"
+cd $ROOTDIR/../
+source <(ruby -e 'require "./conf";require "./inits/utils"; Kagetra::Utils.conf_export_to_bash')
 cd $ROOTDIR
 "$@"

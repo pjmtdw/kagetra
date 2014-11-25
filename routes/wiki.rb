@@ -171,7 +171,7 @@ class MainApp < Sinatra::Base
   get '/static/wiki/attached/:id/:filename', private:true do
     # content-dispositionでutf8を使う方法は各ブラウザで統一されていないので
     # :filenameの部分にダウンロードさせるファイル名を入れるという古くから使える方法を取る
-    attached_base = File.join(G_STORAGE_DIR,"attached")
+    attached_base = File.join(CONF_STORAGE_DIR,"attached")
     attached = WikiAttachedFile[params[:id].to_i]
     halt 404 if attached.nil?
     send_file(File.join(attached_base,attached.path),disposition:nil)
@@ -181,7 +181,7 @@ class MainApp < Sinatra::Base
     attached =  if params[:attached_id] then
                   item.attacheds_dataset.first(id:params[:attached_id])
                 end
-    attached_base = File.join(G_STORAGE_DIR,"attached")
+    attached_base = File.join(CONF_STORAGE_DIR,"attached")
     file =  if params[:file] then
               params[:file]
             else

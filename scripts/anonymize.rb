@@ -5,7 +5,7 @@
 
 # $ apt-get install ruby-mecab mecab-ipadic-utf8
 require "MeCab"
-require_relative '../init'
+require_relative '../inits/init'
 require_relative './wikipedia_name/random.rb'
 
 CONF_MEIBO_PASSWORD = "XXXX" # セキュリティのため使用した後は元に戻すこと

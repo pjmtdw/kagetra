@@ -3,6 +3,7 @@ class MainApp < Sinatra::Base
   helpers Sinatra::ContentFor
   enable :sessions, :logging
   # ENV['RACK_SESSION_SECRET'] is set by unicorn.rb
+  set :root, File.join(File.dirname(__FILE__),"..")
   set :session_secret, 
     ((if defined?(CONF_SESSION_SECRET) then CONF_SESSION_SECRET end) or ENV["RACK_SESSION_SECRET"] or SecureRandom.base64(48)) 
   

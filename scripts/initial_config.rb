@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 begin
-  require './init'
+  require_relative '../inits/init'
 rescue Sequel::DatabaseConnectionError => e
   puts "DatabaseConnectionError: #{e.message}"
   exit

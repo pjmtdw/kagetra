@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # License of this software is described in LICENSE file.
-require './conf'
+require_relative '../conf'
 require 'bundler'
 require 'mysql2'
 require 'sequel'
@@ -19,7 +19,7 @@ require 'base64'
 require 'digest'
 require 'nkf'
 require 'redcarpet'
-require './libs/diff_match_patch-ruby/diff_match_patch.rb'
+require_relative '../libs/diff_match_patch-ruby/diff_match_patch.rb'
 G_DIMAPA = DiffPatchMatch.new
 require 'RMagick'
 require 'zip'
@@ -33,10 +33,10 @@ require 'securerandom'
 require 'tempfile'
 require 'resolv'
 
-require './models/init'
-require './app'
-require './helpers/init'
-require './routes/init'
-require './utils'
+require_relative '../models/init'
+require_relative './app'
+require_relative './utils'
+require_relative './helpers/init'
+require_relative '../routes/init'
 
-require './mobile/init'
+require_relative '../mobile/init'

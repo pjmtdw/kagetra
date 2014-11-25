@@ -45,6 +45,7 @@ password ${CONF_BACKUP_SMTP_PASSWORD}
 
 account default: kagetra
 HEREDOC
+  chmod 600 "$MSMTP_CONFIG"
 }
 
 if [ ! -e "$WORKDIR" ];then

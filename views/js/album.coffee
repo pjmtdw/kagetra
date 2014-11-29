@@ -266,6 +266,18 @@ define (require,exports,module)->
       "click #remove-checked" : "remove_checked"
       "click #reverse-checked" : "reverse_checked"
       "click #event-edit" : "event_edit"
+      "click #show-comment" : "show_comment"
+      "click #hide-comment" : "hide_comment"
+    show_comment: ->
+      $("#show-comment").addClass("active")
+      $("#hide-comment").removeClass("active")
+      @set_param("comment","on")
+      @render_items()
+    hide_comment: ->
+      $("#hide-comment").addClass("active")
+      $("#show-comment").removeClass("active")
+      @set_param("comment",null)
+      @render_items()
     event_edit: ->
       target = "#container-album-event-edit"
       v = new AlbumEventEditView(target:target,model:@model)
@@ -348,10 +360,14 @@ define (require,exports,module)->
       ts = _.deparam(t)
       owner = ts['owner']
       tag = ts['tag']
+      comment = ts['comment']
+
       if owner
         $(".owners:contains('#{owner}')").click()
       if tag
         $(".album-tag-name:contains('#{tag}')").closest('.album-tag').click()
+      if comment
+        $("#show-comment").click()
 
     render_tags: ->
       tags = @model.get('tags')
@@ -373,7 +389,9 @@ define (require,exports,module)->
       if @filter
         items = (x for x in items when x.id in @filter)
       window.album_router.chunk_list = (x.id for x in items when not x.hide)
-      $("#album-items").html(@template_items(data:{items:items}))
+      show_comment = $("#show-comment").hasClass("active")
+
+      $("#album-items").html(@template_items(show_comment:show_comment,data:{items:items}))
     thumb_click: (ev)->
       return unless @edit_mode
       obj = $(ev.currentTarget).closest(".album-item")

@@ -60,6 +60,7 @@ class MainApp < Sinatra::Base
         if no_comment then
           data[:no_comment] = 1
         end
+        data[:comment] = x.comment
         data
       }
       users = User.where(id:owners.keys).to_hash(:id,:name)

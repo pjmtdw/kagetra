@@ -83,6 +83,14 @@
       #album-tags
   .row
     .large-12.columns
+      %dl.sub-nav
+        %dt コメント:
+        %dd#show-comment.choice
+          %a 表示
+        %dd#hide-comment.choice.active
+          %a 非表示
+  .row
+    .large-12.columns
       #album-items
         
 %script#templ-album-group-tags(type='text/template')
@@ -102,7 +110,10 @@
     <% if(x.no_comment){ %>
     .no-comment(title="コメント無し") {{x.no_comment?"◆":""}}
     <% } %>
-    {{_.album_thumb(x)}}
+    .left {{_.album_thumb(x)}}
+    <% if(show_comment){ %>
+    .left.pre.comment {{ x.comment }}
+    <% } %>
   <% }) %>
 
 %script#templ-album-item(type='text/template')

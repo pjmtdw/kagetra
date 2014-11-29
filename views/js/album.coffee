@@ -269,11 +269,13 @@ define (require,exports,module)->
       "click #show-comment" : "show_comment"
       "click #hide-comment" : "hide_comment"
     show_comment: ->
+      window.default_show_comment = true
       $("#show-comment").addClass("active")
       $("#hide-comment").removeClass("active")
       @set_param("comment","on")
       @render_items()
     hide_comment: ->
+      window.default_show_comment = false
       $("#hide-comment").addClass("active")
       $("#show-comment").removeClass("active")
       @set_param("comment",null)
@@ -366,7 +368,7 @@ define (require,exports,module)->
         $(".owners:contains('#{owner}')").click()
       if tag
         $(".album-tag-name:contains('#{tag}')").closest('.album-tag').click()
-      if comment
+      if window.default_show_comment or comment
         $("#show-comment").click()
 
     render_tags: ->

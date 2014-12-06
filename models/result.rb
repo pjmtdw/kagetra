@@ -23,7 +23,7 @@ class ContestClass < Sequel::Model(:contest_classes)
 end
 
 class ContestUser < Sequel::Model(:contest_users)
-  add_input_transformer_custom(:name){|v|v.gsub(/\s+/,"")}
+  add_input_transformer_custom(:name){|v| v && v.gsub(/\s+/,"")}
   serialize_attributes Kagetra::serialize_enum([:a,:b,:c,:d,:e,:f,:g]), :class_rank
   many_to_one :user
   many_to_one :event
@@ -100,7 +100,7 @@ end
 class ContestPrize < Sequel::Model(:contest_prizes)
   many_to_one :contest_class
   many_to_one :contest_user
-  add_input_transformer_custom(:prize){|v|v.gsub("（","(").gsub("）",")").gsub(/\s+/,"")}
+  add_input_transformer_custom(:prize){|v| v && v.gsub("（","(").gsub("）",")").gsub(/\s+/,"")}
   serialize_attributes Kagetra::serialize_enum([:rank_up, :dash, :a_champ]), :promotion # 昇級, ダッシュ, A級優勝
   serialized_attr_accessor :promotion__rank_up, :promotion__a_champ
 
@@ -176,7 +176,7 @@ class ContestGame < Sequel::Model(:contest_games)
   set_allowed_columns :type, :event_id, :contest_user_id, :result, :score_str, :score_int, :comment, :opponent_name, :opponent_belongs
   many_to_one :event
   many_to_one :contest_user
-  add_input_transformer_custom(:opponent_name,:opponent_belongs){|v|v.gsub(/\s+/,"")}
+  add_input_transformer_custom(:opponent_name,:opponent_belongs){|v| v && v.gsub(/\s+/,"")}
   serialize_attributes Kagetra::serialize_enum([:now,:win,:lose,:default_win]), :result
   serialized_attr_accessor :result__lose,:result__win
 

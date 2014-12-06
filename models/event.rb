@@ -77,7 +77,7 @@ end
 
 # どのユーザがどの選択肢を選んだか
 class EventUserChoice < Sequel::Model(:event_user_choices)
-  add_input_transformer_custom(:user_name){|v|v.gsub(/\s+/,"")}
+  add_input_transformer_custom(:user_name){|v| v && v.gsub(/\s+/,"")}
   many_to_one :event_choice
   many_to_one :user
   many_to_one :attr_value, class:'UserAttributeValue'

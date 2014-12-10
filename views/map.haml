@@ -1,0 +1,12 @@
+- content_for :title do
+  地図
+- content_for :js_start do
+  map
+- content_for :css do
+  \/js/libs/leaflet/dist/leaflet
+= haml :top_bar
+
+#map(style="height: 800px")
+
+%script
+  var g_map_tile_url='#{CONF_MAP_TILE_URL}'

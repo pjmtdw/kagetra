@@ -23,6 +23,8 @@
       exclude: ["main"] },
     { name: "wiki",
       exclude: ["main"] },
+    { name: "map",
+      exclude: ["main"] },
     { name: "user_conf",
       exclude: ["main"] }
   ]

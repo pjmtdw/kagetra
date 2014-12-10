@@ -17,6 +17,7 @@
     "backbone": "1.1.2",
     "foundation": "4.3.2",
     "jquery-placeholder": "2.0.8",
-    "select2": "3.5.2"
+    "select2": "3.5.2",
+    "leaflet": "0.7.3"
   }
 }

@@ -22,6 +22,7 @@ requirejs.config
     "crypto-base64": "libs/crypto-js/components/enc-base64-min"
     "crypto-aes": "libs/crypto-js/rollups/aes"
     "crypto-core": "libs/crypto-js/components/core"
+    leaflet: "libs/leaflet/dist/leaflet"
 
   shim:
     jquery_placeholder: deps: ["jquery"]

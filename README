@@ -12,7 +12,7 @@ Ruby Management:        rbenv + bundler
 Web Framework:          Sinatra
 Testing:                RSpec + Selenium
 ORM:                    Sequel
-Database:               MySQL
+Database:               PostgreSQL 9.3
 HTML Template Engine:   Haml
 CSS Template Engine:    Sass(SCSS) + Compass
 Meta JavaScript:        CoffeeScript
@@ -22,7 +22,7 @@ Web UI Library:         Zurb Foundation 4
 [Howto Create DB Data]
   $ cp conf.rb.sample conf.rb
   $ vim conf.rb  # edit it
-  $ echo "create database kagtera" | mysql
+  $ echo "create database kagtera" | psql
   $ bundle exec ./scripts/initial_config.rb
 
 [Howto Run]

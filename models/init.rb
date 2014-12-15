@@ -1,11 +1,11 @@
 
-DB = Sequel.mysql2(
+DB = Sequel.postgres(
+  CONF_DB_DATABASE,
   host: CONF_DB_HOST,
   port: CONF_DB_PORT,
-  username: CONF_DB_USERNAME,
+  user: CONF_DB_USERNAME,
   password: CONF_DB_PASSWORD,
-  database: CONF_DB_DATABASE,
-  sql_mode: 'STRICT_ALL_TABLES'
+  sslmode: "disable"
 )
 
 if CONF_DB_DEBUG then

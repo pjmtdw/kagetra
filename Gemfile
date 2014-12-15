@@ -23,8 +23,8 @@ gem 'rmagick' # ImageMagick interface
 
 gem 'rubyzip' # zip/unzip archive
 
-gem 'mysql2'
 gem 'sequel'
+gem 'pg' # PostgreSQL interface
 
 # only used for developing
 gem 'rspec' # BDD Testing

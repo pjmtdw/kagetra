@@ -51,6 +51,16 @@ module Sequel
     end
   end
   module Plugins
+    module SerializationModificationDetection
+      module InstanceMethods
+        def before_save
+          # オリジナルの SerializationModificationDetection は initialize_set の中でしか serialize_deserialized_values を呼んでいない
+          # これだと before_save hook の中で self.hoge = "fuga" とかした場合に hoge が Serialized value の場合変更を detect できない
+          serialize_deserialized_values
+          super
+        end
+      end
+    end
     module  UpdateOrCreate
       module ClassMethods
         # オリジナルの update_or_create は 更新するものがないときは nil を返す

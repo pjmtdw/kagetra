@@ -11,18 +11,19 @@ if ! [ "$CONF_DUMP_DIR" ];then
 fi
 
 DUMPDIR="${ROOTDIR}/${CONF_DUMP_DIR}"
-
 mkdir -p "$DUMPDIR"
-prefix=$(date +'dump_%F_%H%M%S')
+DUMPFILE=$(date +'pgdump_%F_%H%M%S')
+
 PGPASSWORD="$CONF_DB_PASSWORD"  pg_dump \
   --username="$CONF_DB_USERNAME" \
   --host="$CONF_DB_HOST" \
   --port="$CONF_DB_PORT" \
-  --dbname="$CONF_DB_DATABASE" |\
- gzip > "$DUMPDIR"/"$prefix".gz 
+  --dbname="$CONF_DB_DATABASE" \
+  -Fc \
+  -f "$DUMPDIR"/"$DUMPFILE"
 
 while [ "$(du -sm "$DUMPDIR" | cut -f 1)" -gt $SIZE_LIMIT ];do
-  fn=$(ls -tr "$DUMPDIR"/dump_*.gz | head -n 1)
+  fn=$(ls -tr "$DUMPDIR"/pgdump_* | head -n 1)
   [ "$fn" ] || break
   rm "$fn" || break
 done

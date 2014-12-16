@@ -5,7 +5,7 @@ class MainApp < Sinatra::Base
   WIKI_LOG_PER_PAGE = 10
   WIKI_LOG_MAX_PAGE = 20 # 現在過去ログは遅いのでページ制限を設ける TODO: ページ制限をなくす
   MARKDOWN = Redcarpet::Markdown.new(
-  Redcarpet::Render::HTML.new(hard_wrap:true),tables:true,fenced_code_blocks:true)
+  Redcarpet::Render::HTML.new(hard_wrap:false,filter_html:false,escape_html:false),tables:true,fenced_code_blocks:true)
   namespace '/api/wiki' do
     def render_wiki(body_text,public_mode)
       body_text = body_text.clone

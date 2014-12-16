@@ -57,29 +57,19 @@ class MainApp < Sinatra::Base
       weekago = Time.now - 86400*7
       res = {}
       # 各DB固有のdate function使ってgroup byした方が速いので使えるのであればそちらを使う
-      # TODO: PostgreSQLとSQLite特有の処理を書く
+      # TODO: PostgreSQLとSQLite特有の処理を書く -> case DB.adapter_scheme .. when .. end
       base = UserLoginLog.where(counted:true).where{created_at > weekago}
-      case DB.adapter_scheme
-      when :mysql2
-        # DATE_FORMAT() は mysql独自の関数
-        qr = base.select(Sequel.function(:date_format,:created_at,"%Y-%m-%d %H").as("time"),
-                         Sequel.function(:count,:id).as("count"))
-          .group(:time)
-        res[:total] = qr.to_hash(:time,:count)
-        res[:mylog] = qr.where(user:@user).to_hash(:time,:count) 
-      else
-        tot = Hash.new{0}
-        mylog = Hash.new{0}
-        base.each{|x|
-          tm = x.created_at.strftime("%Y-%m-%d %H")
-          tot[tm] += 1
-          if x.user_id == @user.id then
-            mylog[tm] += 1
-          end
-        }
-        res[:total] = tot
-        res[:mylog] = mylog
-      end
+      tot = Hash.new{0}
+      mylog = Hash.new{0}
+      base.each{|x|
+        tm = x.created_at.strftime("%Y-%m-%d %H")
+        tot[tm] += 1
+        if x.user_id == @user.id then
+          mylog[tm] += 1
+        end
+      }
+      res[:total] = tot
+      res[:mylog] = mylog
       total_max = res[:total].values.max
       cur = Time.now
       dates = Hash.new{[]}

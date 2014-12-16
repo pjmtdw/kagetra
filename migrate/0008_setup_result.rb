@@ -78,7 +78,7 @@ Sequel.migration do
       # > According to the ANSI standards SQL:92, SQL:1999, and SQL:2003, a UNIQUE constraint should disallow duplicate non-NULL values, but allow multiple NULL values
       # とのこと．ただし Microsoft の SQL Server は ANSI満たしてないらしい．
       # https://connect.microsoft.com/SQLServer/feedback/details/299229/change-unique-constraint-to-allow-multiple-null-values
-      # ゆえに MySQL とかでは :type の種類に関わらず下記の unique index で大丈夫なはず
+      # ゆえに PostgreSQL とかでは :type の種類に関わらず下記の unique index で大丈夫なはず
       index [:contest_user_id, :contest_class_id, :round], name: :unique_contest_games_u1, unique:true
       index [:event_id, :contest_user_id, :contest_class_id, :round], name: :unique_contest_games_u2, unique:true
       index [:event_id, :contest_user_id, :contest_team_opponent_id], name: :unique_contest_games_u3, unique:true

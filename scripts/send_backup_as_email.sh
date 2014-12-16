@@ -6,9 +6,9 @@
  
 # this script uses  'mutt' command and 'msmtp' as sendmail client
 
-# you may use this script with ./periodic_mysqldump.sh
+# you may use this script with ./periodic_dbdump.sh
 # for example, you can add following jobs to crontab
-# 0 3 * * 1 /path/to/kagetra/scripts/with_rbenv.sh ./periodic_mysqldump.sh
+# 0 3 * * 1 /path/to/kagetra/scripts/with_rbenv.sh ./periodic_dbdump.sh
 # 0 4 * * 1 /path/to/kagetra/scripts/with_rbenv.sh ./send_backup_as_emal.sh
 
 MAIL_ADDR="${CONF_BKUP_MAIL_TO}" # mail address to send backup files

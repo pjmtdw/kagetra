@@ -1,7 +1,6 @@
 require "./conf"
 require "selenium-webdriver"
 require "rspec"
-require "mysql2"
 include RSpec::Expectations
 
 DB_NAME="test_kagetra"
@@ -13,12 +12,6 @@ USER3_PASSWORD="karuta03"
 describe "Test" do
 
   before(:each) do
-    @mysql = Mysql2::Client.new(
-      host:CONF_DB_HOST,
-      username:CONF_DB_USERNAME,
-      password:CONF_DB_PASSWORD,
-      database:DB_NAME
-    )
     @driver = Selenium::WebDriver.for :firefox
     @wait = Selenium::WebDriver::Wait.new(timeout:10)
     @base_url = "http://localhost:9292"
@@ -29,7 +22,6 @@ describe "Test" do
   end
   
   after(:each) do
-    @mysql.close
     @driver.quit
     expect(@verification_errors).to be_empty
   end

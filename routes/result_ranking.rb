@@ -45,7 +45,7 @@ class MainApp < Sinatra::Base
         cond[:class_rank] = ContestClass.serialization_map[:class_rank].call(@json["filter"].to_sym)
       end
       data = {}
-      qbase = ContestUser.where(cond).distinct(:name)
+      qbase = ContestUser.where(cond).distinct(:name).group(:name)
       ["key1","key2"].each{|key|
         ll = case @json[key]
         when "win"

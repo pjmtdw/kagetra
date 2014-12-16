@@ -7,12 +7,12 @@
     %title #{G_APP_NAME} - #{yield_content(:title)}
     %link(rel="shortcut icon" href="/img/favicon.ico")
     %link(rel="apple-touch-icon" href="/img/apple-touch-icon.png")
-    %link(rel="stylesheet" href="/css/app.css")
-    %link(rel="stylesheet" href="/css/colorbox.css")
-    %link(rel="stylesheet" href="/js/libs/select2/select2.css")
+    %link(rel="stylesheet" href="/css/v#{G_RESOURCE_VERSION}/app.css")
+    %link(rel="stylesheet" href="/css/v#{G_RESOURCE_VERSION}/colorbox.css")
+    %link(rel="stylesheet" href="/js/v#{G_RESOURCE_VERSION}/libs/select2/select2.css")
     - this_css = yield_content(:css)
     - this_css.strip.split(/\s*,\s*/).each do |x|
-      - path = if x.start_with?("/") then "#{x}.css" else "/css/#{x}.css" end
+      - path = if x.start_with?("/") then "#{x.sub(%r(^/(css|js)/)){|x|x+"/v#{G_RESOURCE_VERSION}/"}}.css" else "/css/v#{G_RESOURCE_VERSION}/#{x}.css" end
       %link(rel="stylesheet" href="#{path}")
     %style(type="text/css")
       - curmonth = "%02d"%Date.today.month
@@ -46,4 +46,8 @@
         var g_user_name='#{get_permanent("bbs_name")}'
     %script
       var g_public_mode=#{!!@public_mode}
-    %script(src="/js/libs/requirejs/require.js" data-main="/js/main" data-start="#{yield_content(:js_start)}")
+    %script(src="/js/v#{G_RESOURCE_VERSION}/libs/requirejs/require.js" data-main="/js/main" data-start="#{yield_content(:js_start)}")
+    %script
+      requirejs.config({
+      baseUrl: 'js/v#{G_RESOURCE_VERSION}'
+      })

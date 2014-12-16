@@ -39,12 +39,11 @@ class MainApp < Sinatra::Base
 
   configure :development do
     register Sinatra::Reloader
-
-    get %r{/js/libs/(.+)} do |m|
+    get %r{/js/v\d+/libs/(.+)} do |m|
       send_file("views/js/libs/#{m}")
     end
 
-    get %r{/js/(.+)\.js$} do |m|
+    get %r{/js/v\d+/(.+)\.js$} do |m|
       content_type "application/javascript"
       js = if m.start_with?("foundation") then
         # used for debugging from gem
@@ -56,6 +55,9 @@ class MainApp < Sinatra::Base
       send_file(js)
     end
 
+    get %r{/css/v\d+/(.+)\.css$} do |m|
+      redirect "/css/#{m}.css"
+    end
   end
   COMMENTS_PER_PAGE = 16
   def self.comment_routes(namespace,klass,klass_comment,private=false)

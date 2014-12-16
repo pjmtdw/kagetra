@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 # License of this software is described in LICENSE file.
+
+# Change this number whenever you changed the .coffee/.js file
+G_RESOURCE_VERSION = 1
+
 require_relative '../conf'
 require 'bundler'
 require 'sequel'

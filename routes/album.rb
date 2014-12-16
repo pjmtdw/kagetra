@@ -198,7 +198,7 @@ class MainApp < Sinatra::Base
       }
     end
     get '/years' do
-      aggr = AlbumGroup.select_group(:year).select_append{sum(item_count).as(sum_item_count)}.order(Sequel.desc(:year)).distinct
+      aggr = AlbumGroup.select_group(:year).select_append{sum(item_count).as(sum_item_count)}.order(Sequel.desc(:year, nulls: :last)).distinct
       comment_updated = AlbumItem.max(:comment_updated_at)
       if comment_updated then
         comment_updated = comment_updated.strftime("%m月%d日 %H:%M")

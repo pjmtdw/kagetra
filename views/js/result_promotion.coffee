@@ -12,7 +12,7 @@ define (require,exports,module) ->
     routes:
       "recent" : "recent"
       "ranking(/:params)" : "ranking"
-      "" : -> @navigate("recent", trigger:true)
+      "" : -> @navigate("recent", {trigger:true, replace:true})
     switch_nav: (mode)->
       $("#promotion-nav [data-mode]").removeClass("active")
       $("#promotion-nav [data-mode='#{mode}']").addClass("active")

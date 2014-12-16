@@ -21,7 +21,7 @@ define (require, exports, module) ->
       r
 
     show_item_detail: (data,show_date=false)->
-      dt = if show_date then "<span class='date'>#{data.date}</span>"
+      dt = if show_date then "<span class='date'>#{data.date or '-'}</span>"
       hm = if data.start_at or data.end_at
         c1 = if data.emph_start_at then "emphasis" else ""
         c2 = if data.emph_end_at then "emphasis" else ""

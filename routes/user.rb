@@ -19,9 +19,11 @@ class MainApp < Sinatra::Base
       end
       get '/list/:initial' do
         row = params[:initial].to_i
-        {list: User.where(furigana_row: row, loginable: true).order(Sequel.asc(:furigana)).map{|x|
-          [x.id,x.name]
-        }}
+        query = User.where(furigana_row: row).order(Sequel.asc(:furigana))
+        if params[:all] != "true" then
+          query = query.where(loginable: true)
+        end
+        {list: query.map{|x|[x.id,x.name]}}
       end
       # この認証方法はDBのpassword_hashが分かればパスワードを知らなくても誰でもログインできてしまう．
       # しかしそもそも攻撃者がDBを見られる時点であんまし認証とか意味ないので許容する

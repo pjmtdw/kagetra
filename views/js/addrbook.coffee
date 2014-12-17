@@ -19,7 +19,7 @@ define (require,exports,module)->
       if @get('id') == "recent"
         "api/addrbook/recent"
       else
-        "api/user/auth/list/#{@get('id')}"
+        "api/user/auth/list/#{@get('id')}?all=true"
   AddrBookPanelView = Backbone.View.extend
     el: "#addrbook-panel"
     template: _.template_braces($("#templ-addrbook-panel").html())

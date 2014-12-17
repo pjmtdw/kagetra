@@ -51,12 +51,12 @@ class MainApp < Sinatra::Base
       else
         "views/js/#{m}.js"
       end
-      pass if not File.exist?(js) # pass to Rack::Coffee
+      redirect "/js/#{m}.js" if not File.exist?(js) # pass to Rack::Coffee
       send_file(js)
     end
 
     get %r{/css/v\d+/(.+)\.css$} do |m|
-      redirect "/css/#{m}.css"
+      redirect "/css/#{m}.css" # pass to Sass::Plugin::Rack
     end
   end
   COMMENTS_PER_PAGE = 16

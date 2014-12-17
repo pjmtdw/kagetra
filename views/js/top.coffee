@@ -90,27 +90,33 @@ define (require,exports,module) ->
     show_group: ->
       $ed.show_event_group(@model.get('event_group_id'))
     show_detail: ->
-      $ed.reveal_detail("#container-event-detail",@model)
+      ecv = if _.isNull(@model.get('choice'))
+              [cm,cv] = @gen_event_choice_model_view()
+              cv
+            else undefined
+      $ed.reveal_detail("#container-event-detail",@model,ecv)
     show_comment: ->
       $co.reveal_comment("event","#container-event-comment",@model.get('id'),@$el.find(".event-comment-count"),$ed.additional_data(@model.get('id')))
+    gen_event_choice_model_view: ->
+      if not @options.choice_model
+        @options.choice_model = new EventChoiceModel(choices:@model.get('choices'),id:@model.get('choice'))
+      cm = @options.choice_model
+      cv = new EventChoiceView(model:cm,event_name:@model.get('name'))
+      cv.render()
+      [cm,cv]
     render: ->
+      # render は model が sync する度に呼ばれることに注意 (「情報」ボタンを押しても sync される !)
+      # TODO: 情報ボタンを押した時とかにいちいち sync しない
       json = @model.toJSON()
       json.deadline_str = show_deadline(json.deadline_day)
       @$el.html(@template(data:json))
       if json.deadline_day? and json.deadline_day < 0
         # 締切を過ぎているので何も表示しない
       else if not json.forbidden
-        cm =
-          if @options.choice_model
-            @options.choice_model
-          else
-            new EventChoiceModel(choices:json.choices,id:json.choice)
-        cv = new EventChoiceView(model:cm,event_name:json.name,parent:this)
-        cv.render()
+        [cm,cv] = @gen_event_choice_model_view()
         @$el.find(".event-choice").append(cv.$el)
       else
         @$el.find(".event-choice").append($("<span>",class:"forbidden",text:"貴方は登録不可です"))
-
       @choice_model = cm
 
   EventItemView = EventItemBaseView.extend
@@ -190,11 +196,14 @@ define (require,exports,module) ->
       @model.set('id',id)
       that = this
       @model.save().done((data)->
-        c = $("#sticky-alert-container")
-        if c.find("#sticky-alert").length == 0
-          c.append(that.template_alert())
-        c.find(".content").append($("<div/>",{html:"登録完了: #{that.options.event_name} &rArr; #{ct.text()}"}))
-        that.options.parent.$el.find(".participant-count").text(data.count)
+        if data._error_?
+          _.cb_alert("エラー: " + data._error_)
+        else
+          c = $("#sticky-alert-container")
+          if c.find("#sticky-alert").length == 0
+            c.append(that.template_alert())
+          c.find(".content").append($("<div/>",{html:"登録完了: #{data.event_name} &rArr; #{ct.text()}"}))
+          $(".event-item[data-id='#{data.event_id}']").find(".participant-count").text(data.count)
       )
     render: ->
       choices = @model.get("choices")

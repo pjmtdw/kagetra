@@ -366,7 +366,7 @@ define (require, exports, module) ->
     with_error: (success_msg, other_job) ->
       (data) ->
         if data._error_?
-          _.cb_alert(data._error_)
+          _.cb_alert("エラー: " + data._error_)
         else
           _.cb_alert(success_msg).always(other_job || ()->{} )
     save_model: (model,obj,force,disallow_double)->

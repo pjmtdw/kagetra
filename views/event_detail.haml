@@ -3,6 +3,9 @@
 %script#templ-event-detail(type='text/template')
   .row
     .large-12.columns
+      %fieldset.event-choice-panel.panel.left.event-item.hide
+        %legend 選択肢
+        .event-choice
       .right
         <% if(data.editable){ %>
         %button#contest-info-edit.small 編集

@@ -105,6 +105,7 @@ $forbidden-color: gray !important;
   position:fixed;
   bottom:0;
   right:0;
+  z-index: 111; /* have to be larger than Foundation 4's reveal */
   div{
     margin-top: 7px;
     margin-right: 5px;

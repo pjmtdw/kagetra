@@ -213,6 +213,7 @@ class MainApp < Sinatra::Base
         {
           count: c.event(true).participant_count, # デフォルトではキャッシュされてるので .event(true) とすることでキャッシュ無効化
           event_name:c.event.name,
+          event_id:c.event.id,
           choice:c.name
         }
       }

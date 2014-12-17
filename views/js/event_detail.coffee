@@ -45,7 +45,6 @@ define (require,exports,module)->
       "click .show-comment":"show_comment"
     show_comment: ->
       that = this
-      
       $co.reveal_comment("event","#container-event-comment",@model.get('id'),null,additional_data(@model.get('id')))
     info_edit: ->
       show_event_edit(@model)
@@ -57,6 +56,10 @@ define (require,exports,module)->
       @$el.html(@template(data:data))
       @$el.find(".participants").html(@template_p(data:data)) unless @options.no_participant
       @$el.appendTo(@options.target)
+      if _.isObject(@options.choice_view) and @options.choice_view.$el
+        $(@options.target).find(".event-choice-panel").removeClass("hide")
+        $(@options.target).find(".event-choice").append(@options.choice_view.$el)
+
 
   EventEditView = Backbone.View.extend
     template: _.template($("#templ-event-edit").html())
@@ -306,12 +309,12 @@ define (require,exports,module)->
       v = new EventEditView(_.extend(opts,{target:t,model:model}))
       _.reveal_view(t,v,true)
       window.event_edit_view = v
-  reveal_detail = (target, model_or_id) ->
+  reveal_detail = (target, model_or_id, choice_view) ->
     model =  if typeof model_or_id == "number"
                 new EventItemModel(id:model_or_id)
               else
                 model_or_id
-    v = new EventDetailView(target:target,model:model,show_comment_button:true)
+    v = new EventDetailView(target:target,model:model,show_comment_button:true,choice_view:choice_view)
     _.reveal_view(target,v)
     model.fetch(data:{detail:true})
   {

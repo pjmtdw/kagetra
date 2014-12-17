@@ -14,8 +14,10 @@ class MainApp < Sinatra::Base
     # TODO: 直接APIを叩かれるとユーザ一覧が取得できてしまう．共通パスワードを入れたユーザのみがユーザ一覧を見られるようにする
     namespace '/auth' do
       post '/shared' do
-        hash = MyConf.first(name: "shared_password").value["hash"]
-        Kagetra::Utils.check_password(params,hash)
+        shared = MyConf.first(name: "shared_password")
+        res = Kagetra::Utils.check_password(params,shared.value["hash"])
+        res["updated_at"] = shared.updated_at
+        res
       end
       get '/list/:initial' do
         row = params[:initial].to_i

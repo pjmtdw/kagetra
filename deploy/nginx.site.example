@@ -15,6 +15,23 @@ server {
   proxy_buffers 8 64k;
   proxy_buffer_size 64k;
 
+  location /public/css/ {
+    rewrite ^/public/(.*) /$1;
+  }
+  location /public/js/ {
+    rewrite ^/public/(.*) /$1;
+  }
+
+  location /js/ {
+    rewrite ^/js/v\d+(/.*) /js/$1;
+    expires 30d;
+  }
+
+  location /css/ {
+    rewrite ^/css/v\d+(/.*) /css/$1;
+    expires 30d;
+  }
+
   location / {
     try_files $uri @app;
   }
@@ -24,7 +41,7 @@ server {
     proxy_set_header Host $http_host;
     proxy_redirect off;
     proxy_pass http://unicorn_server;
-    proxy_send_timeout 120;
+    proxy_send_timeout 180;
     proxy_read_timeout 480;
   }
 }

@@ -50,7 +50,7 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
             if dt < 1
               message += "パスワードは今日変更されました"
             else if dt < 90
-              message += "パスワードは#{dt}日前に変更されました"
+              message += "パスワードは#{Math.floor(dt)}日前に変更されました"
           catch e
             console.log(e)
           _.cb_alert(message).always(->

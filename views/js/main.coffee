@@ -81,7 +81,7 @@ require ["jquery","backbone","myutil","select2","colorbox","jquery_placeholder",
           d = $.Deferred()
           v = $("<div>")
           d["haml"] = b
-          v.load("haml/#{b}",->
+          v.load("haml/v#{g_resource_version}/#{b}",->
             $("#body-end").before(v)
             d.resolve()
           )

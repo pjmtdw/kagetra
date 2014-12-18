@@ -38,6 +38,7 @@ class MainApp < Sinatra::Base
 
 
   configure :development do
+    # in production environment, we use nginx's rewrite module for following url conversion
     register Sinatra::Reloader
     get %r{/js/v\d+/libs/(.+)} do |m|
       send_file("views/js/libs/#{m}")
@@ -58,6 +59,7 @@ class MainApp < Sinatra::Base
     get %r{/css/v\d+/(.+)\.css$} do |m|
       redirect "/css/#{m}.css" # pass to Sass::Plugin::Rack
     end
+
   end
   COMMENTS_PER_PAGE = 16
   def self.comment_routes(namespace,klass,klass_comment,private=false)

@@ -28,7 +28,7 @@
         = ".top-bar-section {background: #{public_top_bar_color} !important;}";
         = ".top-bar-section ul {background: #{public_top_bar_color} !important;}";
   -# 注意: content_for :haml で読み込むhamlファイルはブラウザにキャッシュされるので
-  -#      @userなどの動的な情報は含まれないようにすること(routesの 'get /haml/:prefix' 参照)
+  -#      @userなどの動的な情報は含まれないようにすること(routesの 'get /haml/:prefix' と views/js/main.coffee の .load() を呼んでる箇所参照)
   %body(data-haml="#{yield_content(:haml)}")
     = yield
     #body-end.row
@@ -48,6 +48,7 @@
       var g_public_mode=#{!!@public_mode}
     %script(src="/js/v#{G_RESOURCE_VERSION}/libs/requirejs/require.js" data-main="/js/main" data-start="#{yield_content(:js_start)}")
     %script
+      var g_resource_version = '#{G_RESOURCE_VERSION}';
       requirejs.config({
-      baseUrl: 'js/v#{G_RESOURCE_VERSION}'
+      baseUrl: '/js/v#{G_RESOURCE_VERSION}'
       })

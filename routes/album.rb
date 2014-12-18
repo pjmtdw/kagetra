@@ -542,7 +542,6 @@ class MainApp < Sinatra::Base
     "<div id='response'>#{res.to_json}</div>"
   end
   def send_photo(p,rotate)
-    expires (17*86400), :public
     content_type "image/#{p.format.downcase}"
     path = File.join(CONF_STORAGE_DIR,"album",p.path)
     ext = case p.format.downcase
@@ -571,6 +570,8 @@ class MainApp < Sinatra::Base
   namespace '/static/album' do
     # キャッシュしても大丈夫なように回転の度数ごとに別URLにする
     get '/thumb/:id.?:rotate?' do
+      # サムネイルだけちょっとの間キャッシュする
+      expires 7200, :public
       p = AlbumThumbnail[params[:id].to_i]
       # サムネイルは作成時にrotate済みなのでそのまま送る
       send_photo(p,0)

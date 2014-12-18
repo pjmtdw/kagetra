@@ -13,7 +13,7 @@ rescue Sequel::DatabaseError => e
   puts "no table found. executing migration."
   # exec migrate
   Sequel.extension :migration, :core_extensions
-  Sequel::Migrator.apply(DB, "migrate", 9)
+  Sequel::Migrator.apply(DB, "migrate", 10)
   puts "migration done. re-execute this script!"
   exit
 end

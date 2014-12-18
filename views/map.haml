@@ -3,10 +3,35 @@
 - content_for :js_start do
   map
 - content_for :css do
-  \/js/libs/leaflet/dist/leaflet
+  map , /js/libs/leaflet/dist/leaflet
 = haml :top_bar
 
 #map(style="height:720px; max-height: 90vh")
+.row
+  .large-12.columns
+    #map-menu.hide
+      %dl.sub-nav
+        %dt モード:
+        %dd#mode-readonly.choice.active
+          %a 閲覧
+        %dd#mode-marker.choice
+          %a マーカー挿入
+      現在のブックマーク: 
+      %span.bookmark-title
+      %button.small.round#bookmark-save 変更を保存
+
+    %fieldset#map-bookmarks.panel
+      %legend ブックマーク一覧
+      %button.small.round#bookmark-new 新規作成
+      #map-bookmarks-body
+    %fieldset#map-markers.panel
+      %legend マーカー一覧
+      #map-markers-body
 
 %script
   var g_map_tile_url='#{CONF_MAP_TILE_URL}'
+
+%script#templ-map-marker-item(type='text/template')
+  %span.marker-item(data-id='{{ data.id }}')
+    %span.marker-title {- data.title -}
+    %span.marker-delete &times;

@@ -18,13 +18,20 @@
           %a 閲覧
         %dd#mode-marker.choice
           %a マーカー挿入
-      現在のブックマーク: 
+      編集中のブックマーク: 
       %span.bookmark-title
       %button.small.round#bookmark-save 変更を保存
 
     %fieldset#map-bookmarks.panel
       %legend ブックマーク一覧
-      %button.small.round#bookmark-new 新規作成
+      %div
+        %button.small.round#bookmark-new 新規作成
+        %a(href="#" data-dropdown="maps-usage") 使い方
+        %ul#maps-usage.f-dropdown(data-dropdown-content)
+          %div ・「新規作成」で新しいブックマーク編集開始
+          %div ・「マーカー挿入」モード時は地図をクリックするとその位置に挿入
+          %div ・マーカー削除は上の方のマーカー一覧の右の&times;をクリック
+          %div ・「変更を保存」で現在の表示位置やマーカーなどを保存
       #map-bookmarks-body
 
 %script

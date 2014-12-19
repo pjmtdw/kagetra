@@ -90,7 +90,8 @@ define (require,exports,module) ->
     show_group: ->
       $ed.show_event_group(@model.get('event_group_id'))
     show_detail: ->
-      ecv = if _.isNull(@model.get('choice'))
+      json = @model.toJSON()
+      ecv = if not json.forbidden and (not json.deadline_day? or json.deadline_day >= 0) and not json.choice?
               [cm,cv] = @gen_event_choice_model_view()
               cv
             else undefined

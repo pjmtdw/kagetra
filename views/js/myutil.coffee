@@ -68,6 +68,11 @@ define (require, exports, module) ->
     defer.promise()
 
   _.mixin
+    is_ios: ->
+      try
+        /(iOS|iPhone|iPod)/.test(navigator.userAgent)
+      catch
+        false
     cb_alert: (msg) ->
       cb_common(msg, "<div class='buttons'><button class='small round ok-button'>閉じる</button></div>", ".ok-button", null)
 

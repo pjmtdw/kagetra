@@ -3,17 +3,27 @@ define (require,exports,module)->
   mymap = null
   map_markers = {}
   map_bookmark_model = null
+
+  get_geo_uri = (lat,lng,popup) ->
+    text = encodeURIComponent(popup.split("<br>").join(" / "))
+    zoom = mymap.getZoom()
+    if _.is_ios()
+      "maps://maps.apple.com?z=#{zoom}&ll=#{lat},#{lng}"
+    else
+      "geo:#{lat},#{lng}?z=#{zoom}&q=#{lat},#{lng}(#{text})"
+
   show_marker = (latlng,popup) ->
     marker = new $l.Marker(latlng, draggable:true)
     mymap.addLayer(marker)
-    marker.bindPopup(popup).openPopup()
-    map_markers[marker._leaflet_id] = marker
+    geo_uri = get_geo_uri(latlng.lat,latlng.lng,popup)
+    marker.bindPopup("<a href='#{geo_uri}' target='_blank' >アプリで開く</a><br>"+popup).openPopup()
+    map_markers[marker._leaflet_id] = {marker:marker,popup:popup}
     window.map_markers_view.update(marker._leaflet_id)
 
-  marker_to_json = (marker) ->
+  marker_to_json = (obj) ->
     {
-      latlng: marker._latlng
-      popup: marker._popup._content
+      latlng: obj.marker._latlng
+      popup: obj.popup
     }
   MapBookmarksModel = Backbone.Model.extend
     url: "api/map/bookmark/list"
@@ -40,19 +50,19 @@ define (require,exports,module)->
       "click .marker-delete" : "marker_delete"
       "click .marker-title" : "marker_popup"
     update: (id)->
-      t = map_markers[id]._popup._content.split("<br>")[0]
+      t = map_markers[id].popup.split("<br>")[0]
       $("#map-markers-body").append(
         @template(data:{id:id,title:t})
       )
     marker_popup: (ev)->
       id = $(ev.target).closest("[data-id]").data("id")
-      mymap.setView(map_markers[id]._latlng)
-      map_markers[id].openPopup()
+      mymap.setView(map_markers[id].marker._latlng)
+      map_markers[id].marker.openPopup()
 
     marker_delete: (ev)->
       tgt = $(ev.target).closest("[data-id]")
       id = tgt.data("id")
-      mymap.removeLayer(map_markers[id])
+      mymap.removeLayer(map_markers[id].marker)
       delete map_markers[id]
       tgt.remove()
 
@@ -65,7 +75,7 @@ define (require,exports,module)->
       @$el.find(".choice").removeClass("active")
       tgt = $(ev.target).closest(".choice")
       tgt.addClass("active")
-      if tgt.attr("id") == "mode-marker" 
+      if tgt.attr("id") == "mode-marker"
         mymap.on('click', (ev) ->
           _.cb_prompt("マーカーの説明(&lt;br&gt;で改行)").done((r)->
             show_marker(ev.latlng,r)
@@ -103,7 +113,7 @@ define (require,exports,module)->
       $(".bookmark-title").html(map_bookmark_model.get('title'))
     show_bookmark: (id) ->
       for k,v of map_markers
-        mymap.removeLayer(v)
+        mymap.removeLayer(v.marker)
       map_markers = {}
       $("#map-markers-body").empty()
       if id == "new"
@@ -123,6 +133,7 @@ define (require,exports,module)->
           that.update_title()
         )
   init: ->
+    $l.Icon.Default.imagePath = _.initial($("[href$='/leaflet.css']").attr("href").split("/")).join("/") + "/images"
     mymap = $l.map('map')
     $l.tileLayer(g_map_tile_url + '/{z}/{x}/{y}.png', {}).addTo(mymap)
     window.map_router = new MapRouter()

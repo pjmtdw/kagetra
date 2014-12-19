@@ -570,8 +570,8 @@ class MainApp < Sinatra::Base
   namespace '/static/album' do
     # キャッシュしても大丈夫なように回転の度数ごとに別URLにする
     get '/thumb/:id.?:rotate?' do
-      # サムネイルだけちょっとの間キャッシュする
-      expires 7200, :public
+      # サムネイルだけ24時間キャッシュする（概ね今日の一枚用）
+      expires 86400, :public
       p = AlbumThumbnail[params[:id].to_i]
       # サムネイルは作成時にrotate済みなのでそのまま送る
       send_photo(p,0)

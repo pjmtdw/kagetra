@@ -11,19 +11,23 @@ define (require,exports,module)->
       marker_current_location = null
 
 
-  get_geo_uri = (lat,lng,popup) ->
-    text = encodeURIComponent(popup.split("<br>").join(" / "))
+  get_geo_links = (lat,lng,popup) ->
+    label = encodeURIComponent(popup.split("<br>")[0])
     zoom = mymap.getZoom()
     if _.is_ios()
-      "maps://maps.apple.com?z=#{zoom}&ll=#{lat},#{lng}"
+      apple = "maps://maps.apple.com?z=#{zoom}&ll=#{lat},#{lng}&q=#{lat},#{lng}"
+      google = "comgooglemaps://?zoom=#{zoom}&center=#{lat},#{lng}&q=#{lat},#{lng}(#{label})"
+      "[<a href='#{apple}'>アプリA</a>] [<a href='#{google}'>アプリG</a>]"
     else
-      "geo:#{lat},#{lng}?z=#{zoom}&q=#{lat},#{lng}(#{text})"
+      geo = "geo:#{lat},#{lng}?z=#{zoom}&q=#{lat},#{lng}(#{label})"
+      "<a href='#{geo}' target='_blank' >アプリで開く</a>"
+
 
   show_marker = (add_to_menu,latlng,popup) ->
     marker = new $l.Marker(latlng, draggable:true)
     mymap.addLayer(marker)
-    geo_uri = get_geo_uri(latlng.lat,latlng.lng,popup)
-    marker.bindPopup("<a href='#{geo_uri}' target='_blank' >アプリで開く</a><br>"+popup).openPopup()
+    geo_links = get_geo_links(latlng.lat,latlng.lng,popup)
+    marker.bindPopup(geo_links+"<br>"+popup).openPopup()
     if add_to_menu
       map_markers[marker._leaflet_id] = {marker:marker,popup:popup}
       window.map_markers_view.update(marker._leaflet_id)

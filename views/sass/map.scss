@@ -1,14 +1,22 @@
-.marker-item{
-  border: 1px dotted black;
-  margin: .3em;
-  padding: .3em;
-  .marker-title{
-    color: teal;
-    margin-right: .3em;
+#map-markers{
+  .marker-item{
+    display: inline-block;
+    border: 1px dotted black;
+    margin: .3em;
+    padding: .3em;
+    background-color: #ffc;
+    .marker-title{
+      color: teal;
+      margin-right: .3em;
+    }
   }
+  margin-bottom: .3em;
 }
-.map-bookmark-item{
-  border: 1px dotted black;
-  margin: .3em;
-  padding: .3em;
+#map-bookmarks-body{
+  .map-bookmark-item{
+    border: 1px dotted black;
+    margin: .3em;
+    padding: .3em;
+    display: inline-block;
+  }
 }

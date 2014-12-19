@@ -2,7 +2,14 @@ define (require,exports,module)->
   $l = require('leaflet')
   mymap = null
   map_markers = {}
+  marker_current_location = null
   map_bookmark_model = null
+
+  remove_current_location_marker = ->
+    if not _.isNull(marker_current_location)
+      mymap.removeLayer(marker_current_location)
+      marker_current_location = null
+
 
   get_geo_uri = (lat,lng,popup) ->
     text = encodeURIComponent(popup.split("<br>").join(" / "))
@@ -12,13 +19,15 @@ define (require,exports,module)->
     else
       "geo:#{lat},#{lng}?z=#{zoom}&q=#{lat},#{lng}(#{text})"
 
-  show_marker = (latlng,popup) ->
+  show_marker = (add_to_menu,latlng,popup) ->
     marker = new $l.Marker(latlng, draggable:true)
     mymap.addLayer(marker)
     geo_uri = get_geo_uri(latlng.lat,latlng.lng,popup)
     marker.bindPopup("<a href='#{geo_uri}' target='_blank' >アプリで開く</a><br>"+popup).openPopup()
-    map_markers[marker._leaflet_id] = {marker:marker,popup:popup}
-    window.map_markers_view.update(marker._leaflet_id)
+    if add_to_menu
+      map_markers[marker._leaflet_id] = {marker:marker,popup:popup}
+      window.map_markers_view.update(marker._leaflet_id)
+    marker
 
   marker_to_json = (obj) ->
     {
@@ -49,19 +58,39 @@ define (require,exports,module)->
     events:
       "click .marker-delete" : "marker_delete"
       "click .marker-title" : "marker_popup"
+    render: ->
+      remove_current_location_marker()
+      $("#map-markers-body").empty()
+      $("#map-markers-body").append(
+        @template(data:{id:"CURRENT_LOCATION",title:"現在地"})
+      )
     update: (id)->
       t = map_markers[id].popup.split("<br>")[0]
       $("#map-markers-body").append(
         @template(data:{id:id,title:t})
       )
     marker_popup: (ev)->
+      remove_current_location_marker()
       id = $(ev.target).closest("[data-id]").data("id")
-      mymap.setView(map_markers[id].marker._latlng)
-      map_markers[id].marker.openPopup()
+      if id == "CURRENT_LOCATION"
+        if navigator?.geolocation?.getCurrentPosition?
+          navigator.geolocation.getCurrentPosition((position)->
+            c = position.coords
+            geo = {lat:c.latitude, lng:c.longitude}
+            marker_current_location = show_marker(false, geo, "現在地")
+            mymap.setView(geo)
+          )
+        else
+          _.cb_alert("お使いのブラウザでは位置情報を取得できません")
+      else
+        mymap.setView(map_markers[id].marker._latlng)
+        map_markers[id].marker.openPopup()
 
     marker_delete: (ev)->
       tgt = $(ev.target).closest("[data-id]")
       id = tgt.data("id")
+      if id == "CURRENT_LOCATION"
+        return
       mymap.removeLayer(map_markers[id].marker)
       delete map_markers[id]
       tgt.remove()
@@ -76,13 +105,15 @@ define (require,exports,module)->
       tgt = $(ev.target).closest(".choice")
       tgt.addClass("active")
       if tgt.attr("id") == "mode-marker"
+        $("#map-markers .marker-delete").removeClass("hide")
         mymap.on('click', (ev) ->
           _.cb_prompt("マーカーの説明(&lt;br&gt;で改行)").done((r)->
-            show_marker(ev.latlng,r)
+            show_marker(true,ev.latlng,r)
           )
         )
       else
         mymap.off('click')
+        $("#map-markers .marker-delete").addClass("hide")
     bookmark_save: ->
       model = map_bookmark_model
       isNew = model.isNew()
@@ -115,7 +146,7 @@ define (require,exports,module)->
       for k,v of map_markers
         mymap.removeLayer(v.marker)
       map_markers = {}
-      $("#map-markers-body").empty()
+      window.map_markers_view.render()
       if id == "new"
         _.cb_prompt("ブックマークの名前").done((title)->
           map_bookmark_model = new MapBookmarkModel(title:title)
@@ -129,7 +160,7 @@ define (require,exports,module)->
         mdl.fetch().done( ->
           mymap.setView(mdl.pick('lat','lng'), mdl.get('zoom'))
           for m in mdl.get('markers')
-            show_marker(m.latlng,m.popup)
+            show_marker(true,m.latlng,m.popup)
           that.update_title()
         )
   init: ->

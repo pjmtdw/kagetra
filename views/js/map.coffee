@@ -40,24 +40,6 @@ define (require,exports,module)->
       latlng: obj.marker._latlng
       popup: obj.popup
     }
-  MapBookmarksModel = Backbone.Model.extend
-    url: "api/map/bookmark/list"
-  MapBookmarksView = Backbone.View.extend
-    el: "#map-bookmarks"
-    events:
-      "click #bookmark-new" : "bookmark_new"
-    initialize: ->
-      @model = new MapBookmarksModel()
-      @listenTo(@model,"sync",@render)
-      @model.fetch()
-    bookmark_new: ->
-      window.map_router.navigate("bookmark/new",{trigger:true})
-    render: ->
-      $("#map-bookmarks-body").empty()
-      for b in @model.get("list")
-        $("#map-bookmarks-body").append(
-          $("<a>",{class:"map-bookmark-item",href:"map#bookmark/#{b.id}",text:"#{b.title}"})
-        )
   MapMarkersView = Backbone.View.extend
     template: _.template_braces($("#templ-map-marker-item").html())
     el: "#map-markers"
@@ -98,8 +80,14 @@ define (require,exports,module)->
             mymap.setView(geo)
             that.switch_pending_current_location_state(false)
           onerror = (err)->
-            _.cb_alert("エラー#{err.code}: #{err.message}")
-          navigator.geolocation.getCurrentPosition(onsuccess,onerror)
+            _.cb_alert("エラー(#{err.code}): #{err.message}")
+            that.switch_pending_current_location_state(false)
+          navigator.geolocation.getCurrentPosition(onsuccess,onerror,{
+            enableHighAccuracy: true
+            timeout: 15000
+            maximumAge: 0
+            
+          })
         else
           _.cb_alert("お使いのブラウザでは位置情報を取得できません")
           that.switch_pending_current_location_state(false)
@@ -116,25 +104,62 @@ define (require,exports,module)->
       delete map_markers[id]
       tgt.remove()
 
+  MapBookmarksModel = Backbone.Model.extend
+    url: "api/map/bookmark/list"
+
   MapMenuView = Backbone.View.extend
-    el: "#map-menu"
+    el:"#bookmark-menu"
     events:
+      "change #bookmark-list" : "change_bookmark"
+      "click #bookmark-new" : "bookmark_new"
+      "click #bookmark-edit" : "bookmark_edit"
       "click #bookmark-save" : "bookmark_save"
-      "click .choice" : "switch_mode"
-    switch_mode: (ev)->
-      @$el.find(".choice").removeClass("active")
-      tgt = $(ev.target).closest(".choice")
-      tgt.addClass("active")
-      if tgt.attr("id") == "mode-marker"
-        $("#map-markers .marker-delete").removeClass("hide")
-        mymap.on('click', (ev) ->
-          _.cb_prompt("マーカーの説明(&lt;br&gt;で改行)").done((r)->
-            show_marker(true,ev.latlng,r)
-          )
-        )
+    change_bookmark: (ev)->
+      bid = $("#bookmark-list").find(":selected").data("bookmark-id")
+      if bid == "empty"
+        window.map_router.navigate("",{trigger:true})
+      else if bid == "search"
+        # TODO
+      else if bid?
+        window.map_router.navigate("bookmark/#{bid}",{trigger:true})
+
+    initialize: ->
+      @model = new MapBookmarksModel()
+      @listenTo(@model,"sync",@render)
+    fetch_and_render: (opts)->
+      if opts.no_select
+        delete @options['id']
+        delete @options['fetch_title']
       else
-        mymap.off('click')
-        $("#map-markers .marker-delete").addClass("hide")
+        @options = _.extend(@options,opts)
+      @model.fetch()
+    render: ->
+      $("#bookmark-list").empty()
+      $("#bookmark-list").append($("<option>",text:"-- ブックマーク --").data("bookmark-id","empty"))
+      found = false
+      for b in @model.get("list")
+        e = $("<option>",text:"#{b.title}").data("bookmark-id",b.id)
+        if String(b.id) == String(@options.id)
+          found = true
+          e.prop("selected","selected")
+        $("#bookmark-list").append(e)
+      if (@options.id == "new" or not found) and @options.fetch_title?
+        elem = $("<option>",text:@options.fetch_title).prop("selected","selected").data("bookmark-id",@options.id)
+        $("#bookmark-list").append(elem)
+      $("#bookmark-list").append($("<option>",text:"(検索)").data("bookmark-id","search"))
+      if @options.id == "new"
+        $("#bookmark-edit").click()
+
+    bookmark_new: ->
+      window.map_router.navigate("bookmark/new",{trigger:true})
+    bookmark_edit: (ev)->
+      $("#bookmark-edit").addClass("hide")
+      $("#bookmark-edit-buttons").removeClass("hide")
+      mymap.on('click', (ev) ->
+        _.cb_prompt("マーカーの説明(&lt;br&gt;で改行)").done((r)->
+          show_marker(true,ev.latlng,r)
+        )
+      )
     bookmark_save: ->
       model = map_bookmark_model
       isNew = model.isNew()
@@ -148,7 +173,6 @@ define (require,exports,module)->
           _.cb_alert("保存しました").always(->
             if isNew
               window.map_router.navigate("bookmark/#{data.id}",{trigger:true,replace:true})
-              window.map_bookmarks_view.model.fetch()
           )
       )
     
@@ -158,25 +182,36 @@ define (require,exports,module)->
     routes:
       "" : "start"
       "bookmark/:id" : "show_bookmark"
-    start: ->
-      mymap.setView([35.6825, 139.7521], 5)
-    update_title: ->
-      $("#map-menu").removeClass("hide")
-      $(".bookmark-title").html(map_bookmark_model.get('title'))
-    show_bookmark: (id) ->
+    clear: ->
+      mymap.off('click')
       for k,v of map_markers
         mymap.removeLayer(v.marker)
       map_markers = {}
+    start: ->
+      @clear()
+      mymap.setView([35.6825, 139.7521], 5)
+      $("#bookmark-new").removeClass("hide")
+      $("#bookmark-edit").addClass("hide")
+      $("#bookmark-edit-buttons").addClass("hide")
+      window.map_menu_view.fetch_and_render(no_select:true)
+    show_bookmark: (id) ->
+      @clear()
       window.map_markers_view.render()
       that = this
       if id == "new"
         _.cb_prompt("ブックマークの名前").done((title)->
           map_bookmark_model = new MapBookmarkModel(title:title)
-          that.update_title()
+          $("#bookmark-new").addClass("hide")
+          $("#bookmark-edit").addClass("hide")
+          $("#bookmark-edit-buttons").removeClass("hide")
+          window.map_menu_view.fetch_and_render(id:"new",fetch_title:title)
         ).fail(->
           window.history.back()
         )
       else
+        $("#bookmark-new").removeClass("hide")
+        $("#bookmark-edit").removeClass("hide")
+        $("#bookmark-edit-buttons").addClass("hide")
         map_bookmark_model = new MapBookmarkModel(id:id)
         mdl = map_bookmark_model
         that = this
@@ -184,14 +219,13 @@ define (require,exports,module)->
           mymap.setView(mdl.pick('lat','lng'), mdl.get('zoom'))
           for m in mdl.get('markers')
             show_marker(true,m.latlng,m.popup)
-          that.update_title()
+          window.map_menu_view.fetch_and_render(id:id,fetch_title:mdl.get('title'))
         )
   init: ->
     $l.Icon.Default.imagePath = _.initial($("[href$='/leaflet.css']").attr("href").split("/")).join("/") + "/images"
     mymap = $l.map('map')
     $l.tileLayer(g_map_tile_url + '/{z}/{x}/{y}.png', {}).addTo(mymap)
     window.map_router = new MapRouter()
-    window.map_menu_view = new MapMenuView()
-    window.map_bookmarks_view = new MapBookmarksView()
     window.map_markers_view = new MapMarkersView()
+    window.map_menu_view = new MapMenuView()
     Backbone.history.start()

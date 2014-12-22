@@ -3,7 +3,7 @@
 class MainApp < Sinatra::Base
   namespace '/api/map' do
     get '/bookmark/list' do
-      list = MapBookmark.all.map{|x|
+      list = MapBookmark.order(Sequel.desc(:updated_at)).limit(20).map{|x|
         x.select_attr(:id,:title)
       }
       {list:list}

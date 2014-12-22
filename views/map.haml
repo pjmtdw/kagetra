@@ -7,9 +7,28 @@
 = haml :top_bar
 
 .row
-  .large-12.columns
+  .large-6.small-12.columns
+    #bookmark-menu
+      .row
+        .large-8.small-8.columns
+          %select#bookmark-list
+        .large-4.small-4.columns(style="white-space: nowrap;")
+          %button#bookmark-new.small.round 作成
+          %button#bookmark-edit.small.round.hide 編集
+      #bookmark-edit-buttons.row.hide
+        .large-12.small-12.columns
+          %a(href="#" data-dropdown="maps-usage") 使い方
+          %ul#maps-usage.f-dropdown(data-dropdown-content)
+            %div ・地図をクリックするとその位置にマーカー挿入
+            %div ・マーカー削除は上の方のマーカー一覧の右の&times;をクリック
+            %div ・「変更を保存」で現在の表示位置やマーカーなどを保存
+          %button#bookmark-change-title.small.round タイトル編集
+          %button#bookmark-save.small.round 全変更反映
+          %button#bookmark-delete.small.round.alert 削除
+  .large-6.small-12.columns
     #map-markers
       #map-markers-body
+
 #map(style="height:720px; max-height: 90vh")
 .row
   .large-12.columns
@@ -23,18 +42,6 @@
       編集中のブックマーク: 
       %span.bookmark-title
       %button.small.round#bookmark-save 変更を保存
-
-    %fieldset#map-bookmarks.panel
-      %legend ブックマーク一覧
-      %div
-        %button.small.round#bookmark-new 新規作成
-        %a(href="#" data-dropdown="maps-usage") 使い方
-        %ul#maps-usage.f-dropdown(data-dropdown-content)
-          %div ・「新規作成」で新しいブックマーク編集開始
-          %div ・「マーカー挿入」モード時は地図をクリックするとその位置に挿入
-          %div ・マーカー削除は上の方のマーカー一覧の右の&times;をクリック
-          %div ・「変更を保存」で現在の表示位置やマーカーなどを保存
-      #map-bookmarks-body
 
 %script
   var g_map_tile_url='#{CONF_MAP_TILE_URL}'

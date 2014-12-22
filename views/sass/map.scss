@@ -19,15 +19,3 @@
   }
   margin-bottom: .3em;
 }
-#map-bookmarks-body{
-  .map-bookmark-item{
-    border: 1px dotted black;
-    margin: .3em;
-    padding: .3em;
-    display: inline-block;
-    &:active{
-      background-color: #cff;
-      color: black;
-    }
-  }
-}

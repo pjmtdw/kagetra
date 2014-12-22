@@ -67,7 +67,14 @@ define (require, exports, module) ->
     )
     defer.promise()
 
+  markdown_link= new RegExp("\\[(.*?)\\]\\((.*?)\\)","g")
   _.mixin
+    markdown_small: (text)->
+      if _.isString(text)
+        text = _.escape(text)
+        text = text.replace(markdown_link,"<a href='$2' target='_blank'>$1</a>")
+        text = text.replace(/\n/g,"<br>")
+        text
     is_ios: ->
       try
         /(iOS|iPhone|iPod)/.test(navigator.userAgent)
@@ -89,6 +96,14 @@ define (require, exports, module) ->
       cb_common(msg, "<form class='cb-prompt-form'><div><input type='text' value='#{default_value || ""}' class='cb-prompt-text' /></div></form><div class='buttons'><button class='small round ok-button'>OK</button><button class='small round cancel-button'>キャンセル</button></div>",
         ".cb-prompt-text", ".ok-button", f_r
       )
+
+    cb_template: (msg, default_focus, template_id, default_data)->
+      # the template must contain <form class="cb-prompt-form"> and <button class="ok-button"> <button class="cancel-button">
+      template = _.template_braces($(template_id).html())
+      f_r = (defer,el) ->
+        defer.resolve(el.find("form").serializeObj())
+      cb_common(msg, template(data:default_data), default_focus, ".ok-button", f_r)
+
 
     ie9_placeholder: (target)->
       return unless g_is_ie9?

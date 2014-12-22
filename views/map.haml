@@ -15,13 +15,15 @@
         .large-4.small-4.columns(style="white-space: nowrap;")
           %button#bookmark-new.small.round 作成
           %button#bookmark-edit.small.round.hide 編集
+          %button#bookmark-cancel.small.round.hide キャンセル
       #bookmark-edit-buttons.row.hide
         .large-12.small-12.columns
           %a(href="#" data-dropdown="maps-usage") 使い方
           %ul#maps-usage.f-dropdown(data-dropdown-content)
-            %div ・地図をクリックするとその位置にマーカー挿入
-            %div ・マーカー削除は上の方のマーカー一覧の右の&times;をクリック
-            %div ・「変更を保存」で現在の表示位置やマーカーなどを保存
+            %div ・地図上の地点をクリックしてマーカー挿入．ドラッグで移動．
+            %div ・マーカー編集は一覧の左の&sect;をクリック
+            %div ・マーカー削除は一覧の右の&times;をクリック
+            %div ・「変更を保存」で現在の表示状態とマーカー保存
           %button#bookmark-change-title.small.round タイトル編集
           %button#bookmark-save.small.round 全変更反映
           %button#bookmark-delete.small.round.alert 削除
@@ -48,5 +50,20 @@
 
 %script#templ-map-marker-item(type='text/template')
   %span.marker-item(data-id='{{ data.id }}')
+    %span.marker-edit.hide &sect;
     %span.marker-title {- data.title -}
     %span.marker-delete.hide &times;
+
+%script#templ-map-marker-dialog(type='text/template')
+  %form.cb-prompt-form
+    %label タイトル
+    %input.marker-title(type="text" name="title" value="{- data.title -}")
+    %label 説明
+    %textarea.marker-description(name="description" style="height: 10em;")
+      {- data.description -}
+    %div
+      %tt [テキスト](http://example.com/)
+      でリンクを張れます
+  %div
+    %button.small.round.ok-button OK
+    %button.small.round.cancel-button キャンセル

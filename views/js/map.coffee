@@ -156,6 +156,44 @@ define (require,exports,module)->
       "click #bookmark-save" : "bookmark_save"
       "click #bookmark-delete" : "bookmark_delete"
       "click #bookmark-change-title" : "bookmark_change_title"
+    # TODO: アルバムの album-tag-popup と共通点が多いのでまとめる
+    prompt_search: (group_id,txt) ->
+      defer = $.Deferred()
+      templ = _.template_braces($("#templ-bookmark-search-popup").html())
+      on_show = ->
+          obj = $("#bookmark-search-popup")
+          obj.select2(
+            width: 'resolve'
+            placeholder: '検索'
+            minimumInputLength: 1
+            ajax:
+              url: 'api/map/bookmark/complement'
+              type: "POST"
+              data: (term,page)->
+                q: term
+              results: (data,page) -> data
+            id: (x)->x.id
+          )
+          obj.on("change",->
+            value = obj.select2("val")
+            defer.resolve(value)
+            $.colorbox.close()
+            )
+          obj.select2("open")
+      on_close = ->
+        if defer.state() != "resolved" then defer.reject()
+      $.colorbox(
+        html:templ(data:{tag:txt})
+        onComplete:on_show
+        onClosed:on_close
+        trapFocus:false
+        transition:"none"
+        fadeOut:100
+        width:360
+        opacity:0.6
+        closeButton:false
+      )
+      defer.promise()
     bookmark_change_title: (ev)->
       _.cb_prompt("ブックマークタイトル",map_bookmark_model.get('title')).done((r)->
         map_bookmark_model.set('title',r)
@@ -166,7 +204,9 @@ define (require,exports,module)->
       if bid == "empty"
         window.map_router.navigate("",{trigger:true})
       else if bid == "search"
-        # TODO
+        @prompt_search().done((r)->
+          window.map_router.navigate("bookmark/#{r}",{trigger:true})
+        )
       else if bid?
         window.map_router.navigate("bookmark/#{bid}",{trigger:true})
 

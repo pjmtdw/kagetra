@@ -11,12 +11,13 @@ define (require,exports,module)->
           data.start_at
         else
           "#{data.start_at}&sim;#{data.end_at}"
+  # TODO: 地図の bookmark-search-popup と共通点が多いのでまとめる
   prompt_tag = (group_id,txt) ->
     defer = $.Deferred()
     templ = _.template_braces($("#templ-album-tag-popup").html())
     on_show = ->
         obj = $("#album-tag-popup")
-        obj.select2({
+        obj.select2(
           width: 'resolve'
           placeholder: 'タグ'
           minimumInputLength: 1
@@ -38,13 +39,13 @@ define (require,exports,module)->
                 id: term
                 text: term
               }
-        })
+        )
         obj.on("change",->
           value = obj.select2("val")
           defer.resolve(value)
           $.colorbox.close()
           )
-        $("#album-tag-popup").select2("open")
+        obj.select2("open")
     on_close = ->
       if defer.state() != "resolved" then defer.reject()
     $.colorbox(

@@ -8,6 +8,14 @@ class MainApp < Sinatra::Base
       }
       {list:list}
     end
+    post '/bookmark/complement' do
+      list = MapBookmark
+        .where(Sequel.like(:title,"%#{params[:q]}%"))
+        .order(Sequel.desc(:updated_at)).limit(20).map{|x|
+        {id:x.id, text: x.title}
+      }
+      {results:list}
+    end
     get '/bookmark/:id' do
       bmk = MapBookmark[params[:id]]
       bmk.select_attr(:title,:lat,:lng,:zoom,:markers)

@@ -46,8 +46,12 @@ define (require,exports,module)->
   show_marker = (add_to_menu,editable,latlng,popup) ->
     marker = new $l.Marker(latlng, draggable:true)
     mymap.addLayer(marker)
-    geo_links = get_geo_links(latlng.lat,latlng.lng,popup)
-    marker.bindPopup(geo_links+"<br><b>"+_.escape(popup.title)+"</b><br>"+_.markdown_small(popup.description)).openPopup()
+    txt = get_geo_links(latlng.lat,latlng.lng,popup)
+    if popup.title?
+      txt += "<br><strong>"+_.escape(popup.title)+"</strong>"
+    if popup.description?
+      txt += "<br>"+_.markdown_small(popup.description)
+    marker.bindPopup(txt).openPopup()
     if add_to_menu
       map_markers[marker._leaflet_id] = {marker:marker,popup:popup}
       window.map_markers_view.update(marker._leaflet_id,editable)
@@ -151,6 +155,12 @@ define (require,exports,module)->
       "click #bookmark-edit" : "bookmark_edit"
       "click #bookmark-save" : "bookmark_save"
       "click #bookmark-delete" : "bookmark_delete"
+      "click #bookmark-change-title" : "bookmark_change_title"
+    bookmark_change_title: (ev)->
+      _.cb_prompt("ブックマークタイトル",map_bookmark_model.get('title')).done((r)->
+        map_bookmark_model.set('title',r)
+        $("#bookmark-list").find(":selected").text(r)
+      )
     change_bookmark: (ev)->
       bid = $("#bookmark-list").find(":selected").data("bookmark-id")
       if bid == "empty"
@@ -175,7 +185,7 @@ define (require,exports,module)->
       $("#bookmark-list").append($("<option>",text:"-- ブックマーク --").data("bookmark-id","empty"))
       found = false
       for b in @model.get("list")
-        e = $("<option>",text:_.escape(b.title)).data("bookmark-id",b.id)
+        e = $("<option>",text:b.title).data("bookmark-id",b.id)
         if String(b.id) == String(@options.id)
           found = true
           e.prop("selected","selected")

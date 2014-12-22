@@ -4,6 +4,8 @@ define (require,exports,module)->
   map_markers = {}
   marker_current_location = null
   map_bookmark_model = null
+  CURRENT_LOCATION_LABEL = "現在地"
+  pending_current_location = false
 
   remove_current_location_marker = ->
     if not _.isNull(marker_current_location)
@@ -49,7 +51,7 @@ define (require,exports,module)->
       @listenTo(@model,"sync",@render)
       @model.fetch()
     bookmark_new: ->
-      window.map_router.navigate("bookmark/new",{trigger:true, replace:true})
+      window.map_router.navigate("bookmark/new",{trigger:true})
     render: ->
       $("#map-bookmarks-body").empty()
       for b in @model.get("list")
@@ -66,26 +68,41 @@ define (require,exports,module)->
       remove_current_location_marker()
       $("#map-markers-body").empty()
       $("#map-markers-body").append(
-        @template(data:{id:"CURRENT_LOCATION",title:"現在地"})
+        @template(data:{id:"CURRENT_LOCATION",title:CURRENT_LOCATION_LABEL})
       )
     update: (id)->
       t = map_markers[id].popup.split("<br>")[0]
       $("#map-markers-body").append(
         @template(data:{id:id,title:t})
       )
+    switch_pending_current_location_state: (state)->
+      pending_current_location = state
+      elem = $("[data-id='CURRENT_LOCATION']").find(".marker-title")
+      if state
+        elem.html("取得中..")
+      else
+        elem.html(CURRENT_LOCATION_LABEL)
+        
     marker_popup: (ev)->
       remove_current_location_marker()
       id = $(ev.target).closest("[data-id]").data("id")
+      that = this
       if id == "CURRENT_LOCATION"
+        return if pending_current_location
+        @switch_pending_current_location_state(true)
         if navigator?.geolocation?.getCurrentPosition?
-          navigator.geolocation.getCurrentPosition((position)->
+          onsuccess = (position)->
             c = position.coords
             geo = {lat:c.latitude, lng:c.longitude}
-            marker_current_location = show_marker(false, geo, "現在地")
+            marker_current_location = show_marker(false, geo, CURRENT_LOCATION_LABEL)
             mymap.setView(geo)
-          )
+            that.switch_pending_current_location_state(false)
+          onerror = (err)->
+            _.cb_alert("エラー#{err.code}: #{err.message}")
+          navigator.geolocation.getCurrentPosition(onsuccess,onerror)
         else
           _.cb_alert("お使いのブラウザでは位置情報を取得できません")
+          that.switch_pending_current_location_state(false)
       else
         mymap.setView(map_markers[id].marker._latlng)
         map_markers[id].marker.openPopup()
@@ -151,12 +168,14 @@ define (require,exports,module)->
         mymap.removeLayer(v.marker)
       map_markers = {}
       window.map_markers_view.render()
+      that = this
       if id == "new"
         _.cb_prompt("ブックマークの名前").done((title)->
           map_bookmark_model = new MapBookmarkModel(title:title)
+          that.update_title()
         ).fail(->
-          map_bookmark_model = new MapBookmarkModel(title:"新規")
-        ).always(@update_title)
+          window.history.back()
+        )
       else
         map_bookmark_model = new MapBookmarkModel(id:id)
         mdl = map_bookmark_model

@@ -5,9 +5,16 @@
     margin: .3em;
     padding: .3em;
     background-color: #ffc;
+    cursor: pointer;
     .marker-title{
       color: teal;
       margin-right: .3em;
+    }
+    &:active{
+      background-color: #cff;
+      .marker-title{
+        color: black;
+      }
     }
   }
   margin-bottom: .3em;
@@ -18,5 +25,9 @@
     margin: .3em;
     padding: .3em;
     display: inline-block;
+    &:active{
+      background-color: #cff;
+      color: black;
+    }
   }
 }

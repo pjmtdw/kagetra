@@ -150,6 +150,7 @@ define (require,exports,module)->
       "click #bookmark-cancel" : "bookmark_cancel"
       "click #bookmark-edit" : "bookmark_edit"
       "click #bookmark-save" : "bookmark_save"
+      "click #bookmark-delete" : "bookmark_delete"
     change_bookmark: (ev)->
       bid = $("#bookmark-list").find(":selected").data("bookmark-id")
       if bid == "empty"
@@ -209,6 +210,17 @@ define (require,exports,module)->
           _.cb_alert("保存しました").always(->
             if isNew
               window.map_router.navigate("bookmark/#{data.id}",{trigger:true,replace:true})
+          )
+      )
+    bookmark_delete: ->
+      _.cb_prompt("削除するにはdeleteと入力して下さい").done((r)->
+        if r == "delete"
+          map_bookmark_model.destroy().done((data)->
+            if data._error_?
+              _.cb_alert(data._error_)
+            else
+              _.cb_alert("削除しました")
+              window.map_router.navigate("",{trigger:true,replace:true})
           )
       )
     

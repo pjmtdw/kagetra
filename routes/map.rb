@@ -12,6 +12,13 @@ class MainApp < Sinatra::Base
       bmk = MapBookmark[params[:id]]
       bmk.select_attr(:title,:lat,:lng,:zoom,:markers)
     end
+
+    delete '/bookmark/:id' do
+      with_update{
+        MapBookmark[params[:id]].destroy
+      }
+    end
+
     put '/bookmark/:id' do
       with_update{
         item = MapBookmark[params[:id]]

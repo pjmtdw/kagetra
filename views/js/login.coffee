@@ -46,11 +46,11 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
           message = "共通パスワードが違います．"
           try
             d = Date.parse(data.updated_at)
-            dt = (new Date() - d) / 86400000
-            if dt < 1
-              message += "パスワードは今日変更されました"
-            else if dt < 90
-              message += "パスワードは#{Math.floor(dt)}日前に変更されました"
+            dt = Math.floor(((new Date()).getTime() - d) / 3600000)
+            if dt < 24
+              message += "パスワードは#{dt}時間前に変更されました"
+            else if dt < 90*24
+              message += "パスワードは#{Math.floor(dt/24)}日前に変更されました"
           catch e
             console.log(e)
           _.cb_alert(message).always(->

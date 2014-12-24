@@ -40,6 +40,31 @@ class MainApp < Sinatra::Base
         m.select_attr(:id);
       }
     end
+    post '/search' do
+      halt(501,'CONF_DB_OSM_DATABASE is empty!') if DB_OSM.nil?
+      LIMIT = 10
+      lat = params[:lat]
+      lng = params[:lng]
+      order = "ST_Distance(way,ST_Transform(ST_GeometryFromText('POINT(#{lng} #{lat})',4326),900913))"
+      queries = {}
+      queries[:polygon] = "SELECT ST_AsGeoJSON(ST_Transform(ST_Centroid(way),4326)) AS json, name FROM planet_osm_polygon"
+      queries[:point] = "SELECT ST_AsGeoJSON(ST_Transform(way,4326)) AS json, name FROM planet_osm_point"
+      wheres = params[:q].split(/\s+/).map{|x| "name LIKE '%#{x}%'"}.join(" AND ")
+      queries.keys.each{|k|
+        queries[k] += " WHERE " + wheres + " LIMIT #{LIMIT}"
+      }
+      lst = queries.values.map{|v|
+        DB_OSM.fetch(v).map{|x|
+          j = JSON.parse(x[:json])
+          coord = j["coordinates"]
+          {
+            latlng: {lat: coord[1], lng: coord[0]},
+            text: x[:name]
+          }
+        }
+      }.flatten
+      { results: lst }
+    end
   end
   get '/map' do
     haml :map

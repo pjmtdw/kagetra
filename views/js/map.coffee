@@ -2,6 +2,7 @@ define (require,exports,module)->
   $l = require('leaflet')
   $mc = require('map_common')
   mymap = null
+  is_edit_mode = false
   map_markers = {}
   marker_current_location = null
   map_bookmark_model = null
@@ -14,6 +15,7 @@ define (require,exports,module)->
       marker_current_location = null
 
   end_edit_buttons = (has_bookmark)->
+    is_edit_mode = false
     $("#bookmark-cancel").addClass("hide")
     $("#bookmark-new").removeClass("hide")
     if has_bookmark
@@ -25,6 +27,7 @@ define (require,exports,module)->
     $(".marker-edit").addClass("hide")
 
   start_edit_buttons = ->
+    is_edit_mode = true
     $("#bookmark-cancel").removeClass("hide")
     $("#bookmark-new").addClass("hide")
     $("#bookmark-edit").addClass("hide")
@@ -176,6 +179,34 @@ define (require,exports,module)->
     initialize: ->
       @model = new MapBookmarksModel()
       @listenTo(@model,"sync",@render)
+      @init_map_search()
+    init_map_search: ->
+      obj = $("#map-search")
+      obj.select2(
+        width: 'resolve'
+        placeholder: '検索'
+        minimumInputLength: 2
+        dropdownCss: {
+          width: "20em"
+        }
+        ajax:
+          url: 'api/map/search'
+          type: "POST"
+          data: (term,page)->
+            q: term
+            lat: mymap.getCenter().lat
+            lng: mymap.getCenter().lng
+          results: (data,page) -> data
+        id: (x)->x.latlng
+      )
+      obj.on("change",->
+        data = obj.select2("data")
+        zoom = Math.max(mymap.getZoom(),15)
+        mymap.setView(data.latlng, zoom)
+        show_marker(true, is_edit_mode, data.latlng, {title:data.text})
+        obj.select2('data',{id:null,text:'検索'})
+      )
+
     fetch_and_render: (opts)->
       if opts.no_select
         delete @options['id']

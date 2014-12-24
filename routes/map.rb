@@ -51,7 +51,7 @@ class MainApp < Sinatra::Base
       queries[:point] = "SELECT ST_AsGeoJSON(ST_Transform(way,4326)) AS json, name FROM planet_osm_point"
       wheres = params[:q].split(/\s+/).map{|x| "name LIKE '%#{x}%'"}.join(" AND ")
       queries.keys.each{|k|
-        queries[k] += " WHERE " + wheres + " LIMIT #{LIMIT}"
+        queries[k] += " WHERE #{wheres} ORDER BY #{order} ASC LIMIT #{LIMIT}"
       }
       lst = queries.values.map{|v|
         DB_OSM.fetch(v).map{|x|

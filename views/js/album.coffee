@@ -11,55 +11,29 @@ define (require,exports,module)->
           data.start_at
         else
           "#{data.start_at}&sim;#{data.end_at}"
-  # TODO: 地図の bookmark-search-popup と共通点が多いのでまとめる
   prompt_tag = (group_id,txt) ->
-    defer = $.Deferred()
     templ = _.template_braces($("#templ-album-tag-popup").html())
-    on_show = ->
-        obj = $("#album-tag-popup")
-        obj.select2(
-          width: 'resolve'
-          placeholder: 'タグ'
-          minimumInputLength: 1
-          ajax:
-            url: 'api/album/tag_complete'
-            type: "POST"
-            data: (term,page)->
-              group_id: group_id
-              q: term
-            results: (data,page) ->
-              {results:({text:x} for x in data.results)}
-          id: (x)->x.text
-          initSelection: (elem,callback) ->
-            callback({id:txt,text:txt}) if txt
-          createSearchChoice: (term,data) ->
-            # able to choose user input text
-            if not _.find(data,(x)->x.text.localeCompare(term)==0)
-              {
-                id: term
-                text: term
-              }
-        )
-        obj.on("change",->
-          value = obj.select2("val")
-          defer.resolve(value)
-          $.colorbox.close()
-          )
-        obj.select2("open")
-    on_close = ->
-      if defer.state() != "resolved" then defer.reject()
-    $.colorbox(
-      html:templ(data:{tag:txt})
-      onComplete:on_show
-      onClosed:on_close
-      trapFocus:false
-      transition:"none"
-      fadeOut:100
-      width:360
-      opacity:0.6
-      closeButton:false
-    )
-    defer.promise()
+    select2_opts = {
+      ajax:
+        url: 'api/album/tag_complete'
+        type: "POST"
+        data: (term,page)->
+          group_id: group_id
+          q: term
+        results: (data,page) ->
+          {results:({text:x} for x in data.results)}
+      id: (x)->x.text
+      initSelection: (elem,callback) ->
+        callback({id:txt,text:txt}) if txt
+    }
+    colorbox_opts = {
+      html:templ()
+    }
+    _.cb_select2(
+      "#album-tag-popup",
+      {editable:(term)->{id:term,text:term}},
+      select2_opts,
+      colorbox_opts)
   scroll_to_item = (selector) ->
     selector ||= (id )-> ".album-item[data-id='#{id}']"
     prev = window.album_router.previous()

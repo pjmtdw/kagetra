@@ -104,6 +104,49 @@ define (require, exports, module) ->
         defer.resolve(el.find("form").serializeObj())
       cb_common(msg, template(data:default_data), default_focus, ".ok-button", f_r)
 
+    cb_select2: (selector, opts, select2_opts, colorbox_opts) ->
+      defer = $.Deferred()
+      sopts = (_.extend({
+          width: 'resolve'
+          minimumInputLength: 1
+        },select2_opts))
+      if opts.editable
+        # able to choose user input text
+        # opts.editable(x) must return {id:...,text:...}
+        sopts["createSearchChoice"] =
+          (term,data) ->
+            if not _.find(data,(x)->x.text.localeCompare(term)==0)
+              opts.editable(term)
+
+      on_show = ->
+        obj = $(selector)
+        obj.select2(sopts)
+        obj.on("change",->
+          value = obj.select2("val")
+          defer.resolve(value)
+          $.colorbox.close()
+          )
+        if opts.editable
+          # a hack to show chosen text to editable form
+          obj.on('select2-open',->
+            txt = $(".select2-container .select2-chosen").text()
+            if txt
+              $(".select2-search input[type='text']").val(txt)
+          )
+        obj.select2("open")
+      on_close = ->
+        if defer.state() != "resolved" then defer.reject()
+      $.colorbox(_.extend({
+        onComplete:on_show
+        onClosed:on_close
+        trapFocus:false
+        transition:"none"
+        fadeOut:100
+        width:360
+        opacity:0.6
+        closeButton:false
+      },colorbox_opts))
+      defer.promise()
 
     ie9_placeholder: (target)->
       return unless g_is_ie9?

@@ -41,6 +41,10 @@ class MainApp < Sinatra::Base
       today = Date.today
       is_owner = ev.owners.map(&:id).include?(@user.id) 
       r = ev.to_deserialized_hash.select_attr(:place,:name,:date,:kind,:official,:deadline,:created_at,:id,:participant_count,:comment_count,:team_size,:event_group_id,:public,:last_comment_date)
+      if ev.map_bookmark then
+        r[:map_bookmark_title] = ev.map_bookmark.title
+        r[:map_bookmark_id] = ev.map_bookmark.id
+      end
       r[:has_new_comment] = ev.has_new_comment(user)
       r[:deadline_day] = (r[:deadline]-today).to_i if r[:deadline]
       if r[:deadline_day] and r[:deadline_day].between?(0,G_DEADLINE_ALERT) then
@@ -128,6 +132,7 @@ class MainApp < Sinatra::Base
       # get時に付加したmodelにない情報なので削除する．TODO: 不要な情報なのでクライアント側で削除する
       @json.delete("all_attrs")
       @json.delete("all_event_groups")
+      @json.delete("map_bookmark_title")
 
       with_update{
         choices = if @json.has_key?("choices") then

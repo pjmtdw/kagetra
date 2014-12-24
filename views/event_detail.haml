@@ -11,39 +11,44 @@
         %button#contest-info-edit.small 編集
         <% } %>
         <% if(data.show_comment_button){ %>
-        %button.button-light.show-comment コメント ( <%= data.comment_count %> )
+        %button.button-light.show-comment コメント ( {{ data.comment_count }} )
         <% } %>
   .row
     .large-8.columns
       %fieldset.panel
         %legend 大会/行事名
-        %span <%- data.name %>
+        %span {- data.name -}
         <% if(data.formal_name){ %>
-        %span (<%- data.formal_name %>)
+        %span ({- data.formal_name -})
         <% } %>
     .large-4.columns
       %fieldset.panel
         %legend 種別
-        <%= _.show_kind_detail(data) %>
+        {{ _.show_kind_detail(data) }}
   .row
     .large-7.columns
       %fieldset.panel
         %legend 場所
-        <%- data.place %>
+        <% if(data.map_bookmark_id){ %>
+        %a(href='map#bookmark/{{ data.map_bookmark_id }}' target='_blank') {- data.place -}
+        <% }else{ %>
+        {- data.place -}
+        <% } %>
+
     .large-3.columns
       %fieldset.panel
         %legend 日時
         %div
-          <%= data.date %> <%= _.date_range(data.start_at,data.end_at) %>
+          {{ data.date }} {{ _.date_range(data.start_at,data.end_at) }}
     .large-2.columns
       %fieldset.panel
         %legend 締切日
-        %div <%= data.deadline %>
+        %div {{ data.deadline }}
   .row
     .large-12.columns
       %fieldset.panel
         %legend 備考
-        .pre <%= _.replace_url_escape(data.description) %>
+        .pre {{ _.replace_url_escape(data.description) }}
   .row
     .large-12.columns
       .participants
@@ -161,9 +166,13 @@
         <% } %>
     <% } %>
     .row
-      .large-6.columns
+      .large-4.columns
         %label 場所
         %input(name='place' type='text' value='{- data.place -}')
+      .large-2.columns
+        %label 地図ブックマーク
+        %input(name='map_bookmark_title' type='text' value='{- data.map_bookmark_title -}' readonly)
+        %input(name='map_bookmark_id' type='hidden' value='{{ data.map_bookmark_id }}')
       .large-4.columns
         .row
           .large-6.columns

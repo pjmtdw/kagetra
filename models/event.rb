@@ -8,6 +8,7 @@ class Event < Sequel::Model(:events)
   set_default_values_custom :forbidden_attrs, "[]"
 
   many_to_one :event_group
+  many_to_one :map_bookmark
   many_to_one :aggregate_attr, class:'UserAttributeKey'
 
   one_to_one :result_cache, class:'ContestResultCache'

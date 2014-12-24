@@ -132,7 +132,7 @@ define (require, exports, module) ->
         obj = $("#cb-select2-popup")
         obj.select2(sopts)
         obj.on("change",->
-          value = obj.select2("val")
+          value = obj.select2("data")
           defer.resolve(value)
           $.colorbox.close()
           )

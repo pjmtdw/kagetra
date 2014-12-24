@@ -1,5 +1,6 @@
 define (require,exports,module)->
   $co = require("comment")
+  $mc = require("map_common")
   _.mixin
     show_all_attrs: (all_attrs,forbidden_attrs) ->
       r = ""
@@ -38,7 +39,7 @@ define (require,exports,module)->
     }
 
   EventDetailView = Backbone.View.extend
-    template: _.template($("#templ-event-detail").html())
+    template: _.template_braces($("#templ-event-detail").html())
     template_p: _.template_braces($("#templ-event-participant").html())
     events:
       "click #contest-info-edit":"info_edit"
@@ -71,6 +72,12 @@ define (require,exports,module)->
       "change #event-groups" : "group_change"
       "change #cur-group-list" : "copy_info"
       "click #add-contest-group" : "add_contest_group"
+      "click [name='map_bookmark_title']" : "select_map_bookmark"
+    select_map_bookmark: ->
+      $mc.map_bookmark_search().done((r)->
+        $("[name='map_bookmark_title']").val(r.text)
+        $("[name='map_bookmark_id']").val(r.id)
+      )
     add_contest_group: ->
       _.cb_prompt("追加する恒例大会名:").done((r)->
         $.post("api/event/group/new",name:r).done((data)->

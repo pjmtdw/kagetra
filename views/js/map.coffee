@@ -1,5 +1,6 @@
 define (require,exports,module)->
   $l = require('leaflet')
+  $mc = require('map_common')
   mymap = null
   map_markers = {}
   marker_current_location = null
@@ -156,17 +157,6 @@ define (require,exports,module)->
       "click #bookmark-save" : "bookmark_save"
       "click #bookmark-delete" : "bookmark_delete"
       "click #bookmark-change-title" : "bookmark_change_title"
-    prompt_search: ->
-      select2_opts = {
-        ajax:
-          url: 'api/map/bookmark/complement'
-          type: "POST"
-          data: (term,page)->
-            q: term
-          results: (data,page) -> data
-        id: (x)->x.id
-      }
-      _.cb_select2("地図ブックマーク検索", {}, select2_opts, {})
     bookmark_change_title: (ev)->
       _.cb_prompt("ブックマークタイトル",map_bookmark_model.get('title')).done((r)->
         map_bookmark_model.set('title',r)
@@ -177,8 +167,8 @@ define (require,exports,module)->
       if bid == "empty"
         window.map_router.navigate("",{trigger:true})
       else if bid == "search"
-        @prompt_search().done((r)->
-          window.map_router.navigate("bookmark/#{r}",{trigger:true})
+        $mc.map_bookmark_search().done((data)->
+          window.map_router.navigate("bookmark/#{data.id}",{trigger:true})
         )
       else if bid?
         window.map_router.navigate("bookmark/#{bid}",{trigger:true})

@@ -42,27 +42,23 @@ class MainApp < Sinatra::Base
     end
     post '/search' do
       halt(501,'CONF_DB_OSM_DATABASE is empty!') if DB_OSM.nil?
-      LIMIT = 10
+      limit = 20
       lat = params[:lat]
       lng = params[:lng]
-      order = "ST_Distance(way,ST_Transform(ST_GeometryFromText('POINT(#{lng} #{lat})',4326),900913))"
-      queries = {}
-      queries[:polygon] = "SELECT ST_AsGeoJSON(ST_Transform(ST_Centroid(way),4326)) AS json, name FROM planet_osm_polygon"
-      queries[:point] = "SELECT ST_AsGeoJSON(ST_Transform(way,4326)) AS json, name FROM planet_osm_point"
       wheres = params[:q].split(/\s+/).map{|x| "name LIKE '%#{x}%'"}.join(" AND ")
-      queries.keys.each{|k|
-        queries[k] += " WHERE #{wheres} ORDER BY #{order} ASC LIMIT #{LIMIT}"
-      }
-      lst = queries.values.map{|v|
-        DB_OSM.fetch(v).map{|x|
-          j = JSON.parse(x[:json])
-          coord = j["coordinates"]
-          {
-            latlng: {lat: coord[1], lng: coord[0]},
-            text: x[:name]
-          }
+      q1 = "(SELECT name,'point' as typ,way FROM planet_osm_point WHERE #{wheres})"
+      q2 = "(SELECT name,'polygon' as typ, ST_Centroid(way) FROM planet_osm_polygon WHERE #{wheres})"
+      order = "ST_Distance(way,ST_Transform(ST_GeometryFromText('Point(#{lng} #{lat})',4326),900913))"
+      query = "SELECT ST_AsGeoJSON(ST_Transform(way,4326)) AS json,name,typ FROM (#{q1} UNION ALL #{q2}) AS subq ORDER BY #{order} ASC LIMIT #{limit}"
+      lst = DB_OSM.fetch(query).map{|x|
+        j = JSON.parse(x[:json])
+        coord = j["coordinates"]
+        {
+          latlng: {lat: coord[1], lng: coord[0]},
+          text: x[:name],
+          type: x[:typ]
         }
-      }.flatten
+      }
       { results: lst }
     end
   end

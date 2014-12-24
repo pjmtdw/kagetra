@@ -12,7 +12,6 @@ define (require,exports,module)->
         else
           "#{data.start_at}&sim;#{data.end_at}"
   prompt_tag = (group_id,txt) ->
-    templ = _.template_braces($("#templ-album-tag-popup").html())
     select2_opts = {
       ajax:
         url: 'api/album/tag_complete'
@@ -26,14 +25,11 @@ define (require,exports,module)->
       initSelection: (elem,callback) ->
         callback({id:txt,text:txt}) if txt
     }
-    colorbox_opts = {
-      html:templ()
-    }
     _.cb_select2(
-      "#album-tag-popup",
+      "タグ名",
       {editable:(term)->{id:term,text:term}},
       select2_opts,
-      colorbox_opts)
+      {})
   scroll_to_item = (selector) ->
     selector ||= (id )-> ".album-item[data-id='#{id}']"
     prev = window.album_router.previous()

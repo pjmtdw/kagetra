@@ -104,7 +104,17 @@ define (require, exports, module) ->
         defer.resolve(el.find("form").serializeObj())
       cb_common(msg, template(data:default_data), default_focus, ".ok-button", f_r)
 
-    cb_select2: (selector, opts, select2_opts, colorbox_opts) ->
+    cb_select2: (title, opts, select2_opts, colorbox_opts) ->
+      html = """
+        <div class='cb-container'>
+          <form>
+            <fieldset>
+              <legend>#{title}</legend>
+              <input type='text' id='cb-select2-popup' />
+            </fieldset>
+          </form>
+        </div>
+      """
       defer = $.Deferred()
       sopts = (_.extend({
           width: 'resolve'
@@ -119,7 +129,7 @@ define (require, exports, module) ->
               opts.editable(term)
 
       on_show = ->
-        obj = $(selector)
+        obj = $("#cb-select2-popup")
         obj.select2(sopts)
         obj.on("change",->
           value = obj.select2("val")
@@ -137,6 +147,7 @@ define (require, exports, module) ->
       on_close = ->
         if defer.state() != "resolved" then defer.reject()
       $.colorbox(_.extend({
+        html: html
         onComplete:on_show
         onClosed:on_close
         trapFocus:false

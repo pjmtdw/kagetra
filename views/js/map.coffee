@@ -157,7 +157,6 @@ define (require,exports,module)->
       "click #bookmark-delete" : "bookmark_delete"
       "click #bookmark-change-title" : "bookmark_change_title"
     prompt_search: ->
-      templ = _.template_braces($("#templ-bookmark-search-popup").html())
       select2_opts = {
         ajax:
           url: 'api/map/bookmark/complement'
@@ -167,10 +166,7 @@ define (require,exports,module)->
           results: (data,page) -> data
         id: (x)->x.id
       }
-      colorbox_opts = {
-        html:templ()
-      }
-      _.cb_select2("#bookmark-search-popup", {}, select2_opts, colorbox_opts)
+      _.cb_select2("地図ブックマーク検索", {}, select2_opts, {})
     bookmark_change_title: (ev)->
       _.cb_prompt("ブックマークタイトル",map_bookmark_model.get('title')).done((r)->
         map_bookmark_model.set('title',r)

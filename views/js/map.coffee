@@ -238,7 +238,7 @@ define (require,exports,module)->
       start_edit_buttons()
       mymap.on('click', (ev) ->
         _.cb_template("マーカー編集", ".marker-title", "#templ-map-marker-dialog", {}).done((r)->
-          show_marker(true,false,ev.latlng,r)
+          show_marker(true,true,ev.latlng,r)
         )
       )
     bookmark_save: ->

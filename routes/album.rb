@@ -241,7 +241,7 @@ class MainApp < Sinatra::Base
         }.inject(:|)
         dataset = dataset.where(qb)
       }
-      chunks = dataset.order(Sequel.desc(:date)).paginate(page,ALBUM_SEARCH_PER_PAGE)
+      chunks = dataset.order(Sequel.desc(:date, nulls: :last)).paginate(page,ALBUM_SEARCH_PER_PAGE)
       list = chunks.map(&:id_with_thumb)
       {
         list: list,
@@ -261,7 +261,7 @@ class MainApp < Sinatra::Base
                     
                     Event.where{ (date >= st) & (date <= ed)}
                          .where(done:true,kind:Event.kind__contest)
-                         .order(Sequel.desc(:date))
+                         .order(Sequel.desc(:date, nulls: :last))
                          .map{|x|
                            {id:x.id,text:"#{x.name}@#{x.date}"}
                          }
@@ -269,7 +269,7 @@ class MainApp < Sinatra::Base
                     []
                   end
                 else
-                  qr = Event.order(Sequel.desc(:date))
+                  qr = Event.order(Sequel.desc(:date, nulls: :last))
                   if /\d{4}/ =~ query then
                     year = $&.to_i
                     query.sub!(/\s*\d{4}\s*/,"")
@@ -321,7 +321,7 @@ class MainApp < Sinatra::Base
           res = res.where(Sequel.like(:name,"%#{q}%"))
         end
       }
-      results = res.order(Sequel.desc(:start_at)).map{|x|
+      results = res.order(Sequel.desc(:start_at, nulls: :last)).map{|x|
         {
           id:x.id,
           text:x.name.to_s + "@#{x.start_at}"

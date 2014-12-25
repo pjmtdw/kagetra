@@ -5,7 +5,7 @@ class MainApp < Sinatra::Base
   # ENV['RACK_SESSION_SECRET'] is set by unicorn.rb
   set :root, File.join(File.dirname(__FILE__),"..")
   set :session_secret, 
-    ((if defined?(CONF_SESSION_SECRET) then CONF_SESSION_SECRET end) or ENV["RACK_SESSION_SECRET"] or SecureRandom.base64(48)) 
+    ((if CONF_SESSION_SECRET.to_s.empty?.! then CONF_SESSION_SECRET end) or ENV["RACK_SESSION_SECRET"] or SecureRandom.base64(48)) 
   
   set :sessions, key:G_SESSION_COOKIE_NAME
   # for Internet Explorer 8, 9 (and maybe also 10?) session_hijacking protection refuses the session.

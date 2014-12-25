@@ -119,7 +119,7 @@ define (require,exports,module)->
               console.log "hoge"
               navigator.geolocation.getCurrentPosition(onsuccess,onerror,{
                 enableHighAccuracy: false
-                timeout: 10000
+                timeout: 6000
                 maximumAge: 0
               })
             else
@@ -127,7 +127,7 @@ define (require,exports,module)->
               that.switch_current_location_pending_state(false)
           navigator.geolocation.getCurrentPosition(onsuccess,onerror,{
             enableHighAccuracy: true
-            timeout: 20000
+            timeout: 12000
             maximumAge: 0
           })
         else

@@ -56,18 +56,20 @@ CONF_STORAGE_DIR = "./storage" # Wikiの添付ファイルとアルバムの写�
 CONF_MAP_TILE_URL = "http://tile.openstreetmap.org" # 地図サーバのURL．必ず変更すること: http://wiki.openstreetmap.org/wiki/Tile_usage_policy
 
 # これを設定しておけばサーバを再起動してもユーザのセッションが保持される．
-# require 'securerandom';SecureRandom.base64(48) で作ること，
-# CONF_SESSION_SECRET = ""
+# 下記のコマンドで生成すること
+# $ ruby -e "require 'securerandom';puts SecureRandom.base64(48)"
 
-# DBのパス
+CONF_SESSION_SECRET = ""
+
+# DBのパス: pgBouncerでプールすることを推奨
 CONF_DB_USERNAME = "<user>"
 CONF_DB_PASSWORD = "<pass>"
 CONF_DB_HOST = "<host>"
 CONF_DB_PORT = port
 CONF_DB_DATABASE = "<db>"
-CONF_DB_OSM_DATABASE = "<osm_db>" # osm2pgsql で変換した OpenStreetMap のデータが入っている DB． nil に設定すると地図検索機能が働かなくなる．
+CONF_DB_OSM_DATABASE = "<osm_db>" # osm2pgsql で変換した OpenStreetMap のデータが入っている DB． nil に設定すると地図検索機能が働かなくなるが他の機能は使える
 
-CONF_DB_DEBUG = true # stdout に DEBUG 情報を出力
+CONF_DB_DEBUG = true # stdout に DEBUG 情報を出力するかどうか
 
 CONF_LOG_SIZE = 32 # deploy/logに置かれるログの最大サイズ(MB)
 

@@ -1,3 +1,6 @@
+html,body{
+  height: 100%;
+}
 #map-markers{
   .marker-item{
     display: inline-block;
@@ -18,4 +21,18 @@
     }
   }
   margin-bottom: .3em;
+}
+
+#map-search{
+  display: inline-block;
+  width: 8em;
+}
+
+.marker-description{
+  height: 10em;
+}
+
+#map{
+  height: 720px;
+  max-height: 90%;
 }

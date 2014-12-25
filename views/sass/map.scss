@@ -33,6 +33,14 @@ html,body{
 }
 
 #map{
-  height: 720px;
+  height: 720px; // full screen map will cause network traffics ! 
   max-height: 90%;
+}
+
+#body-end{
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  text-shadow: 1px 1px white;
+  z-index: 10;
 }

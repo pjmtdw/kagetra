@@ -328,4 +328,5 @@ define (require,exports,module)->
     window.map_router = new MapRouter()
     window.map_markers_view = new MapMarkersView()
     window.map_menu_view = new MapMenuView()
+    mymap.attributionControl.setPrefix('') # デフォルトでは右下に出る leaflet のロゴマークが「一番上へ」と被るので消去
     Backbone.history.start()

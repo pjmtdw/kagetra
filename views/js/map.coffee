@@ -329,4 +329,9 @@ define (require,exports,module)->
     window.map_markers_view = new MapMarkersView()
     window.map_menu_view = new MapMenuView()
     mymap.attributionControl.setPrefix('') # デフォルトでは右下に出る leaflet のロゴマークが「一番上へ」と被るので消去
+    # show scale bar
+    $l.control.scale(
+      imperial: false
+      maxWidth: 120
+    ).addTo(mymap)
     Backbone.history.start()

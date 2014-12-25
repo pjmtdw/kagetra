@@ -45,6 +45,8 @@ class MainApp < Sinatra::Base
     end
 
     get %r{/js/v\d+/(.+)\.js$} do |m|
+      # Sends /views/js/*.js if available, otherwise compile /views/js/*.coffee
+      # if you updated /views/js/*.coffee, you have to delete /views/js/*.js to reflect the change
       content_type "application/javascript"
       js = if m.start_with?("foundation") then
         # used for debugging from gem

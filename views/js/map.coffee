@@ -7,7 +7,9 @@ define (require,exports,module)->
   marker_current_location = null
   map_bookmark_model = null
   CURRENT_LOCATION_LABEL = "現在地"
-  pending_current_location = false
+  current_location_pending = false
+  current_location_retry = 0
+
 
   remove_current_location_marker = ->
     if not _.isNull(marker_current_location)
@@ -86,8 +88,9 @@ define (require,exports,module)->
       if editable
         elem.find(".marker-edit").removeClass("hide")
         elem.find(".marker-delete").removeClass("hide")
-    switch_pending_current_location_state: (state)->
-      pending_current_location = state
+    switch_current_location_pending_state: (state)->
+      current_location_pending = state
+      current_location_retry = 0
       elem = $("[data-id='CURRENT_LOCATION']").find(".marker-title")
       if state
         elem.html("取得中..")
@@ -99,27 +102,37 @@ define (require,exports,module)->
       id = $(ev.target).closest("[data-id]").data("id")
       that = this
       if id == "CURRENT_LOCATION"
-        return if pending_current_location
-        @switch_pending_current_location_state(true)
+        return if current_location_pending
+        @switch_current_location_pending_state(true)
         if navigator?.geolocation?.getCurrentPosition?
           onsuccess = (position)->
             c = position.coords
             geo = {lat:c.latitude, lng:c.longitude}
             marker_current_location = show_marker(false, false, geo, {title:CURRENT_LOCATION_LABEL,description:""})
-            mymap.setView(geo)
-            that.switch_pending_current_location_state(false)
+            zoom = Math.max(mymap.getZoom(),15)
+            mymap.setView(geo, zoom)
+            that.switch_current_location_pending_state(false)
           onerror = (err)->
-            _.cb_alert("エラー(#{err.code}): #{err.message}")
-            that.switch_pending_current_location_state(false)
+            if err.code == 3 and current_location_retry == 0
+              # err.code == 3 は TIMEOUT なので enableHighAccuracy: false で再試行してみる
+              current_location_retry = 1
+              console.log "hoge"
+              navigator.geolocation.getCurrentPosition(onsuccess,onerror,{
+                enableHighAccuracy: false
+                timeout: 10000
+                maximumAge: 0
+              })
+            else
+              _.cb_alert("エラー(#{err.code}): #{err.message}")
+              that.switch_current_location_pending_state(false)
           navigator.geolocation.getCurrentPosition(onsuccess,onerror,{
             enableHighAccuracy: true
-            timeout: 15000
+            timeout: 20000
             maximumAge: 0
-            
           })
         else
           _.cb_alert("お使いのブラウザでは位置情報を取得できません")
-          that.switch_pending_current_location_state(false)
+          that.switch_current_location_pending_state(false)
       else
         mymap.setView(map_markers[id].marker._latlng)
         map_markers[id].marker.openPopup()

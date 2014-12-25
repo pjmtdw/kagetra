@@ -141,7 +141,7 @@ module Kagetra
     end
 
     def self.zenkaku_to_hankaku(s)
-      NKF::nkf('-wZ0',s)
+      NKF::nkf('-wZ1',s)
     end
 
     def self.kansuuji_to_arabic(s)

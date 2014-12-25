@@ -45,7 +45,7 @@ class MainApp < Sinatra::Base
       limit = 20
       lat = params[:lat]
       lng = params[:lng]
-      wheres = params[:q].split(/\s+/).map{|x| "name LIKE '%#{x}%'"}.join(" AND ")
+      wheres = Kagetra::Utils.zenkaku_to_hankaku(params[:q]).split(/\s+/).map{|x| "name LIKE '%#{x}%'"}.join(" AND ")
       q1 = "(SELECT name,'point' as typ,way FROM planet_osm_point WHERE #{wheres})"
       q2 = "(SELECT name,'polygon' as typ, ST_Centroid(way) FROM planet_osm_polygon WHERE #{wheres})"
       order = "ST_Distance(way,ST_Transform(ST_GeometryFromText('Point(#{lng} #{lat})',4326),900913))"

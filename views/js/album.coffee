@@ -630,7 +630,7 @@ define (require,exports,module)->
       hide_tag()
       that = this
       prompt_tag(@model.get('group').id).done((data)->
-        name = data.id
+        name = data.text
         o = $($.parseHTML(that.template_tag(tag:{name:name,id:that.new_tag_id})))
         [x,y] = that.get_pos(ev)
         nw = {id:that.new_tag_id,name:name,coord_x:x,coord_y:y,radius:50}
@@ -658,7 +658,7 @@ define (require,exports,module)->
       tobj = obj.parent().find(".album-tag-name")
       that = this
       prompt_tag(@model.get('group').id,tobj.text()).done((data)->
-        name = data.id
+        name = data.text
         tag["name"] = name
         that.tag_edit_log[tag_id] = ["update_or_create", tag]
         tobj.text(name))

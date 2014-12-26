@@ -138,10 +138,11 @@ define (require, exports, module) ->
           )
         if opts.editable
           # a hack to show chosen text to editable form
+          # TODO: is there more cleaner way to do this?
           obj.on('select2-open',->
-            txt = $(".select2-container .select2-chosen").text()
-            if txt
-              $(".select2-search input[type='text']").val(txt)
+            data = obj.select2('data')
+            if data?.text
+              $(".select2-search input[type='text']").val(data.text)
           )
         obj.select2("open")
       on_close = ->

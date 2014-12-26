@@ -2,7 +2,7 @@
 # License of this software is described in LICENSE file.
 
 # Change this number whenever you changed the .coffee/.js/.scss/.css file
-G_RESOURCE_VERSION = 13
+G_RESOURCE_VERSION = 14
 
 require_relative '../conf'
 require 'bundler'

@@ -20,6 +20,9 @@ class MainApp < Sinatra::Base
   }
 
   # /public/ では GET と POST しか許可しない ( PUT や DELETE はできない )
+  get '/public/' do
+    redirect '/'
+  end
   get '/public/*' do |splat|
     filter_public(splat)
   end

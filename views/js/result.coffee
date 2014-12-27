@@ -392,7 +392,7 @@ define (require,exports,module) ->
     model: ContestChunkModel
     parse: (data)->
       for x in ["recent_list","name","date","id","kind","official","album_groups"
-        "contest_classes","group","team_size","event_group_id"]
+        "contest_classes","group","team_size","event_group_id","participant_count"]
         @[x] = data[x]
       data.contest_results
   ContestPlayerModel = Backbone.Model.extend
@@ -606,12 +606,15 @@ define (require,exports,module) ->
 
     render: ->
       col = @collection
-      @$el.html(@template(data:_.pick(@collection,"id","recent_list","group","name","date","kind","official","album_groups")))
+      @$el.html(@template(data:_.pick(col,"id","recent_list","group","name","date","kind","official","album_groups")))
       cur_class = null
       @chunks = []
       that = this
       if col.isEmpty() or col.every((x)->_.isEmpty(x.get("user_results")))
-        $("#contest-result-body").append($("<div>",{text:"※出場者のいない大会は「大会一覧」にのみ表示されます"}))
+        if col.team_size > 1 and col.participant_count > 0
+          $("#contest-result-body").append($("<div>",{text:"※まだチームがないようです．「出場者編集」でチーム編成をして下さい"}))
+        else
+          $("#contest-result-body").append($("<div>",{text:"※出場者のいない大会は「大会一覧」にのみ表示されます．"}))
       else
         col.each (m,index)->
           if m.get("class_id") != cur_class

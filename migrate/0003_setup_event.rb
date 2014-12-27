@@ -23,7 +23,6 @@ Sequel.migration do
       TrueClass :public, null:false, default:true, index:true, comment:"公開されているか"
       TrueClass :register_done, null:false, default:false, comment:"登録者確認済み(締切を過ぎてからN日経過のメッセージを表示しない)"
       Integer :participant_count, null:false, default:0, comment:"参加者数(毎回aggregateするのは遅いのでキャッシュ)"
-      Integer :contest_user_count, null:false, default:0, comment:"result_usersのcount(毎回aggregateするのは遅いのでキャッシュ)"
       String :forbidden_attrs, text:true, comment:"登録不可属性(user_attribute_values.idのリスト,json形式)"
       TrueClass :hide_choice, null:false, default:false, comment:"ユーザがどれを選択したかを管理者以外には分からなくする"
       foreign_key :event_group_id, :event_groups, on_delete: :set_null

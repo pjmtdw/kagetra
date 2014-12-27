@@ -44,7 +44,7 @@ class MainApp < Sinatra::Base
 
     # 日時順に並べたときの前後の大会
     def recent_contests(id)
-      base = Event.where(kind:Event.kind__contest, done:true).where{contest_user_count > 0}
+      base = Event.where(kind:Event.kind__contest, done:true).where{participant_count > 0}
       evt = if id == "latest"
               then base.order(Sequel.desc(:date),Sequel.desc(:id)).first
               else Event[id.to_i] end
@@ -237,7 +237,7 @@ class MainApp < Sinatra::Base
       cache = ContestResultCache.first(event_id:ev.id)
       r = ev.select_attr(:id,:name,:date,:official)
       r.merge({
-        user_count: ev.contest_user_count,
+        user_count: ev.participant_count,
         win: if cache then cache.win else 0 end,
         lose: if cache then cache.lose else 0 end,
         prizes: if cache then cache.prizes else [] end

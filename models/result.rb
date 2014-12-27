@@ -37,18 +37,18 @@ class ContestUser < Sequel::Model(:contest_users)
     super
   end
   
-  def update_contest_user_count
+  def update_participant_count
     ev = self.event
-    ev.update(contest_user_count:ev.result_users_dataset.count)
+    ev.update(participant_count:ev.result_users_dataset.count)
   end
 
   def after_create
     super
-    update_contest_user_count
+    update_participant_count
   end
   def after_destroy
     super
-    update_contest_user_count
+    update_participant_count
   end
 end
 

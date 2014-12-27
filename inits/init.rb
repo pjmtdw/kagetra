@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # License of this software is described in LICENSE file.
 
-# Change this number whenever you changed the .coffee/.js/.scss/.css file
-G_RESOURCE_VERSION = 14
+# Change this number whenever you changed the .coffee/.js/.scss/.css/.haml file
+G_RESOURCE_VERSION = 15
 
 require_relative '../conf'
 require 'bundler'

@@ -28,7 +28,11 @@ define (require, exports, module) ->
         "<span class='hourmin #{c1}'>#{data.start_at ? ''}</span> &sim; <span class='hourmin #{c2}'>#{data.end_at ? ''}</span>"
       pl = if data.place
         c = if data.emph_place then "emphasis" else ""
-        " @ <span class='place #{c}'>#{_.escape(data.place ? '')}</span>"
+        plc = _.escape(data.place ? '')
+        if data.map_bookmark_id?
+          " @ <a class='#{c}' target='_blank' href='map#bookmark/#{data.map_bookmark_id}' >#{plc}</a>"
+        else
+          " @ <span class='place #{c}'>#{plc}</span>"
       ds = if data.description
         "<div class='description panel left pre'>#{_.replace_url_escape(data.description)}</div>"
       tt = if data.name

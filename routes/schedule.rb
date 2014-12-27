@@ -98,7 +98,7 @@ class MainApp < Sinatra::Base
         make_detail_item(x)
       }
       events = append_cond.call(Event).map{|x|
-        x.select_attr(:id,:name,:place,:comment_count,:start_at,:end_at)
+        x.select_attr(:id,:name,:place,:comment_count,:start_at,:end_at,:map_bookmark_id)
       }
       info = ScheduleDateInfo.first(date:date)
       day_infos = if info then info.select_attr(:names,:holiday) end

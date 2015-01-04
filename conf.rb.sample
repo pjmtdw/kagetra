@@ -18,7 +18,7 @@ G_PERMANENT_COOKIE_NAME = "kagetra.permanent" # 3ヶ月保存される
 G_NEWLY_DAYS_MAX = 75 # 新着コメントとして表示される最大の日数
 G_DEADLINE_ALERT = 7 # 締切が迫っていますを表示する日数
 G_LOGIN_LOG_DAYS = 10 # ログイン履歴を残す日数
-G_TOKEN_EXPIRE_HOURS = 24 # ユーザの認証用トークンを更新する時間間隔
+G_TOKEN_EXPIRE_HOURS = 24 # ユーザはブラウザを閉じない限りこれだけの時間は再ログインしなくても良い
 
 G_EVENT_KINDS = {party:"コンパ/合宿/アフター等",etc:"アンケート/購入/その他"}
 

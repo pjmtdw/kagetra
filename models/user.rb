@@ -48,7 +48,7 @@ class User < Sequel::Model(:users)
   end
   def change_token!
     self.token = SecureRandom.base64(24)
-    self.token_expire = Time.now + (G_TOKEN_EXPIRE_HOURS*86400)
+    self.token_expire = Time.now + (G_TOKEN_EXPIRE_HOURS*3600)
   end
   # 今月のログイン数
   def log_mon_count

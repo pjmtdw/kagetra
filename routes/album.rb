@@ -68,14 +68,17 @@ class MainApp < Sinatra::Base
         [users[k]||"不明",v]
       }.sort_by{|k,v|v.size}.reverse
       r[:tags] = tags.sort_by{|k,v|v.size}.reverse
-      r[:deletable] = @user.admin || group.owner_id == @user.id
+      r[:deletable] = @user.admin || @user.sub_admin || group.owner_id == @user.id
       r
     end
     delete '/group/:gid' do
       with_update{
         group = AlbumGroup[params[:gid].to_i]
-        if group.nil?.! then
-              group.destroy
+        if group.items_dataset.count == 0 then
+          group.destroy
+          {}
+        else
+          {_error_:"空でないフォルダは削除できません"}
         end
       }
     end
@@ -99,6 +102,10 @@ class MainApp < Sinatra::Base
         group.update(@json.except("id"))
       }
     end
+    def album_item_deletable(item)
+      @user.admin or @user.sub_admin or item.owner_id == @user.id
+    end
+
     get '/item/:id' do
       item = AlbumItem[params[:id].to_i]
       halt 404 if item.nil?
@@ -127,7 +134,7 @@ class MainApp < Sinatra::Base
         rr.merge({coord_x:cx,coord_y:cy})
       }
       r[:relations] = item.relations.map(&:id_with_thumb)
-      r[:deletable] = @user.admin || item.owner_id == @user.id
+      r[:deletable] = album_item_deletable(item) 
       r
     end
     put '/item/:id' do
@@ -355,7 +362,7 @@ class MainApp < Sinatra::Base
     end
     delete '/item/:id' do
       item = AlbumItem[params[:id].to_i]
-      halt 403 unless (@user.admin or item.owner_id == @user.id)
+      halt 403 unless album_item_deletable(item)
       if item.nil?.! then
         with_update{
           ag = item.group

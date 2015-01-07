@@ -198,6 +198,12 @@ class MainApp < Sinatra::Base
         item.do_after_tag_updated
         (updates,updates_patch) = make_comment_log_patch(item,@json,"comment","comment_revision")
         if updates then @json.merge!(updates) end
+        if @json["group_id"].to_s.empty? then 
+          # 今は JSON の group_id が空白のときは item の group_id を更新しない
+          # TODO: group_id を null に設定できるようにする
+          @json.delete("group_id")
+        end
+
         item.update(@json.except("id"))
         if updates_patch
           AlbumCommentLog.create(updates_patch.merge({user:@user,album_item:item}))

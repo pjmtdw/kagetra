@@ -240,6 +240,7 @@
             %td
               <% if(!is_group){ %>
               {{ _.make_checkbox(data.daily_choose,{name:'daily_choose'}) }} 今日の一枚に選ぶ
+              %input(class='move-folder-target' name='group_id' type='text' placeholder='所属フォルダ')
               <% } %>
 
       <% if(show_comment){ %>

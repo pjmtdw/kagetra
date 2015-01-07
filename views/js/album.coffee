@@ -11,6 +11,21 @@ define (require,exports,module)->
           data.start_at
         else
           "#{data.start_at}&sim;#{data.end_at}"
+  move_folder_target_select2 = (el,exclude_group_id)->
+    el.find(".move-folder-target").select2(
+      width:"resolve"
+      placeholder: "フォルダ名"
+      minimumInputLength: 1
+      ajax:
+        url: "api/album/search_group"
+        type: "POST"
+        data: (term,page)->
+          q: term
+          exclude: exclude_group_id
+        results: (data,page) ->
+          data
+    )
+
   prompt_tag = (group_id,txt) ->
     select2_opts = {
       ajax:
@@ -608,6 +623,7 @@ define (require,exports,module)->
 
       that = this
       $("#album-item-form").one("change",":input",->that.changed=true)
+      move_folder_target_select2(@$el,null)
 
     remove_relation: (ev)->
       that = this
@@ -840,19 +856,7 @@ define (require,exports,module)->
       group_id = @model.get('id')
       @$el.html(@template(data:@model.toJSON(),count:@options.checked.length))
       @$el.appendTo(@options.target)
-      @$el.find(".move-folder-target").select2(
-        width:"resolve"
-        placeholder: "フォルダ名"
-        minimumInputLength: 1
-        ajax:
-          url: "api/album/search_group"
-          type: "POST"
-          data: (term,page)->
-            q: term
-            exclude: group_id
-          results: (data,page) ->
-            data
-      )
+      move_folder_target_select2(@$el,group_id)
   AlbumStatModel = Backbone.Model.extend
     url: "api/album/stat"
   AlbumStatView = Backbone.View.extend

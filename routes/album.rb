@@ -3,7 +3,7 @@ class MainApp < Sinatra::Base
   ALBUM_SEARCH_PER_PAGE = 50
   ALBUM_RECENT_GROUPS = 6
   ALBUM_EVENT_COMPLEMENT_DAYS = 3
-  ALBUM_EVENT_COMPLEMENT_LIMIT = 50
+  ALBUM_EVENT_COMPLEMENT_LIMIT = 20
   def album_group_info(group)
     r = group.select_attr(:id,:name,:start_at,:item_count).merge({type:"group"})
     ic = group.item_count || 0
@@ -276,7 +276,7 @@ class MainApp < Sinatra::Base
                          .where(done:true,kind:Event.kind__contest)
                          .order(Sequel.desc(:date, nulls: :last))
                          .map{|x|
-                           {id:x.id,text:"#{x.name}@#{x.date}"}
+                           x.select_attr(:id,:date,:name).merge(text:"#{x.name}@#{x.date}")
                          }
                   else
                     []
@@ -291,9 +291,13 @@ class MainApp < Sinatra::Base
                   query.gsub!(/\s+/,"")
                   # TODO: escape query
                   qr.where(Sequel.like(:name,"%#{query}%")).limit(ALBUM_EVENT_COMPLEMENT_LIMIT).map{|x|
-                    {id:x.id,text:"#{x.name}@#{x.date}"}
+                     x.select_attr(:id,:date,:name).merge(text:"#{x.name}@#{x.date}")
                   }
                 end
+      
+      if group.start_at then
+        results = results.sort_by{|x| [if x[:date] then (group.start_at - x[:date]).to_i.abs else 999999 end, levenshtein_distance(x[:name],group.name)]}
+      end
       {results:results}
 
     end

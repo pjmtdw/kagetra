@@ -211,7 +211,7 @@ define (require,exports,module)->
     initialize: ->
       @render()
     render: ->
-      @$el.html(@template())
+      @$el.html(@template(data:@model.toJSON()))
       @$el.appendTo(@options.target)
       group_id = @model.get('id')
       @$el.find(".album-event-target").select2(

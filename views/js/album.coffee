@@ -59,7 +59,7 @@ define (require,exports,module)->
 
   class AlbumRouter extends _.router_base("album",["top","year","group","item","search","all_log","stat"])
     routes:
-      "year/:year" : "year"
+      "year/:year(/:params)" : "year"
       "group/:id" : "group"
       "item/:id" : "item"
       "search/:qs(/:page)" : "search"
@@ -69,7 +69,7 @@ define (require,exports,module)->
     stat: ->
       @remove_all()
       window.album_stat_view = new AlbumStatView()
-    year: (year) -> @remove_all();@set_id_fetch("year",AlbumYearView,year)
+    year: (year,params) -> @remove_all();@set_id_fetch("year",AlbumYearView,year,{params:_.deparam(params)})
     group: (id) -> @remove_all();@set_id_fetch("group",AlbumGroupView,id)
     item: (id) ->
       if window.album_search_view
@@ -169,14 +169,45 @@ define (require,exports,module)->
   AlbumYearModel =  Backbone.Model.extend
     urlRoot: "api/album/year"
   class AlbumYearView extends AlbumListViewBase
+    template_menu: _.template_braces($("#templ-album-year-menu").html())
+    events:
+      _.extend(AlbumListViewBase.prototype.events,
+        'click #event-relation-filter .choice' : 'do_relation_filter'
+      )
+    do_relation_filter: (ev)->
+      choice = $(ev.target).closest('[data-choice]').data('choice')
+      window.album_router.navigate("year/#{@model.id}/event_filter=#{choice}", trigger:true)
+
+
     initialize: ->
       @model = new AlbumYearModel()
       @listenTo(@model,"sync",@render)
     render: ->
-      @model.set("list",_.sortBy(@model.get("list"),(x)->x.start_at or x.date).reverse())
+      event_filter = @options.params?.event_filter || 'both'
+      [show_has_ev,show_no_ev] =
+        switch event_filter
+          when 'yes'
+            [true,false]
+          when 'no'
+            [false,true]
+          else
+            [true,true]
+      newlist = _.chain(@model.get("list"))
+        .filter((x)->
+          if _.has(x,"event_id")
+            show_has_ev
+          else
+            show_no_ev
+        )
+        .sortBy((x)->x.start_at or x.date)
+        .value()
+        .reverse()
+
+      @model.set("list",newlist)
       @$el.html(@template(data:@model.toJSON()))
       @$el.appendTo("#album-year")
-      @$el.find("#album-list").before($("<a>",href:"album#",text:"TOP"))
+      @$el.find("#album-list").before(@template_menu(event_filter:event_filter))
+      @$el.find("#event-relation-filter [data-choice='#{event_filter}']").addClass('active')
       @render_percent()
       scroll_to_item()
       scroll_to_group()

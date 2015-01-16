@@ -6,6 +6,7 @@ class MainApp < Sinatra::Base
   ALBUM_EVENT_COMPLEMENT_LIMIT = 20
   def album_group_info(group)
     r = group.select_attr(:id,:name,:start_at,:item_count).merge({type:"group"})
+    r[:event_id] = group.event.id if group.event
     ic = group.item_count || 0
     if ic > 0 then
       cc = group.has_comment_count || 0

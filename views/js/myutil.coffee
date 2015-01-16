@@ -315,8 +315,8 @@ define (require, exports, module) ->
             vn = "#{prefix}_#{k}_view"
             window[vn]?.remove()
             delete window[vn]
-        set_id_fetch: (k,klass,id) ->
-          v = new klass()
+        set_id_fetch: (k,klass,id,options) ->
+          v = if _.isObject(options) then new klass(options) else new klass()
           window["#{prefix}_#{k}_view"] = v
           m = v.model
           if id?

@@ -58,6 +58,21 @@
         <% } %>
       <% }) %>
 
+%script#templ-album-year-menu(type='text/template')
+  .row
+    .columns
+      %a(href='album#') TOP
+  .row
+    .columns
+      %dl#event-relation-filter.sub-nav
+        %dt 関連大会: 
+        %dd.choice(data-choice='yes')
+          %a 有り
+        %dd.choice(data-choice='no')
+          %a 無し
+        %dd.choice(data-choice='both')
+          %a 両方
+
 %script#templ-album-group(type='text/template')
   .row
     .large-4.columns

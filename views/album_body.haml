@@ -77,7 +77,7 @@
   .row
     .large-4.columns
       %a(href='album#') TOP -
-      %a(href='album#year/{{data.year || "_else_"}}') {{data.year || "(不明)"}}年
+      %a(href='album#year/{{data.year || "_else_"}}{{data.year_params}}') {{data.year || "(不明)"}}年
     .large-8.columns
       .right#album-buttons
         <% if(data.event_id){ %>

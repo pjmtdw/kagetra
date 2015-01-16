@@ -176,8 +176,8 @@ define (require,exports,module)->
       )
     do_relation_filter: (ev)->
       choice = $(ev.target).closest('[data-choice]').data('choice')
-      window.album_router.navigate("year/#{@model.id}/event_filter=#{choice}", trigger:true)
-
+      params = if choice == "both" then "" else "/event_filter=#{choice}"
+      window.album_router.navigate("year/#{@model.id}#{params}", trigger:true)
 
     initialize: ->
       @model = new AlbumYearModel()
@@ -357,7 +357,15 @@ define (require,exports,module)->
       @listenTo(@model,"sync",@render)
     render: ->
       @generate_extra_tags()
-      @$el.html(@template(data:@model.toJSON()))
+      prev = window.album_router.previous()
+      year_params =
+        if prev?.indexOf("year/") == 0
+          s = prev.split("/")[2]
+          if s then "/"+s else  ""
+        else
+          ""
+      @$el.html(@template(data:_.extend(
+        @model.toJSON(),{year_params:year_params})))
       @$el.find("#album-info").html(@template_info(data:@model.toJSON()))
       @$el.appendTo("#album-group")
       @render_items()

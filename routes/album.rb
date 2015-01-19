@@ -271,7 +271,7 @@ class MainApp < Sinatra::Base
       results = if query.empty? then
                   if group.start_at then
                     st = group.start_at - ALBUM_EVENT_COMPLEMENT_DAYS
-                    ed = group.start_at + ALBUM_EVENT_COMPLEMENT_DAYS
+                    ed = (group.end_at || group.start_at) + ALBUM_EVENT_COMPLEMENT_DAYS
                     
                     Event.where{ (date >= st) & (date <= ed)}
                          .where(done:true,kind:Event.kind__contest)
@@ -297,7 +297,8 @@ class MainApp < Sinatra::Base
                 end
       
       if group.start_at then
-        results = results.sort_by{|x| [if x[:date] then (group.start_at - x[:date]).to_i.abs else 999999 end, levenshtein_distance(x[:name],group.name)]}
+        center_date = group.start_at + ((group.end_at || group.start_at) - group.start_at) / 2
+        results = results.sort_by{|x| [if x[:date] then (center_date - x[:date]).to_i.abs else 999999 end, levenshtein_distance(x[:name],group.name)]}
       end
       {results:results}
 

@@ -205,7 +205,7 @@ define (require,exports,module)->
         ajax:
           url: 'api/map/search'
           type: "POST"
-          quietMillis: 500
+          quietMillis: 1000
           data: (term,page)->
             q: term
             lat: mymap.getCenter().lat

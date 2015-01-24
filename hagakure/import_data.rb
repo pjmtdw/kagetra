@@ -7,6 +7,16 @@ require './inits/init'
 require_relative './import_hagakure_conf'
 require 'parallel' # you have to add gem 'parallel' to Gemfile
 
+def with_unrestrict_primary_key(*models,&block)
+  models.each{|m|
+    m.unrestrict_primary_key
+  }
+  block.call()
+  models.each{|m|
+    DB.run("select setval('#{m.table_name}_id_seq',(select max(id) from #{m.table_name}));")
+  }
+end
+
 def make_tasks
   # rake -j 16 -m とかで並列実行できるように rake で書く
   tasks = [:zokusei, :user, :login_log, :meibo,
@@ -81,7 +91,7 @@ end
 
 def import_user
   puts "import_user begin"
-  User.unrestrict_primary_key
+  with_unrestrict_primary_key(User){
   Parallel.each_with_index(File.readlines(File.join(CONF_HAGAKURE_BASE,"txts","namelist.cgi")),in_threads: NUM_THREADS){|code,index|
     next if index == 0
     code.chomp!
@@ -118,7 +128,7 @@ def import_user
       end
     }
   }
-  DB.run("select setval('users_id_seq',(select max(id) from users));")
+  }
 end
 
 def import_login_log
@@ -150,7 +160,7 @@ end
 def import_bbs
   puts "import_bbs begin"
   num_to_line = {}
-  BbsItem.unrestrict_primary_key
+  with_unrestrict_primary_key(BbsItem){
   Parallel.each(Dir.glob(File.join(CONF_HAGAKURE_BASE,"bbs","*.cgi")), in_threads: NUM_THREADS){|fn|
     File.readlines(fn).to_enum.with_index(1){|line,lineno|
       line.chomp!
@@ -212,7 +222,7 @@ def import_bbs
       }
     }
   }
-  DB.run("select setval('bbs_items_id_seq',(select max(id) from bbs_items));")
+  }
 end
 
 def import_schedule
@@ -296,6 +306,7 @@ def import_schedule
 end
 
 def import_shurui
+  with_unrestrict_primary_key(EventGroup){
   puts "import_shurui begin"
   fn = File.join(CONF_HAGAKURE_BASE,"txts","shurui.cgi")
   lines = File.readlines(fn)
@@ -307,6 +318,7 @@ def import_shurui
     dm_response("#{fn} line #{lineno}"){
       group = EventGroup.create(id:num, name:name, description:description)
     }
+  }
   }
 end
 
@@ -502,8 +514,8 @@ def get_user_or_add(evt,username,klass)
   begin
     u = User.first(name:username)
     GLOBAL_LOCK.synchronize{
-      # first_or_create は thread safe ではないみたい
-      ContestUser.first_or_create({name:username,user:u,event:evt,contest_class:klass}) 
+      # find_or_create は thread safe ではないみたい
+      ContestUser.find_or_create({name:username,user:u,event:evt,contest_class:klass}) 
     }
   rescue => e
     raise e
@@ -971,9 +983,7 @@ def import_album_stage1
     (fday,tday) = day.split(/<>/)
     fdate = begin Date.new(fyear.to_i,fmon.to_i,fday.to_i) rescue nil end
     tdate = begin Date.new(tyear.to_i,tmon.to_i,tday.to_i) rescue nil end
-    dm_response(line){
-      AlbumGroup.create(id:num.to_i,name:name,place:place,start_at:fdate,end_at:tdate,comment:comment)
-    }
+    AlbumGroup.create(id:num.to_i,name:name,place:place,start_at:fdate,end_at:tdate,comment:comment)
   }
 
   old_ids = {}
@@ -987,34 +997,32 @@ def import_album_stage1
       (fnum,fname,group,_,_,_,_,year) = line.split(/\t/)
       puts "album: #{dnum}-#{fnum}"
       group = nil if group and group.empty?
-      dm_response(line){
-        ag = if group.nil?.! then
-          AlbumGroup[group]
+      ag = if group.nil?.! then
+        AlbumGroup[group]
+      else
+        if year.to_s.empty? then year = nil end
+        # 年が整数値でないものはそういう名前のグループを作る
+        if year.nil? or year =~ /^\d+$/ then
+          GLOBAL_LOCK.synchronize{
+            AlbumGroup.find_or_create({year:year,dummy:true})
+          }
         else
-          if year.to_s.empty? then year = nil end
-          # 年が整数値でないものはそういう名前のグループを作る
-          if year.nil? or year =~ /^\d+$/ then
-            GLOBAL_LOCK.synchronize{
-              AlbumGroup.first_or_create({year:year,dummy:true})
-            }
-          else
-            GLOBAL_LOCK.synchronize{
-              AlbumGroup.first_or_create({name:year})
-            }
-          end
+          GLOBAL_LOCK.synchronize{
+            AlbumGroup.find_or_create({name:year})
+          }
         end
+      end
 
 
-        GLOBAL_LOCK.synchronize{
-          key = "#{dnum}-#{fnum}"
-          gi = group_index[key]
-          item = ag.items.create(group_index: gi)
-          if old_ids.has_key?(key) then
-            raise Exception.new("duplicate old_id key for #{key}")
-          else
-            old_ids[key] = [item.id, "#{dname}/#{fname}"]
-          end
-        }
+      GLOBAL_LOCK.synchronize{
+        key = "#{dnum}-#{fnum}"
+        gi = group_index[key]
+        item = AlbumItem.create(group:ag,group_index: gi)
+        if old_ids.has_key?(key) then
+          raise Exception.new("duplicate old_id key for #{key}")
+        else
+          old_ids[key] = [item.id, "#{dname}/#{fname}"]
+        end
       }
     }
   }
@@ -1025,7 +1033,6 @@ end
 def import_album_stage2(old_ids)
   Parallel.each(old_ids.values,in_threads:NUM_THREADS){|item_id,prefix|
     puts prefix
-    dm_response(prefix){
       if not File.exist?(File.join(CONF_HAGAKURE_BASE,"album/#{prefix}.cgi")) then
         next
       end
@@ -1042,7 +1049,10 @@ def import_album_stage2(old_ids)
             width = img.columns
             height = img.rows
           rescue Exception => e
+            throw e
           end
+        else
+          throw "Error:#{abs_path} does not exist"
         end
         klass.create(album_item:item,path:File.join("hagakure",path),format:format,width:width,height:height)
       }
@@ -1062,9 +1072,7 @@ def import_album_stage2(old_ids)
           place = $1
         when %r(<!comment>(.*)<!/comment>)
           comment = $1
-          dm_response(prefix){
-            import_comment(item,comment)
-          }
+          import_comment(item,comment)
         when %r(<!ruiji>(.*)<!/ruiji>)
           (dn,_,fn) = $1.split(/&:&/)
           o = old_ids["#{dn}-#{fn}"]
@@ -1099,7 +1107,6 @@ def import_album_stage2(old_ids)
       item.do_after_tag_updated
       day = begin Date.new(year.to_i,mon.to_i,day.to_i) rescue nil end
       item.update(name:title,place:place,date:day,owner:owner,daily_choose:daily_choose)
-    }
   }
 end
 
@@ -1120,7 +1127,7 @@ def import_comment(item,comment)
         end
       end
       # TODO: x[:date] が nil (最初のパッチ) の日時を設定する
-      item.comment_logs.create(user:u,album_item:item,revision:i+1,patch:x[:patch],created_at:x[:date]||DateTime.parse('1980-01-01 00:00:00'))
+      AlbumCommentLog.create(album_item:item,user:u,album_item:item,revision:i+1,patch:x[:patch],created_at:x[:date]||DateTime.parse('1980-01-01 00:00:00'))
     }
     revision = patches.size
   end
@@ -1180,7 +1187,9 @@ def mypatch(comment,patch)
 end
 
 def import_album
-  import_album_stage2(import_album_stage1)
+  with_unrestrict_primary_key(AlbumGroup){
+    import_album_stage2(import_album_stage1)
+  }
 end
 
 #make_tasks
@@ -1190,7 +1199,7 @@ import_user
 import_login_log
 import_bbs
 import_schedule
-#import_album
+import_album
 #import_meibo
 #import_shurui
 #import_event

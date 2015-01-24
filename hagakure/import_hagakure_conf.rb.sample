@@ -5,7 +5,7 @@ CONF_HAGAKURE_BASE = '/path/to/hagakure/'
 # 注意: 暗号化/復号はクライアント側で行われるのでサーバ側に格納しておく必要はない．
 #       従ってサーバのデータ流出の際でも復号されないように
 #       葉隠データ取り込み後は必ず削除すること
-CONF_MEIBO_PASSWD = "password_of_meibo"
+CONF_SHARED_PASSWORD = "password_of_meibo"
 
 # MeiboDownloaderによって作られたCSV
 CONF_MEIBO_CSV = "/path/to/hagakure/meibo.csv"

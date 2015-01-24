@@ -3,9 +3,9 @@
 
 NUM_THREADS = 8
 
-require './init'
-require 'parallel'
-require 'sqlite3'
+require './inits/init'
+require_relative './import_hagakure_conf'
+require 'parallel' # you have to add gem 'parallel' to Gemfile
 
 def make_tasks
   # rake -j 16 -m とかで並列実行できるように rake で書く
@@ -63,7 +63,7 @@ end
 def import_zokusei
   puts "import_zokusei begin"
   k = UserAttributeKey.create(name:"全員", index: 0)
-  k.values.create(value:"全員", index: 0)
+  UserAttributeValue.create(attr_key_id:k.id,value:"全員", index: 0)
   File.readlines(File.join(CONF_HAGAKURE_BASE,"txts","zokusei.cgi")).to_enum.with_index(1){|b,i|
     b.chomp!
     b.sjis!
@@ -73,7 +73,7 @@ def import_zokusei
     values = cols[1].split(/<>/)
     attr_key = UserAttributeKey.create(name:verbose_name, index: i)
     values.each_with_index{|v,ii|
-      attr_key.values.create(value:v,index:ii)
+      UserAttributeValue.create(attr_key_id:attr_key.id,value:v,index:ii)
     }
   }
 
@@ -81,6 +81,7 @@ end
 
 def import_user
   puts "import_user begin"
+  User.unrestrict_primary_key
   Parallel.each_with_index(File.readlines(File.join(CONF_HAGAKURE_BASE,"txts","namelist.cgi")),in_threads: NUM_THREADS){|code,index|
     next if index == 0
     code.chomp!
@@ -95,27 +96,29 @@ def import_user
         (remote_host,user_agent,last_access) = user_info.split("<>") if user_info
         last_login = begin DateTime.parse(last_login) rescue nil end
         (n_total,n_monthbefore,n_yearbefore) = login_num.split("<>").map{|x|x.to_i} if login_num
-        u = User.create(id: uid, name: name, furigana: furigana, show_new_from: last_login)
+        hash = Kagetra::Utils.hash_password(CONF_SHARED_PASSWORD)
+        u = User.create(id: uid, password_hash: hash[:hash], password_salt: hash[:salt],
+                        name: name, furigana: furigana, show_new_from: last_login)
         if last_login
           u.login_latest = UserLoginLatest.create(user:u,remote_host:remote_host,user_agent:user_agent)
           u.login_latest.update!(updated_at:last_login)
         end
         if login_num and n_total and n_total > 0 then
           n_monthbefore = 0 if n_monthbefore.nil? 
-          u.login_monthlies.create(year_month:UserLoginMonthly.year_month(last_login.year,last_login.month),count:n_total-n_monthbefore)
+          UserLoginMonthly.create(user_id:u.id,year_month:UserLoginMonthly.year_month(last_login.year,last_login.month),count:n_total-n_monthbefore)
         end
         puts name
         zokusei.each_with_index{|a,i|
-          val = UserAttributeKey.first(index:i).values.first(index:a)
-          u.attrs.create(value:val)
+          val = UserAttributeKey.first(index:i).attr_values_dataset.first(index:a)
+          UserAttribute.create(user_id:u.id,value_id:val.id)
         }
-      rescue DataMapper::SaveFailureError => e
+      rescue  => e
         puts "Error at #{code} line #{lineno}"
-        p e.resource.errors
         raise e
       end
     }
   }
+  DB.run("select setval('users_id_seq',(select max(id) from users));")
 end
 
 def import_login_log
@@ -139,9 +142,7 @@ def import_login_log
         puts "USER ID:#{uid} not found: ignoring login log"
         next
       end
-      dm_response(fn){
-        UserLoginMonthly.update_or_create({user:user, year_month:UserLoginMonthly.year_month(year,month)},{rank:rank,count:num.to_i})
-      }
+      UserLoginMonthly.update_or_create({user:user, year_month:UserLoginMonthly.year_month(year,month)},{rank:rank,count:num.to_i})
     }
   }
 end
@@ -149,6 +150,7 @@ end
 def import_bbs
   puts "import_bbs begin"
   num_to_line = {}
+  BbsItem.unrestrict_primary_key
   Parallel.each(Dir.glob(File.join(CONF_HAGAKURE_BASE,"bbs","*.cgi")), in_threads: NUM_THREADS){|fn|
     File.readlines(fn).to_enum.with_index(1){|line,lineno|
       line.chomp!
@@ -173,6 +175,8 @@ def import_bbs
         (host,ip) = host.split(/<>/)
         date = DateTime.parse(date)
         deleted = (not_deleted == "0")
+        break if deleted and i == 0
+        next if deleted
         pat = /<!--ID:(\d+)-->$/
         user = nil
         if pat =~ name then
@@ -180,8 +184,8 @@ def import_bbs
           name.sub!(pat,"")
         end
         item_props = {
-          deleted: deleted,
           created_at: date,
+          updated_at: date,
           user_name: name,
           remote_host: host,
           user: user
@@ -193,28 +197,22 @@ def import_bbs
             (num,is_public) = num.split("<>")
             check_duplicate.call(num)
             is_public = ["1","on"].include?(is_public)
-            thread = BbsThread.create(deleted: deleted, created_at: date, title: title, public: is_public)
-            item = thread.comments.create(item_props.merge(id: num, body: body))
-            thread.first_item = item
-            thread.save
-            # use update! to avoid automatic setting by dm-timestamps
-            item.update!(updated_at: date)
-            thread.update!(updated_at: date)
+            thread = BbsThread.create(updated_at:date, created_at: date, title: title, public: is_public)
+            BbsItem.create(item_props.merge(thread_id:thread.id, id: num, body: body, is_first:true))
             puts title
           else
             check_duplicate.call(num)
             body = others.join("\t").body_replace
-            item = thread.comments.create(item_props.merge(id: num, body: body, thread: thread))
-            item.update!(updated_at: date)
+            BbsItem.create(item_props.merge(id: num, body: body, thread_id: thread.id))
           end
-        rescue DataMapper::SaveFailureError => e
+        rescue => e
           puts "Error at #{fn} line #{lineno} index #{i+1}"
-          p e.resource.errors
           raise e
         end
       }
     }
   }
+  DB.run("select setval('bbs_items_id_seq',(select max(id) from bbs_items));")
 end
 
 def import_schedule
@@ -256,9 +254,6 @@ def import_schedule
           date = Date.new(year,mon,day)
           created_at = DateTime.parse(wdate)
           user = search_user_name(name)
-          if user.nil? then
-            raise Exception.new("no user named: '#{name}'")
-          end
           item = ScheduleItem.create(
             owner: user,
             kind: kind,
@@ -270,10 +265,9 @@ def import_schedule
             end_at: end_at,
             place: place,
             description: if desc then desc.body_replace end,
-            created_at: created_at
+            created_at: created_at,
+            updated_at: created_at
           )
-          item.update!(updated_at: created_at)
-           
         }
         if day_info then
           (holiday,day_info) = day_info.split(/\t/)
@@ -293,9 +287,8 @@ def import_schedule
             puts "#{date} => #{is_holiday} #{day_info}"
           end
         end
-      rescue DataMapper::SaveFailureError => e
+      rescue => e
         puts "Error at #{fn} line #{lineno}"
-        p e.resource.errors
         raise e
       end
     }
@@ -497,9 +490,8 @@ def import_event
         av = agg_attr.values.first(index:uc[:attr_index])
         choice.user_choices.create(user:user, attr_value: av)
       }
-    rescue DataMapper::SaveFailureError => e
+    rescue => e
       puts "Error at #{taikainame}"
-      p e.resource.errors
       raise e
     end
   }
@@ -513,8 +505,7 @@ def get_user_or_add(evt,username,klass)
       # first_or_create は thread safe ではないみたい
       ContestUser.first_or_create({name:username,user:u,event:evt,contest_class:klass}) 
     }
-  rescue DataMapper::SaveFailureError => e
-    p e.resource.errors
+  rescue => e
     raise e
   end
 end
@@ -668,9 +659,8 @@ def import_contest_result_kojin(evt,sankas)
         opponent_belongs: op_kai,
         comment: comment,
         round: round)
-    rescue DataMapper::SaveFailureError => e
+    rescue => e
       puts "Error at #{evt} #{user} #{round} #{body}"
-      p e.resource.errors
       raise e
     end
   }
@@ -848,9 +838,8 @@ def import_endtaikai
       else
         import_contest_result_dantai(evt,sankas)
       end
-    rescue DataMapper::SaveFailureError => e
+    rescue => e
       puts "Error at #{taikainame}"
-      p e.resource.errors
       raise e
     end
   }
@@ -1201,9 +1190,9 @@ import_user
 import_login_log
 import_bbs
 import_schedule
-import_album
-import_meibo
-import_shurui
-import_event
-import_endtaikai
-import_event_comment
+#import_album
+#import_meibo
+#import_shurui
+#import_event
+#import_endtaikai
+#import_event_comment

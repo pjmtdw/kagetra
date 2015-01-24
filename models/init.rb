@@ -5,6 +5,7 @@ DB = Sequel.postgres(
   port: CONF_DB_PORT,
   user: CONF_DB_USERNAME,
   password: CONF_DB_PASSWORD,
+  pool_timeout: 10,
   sslmode: "disable"
 )
 

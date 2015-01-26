@@ -109,4 +109,80 @@ class MainApp < Sinatra::Base
       }
     end
   end
+  ATTACHED_LIST_PER_PAGE = 50
+  def self.attached_routes(namespace,klass,klass_attached)
+    get "/api/#{namespace}/attached_list/:id" do
+      page = (params[:page] || 1).to_i
+      chunks = klass_attached.where(thread_id:params[:id].to_i).order(Sequel.desc(:created_at),Sequel.desc(:id)).paginate(page,ATTACHED_LIST_PER_PAGE)
+      pages = chunks.page_count
+      list = chunks.map{|x|
+        x.select_attr(:id,:orig_name,:description,:size).merge({
+          date:x.created_at.to_date.strftime('%Y-%m-%d'),
+          editable: @user.admin || x.owner_id == @user.id
+        })
+      }
+      {item_id:params[:id].to_i,list: list, pages: pages, cur_page: page}
+    end
+    delete "/api/#{namespace}/attached/:id", private:true do
+      klass_attached[params[:id].to_i].destroy
+    end
+    get "/static/#{namespace}/attached/:id/:filename" do
+      # content-dispositionでutf8を使う方法は各ブラウザで統一されていないので
+      # :filenameの部分にダウンロードさせるファイル名を入れるという古くから使える方法を取る
+      attached_base = File.join(CONF_STORAGE_DIR,"attached",namespace)
+      attached = klass_attached[params[:id].to_i]
+      halt 404 if attached.nil?
+      send_file(File.join(attached_base,attached.path),disposition:nil)
+    end
+    # 返信を Content-Type: text/html で返す必要があるので /api/ の route には置かない
+    post "/#{namespace}/attached/:id", private:true do
+      item = klass[params[:id].to_i]
+      attached =  if params[:attached_id] then
+                    item.attacheds_dataset.first(id:params[:attached_id])
+                  end
+      attached_base = File.join(CONF_STORAGE_DIR,"attached",namespace)
+      file =  if params[:file] then
+                params[:file]
+              else
+                {
+                  tempfile: nil,
+                  filename: params[:orig_name]
+                }
+              end
+      tempfile = file[:tempfile]
+      filename = file[:filename]
+      target_file =
+        if attached then
+          File.join(attached_base,attached.path)
+        else
+          date = Date.today
+          target_dir = File.join(attached_base,date.year.to_s,date.month.to_s)
+          FileUtils.mkdir_p(target_dir)
+          Kagetra::Utils.unique_file(@user,["attached-",".dat"],target_dir)
+        end
+      res = begin
+        DB.transaction{
+          FileUtils.cp(tempfile.path,target_file) if tempfile
+          if attached then
+            base = params.select_attr("description")
+            base[:orig_name] = filename
+            if tempfile then
+              base[:size] = File.size(tempfile)
+            end
+            attached.update(base)
+          else
+            rel_path = Pathname.new(target_file).relative_path_from(Pathname.new(attached_base))
+            klass_attached.create(thread_id:item.id,owner:@user,path:rel_path,orig_name:filename,description:params[:description],size:File.size(target_file))
+          end
+        }
+        {result:"OK"}
+      rescue Exception=>e
+        logger.warn e.message
+        $stderr.puts e.message
+        FileUtils.rm(target_file,force:true) unless attached
+        {_error_:"送信失敗"}
+      end
+      "<div id='response'>#{res.to_json}</div>"
+    end
+  end
 end

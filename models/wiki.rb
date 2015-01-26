@@ -2,7 +2,7 @@ class WikiItem < Sequel::Model(:wiki_items)
   include ThreadBase
   include PatchedItem
   many_to_one :owner, class:'User', required: false
-  one_to_many :attacheds, class:'WikiAttachedFile'
+  one_to_many :attacheds, class:'WikiAttachedFile', key: :thread_id
   one_to_many :item_logs, class:'WikiItemLog'
   one_to_many :comments, class:'WikiComment', key: :thread_id
  
@@ -28,9 +28,9 @@ end
 
 class WikiAttachedFile < Sequel::Model(:wiki_attached_files)
   many_to_one :owner, class:'User'
-  many_to_one :wiki_item
+  many_to_one :thread, class:'WikiItem'
   def update_attached_count
-    wi = self.wiki_item
+    wi = self.thread
     wi.update(attached_count:wi.attacheds_dataset.count)
   end
   def after_create

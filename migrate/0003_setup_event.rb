@@ -25,6 +25,7 @@ Sequel.migration do
       Integer :participant_count, null:false, default:0, comment:"参加者数(毎回aggregateするのは遅いのでキャッシュ)"
       String :forbidden_attrs, text:true, comment:"登録不可属性(user_attribute_values.idのリスト,json形式)"
       TrueClass :hide_choice, null:false, default:false, comment:"ユーザがどれを選択したかを管理者以外には分からなくする"
+      Integer :attached_count, null:false, default:0, comment:"添付ファイルの数"
       foreign_key :event_group_id, :event_groups, on_delete: :set_null
       foreign_key :aggregate_attr_id, :user_attribute_keys, null:false, comment:"集計属性" 
     end

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
-  ATTACHED_LIST_PER_PAGE = 50
   WIKI_ALL_PER_PAGE = 30
   WIKI_LOG_PER_PAGE = 10
   WIKI_LOG_MAX_PAGE = 20 # 現在過去ログは遅いのでページ制限を設ける TODO: ページ制限をなくす
@@ -127,18 +126,6 @@ class MainApp < Sinatra::Base
       {html: render_wiki(params[:body],false)}
     end
 
-    get '/attached_list/:id', private:true do
-      page = (params[:page] || 1).to_i
-      chunks = WikiAttachedFile.where(thread_id:params[:id].to_i).order(Sequel.desc(:created_at),Sequel.desc(:id)).paginate(page,ATTACHED_LIST_PER_PAGE)
-      pages = chunks.page_count
-      list = chunks.map{|x|
-        x.select_attr(:id,:orig_name,:description,:size).merge({
-          date:x.created_at.to_date.strftime('%Y-%m-%d'),
-          editable: @user.admin || x.owner_id == @user.id
-        })
-      }
-      {item_id:params[:id].to_i,list: list, pages: pages, cur_page: page}
-    end
     get '/log/:id', private:true do
       page = if params[:page].to_s.empty?.! then params[:page].to_i else 1 end
       item = WikiItem[params[:id].to_i]
@@ -160,69 +147,10 @@ class MainApp < Sinatra::Base
       }
 
     end
-    delete '/attached/:id' do
-      WikiAttachedFile[params[:id].to_i].destroy
-    end
   end
   comment_routes("/api/wiki",WikiItem,WikiComment,true)
+  attached_routes("wiki",WikiItem,WikiAttachedFile)
   get '/wiki' do
     haml :wiki
-  end
-  get '/static/wiki/attached/:id/:filename', private:true do
-    # content-dispositionでutf8を使う方法は各ブラウザで統一されていないので
-    # :filenameの部分にダウンロードさせるファイル名を入れるという古くから使える方法を取る
-    attached_base = File.join(CONF_STORAGE_DIR,"attached")
-    attached = WikiAttachedFile[params[:id].to_i]
-    halt 404 if attached.nil?
-    send_file(File.join(attached_base,attached.path),disposition:nil)
-  end
-  post '/wiki/attached/:id', private:true do
-    item = WikiItem[params[:id].to_i]
-    attached =  if params[:attached_id] then
-                  item.attacheds_dataset.first(id:params[:attached_id])
-                end
-    attached_base = File.join(CONF_STORAGE_DIR,"attached")
-    file =  if params[:file] then
-              params[:file]
-            else
-              {
-                tempfile: nil,
-                filename: params[:orig_name]
-              }
-            end
-    tempfile = file[:tempfile]
-    filename = file[:filename]
-    target_file =
-      if attached then
-        File.join(attached_base,attached.path)
-      else
-        date = Date.today
-        target_dir = File.join(attached_base,date.year.to_s,date.month.to_s)
-        FileUtils.mkdir_p(target_dir)
-        Kagetra::Utils.unique_file(@user,["attached-",".dat"],target_dir)
-      end
-    res = begin
-      DB.transaction{
-        FileUtils.cp(tempfile.path,target_file) if tempfile
-        if attached then
-          base = params.select_attr("description")
-          base[:orig_name] = filename
-          if tempfile then
-            base[:size] = File.size(tempfile)
-          end
-          attached.update(base)
-        else
-          rel_path = Pathname.new(target_file).relative_path_from(Pathname.new(attached_base))
-          WikiAttachedFile.create(wiki_item:item,owner:@user,path:rel_path,orig_name:filename,description:params[:description],size:File.size(target_file))
-        end
-      }
-      {result:"OK"}
-    rescue Exception=>e
-      logger.warn e.message
-      $stderr.puts e.message
-      FileUtils.rm(target_file,force:true) unless attached
-      {_error_:"送信失敗"}
-    end
-    "<div id='response'>#{res.to_json}</div>"
   end
 end

@@ -64,7 +64,8 @@ end
 def guess_agg_attr(tbuf)
   r = tbuf.map{|x|
     if /^<!--(.*)-->/ =~ x then
-      UserAttributeKey.first(UserAttributeKey.values.value => $1)
+      xx = UserAttributeValue.first(value:$1)
+      if xx then xx.attr_key end
     end
   }.compact.group_by{|x|x}.map{|k,v|[v.size,k]}.sort_by{|c,x|c}.last || [1,UserAttributeKey.first(index:0)]
   r[1]
@@ -315,9 +316,7 @@ def import_shurui
     line.sjis!
     (num,name,description) = line.split("\t")
     if description.nil?.! then description = description.body_replace end
-    dm_response("#{fn} line #{lineno}"){
-      group = EventGroup.create(id:num, name:name, description:description)
-    }
+    group = EventGroup.create(id:num, name:name, description:description)
   }
   }
 end
@@ -356,9 +355,10 @@ def parse_common(tbuf)
 end
 
 def import_event
+  with_unrestrict_primary_key(Event){
   puts "import_event begin"
   lines = File.readlines(File.join(CONF_HAGAKURE_BASE,"txts","taikailist.cgi"))[1..-1]
-  $event_groups = Hash[EventGroup.all(fields:[:id]).map{|x|[x.id,x.id]}]
+  $event_groups = Hash[EventGroup.all.map{|x|[x.id,x.id]}]
   Parallel.each(lines,in_threads:NUM_THREADS){|line|
     line.chomp!
     line.sjis!
@@ -394,7 +394,7 @@ def import_event
           next if f.empty?
           (key,val) = f.split('.')
           k = UserAttributeKey.first(index:key.to_i)
-          v = k.values.first(index:val.to_i)
+          v = k.attr_values_dataset.first(index:val.to_i)
         }.compact
       when /^\[KAIHI\](\d?)/
         agg_attr = UserAttributeKey.first(index:$1.to_i)
@@ -404,7 +404,7 @@ def import_event
           xx = tbuf[lineno+2].split('&')
           zz = xx.each_with_index.map{|x,ii|
             next if x.empty?
-            v = agg_attr.values.first(index:ii)
+            v = agg_attr.attr_values_dataset.first(index:ii)
             if not v then raise Exception.new("no UserAttributeValue which has key:#{agg_attr.id} and index:#{ii-1} at taikainum:#{taikainum}") end
             v.value + x
           }.compact
@@ -481,31 +481,32 @@ def import_event
             name = if positive then "参加する" else "参加しない" end
           end
           hr = hide_result[kind]
-          evt.choices.create(name:name,positive: positive, index: i, hide_result: hr)
+          EventChoice.create(event:evt,name:name,positive: positive, index: i, hide_result: hr)
         }
       else
           # create default
-          evt.choices.create(name:"参加する", positive:true, index: 0, hide_result: false)
-          evt.choices.create(name:"参加しない", positive:false, index: 1, hide_result:true)
+          EventChoice.create(event:evt,name:"参加する", positive:true, index: 0, hide_result: false)
+          EventChoice.create(event:evt,name:"参加しない", positive:false, index: 1, hide_result:true)
       end
       userchoice.each{|uc|
         puts "adding: user #{uc[:name]} to #{evt.name}"
         user = search_user_name(uc[:name])
         choice = if uc[:typ] == :yes then
-                    evt.choices.first(positive:true,index:uc[:ci])
+                    evt.choices_dataset.first(positive:true,index:uc[:ci])
                  else
-                    evt.choices.first(positive:false)
+                    evt.choices_dataset.first(positive:false)
                  end
         if choice.nil? then
           raise Exception.new("choice is nil: user=#{user}, uc=#{uc.inspect}, evt=#{evt.inspect}")
         end
-        av = agg_attr.values.first(index:uc[:attr_index])
-        choice.user_choices.create(user:user, attr_value: av)
+        av = agg_attr.attr_values_dataset.first(index:uc[:attr_index])
+        EventUserChoice.create(event_choice:choice, user:user, user_name:uc[:name] , attr_value: av)
       }
     rescue => e
       puts "Error at #{taikainame}"
       raise e
     end
+  }
   }
 end
 
@@ -515,7 +516,11 @@ def get_user_or_add(evt,username,klass)
     u = User.first(name:username)
     GLOBAL_LOCK.synchronize{
       # find_or_create は thread safe ではないみたい
-      ContestUser.find_or_create({name:username,user:u,event:evt,contest_class:klass}) 
+      ContestUser.find_or_create({name:username,event:evt,contest_class:klass}){|x|
+        if u.nil?.! then
+          x.user_id = u.id
+        end
+      }
     }
   rescue => e
     raise e
@@ -530,7 +535,7 @@ def import_contest_result_dantai(evt,sankas)
     if body.to_s.empty? then
       return
     end
-    op_team = team.opponents.first(round:round)
+    op_team = team.opponents_dataset.first(round:round)
     (result,maisuu,op_name,shojun,n) = body.split(/<>/)
     if result.to_s.empty? then
       raise Exception.new("something wrong with: event: #{evt.inspect} body:#{body}")
@@ -548,11 +553,11 @@ def import_contest_result_dantai(evt,sankas)
               when 'FUSEN'
                 :default_win
               else
-                raise Exception.new("unknown result: #{result}")
+                raise Exception.new("unknown result: #{result} at #{evt.inspect}")
               end
-    op_team.games.create(
-      type: :team,
-      contest_user:user,
+    ContestTeamGame.create(
+      contest_team_opponent_id:op_team.id,
+      contest_user_id:user.id,
       result:result,
       score_str:maisuu,
       opponent_name:op_name,
@@ -585,7 +590,7 @@ def import_contest_result_dantai(evt,sankas)
         kpt.to_i
       end
       if pr.to_s.empty?.! then
-        klass.prizes.create(contest_user:user,prize:pr,point:0,point_local:kpt)
+        ContestPrize.create(contest_class:klass,contest_user:user,prize:pr,point:0,point_local:kpt)
       end
     end
   }
@@ -600,7 +605,7 @@ def import_contest_result_dantai(evt,sankas)
       else
         typ = :team
       end
-      opponent = team.opponents.create(round:round,round_name:kaisen,kind:typ,name:op_team)
+      opponent = ContestTeamOpponent.create(contest_team:team,round:round,round_name:kaisen,kind:typ,name:op_team)
     }
   }
   order = 0
@@ -609,7 +614,7 @@ def import_contest_result_dantai(evt,sankas)
     case curl
     when /^<!--(.*)-->/
       klass_name = $1
-      klass = evt.result_classes.create(index:order,class_name:klass_name)
+      klass = ContestClass.create(event:evt,index:order,class_name:klass_name)
       order += 1
     when /^\(\((.*)\)\)/
       team_name = $1
@@ -622,9 +627,7 @@ def import_contest_result_dantai(evt,sankas)
         pr.sub!('）',')')
         pr.sub!('（','(')
       end
-      # 原因不明: ここでreloadしないとContestResultCacheのupdate_prizesのc.teamsの内容がおかしいことになる
-      klass.reload
-      team = klass.teams.create(name: team_name, prize: pr)
+      team = ContestTeam.create(contest_class:klass, name: team_name, prize: pr)
       team_members[team] = []
       puts "dantai result #{evt.name} of #{team_name}"
       handle_opponents.call(ss[2..-1])
@@ -636,7 +639,7 @@ def import_contest_result_dantai(evt,sankas)
   }
   team_members.each{|k,v|
     v.to_enum.with_index(1){|user,rank|
-      k.members.create(order_num:rank,contest_user:user)
+      ContestTeamMember.create(order_num:rank,contest_user:user,contest_team:k)
     }
   }
 end
@@ -657,13 +660,13 @@ def import_contest_result_kojin(evt,sankas)
              when "LOSE" then :lose
              when "NOW" then :now
              when "FUSEN" then :default_win
-             else raise Exception.new("unknown result: #{result}")
+             else raise Exception.new("unknown result: #{result} at #{evt.inspect}")
              end
     score_int = if maisuu then Kagetra::Utils.eval_score_char(maisuu) end
     begin
-      klass.single_games.create(
-        type: :single,
-        contest_user:user,
+      ContestSingleGame.create(
+        contest_class_id:klass.id,
+        contest_user_id:user.id,
         result:result,
         score_str: maisuu,
         score_int: score_int,
@@ -683,15 +686,15 @@ def import_contest_result_kojin(evt,sankas)
       if ss[0].to_s.empty? then
         return
       end
-      choice = evt.choices.first(positive:true,index:answercounter)
+      choice = evt.choices_dataset.first(positive:true,index:answercounter)
       if choice.nil? then
         if answercounter == 0 then
-          choice = evt.choices.create(positive:true,name:"参加する",index:0)
+          choice = EventChoice.create(event:evt,positive:true,name:"参加する",index:0)
         else
           raise Exception.new("answercounter != 0 && choice does not exist")
         end
       end
-      av = evt.aggregate_attr.values.first(value:klass.class_name)
+      av = evt.aggregate_attr.attr_values_dataset.first(value:klass.class_name)
       if av.nil? and evt.kind == :contest then
         rank = Kagetra::Utils.class_from_name(klass.class_name)
         if rank.nil?.! then
@@ -705,12 +708,12 @@ def import_contest_result_kojin(evt,sankas)
         end
       end
       if av.nil? then
-        av = evt.aggregate_attr.values.first(index: 0)
+        av = evt.aggregate_attr.attr_values_dataset.first(index: 0)
         puts "WARNING: event='#{evt.name}' cannot guess attribute of '#{klass.class_name}', i will set it as '#{av.value}'."
       end
       name = ss[0]
       user = search_user_name(name)
-      choice.user_choices.create(user:user,user_name:name,attr_value:av)
+      EventUserChoice.create(event_choice:choice,user:user,user_name:name,attr_value:av)
       return
     end
     (name,prize) = ss[0...2]
@@ -736,7 +739,7 @@ def import_contest_result_kojin(evt,sankas)
           when '昇級' then :rank_up
           end
         end
-        klass.prizes.create(rank:Kagetra::Utils.rank_from_prize(pr),contest_user:user,prize:pr,point:pt,point_local:kpt)
+        ContestPrize.create(contest_class:klass,rank:Kagetra::Utils.rank_from_prize(pr),contest_user:user,prize:pr,point:pt,point_local:kpt)
       end
     end
   }
@@ -757,7 +760,7 @@ def import_contest_result_kojin(evt,sankas)
         num_person = $2
         num_person = if num_person.to_s.empty? then nil else num_person.to_i end
         begin
-          klass = evt.result_classes.create(index:order,class_name:klass_name,num_person:num_person)
+          klass = ContestClass.create(event:evt,index:order,class_name:klass_name,num_person:num_person)
         rescue Exception => e
           puts "ERROR in: #{evt.inspect} order:#{order}, klass_name:#{klass_name}, num_person: #{num_person}"
           throw e
@@ -771,10 +774,12 @@ def import_contest_result_kojin(evt,sankas)
 end
 
 def import_endtaikai
+  with_unrestrict_primary_key(Event){
   puts "import_endtaikai begin"
-  $event_groups = Hash[EventGroup.all(fields:[:id]).map{|x|[x.id,x.id]}]
+  $event_groups = Hash[EventGroup.all.map{|x|[x.id,x.id]}]
   lines = File.readlines(File.join(CONF_HAGAKURE_BASE,"txts","endtaikailist.cgi"))
   Parallel.each(lines,in_threads:NUM_THREADS){|line|
+    begin
     line.chomp!
     line.sjis!
     (tnum,kaisaidate,iskonpa,kanrisha,taikainame,koureitaikai) = line.split(/\t/)
@@ -835,7 +840,7 @@ def import_endtaikai
           if name.to_s.empty? then
             name = if positive then "参加する" else "参加しない" end
           end
-          evt.choices.create(name:name,positive:positive,index:i)
+          EventChoice.create(event:evt,name:name,positive:positive,index:i)
        }
       end
       sankas = nil
@@ -854,12 +859,17 @@ def import_endtaikai
       puts "Error at #{taikainame}"
       raise e
     end
+    rescue => e
+      puts "Error at #{line}"
+      raise e
+    end
   }
   # 昇級履歴用のキャッシュ更新
-  ContestPrize.all(:promotion.not => nil).each{|x|
+  ContestPrize.where(Sequel.~(promotion:nil)).each{|x|
     puts "昇級履歴更新: #{x.id}"
     x.touch
     x.save
+  }
   }
 end
 
@@ -885,7 +895,7 @@ def import_event_comment
         next if line.empty?
         (created,user_name,user_host,body) = line.split(/<>/)
         user = search_user_name(user_name)
-        evt.comments.create(created_at: DateTime.parse(created),
+        EventComment.create(thread:evt,created_at: DateTime.parse(created),
                             user: user,
                             user_name: user_name,
                             remote_host: user_host,
@@ -1100,7 +1110,7 @@ def import_album_stage2(old_ids)
           if n.to_s.empty? then
             puts "WARNING: empty tag, ignoring '#{prefix}'"
           else
-            item.tags.create(name:n,coord_x:x,coord_y:y,radius:r)
+            AlbumTag.create(album_item:item,name:n,coord_x:x,coord_y:y,radius:r)
           end
         end
       }
@@ -1201,7 +1211,7 @@ import_bbs
 import_schedule
 import_album
 #import_meibo
-#import_shurui
-#import_event
-#import_endtaikai
-#import_event_comment
+import_shurui
+import_event
+import_endtaikai
+import_event_comment

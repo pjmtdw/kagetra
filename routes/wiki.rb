@@ -129,7 +129,7 @@ class MainApp < Sinatra::Base
 
     get '/attached_list/:id', private:true do
       page = (params[:page] || 1).to_i
-      chunks = WikiAttachedFile.where(wiki_item_id:params[:id].to_i).order(Sequel.desc(:created_at),Sequel.desc(:id)).paginate(page,ATTACHED_LIST_PER_PAGE)
+      chunks = WikiAttachedFile.where(thread_id:params[:id].to_i).order(Sequel.desc(:created_at),Sequel.desc(:id)).paginate(page,ATTACHED_LIST_PER_PAGE)
       pages = chunks.page_count
       list = chunks.map{|x|
         x.select_attr(:id,:orig_name,:description,:size).merge({

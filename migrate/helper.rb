@@ -17,6 +17,17 @@ module Sequel
         foreign_key :last_comment_user_id, :users, on_delete: :set_null, comment: "スレッドに最後に書き込んだユーザ"
         Integer :comment_count, null:false, default:0, comment:"コメント数(毎回aggregateするのは遅いのでキャッシュ)"
       },
+      attached: lambda{|thread|
+        lambda{|x|
+          String :path, size:255
+          String :orig_name, size:128, comment:"元のファイル名"
+          TrueClass :is_public, null:false, default:false, comment:"公開されているか"
+          String :description, text:true
+          Integer :size, null:false
+          foreign_key :owner_id, :users, on_delele: :set_null
+          foreign_key :thread_id, thread, null:false, on_delete: :cascade
+        }
+      },
       comment: lambda{|thread|
         lambda{|x|
           String :body, text:true, null:false, comment:"内容"

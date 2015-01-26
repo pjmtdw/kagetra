@@ -9,13 +9,7 @@ Sequel.migration do
       Integer :attached_count, null:false, default:0, comment:"添付ファイルの数"
       foreign_key :owner_id, :users, on_delete: :set_null
     end
-    create_table_custom(:wiki_attached_files,[:base],comment:"Wikiの添付ファイル") do
-      String :path, size:255
-      String :orig_name, size:128, comment:"元のファイル名"
-      String :description, text:true
-      Integer :size, null:false
-      foreign_key :owner_id, :users, on_delele: :set_null
-      foreign_key :wiki_item_id, :wiki_items, null:false, on_delete: :cascade
+    create_table_custom(:wiki_attached_files,[:base,[:attached,:wiki_items]],comment:"Wikiの添付ファイル") do
     end
     
     create_table_custom(:wiki_comments,[:base,:env,[:comment,:wiki_items]]) do

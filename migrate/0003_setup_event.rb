@@ -53,5 +53,7 @@ Sequel.migration do
       foreign_key :event_id, :events, null:false, on_delete: :cascade
       index [:user_id,:event_id], unique:true
     end
+    create_table_custom(:event_attached_files,[:base,[:attached,:events]],comment:"Wikiの添付ファイル") do
+    end
   end
 end

@@ -32,6 +32,3 @@ gem 'selenium-webdriver' # Testing in browser
 gem 'rack-coffee'
 gem 'tux' # CLI for sinatra
 #gem 'mecab', '0.996'
-
-# only used for import hagakure
-gem 'parallel'

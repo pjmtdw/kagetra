@@ -1,5 +1,6 @@
 define (require,exports,module) ->
   $co = require("comment")
+  $atc = require("attached")
   _.mixin
     show_size: (x) ->
       if x < 1024
@@ -23,7 +24,7 @@ define (require,exports,module) ->
         $("#section-page").click()
       if id != "all" and not g_public_mode
         $(".hide-for-all").show()
-        @set_id_fetch("attached_list",WikiAttachedListView,id)
+        @set_id_fetch("attached_list",$atc.AttachedListView,id,{action:"wiki"})
         @set_id_fetch("log",WikiLogView,id)
         $co.section_comment("wiki","#wiki-comment",id,$("#wiki-comment-count"))
       else
@@ -180,59 +181,7 @@ define (require,exports,module) ->
 
       window.wiki_panel_view?.remove()
       window.wiki_panel_view = new WikiPanelView(model:@model)
-  WikiAttachedUploadView = Backbone.View.extend
-    template: _.template_braces($("#templ-wiki-attached-upload").html())
-    events:
-      "click .delete-attached" : 'delete_attached'
-    delete_attached: _.wrap_submit ->
-      that = this
-      _.cb_prompt("削除するにはdeleteと入れて下さい").done((res)->
-        if res == "delete"
-          $.ajax("api/wiki/attached/#{that.options.data.id}",{type: "DELETE"}).done(
-            ->_.cb_alert("削除しました").always(that.options.when_success)))
-    initialize: ->
-      _.bindAll(@,"submit_done")
-      @render()
-    render: ->
-      @$el.html(@template(data:@options.data))
-      @$el.appendTo(@options.target)
-      $("#dummy-iframe").load(@submit_done)
-    submit_done: ->
-      that = this
-      _.iframe_submit(@options.when_success)
 
-  WikiAttachedListModel = Backbone.Model.extend
-    urlRoot: "api/wiki/attached_list"
-  WikiAttachedListView = Backbone.View.extend
-    template: _.template_braces($("#templ-wiki-attached").html())
-    events:
-      "click .page": "change_page"
-      "click  #show-attached-upload" : "show_attached_upload"
-      "click .edit-attached" : "edit_attached"
-    reveal_it: (data)->
-      target = "#container-attached-upload"
-      that = this
-      when_success = ->
-        that.model.fetch()
-        $(target).foundation("reveal","close")
-      v = new WikiAttachedUploadView(target:target,data:data,when_success:when_success)
-      _.reveal_view(target,v)
-    edit_attached: (ev)->
-      attached_id = $(ev.currentTarget).data("id")
-      @reveal_it(_.extend(@model.pick('item_id'),_.find(@model.get('list'),(x)->x.id==attached_id)))
-
-    show_attached_upload: ->
-      @reveal_it(@model.pick('item_id'))
-    change_page: (ev)->
-      obj = $(ev.currentTarget)
-      page = obj.data("page")
-      @model.fetch(data:{page:page})
-    initialize: ->
-      @model = new WikiAttachedListModel()
-      @listenTo(@model,"sync",@render)
-    render: ->
-      @$el.html(@template(data:@model.toJSON()))
-      @$el.appendTo("#wiki-attached")
   WikiLogModel = Backbone.Model.extend
     urlRoot: "api/wiki/log"
   WikiLogView = Backbone.View.extend

@@ -20,6 +20,7 @@ class Event < Sequel::Model(:events)
   one_to_many :result_classes, class:'ContestClass'
   one_to_many :result_users, class:'ContestUser'
   one_to_many :comments, class:'EventComment', key: :thread_id
+  one_to_many :attacheds, class:'EventAttachedFile', key: :thread_id
  
   serialized_attr_accessor :kind__contest
   def validate
@@ -114,6 +115,13 @@ class EventUserChoice < Sequel::Model(:event_user_choices)
       end
     }
   }
+end
+
+ # 大会/行事の添付ファイル
+class EventAttachedFile < Sequel::Model(:event_attached_files)
+  include AttachedBase
+  many_to_one :owner, class:'User'
+  many_to_one :thread, class:'Event'
 end
 
 # 大会/行事のコメント

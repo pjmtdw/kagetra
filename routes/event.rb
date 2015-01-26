@@ -66,6 +66,7 @@ class MainApp < Sinatra::Base
       if opts[:detail]
         r.merge!(ev.select_attr(:description,:formal_name,:start_at, :end_at, :done))
         r.merge!(get_participant(ev,opts[:edit])) unless opts[:no_participant]
+        r[:attached] = ev.attacheds.map{|e|e.select_attr(:id,:orig_name,:description)}
         if opts[:edit]
           r[:all_attrs] = get_all_attrs
           r[:owners_str] = ev.owners.map(&:name).join(" , ")
@@ -273,6 +274,7 @@ class MainApp < Sinatra::Base
     end
   end
   comment_routes("/api/event",Event,EventComment,true)
+  attached_routes("event",Event,EventAttachedFile)
   get '/event_catalog' do
     haml :event_catalog
   end

@@ -1,6 +1,7 @@
 define (require,exports,module)->
   $co = require("comment")
   $mc = require("map_common")
+  $atc = require("attached")
   _.mixin
     show_all_attrs: (all_attrs,forbidden_attrs) ->
       r = ""
@@ -133,6 +134,9 @@ define (require,exports,module)->
       @$el.html(@template(data:@model.toJSON()))
       ev = new EventEditInfoView(model:@model)
       ep = new EventEditParticipantView(model:@model)
+      atc = new $atc.AttachedListView(action:"event")
+      atc.model.set("id",@model.get("id"))
+      atc.model.fetch()
       @$el.find("#event-edit-info").append(ev.$el)
       @$el.find("#event-edit-participant").append(ep.$el)
       @$el.appendTo(@options.target)

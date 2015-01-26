@@ -134,6 +134,21 @@ module ThreadBase
   end
 end
 
+module AttachedBase
+  def update_attached_count
+    th = self.thread
+    th.update(attached_count:th.attacheds_dataset.count)
+  end
+  def after_create
+    super
+    update_attached_count
+  end
+  def after_destroy
+    super
+    update_attached_count
+  end
+end
+
 class MyConf < Sequel::Model(:my_confs)
   plugin :serialization, :json, :value
   set_default_values_custom :value, "{}"

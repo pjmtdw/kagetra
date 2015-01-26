@@ -1,5 +1,5 @@
 %script#templ-attached-upload(type='text/template')
-  %form#attached-form(action='{{action}}/attached/{{data.item_id}}' method='post' enctype='multipart/form-data' target='dummy-iframe')
+  %form#attached-form.cb-container(action='{{action}}/attached/{{data.item_id}}' method='post' enctype='multipart/form-data' target='dummy-iframe')
     <% if(data.attached_id){ %>
     %input(type='hidden' name='attached_id' value='{{data.attached_id}}')
     <% } %>
@@ -19,7 +19,7 @@
         %input(type='hidden' name='attached_id' value='{- data.id -}')
         %button.delete-attached.small.round.alert 削除
         <% } %>
-  %iframe(name='dummy-iframe' id='dummy-iframe' style='display:none;')
+    %iframe(name='dummy-iframe' id='dummy-iframe' style='display:none;')
 
 
 %script#templ-attached(type='text/template')
@@ -45,4 +45,3 @@
             <% } %>
         <% }) %>
 
-#container-attached-upload.reveal-modal

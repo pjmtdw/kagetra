@@ -116,7 +116,6 @@ define (require,exports,module)->
             if err.code == 3 and current_location_retry == 0
               # err.code == 3 は TIMEOUT なので enableHighAccuracy: false で再試行してみる
               current_location_retry = 1
-              console.log "hoge"
               navigator.geolocation.getCurrentPosition(onsuccess,onerror,{
                 enableHighAccuracy: false
                 timeout: 6000

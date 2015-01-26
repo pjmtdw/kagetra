@@ -69,6 +69,13 @@ define (require, exports, module) ->
 
   markdown_link= new RegExp("\\[(.*?)\\]\\((.*?)\\)","g")
   _.mixin
+    show_size: (x) ->
+      if x < 1024
+        "#{x} bytes"
+      else if x < 1048576
+        "#{Math.floor(x/1024)} KB"
+      else
+        "#{Math.floor(x/1048576)} MB"
     markdown_small: (text)->
       if _.isString(text)
         text = _.escape(text)

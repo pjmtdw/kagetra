@@ -1,3 +1,8 @@
+-# この haml を content_for :haml で読み込むファイルには必ず
+-# content_for :css に event_detail, comment, attached を追加すること (comment は公開されないので公開用hamlには不要かも)
+= haml :comment
+= haml :attached
+
 %script#templ-event-detail-comment-header(type='text/template')
   %button.button-light.show-event-info 情報
 %script#templ-event-detail(type='text/template')
@@ -51,6 +56,17 @@
         .pre {{ _.replace_url_escape(data.description) }}
   .row
     .large-12.columns
+      %fieldset.panel
+        %legend 添付ファイル
+        <% _.each(data.attached,function(x){ %>
+        %div
+          %a(href='/static/event/attached/{{x.id}}/{{x.orig_name}}') {- x.orig_name -}
+          <% if(x.description){ %>
+          &middot;&middot;&middot; {- x.description -}
+          <% } %>
+        <%  }) %>
+  .row
+    .large-12.columns
       .participants
 
 %script#templ-event-participant(type='text/template')
@@ -94,6 +110,11 @@
         .content(data-section-content)
           #event-edit-participant
       <% } %>
+      %section
+        %p.title(data-section-title)
+          %a 添付ファイル
+        .content(data-section-content)
+          #event-attached.attached-list
 
 %script#templ-event-edit-info(type='text/template')
   %form#event-edit-form
@@ -270,8 +291,6 @@
         <% }) %>
     <% }) %>
 
-
-= haml :comment
 
 %script
   -# Rubyの連想配列は順番が保持されるけどJavaScriptは保持されないので配列に変換

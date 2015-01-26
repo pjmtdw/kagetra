@@ -14,10 +14,9 @@ define ->
       @render()
     render: ->
       @$el.html(@template(data:@options.data,action:@options.action))
+      @$el.find("#dummy-iframe").load(@submit_done)
       @$el.appendTo(@options.target)
-      $("#dummy-iframe").load(@submit_done)
     submit_done: ->
-      that = this
       _.iframe_submit(@options.when_success)
   AttachedListModel = Backbone.Model.extend
     initialize: (attrs, opts) ->
@@ -34,9 +33,15 @@ define ->
       that = this
       when_success = ->
         that.model.fetch()
-        $(target).foundation("reveal","close")
+        $.colorbox.close()
       v = new AttachedUploadView(target:target,data:data,action:@options.action,when_success:when_success)
-      _.reveal_view(target,v)
+      $.colorbox(
+        html: v.$el
+        transition: "none"
+        fadeOut: 100
+        width: 720
+        opacity: 0.5
+      )
     edit_attached: (ev)->
       attached_id = $(ev.currentTarget).data("id")
       @reveal_it(_.extend(@model.pick('item_id'),_.find(@model.get('list'),(x)->x.id==attached_id)))

@@ -27,20 +27,9 @@ class WikiItemLog < Sequel::Model(:wiki_item_logs)
 end
 
 class WikiAttachedFile < Sequel::Model(:wiki_attached_files)
+  include AttachedBase
   many_to_one :owner, class:'User'
   many_to_one :thread, class:'WikiItem'
-  def update_attached_count
-    wi = self.thread
-    wi.update(attached_count:wi.attacheds_dataset.count)
-  end
-  def after_create
-    super
-    update_attached_count
-  end
-  def after_destroy
-    super
-    update_attached_count
-  end
 end
 
 class WikiComment < Sequel::Model(:wiki_comments)

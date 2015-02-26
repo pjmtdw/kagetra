@@ -14,6 +14,7 @@ define ->
       @render()
     render: ->
       @$el.html(@template(data:@options.data,action:@options.action))
+      # <form target='dummy-iframe' .. > を指定しているので送信が完了すると #dummy-frame に load イベントが発生する
       @$el.find("#dummy-iframe").load(@submit_done)
       @$el.appendTo(@options.target)
     submit_done: ->

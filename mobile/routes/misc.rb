@@ -83,6 +83,9 @@ class MainApp < Sinatra::Base
       else
         @uid = get_permanent("uid")
       end
+      if params[:cookie_empty] then
+        @message = "おそらくCookieが無効化されています．ブラウザの設定を確認してCookieを有効にして下さい．"
+      end
       mobile_haml :login
     end
     post '/' do

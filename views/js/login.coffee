@@ -103,7 +103,10 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
       .done (data) ->
         switch data.result
           when "OK"
-            window.location.href = "/top"
+            if _.isEmpty(document.cookie)
+              _.cb_alert("Cookieが無効になっています．ブラウザの設定を確認して有効にして下さい．")
+            else
+              window.location.href = "/top"
           when "WRONG_PASSWORD"
             _.cb_alert("個人パスワードが違います").always(->
               elem.val("")

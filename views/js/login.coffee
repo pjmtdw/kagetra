@@ -109,6 +109,8 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
               elem.val("")
               elem.focus()
             )
+          when "COOKIE_BLOCKED"
+            _.cb_alert("Cookieが無効化もしくはブロックされています．ブラウザの設定を確認して下さい．")
           when "NOT_LOGINABLE"
             _.cb_alert("ログイン権限がありません")
         that.submitting = false

@@ -31,6 +31,15 @@ class MainApp < Sinatra::Base
       # しかしそもそも攻撃者がDBを見られる時点であんまし認証とか意味ないので許容する
       # TODO: ちゃんとした認証方法に変える
       post '/user' do
+        if not request.cookies.has_key?(G_SESSION_COOKIE_NAME) then
+          # ブラウザがセッションを受け付けてない場合はCOOKIE_BLOCKEDを返す
+          # 最初に/にアクセスしたときにSinatraが{"session_id"=>"...","csrf"=>"..."}みたいなセッションをデフォルトで作るので
+          # このAPIが呼ばれた時点で既にセッションは存在していてCookieとして送られてくるはず．
+          # 既にセッションが存在している時にブラウザの設定変更で「これ以降のCookieの受付をブロック」みたいなことをされるとお手上げだが，
+          # そのようなケースは稀で，セッションのCookieはブラウザを閉じると消えるので妥協する．
+          return {result: "COOKIE_BLOCKED"} 
+        end
+
         user = User[params[:user_id].to_i]
         if user.loginable then
           hash = user.password_hash

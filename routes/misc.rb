@@ -39,11 +39,7 @@ class MainApp < Sinatra::Base
       if path.start_with?("/api/") then
         halt 403, "login required"
       elsif path.start_with?("/mobile/") then
-        if request.cookies.empty? then
-          redirect '/mobile/?cookie_empty=true'
-        else
-          redirect '/mobile/'
-        end
+        redirect '/mobile/'
       else
         redirect '/'
       end

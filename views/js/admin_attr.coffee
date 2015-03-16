@@ -43,21 +43,21 @@ define ->
           _.cb_alert(data._error_)
         else
           _.cb_alert("編集しました")
-          button.toggleBtnText()
-          that.is_applying = false
-          that.model.fetch()
+        button.toggleBtnText()
+        that.is_applying = false
+        that.model.fetch()
       )
 
     add_key: (ev) ->
       that = this
-      _.cb_prompt("属性追加").done((r)->
+      _.cb_prompt("属性種目追加").done((r)->
         t = that.template_table(data:{id:"new",name:r})
         $("#after-last-key").before(t)
         _.cb_alert("一番最後に追加しました")
       )
     add_value: (ev)->
       that = this
-      _.cb_prompt("属性追加").done((r)->
+      _.cb_prompt("属性値追加").done((r)->
         t = that.template_row(data:{id:"new",value:r})
         $(ev.currentTarget).closest("table").find(".after-last-value").before(t)
       )

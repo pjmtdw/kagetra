@@ -21,15 +21,15 @@ Sequel.migration do
     end
     
     create_table_custom(:user_attribute_values, [:base], comment:"ユーザ属性の値(性別なら男または女,級位ならA級やB級など)") do
-      foreign_key :attr_key_id, :user_attribute_keys, null:false
+      foreign_key :attr_key_id, :user_attribute_keys, null:false, on_delete: :cascade
       String :value, size:48, null:false
       Integer :index, null:false, comment:"順序付け"
       TrueClass :default, null:false, default:false, comment:"既定値かどうか"
     end
     
     create_table_custom(:user_attributes, [:base],comment:"どのユーザがどの属性を持っているか") do
-      foreign_key :user_id, :users, null:false
-      foreign_key :value_id, :user_attribute_values, null:false
+      foreign_key :user_id, :users, null:false, on_delete: :cascade
+      foreign_key :value_id, :user_attribute_values, null:false, on_delete: :cacade
     end
     
     create_table_custom(:user_login_latests,[:base,:env],comment:"最後のログイン(updated_atが実際のログインの日時)") do

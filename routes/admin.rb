@@ -87,8 +87,6 @@ class MainApp < Sinatra::Base
           else
             k = UserAttributeKey[x["key_id"]]
             if x["deleted"] then
-              UserAttribute.where(value:k.values).each(&:destroy)
-              k.values.each{|y|y.destroy}
               k.destroy
               next
             end

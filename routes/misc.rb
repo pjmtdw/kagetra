@@ -75,7 +75,8 @@ class MainApp < Sinatra::Base
 
     get '/board_message/:mode' do
       name = getBoardMessageName(params[:mode])
-      MyConf.first(name:name).value or {message:""}
+      cnf = MyConf.first(name:name)
+      if cnf.nil? then {message:""} else cnf.value end
     end
     post '/board_message/:mode' do
       with_update{

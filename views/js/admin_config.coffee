@@ -1,6 +1,6 @@
 define ["crypto-aes", "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
-  AdminConfigView = Backbone.View.extend
-    el: "#admin-common"
+  AdminChangePassView = Backbone.View.extend
+    el: "#admin-change-pass"
     events:
       "submit #change-shared-pass" : "change_shared_pass"
       "submit #change-addrbook-pass" : "change_addrbook_pass"
@@ -38,7 +38,28 @@ define ["crypto-aes", "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
         contentType: "application/json"
         type: "POST").done(_.with_error("完了"))
 
-
+  AdminChangeBoardMessageModel = Backbone.Model.extend
+    url: -> "/api/board_message/#{@get('mode')}"
+  
+  AdminChangeBoardMessageView = Backbone.View.extend
+    template: _.template_braces($("#templ-change-board-message").html())
+    events:
+      "submit" : "do_submit"
+    initialize: ->
+      mode = @options.mode
+      @setElement("#admin-change-board-message-" + mode)
+      @model = new AdminChangeBoardMessageModel(mode:mode)
+      @listenTo(@model,"sync",@render)
+      @model.fetch()
+    render: ->
+      data = @model.toJSON()
+      data.mode= @options.mode
+      @$el.html(@template(data:data))
+    do_submit: _.wrap_submit ->
+      @model.set("message",@$el.find("[name='message']").val())
+      @model.save().done(_.with_error("更新しました"))
 
   init: ->
-    window.admin_config_view = new AdminConfigView()
+    window.admin_config_view = new AdminChangePassView()
+    window.admin_change_board_message_shared = new AdminChangeBoardMessageView(mode:"shared")
+    window.admin_change_board_message_user = new AdminChangeBoardMessageView(mode:"user")

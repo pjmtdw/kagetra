@@ -3,10 +3,11 @@ class MainApp < Sinatra::Base
   def filter_public(splat)
     path = "/" + splat
     # TODO: G_TOP_BAR_PUBLIC の wiki のページが増えるとここが非効率的になる
+    # board_message は /public/api/board_message/ からもアクセスされるのでこっちにも入れておく
     halt(403,"this page is not public") unless G_TOP_BAR_PUBLIC.any?{|x|
       r = x[:route].sub(/#.*/,"")
       ["/"+r,"/api/"+r].any?{|z| path.start_with?(z)}
-    } or path.start_with?("/haml/")
+    } or path.start_with?("/haml/") or path.start_with?("/api/board_message/")
     @public_mode = true
     call env.merge("PATH_INFO" => path)
   end
@@ -33,7 +34,7 @@ class MainApp < Sinatra::Base
     return if @public_mode
     path = request.path_info
     # 以下のURLはログインしなくてもアクセスできる
-    return if ["/public/","/api/user/auth/","/js/","/img/","/css/"].any?{|s|path.start_with?(s)} or ["/","/robots.txt","/select_other_uid","/mobile/"].include?(path)
+    return if ["/public/","/api/user/auth/","/api/board_message/","/js/","/img/","/css/"].any?{|s|path.start_with?(s)} or ["/","/robots.txt","/select_other_uid","/mobile/"].include?(path)
     @user = get_user
     if @user.nil? then
       if path.start_with?("/api/") then
@@ -65,6 +66,22 @@ class MainApp < Sinatra::Base
         }
       end
       response.body = r
+    end
+
+    def getBoardMessageName(mode)
+      halt 403, "invalid board message mode." unless ["user","shared"].include?(mode)
+      "board_message_" + mode
+    end
+
+    get '/board_message/:mode' do
+      name = getBoardMessageName(params[:mode])
+      MyConf.first(name:name).value or {message:""}
+    end
+    post '/board_message/:mode' do
+      with_update{
+        name = getBoardMessageName(params[:mode])
+        MyConf.update_or_create({name: name},{value: {message:@json['message']}})
+      }
     end
   end
   get '/' do

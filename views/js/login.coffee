@@ -17,7 +17,27 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
       @model.fetch()
     render: ->
       $("#user-names").html(data_to_option(@model.get("list")))
+  
+  BoardMessageModel = Backbone.Model.extend
+    # Eメールアドレス変換をかけるために /public/ でアクセスする
+    url: -> (if @get('mode') == "shared" then "/public" else "") + "/api/board_message/#{@get('mode')}"
 
+  BoardMessageView = Backbone.View.extend
+    el: "#container-board-message"
+    template: _.template_braces($("#templ-board-message").html())
+    initialize: ->
+      @model = new BoardMessageModel(mode:@options.mode)
+      @listenTo(@model,"sync",@render)
+      @model.fetch()
+    render: ->
+      data = @model.toJSON()
+      if data.message
+        @$el.html(@template(data:data))
+      else
+        @$el.empty()
+    change_mode: (mode) ->
+      @model.set("mode",mode)
+      @model.fetch()
 
   SharedPasswdView = Backbone.View.extend
     el: "#container-shared-pass"
@@ -42,6 +62,7 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
         if data.result == "OK"
           window.shared_passwd_view.remove()
           new LoginView()
+          window.board_message_view.change_mode("user")
         else
           message = "共通パスワードが違います．"
           try
@@ -120,6 +141,8 @@ define [ "crypto-hmac", "crypto-base64", "crypto-pbkdf2"], ->
   init: ->
     if $("#templ-user-name").length == 0
       window.shared_passwd_view = new SharedPasswdView()
+      window.board_message_view = new BoardMessageView(mode:"shared")
     else
       window.login_view = new LoginView(single_mode:true)
+      window.board_message_view = new BoardMessageView(mode:"user")
 

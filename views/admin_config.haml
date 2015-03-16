@@ -5,7 +5,7 @@
 = haml :top_bar
 = haml :admin_common
 
-#admin-common
+#admin-change-pass
   .row
     .large-12.columns
       %form#change-shared-pass
@@ -30,5 +30,17 @@
           %label 新しい名簿パスワード(確認用)
           %input(name='new-addrbook-pass-2' type='password')
           %input.button.small.round(type='submit' value='送信') ※パスワード変更には数秒〜数十秒かかります
+
+#admin-change-board-message-shared
+#admin-change-board-message-user
+
+%script#templ-change-board-message(type='text/template')
+  .row
+    .large-12.columns
+      %form
+        %fieldset
+          %legend {{ data.mode == "shared" ? "共通" : "個人" }}パスワード入力画面のメッセージ変更
+          %input.button.small.round(type='submit' value='送信')
+          %textarea(name='message' rows='5') {- data.message -}
 %script
   = addrbook_check_password_js

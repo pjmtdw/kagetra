@@ -11,6 +11,7 @@
 
 #container-shared-pass
 #container-login
+#container-board-message
 
 %script#templ-shared-pass(type='text/template')
   .row
@@ -58,6 +59,10 @@
               .large-2.small-2.columns
                 %input.button.postfix.radius(type='submit' value='GO')
 
+%script#templ-board-message(type='text/template')
+  .row
+    .columns
+      .message.panel.pre {{ _.replace_url_escape(data.message) }}
 %script
   var g_shared_salt="#{shared_salt}";
 

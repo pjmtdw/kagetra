@@ -82,7 +82,7 @@ module Kagetra
     serializer = lambda{|x|
       if not x.nil? then
         raise Exception.new("#{x.inspect} is #{x.class}, it should be Array") unless x.is_a?(Array)
-        x.inject(0){|sum,y|
+        x.uniq.inject(0){|sum,y|
           sum + (1 << flags.index(y))
         }
       end

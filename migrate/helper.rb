@@ -24,7 +24,7 @@ module Sequel
           TrueClass :is_public, null:false, default:false, comment:"公開されているか"
           String :description, text:true
           Integer :size, null:false
-          foreign_key :owner_id, :users, on_delele: :set_null
+          foreign_key :owner_id, :users, on_delete: :set_null
           foreign_key :thread_id, thread, null:false, on_delete: :cascade
         }
       },

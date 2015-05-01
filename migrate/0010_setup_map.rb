@@ -8,7 +8,7 @@ Sequel.migration do
       Float :lng, null:false, comment: "経度"
       Integer :zoom, null:false, comment: "拡大レベル"
       String :markers, text:true, comment: "マーカーのJSONデータ"
-      foreign_key :user_id, :users, null:false, on_delete: :cascade
+      foreign_key :user_id, :users, null:false, on_delete: :set_null
     end
     alter_table(:events) do
       add_foreign_key :map_bookmark_id, :map_bookmarks, on_delete: :set_null

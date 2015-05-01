@@ -29,20 +29,20 @@ Sequel.migration do
     
     create_table_custom(:user_attributes, [:base],comment:"どのユーザがどの属性を持っているか") do
       foreign_key :user_id, :users, null:false, on_delete: :cascade
-      foreign_key :value_id, :user_attribute_values, null:false, on_delete: :cacade
+      foreign_key :value_id, :user_attribute_values, null:false, on_delete: :cascade
     end
     
     create_table_custom(:user_login_latests,[:base,:env],comment:"最後のログイン(updated_atが実際のログインの日時)") do
-      foreign_key :user_id, :users, null:false
+      foreign_key :user_id, :users, null:false, on_delete: :cascade
     end
     
     create_table_custom(:user_login_logs,[:base,:env],comment:"直近数日間のログイン履歴(created_atがログインの日時)") do
-      foreign_key :user_id, :users, null:false
+      foreign_key :user_id, :users, null:false, on_delete: :cascade
       TrueClass :counted, null:false, default:true, comment:"ログイン数を増やしたかどうか"
     end
     
     create_table_custom(:user_login_monthlies,[:base],comment:"ユーザが月に何回ログインしたか") do
-      foreign_key :user_id, :users, null:false
+      foreign_key :user_id, :users, null:false, on_delete: :cascade
       String :year_month, size:8, null:false, index:true
       Integer :count, null:false, default:0
       Integer :rank, comment:"その月における順位"

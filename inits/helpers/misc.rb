@@ -192,8 +192,12 @@ module MiscHelpers
     updates = {s_body => new_body, s_revision => rev}
     patches = G_DIMAPA.patch_make(new_body,prev_body)
     patch = G_DIMAPA.patch_toText(patches)
-    updates_patch = {revision:rev,patch:patch}
-    [updates,updates_patch]
+    if not patch.to_s.empty? then
+      updates_patch = {revision:rev,patch:patch}
+      [updates,updates_patch]
+    else
+      [nil,nil]
+    end
   end
   # 編集距離
   # copied from http://rosettacode.org/wiki/Levenshtein_distance#Ruby

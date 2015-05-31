@@ -2,7 +2,8 @@
 # License of this software is described in LICENSE file.
 
 # Change this number whenever you changed the .coffee/.js/.scss/.css/.haml file
-G_RESOURCE_VERSION = 22
+# TODO: automatically increase this version
+G_RESOURCE_VERSION = 23
 
 require_relative '../conf'
 require 'bundler'

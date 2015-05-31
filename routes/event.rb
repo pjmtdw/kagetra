@@ -39,13 +39,18 @@ class MainApp < Sinatra::Base
 
     def event_info(ev,user,opts = {})
       today = Date.today
-      is_owner = ev.owners.map(&:id).include?(@user.id) 
-      r = ev.to_deserialized_hash.select_attr(:place,:name,:date,:kind,:official,:deadline,:created_at,:id,:participant_count,:comment_count,:team_size,:event_group_id,:public,:last_comment_date)
+      is_owner = user && ev.owners.map(&:id).include?(user.id) 
+      attrs = [:place,:name,:date,:kind,:official,:deadline,:created_at,:id,:team_size,:event_group_id,:public]
+      if not @public_mode then
+        attrs += [:participant_count,:comment_count,:last_comment_date]
+      end
+
+      r = ev.to_deserialized_hash.select_attr(*attrs)
       if ev.map_bookmark then
         r[:map_bookmark_title] = ev.map_bookmark.title
         r[:map_bookmark_id] = ev.map_bookmark.id
       end
-      r[:has_new_comment] = ev.has_new_comment(user)
+      r[:has_new_comment] = user && ev.has_new_comment(user)
       r[:deadline_day] = (r[:deadline]-today).to_i if r[:deadline]
       if r[:deadline_day] and r[:deadline_day].between?(0,G_DEADLINE_ALERT) then
         r[:deadline_alert] = true
@@ -54,26 +59,31 @@ class MainApp < Sinatra::Base
         r[:deadline_after] = true
       end
       r[:choices] = ev.choices_dataset.order(Sequel.asc(:index)).map{|x|x.values.select_attr(:positive,:name,:id)}
-      r[:editable] = @user.admin || is_owner || (ev.done and ev.kind == :contest and @user.permission.include?(:sub_admin))
-      r[:choice] = if opts.has_key?(:user_choices) then opts[:user_choices][ev.id]
-                   else
-                     t = EventChoice.first(event:ev,user_choices:user.event_user_choices)
-                     t && t.id
-                   end
-      opts[:user_attr_values] ||= UserAttributeValue.where(user_attributes:user.attrs_dataset).map(&:id)
-      forbidden = (ev.forbidden_attrs & opts[:user_attr_values]).empty?.!
-      r[:forbidden] = true if forbidden
+      r[:editable] = user && (user.admin || is_owner || (ev.done && ev.kind == :contest && user.permission.include?(:sub_admin)))
+      if user then
+        r[:choice] = if opts.has_key?(:user_choices) then opts[:user_choices][ev.id]
+                     else
+                       t = EventChoice.first(event:ev,user_choices:user.event_user_choices)
+                       t && t.id
+                     end
+        opts[:user_attr_values] ||= UserAttributeValue.where(user_attributes:user.attrs_dataset).map(&:id)
+        forbidden = (ev.forbidden_attrs & opts[:user_attr_values]).empty?.!
+        r[:forbidden] = true if forbidden
+      end
       if opts[:detail]
         r.merge!(ev.select_attr(:description,:formal_name,:start_at, :end_at, :done))
-        r.merge!(get_participant(ev,opts[:edit])) unless opts[:no_participant]
-        r[:attached] = ev.attacheds.map{|e|e.select_attr(:id,:orig_name,:description)}
-        if opts[:edit]
-          r[:all_attrs] = get_all_attrs
-          r[:owners_str] = ev.owners.map(&:name).join(" , ")
-          r[:all_event_groups] = get_all_event_groups
-          r.merge!(ev.select_attr(:forbidden_attrs,:hide_choice,:register_done,:aggregate_attr_id))
+        if not @public_mode
+          r.merge!(get_participant(ev,opts[:edit])) unless opts[:no_participant]
+          r[:attached] = ev.attacheds.map{|e|e.select_attr(:id,:orig_name,:description)}
+          if opts[:edit]
+            r[:all_attrs] = get_all_attrs
+            r[:owners_str] = ev.owners.map(&:name).join(" , ")
+            r[:all_event_groups] = get_all_event_groups
+            r.merge!(ev.select_attr(:forbidden_attrs,:hide_choice,:register_done,:aggregate_attr_id))
+          end
         end
       end
+      r[:public_mode] = @public_mode
       r
     end
     def get_participant(ev,edit_mode)

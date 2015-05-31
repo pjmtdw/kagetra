@@ -6,7 +6,11 @@ class MainApp < Sinatra::Base
     # board_message は /public/api/board_message/ からもアクセスされるのでこっちにも入れておく
     halt(403,"this page is not public") unless G_TOP_BAR_PUBLIC.any?{|x|
       r = x[:route].sub(/#.*/,"")
-      ["/"+r,"/api/"+r].any?{|z| path.start_with?(z)}
+      rs = ["/"+r,"/api/"+r]
+      if r == "schedule" then
+        rs += ["/api/event/item/"] # 予定表の「情報」ボタンも公開可能にする
+      end
+      rs.any?{|z| path.start_with?(z)}
     } or path.start_with?("/haml/") or path.start_with?("/api/board_message/")
     @public_mode = true
     call env.merge("PATH_INFO" => path)

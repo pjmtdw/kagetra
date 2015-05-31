@@ -6,6 +6,7 @@
 %script#templ-event-detail-comment-header(type='text/template')
   %button.button-light.show-event-info 情報
 %script#templ-event-detail(type='text/template')
+  <% if(!data.public_mode){ %>
   .row
     .large-12.columns
       %fieldset.event-choice-panel.panel.left.event-item.hide
@@ -18,6 +19,7 @@
         <% if(data.show_comment_button){ %>
         %button.button-light.show-comment コメント ( {{ data.comment_count }} )
         <% } %>
+  <% } %>
   .row
     .large-8.columns
       %fieldset.panel
@@ -54,6 +56,7 @@
       %fieldset.panel
         %legend 備考
         .pre {{ _.replace_url_escape(data.description) }}
+  <% if(!data.public_mode){ %>
   .row
     .large-12.columns
       %fieldset.panel
@@ -68,6 +71,7 @@
   .row
     .large-12.columns
       .participants
+  <% } %>
 
 %script#templ-event-participant(type='text/template')
   -# data.participant[-1] が存在するならそれは選択肢が表示不可のもの

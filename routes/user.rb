@@ -94,6 +94,7 @@ class MainApp < Sinatra::Base
 
     get '/newly_message' do
       new_events = Event.new_events(@user).map{|x|x.select_attr(:name,:id)}
+      today_contests = Event.today_contests.map{|x|x.select_attr(:name,:id)}
       participants = Event.new_participants(@user)
       {
         last_login: @user.last_login_str,
@@ -104,6 +105,7 @@ class MainApp < Sinatra::Base
         ev_done_comment: Event.new_threads(@user,Sequel.expr(done:true) & Sequel.~(kind:Event.kind__contest)).map{|x|x.select_attr(:name,:id)},
         bbs: BbsThread.new_threads(@user).each_page(BBS_THREADS_PER_PAGE).with_index(1).to_a.map{|xs,i|xs.map{|x|x.select_attr(:title,:id).merge(page:i)}}.flatten,
         new_events: new_events,
+        today_contests: today_contests,
         participants: participants
       }
     end

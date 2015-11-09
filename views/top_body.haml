@@ -122,6 +122,8 @@
     %span , 今月ログイン:
     %span.log-mon {{ data.log_mon }}
 
+  #today-contest
+    {{ _.show_news(data.today_contests,"name","本日の大会","result#contest/%id%")  }}
   #event-new.link-detail
     {{ _.show_news(data.new_events,"name","新規大会行事追加%%件","top#event-detail/%id%")  }}
   #bbs-new

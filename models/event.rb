@@ -32,6 +32,9 @@ class Event < Sequel::Model(:events)
     search_from = [user.show_new_from||Time.now,Time.now-G_NEWLY_DAYS_MAX*86400].max
     self.where(done:false).where{created_at >= search_from}.order(Sequel.desc(:created_at))
   end
+  def self.today_contests
+    self.where(kind:Event.kind__contest, done:true, date:Date.today).where{participant_count > 0}.order(Sequel.asc(:created_at))
+  end
   def self.my_events(user)
     evs = self.where(done:false)
     if user.admin

@@ -177,6 +177,7 @@ define (require, exports, module) ->
     render_edit: ->
       @edit_mode = true
       @$el.html(@template_edit(is_new:@model.isNew(),data:@model.toJSON()))
+      @$el.find("[name='kind']").val(@model.get("kind"))
       _.ie9_placeholder(@el)
   ScheduleDetailEventView = Backbone.View.extend
     events:

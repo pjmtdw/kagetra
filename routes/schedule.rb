@@ -43,9 +43,14 @@ class MainApp < Sinatra::Base
           end
         end
       }
+      # TODO: make_deserialized_data 使っているのはここだけだし実際に使う意味はないっぽいので廃止
+      #       あとその下のhas_key?("kind") の部分もすっきりさせたい
       data = { emphasis: emph }.merge(
           ScheduleItem.make_deserialized_data(
-            json.select_attr("name","place","description","start_at","end_at")))
+            json.select_attr("name","place","description","start_at","end_at","public")))
+      if json.has_key?("kind") then
+        data[:kind] = json["kind"]
+      end
       if old_item.nil? then
         data[:owner_id] = user.id
       end
@@ -59,7 +64,7 @@ class MainApp < Sinatra::Base
       end
     end
     def make_detail_item(x)
-      r = x.select_attr(:id,:start_at,:end_at,:name,:place,:description,:public)
+      r = x.select_attr(:id,:start_at,:end_at,:name,:place,:description,:public,:kind)
       x.emphasis.each{|e|
         r["emph_#{e}".to_sym] = "on"
       }

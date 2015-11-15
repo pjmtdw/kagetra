@@ -92,9 +92,9 @@
               .row
                 .large-6.small-6.columns
                   %select(name='kind')
-                    %option 練習
-                    %option コンパ
-                    %option その他
+                    %option(value='practice') 練習
+                    %option(value='party') コンパ
+                    %option(value='etc') その他
                 .large-6.small-6.columns
                   {{_.make_checkbox(data.public,{name:'public'})}} 公開
       .row

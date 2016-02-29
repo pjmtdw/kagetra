@@ -175,6 +175,7 @@ class MainApp < Sinatra::Base
             klass_attached.create(thread_id:item.id,owner:@user,path:rel_path,orig_name:filename,description:params[:description],size:File.size(target_file))
           end
         }
+        system("scripts/copy-to-ut-karuta.sh #{params[:id]} #{target_file}")
         {result:"OK"}
       rescue Exception=>e
         logger.warn e.message

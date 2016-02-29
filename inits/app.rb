@@ -175,8 +175,24 @@ class MainApp < Sinatra::Base
             klass_attached.create(thread_id:item.id,owner:@user,path:rel_path,orig_name:filename,description:params[:description],size:File.size(target_file))
           end
         }
-        system("scripts/copy-to-ut-karuta.sh #{params[:id]} #{target_file}")
-        {result:"OK"}
+        if namespace == "wiki" then
+          r = system("scripts/copy-to-ut-karuta.sh #{params[:id]} #{target_file}")
+          if r then
+            {result:"OK"}
+          else
+            emsg = case $?
+                   when 1
+                     "zipファイルの展開に失敗しました"
+                   when 2
+                     "シンボリックリンクの生成に失敗しました"
+                   else
+                     "サイトへの反映が失敗しました"
+                  end
+            {_error_:emsg}
+          end
+        else
+          {result:"OK"}
+        end
       rescue Exception=>e
         logger.warn e.message
         $stderr.puts e.message

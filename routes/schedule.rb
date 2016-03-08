@@ -13,10 +13,12 @@ class MainApp < Sinatra::Base
 
     end
     post '/update_holiday', private:true do
-      @json.each{|day,obj|
-        ScheduleDateInfo.find_or_create(date:Date.parse(day)){|item|
-          item.names = obj["names"]
-          item.holiday = obj["holiday"]
+      with_update{
+        @json.each{|day,obj|
+          ScheduleDateInfo.update_or_create(date:Date.parse(day)){|item|
+            item.names = obj["names"]
+            item.holiday = obj["holiday"]
+          }
         }
       }
     end

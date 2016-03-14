@@ -38,7 +38,7 @@ class MainApp < Sinatra::Base
     return if @public_mode
     path = request.path_info
     # 以下のURLはログインしなくてもアクセスできる
-    return if ["/public/","/api/user/auth/","/api/board_message/","/js/","/img/","/css/"].any?{|s|path.start_with?(s)} or ["/","/robots.txt","/select_other_uid","/mobile/"].include?(path)
+    return if ["/public/","/api/user/auth/","/api/board_message/","/api/ut_karuta/form","/js/","/img/","/css/"].any?{|s|path.start_with?(s)} or ["/","/robots.txt","/select_other_uid","/mobile/"].include?(path)
     @user = get_user
     if @user.nil? then
       if path.start_with?("/api/") then

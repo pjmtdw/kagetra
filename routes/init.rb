@@ -1,4 +1,5 @@
 require_relative 'misc'
+require_relative 'ut_karuta'
 require_relative 'user'
 require_relative 'bbs'
 require_relative 'schedule'

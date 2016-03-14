@@ -1,0 +1,19 @@
+- content_for :title do
+  東大かるた会公式サイト 問い合わせフォーム結果
+
+= haml :top_bar
+%table
+  %thead
+    %tr
+      %th 日時
+      %th 名前
+      %th メールアドレス
+      %th 内容
+  %tbody
+    - @list.each do |item|
+      %tr(style="vertical-align:top")
+        %td= item.created_at.strftime("%Y-%m-%d %H:%M:%S")
+        %td= item.name
+        %td
+          %a(href="mailto:#{item.mail}")= item.mail
+        %td= item.body.gsub("\n","<br>")

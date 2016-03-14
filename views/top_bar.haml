@@ -22,6 +22,10 @@
             - if @user.admin then
               %li
                 %a(href="admin") 管理画面
+            - if @user.admin or @user.sub_admin then
+              %li
+                %a(href="ut_karuta_list_form") 公式フォーム受取
+            %li
             %li
               %a(href="user_conf") ユーザ設定
             %li

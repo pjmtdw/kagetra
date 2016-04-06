@@ -539,7 +539,7 @@ class MainApp < Sinatra::Base
         case filename.downcase
         when /\.zip$/
           tmp = Dir.mktmpdir(nil,target_dir)
-          Zip::File.open(tempfile).select{|x|x.file? and [".jpg",".png",".gif"].any?{|s|x.name.downcase.end_with?(s)}}
+          Zip::File.open(tempfile).select{|x|x.file? and [".jpg",".jpeg",".png",".gif"].any?{|s|x.name.downcase.end_with?(s)}}
             .to_enum.with_index(min_index){|entry,i|
               fn = File.join(tmp,i.to_s)
               File.open(fn,"w"){|f|
@@ -548,7 +548,7 @@ class MainApp < Sinatra::Base
               process_image(group,i,entry.name,fn)
             }
           {result:"OK",group_id:group.id}
-        when /\.jpg$/, /\.png$/, /\.gif$/
+        when /\.jpe?g$/, /\.png$/, /\.gif$/
           tfile = Kagetra::Utils.unique_file(@user,["img-",".dat"],target_dir)
           FileUtils.cp(tempfile.path,tfile)
           process_image(group,min_index,filename,tfile)

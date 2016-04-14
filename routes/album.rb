@@ -34,7 +34,8 @@ class MainApp < Sinatra::Base
       }
       dummies = AlbumGroup.first(year:year, dummy:true)
       items = if dummies then dummies.items.map{|x|x.select_attr(:id,:name,:date).merge({type:"item"})} else [] end
-      {list:groups+items}
+      sorted = (groups+items).sort_by{|x| x[:start_at] or x[:date] or Date.new(1970,1,1)}
+      {list:sorted}
     end
     get '/group/:gid' do
       group = AlbumGroup[params[:gid].to_i]

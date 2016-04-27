@@ -124,16 +124,16 @@
 
   #today-contest
     {{ _.show_news(data.today_contests,"name","本日の大会","result#contest/%id%")  }}
-  #event-new.link-detail
-    {{ _.show_news(data.new_events,"name","新規大会行事追加%%件","top#event-detail/%id%")  }}
-  #bbs-new
-    {{ _.show_news(data.bbs,"title","掲示板に新着%%件","bbs#page/%page%/newly/%id%")  }}
   #ut-karuta-form-new
     <% if(data.has_ut_karuta_form){ %>
     %div
       %a(href="/ut_karuta_list_form") 公式フォーム受け取り
       に新着があります
     <% } %>
+  #event-new.link-detail
+    {{ _.show_news(data.new_events,"name","新規大会行事追加%%件","top#event-detail/%id%")  }}
+  #bbs-new
+    {{ _.show_news(data.bbs,"title","掲示板に新着%%件","bbs#page/%page%/newly/%id%")  }}
   #event-comment-new
     {{ _.show_news(data.event_comment,"name","大会行事コメントに新着%%件","top#event-comment/%id%")  }}
   #result-comment-new

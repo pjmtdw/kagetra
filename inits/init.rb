@@ -3,7 +3,7 @@
 
 # Change this number whenever you changed the .coffee/.js/.scss/.css/.haml file
 # TODO: automatically increase this version
-G_RESOURCE_VERSION = 25
+G_RESOURCE_VERSION = 26
 
 require_relative '../conf'
 require 'bundler'

@@ -16,4 +16,4 @@
         %td= item.name
         %td
           %a(href="mailto:#{item.mail}")= item.mail
-        %td= item.body.gsub("\n","<br>")
+        %td= item.body.to_s.gsub("\n","<br>")

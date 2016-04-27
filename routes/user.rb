@@ -96,9 +96,16 @@ class MainApp < Sinatra::Base
       new_events = Event.new_events(@user).map{|x|x.select_attr(:name,:id)}
       today_contests = Event.today_contests.map{|x|x.select_attr(:name,:id)}
       participants = Event.new_participants(@user)
+      has_ut_karuta_form = if @user.admin or @user.sub_admin then
+                          UtKarutaForm.has_new_item(@user)
+                        else
+                          false
+                        end
+
       {
         last_login: @user.last_login_str,
         log_mon: @user.log_mon_count,
+        has_ut_karuta_form: has_ut_karuta_form,
         wiki: WikiItem.new_threads(@user).map{|x|x.select_attr(:title,:id)},
         event_comment: Event.new_threads(@user,{done:false}).map{|x|x.select_attr(:name,:id)},
         result_comment: Event.new_threads(@user,{done:true,kind:Event.kind__contest}).map{|x|x.select_attr(:name,:id)},

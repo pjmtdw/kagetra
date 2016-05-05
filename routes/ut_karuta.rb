@@ -21,10 +21,16 @@ class MainApp < Sinatra::Base
         {message:e.message}
       end
     end
+    post '/update_flag/done/:id' do
+      UtKarutaForm.first(id:params[:id]).update(flag:[:done])
+    end
+    post '/update_flag/cancel/:id' do
+      UtKarutaForm.first(id:params[:id]).update(flag:[])
+    end
   end
   get '/ut_karuta_list_form' do
     page = (params[:page] || 1).to_i
-    @list = UtKarutaForm.order(Sequel.desc(:created_at)).paginate(page, 50)
+    @list = UtKarutaForm.order(Sequel.desc(:created_at)).paginate(page, 30)
     haml :ut_karuta_list_form
   end
 end

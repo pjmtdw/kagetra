@@ -23,7 +23,8 @@ class MainApp < Sinatra::Base
     end
   end
   get '/ut_karuta_list_form' do
-    @list = UtKarutaForm.order(Sequel.desc(:created_at)).all
+    page = (params[:page] || 1).to_i
+    @list = UtKarutaForm.order(Sequel.desc(:created_at)).paginate(page, 50)
     haml :ut_karuta_list_form
   end
 end

@@ -10,6 +10,11 @@
       %th メールアドレス
       %th 内容
   %tbody
+    - (1..@list.page_count).each do |page|
+      - if page == @list.current_page
+        %span= "[" + page.to_s + "]&nbsp;"
+      - else
+        %a(href="#{request.path_info}?page=#{page}")= "[" + page.to_s + "]&nbsp;"
     - @list.each do |item|
       %tr(style="vertical-align:top")
         %td= item.created_at.strftime("%Y-%m-%d %H:%M:%S")

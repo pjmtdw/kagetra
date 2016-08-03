@@ -350,7 +350,6 @@ class MainApp < Sinatra::Base
           }
           @json["deleted_teams"].each{|x|
             t = ContestTeam[x]
-            t.members.destroy
             if not t.destroy then raise Exception.new("cannot destroy #{t.inspect}") end
           }
         else

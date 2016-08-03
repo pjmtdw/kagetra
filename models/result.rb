@@ -133,6 +133,13 @@ class ContestPrize < Sequel::Model(:contest_prizes)
       self.save_promotion_cache
     end
   end
+
+  def after_destroy
+    self.contest_user.update(point:0,point_local:0)
+    self.contest_class.event.update_cache_prizes
+    super
+  end
+
   def save_promotion_cache
     event = self.contest_class.event
     user_name = self.contest_user.name

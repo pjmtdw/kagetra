@@ -5,39 +5,54 @@
   ut_karuta_form
 
 = haml :top_bar
+:css
+  .header{
+    background: #FFFFEE
+  }
+  .meta{
+    color: gray
+  }
+  .notyet{
+    color: purple
+  }
 %div
   - (1..@list.page_count).each do |page|
     - if page == @list.current_page
       %span= "[" + page.to_s + "]&nbsp;"
     - else
       %a(href="#{request.path_info}?page=#{page}")= "[" + page.to_s + "]&nbsp;"
+%hr
 %div
-  ※ 返信済みフラグは景虎の全ユーザで共有されるのでメールで返信をした人は「済み」ボタンを押して下さい．
-%table
-  %thead
-    %tr
-      %th 返信済み
-      %th 日時
-      %th 名前
-      %th メールアドレス
-      %th 内容
-  %tbody#list_form
-    - @list.each do |item|
-      %tr(style="vertical-align:top" data-item-id="#{item.id}")
-        %td
-          - if item.done
-            %div.nowrap
-              %span ○ 
-              - if Time.now - item.updated_at < 7200
-                %button.tiny.button-light.update_flag_cancel 取消
+  %a(href='http://ut-karuta.bushidoo.com/')東大かるた会公式サイト
+  の問い合わせフォームの結果はここに来ます．
+%div
+  返信済みフラグは景虎内で共有されるので，メールで返信をした人は「返信済み」を押すか，返信しなくてもいいなら「返信不要」を押して下さい．
+%hr
+
+%div#list_form
+  - @list.each do |item|
+    %div.panel(data-item-id="#{item.id}")
+      %div.panel.header
+        %span.meta 返信:
+        %span
+          - if item.status == :notyet
+            %span.notyet 未完了
+            %button.tiny.update_status(data-status='done') 返信済み
+            %button.tiny.alert.update_status(data-status='ignore') 返信不要
           - else
-            %div.nowrap
-              %span ×
-              %button.tiny.update_flag_done 済み
-        %td.item_date
-          %span.nowrap= item.created_at.strftime("%Y-%m-%d")
-          %span.nowrap= item.created_at.strftime("%H:%M:%S")
-        %td.nowrap.item_name= item.name
-        %td
-          %a(href="mailto:#{item.mail}")= item.mail
-        %td= item.body.to_s.gsub("\n","<br>")
+            %span= if item.status == :done then '返信済み' else '返信不要' end 
+            %span= if item.status_change_user then '( by ' + item.status_change_user + ' )' else '' end
+            - if item.status_change_at and Time.now - item.status_change_at < 7200
+              %button.tiny.button-light.update_status(data-status='notyet') 取消
+        %div
+          %span.meta 送信者:
+          %span.item_name= item.name
+          %span
+            &lt;
+            %a(href="mailto:#{item.mail}")= item.mail
+            &gt;
+        %div
+          %span.meta 日時:
+          %span.item_date= item.created_at.strftime("%Y-%m-%d %H:%M:%S")
+
+      %div= item.body.to_s.gsub("\n","<br>")

@@ -1,16 +1,15 @@
 define (require,exports,module) ->
   init: ->
-    $("#list_form").on("click", ".update_flag_done", (ev) ->
-      item = $(ev.target).closest("[data-item-id]")
+    $("#list_form").on("click", ".update_status", (ev) ->
+      tgt = $(ev.target)
+      item = tgt.closest("[data-item-id]")
       item_id = item.data("item-id")
       name = item.find(".item_name").text()
-      date = item.find(".item_date span").map((i,e)->$(e).text()).toArray().join(" ")
-      console.log(date)
-      if confirm("#{name} @ [#{date}] のフォームを返信済みにしてよろしいですか？")
-        $.post("/api/ut_karuta/update_flag/done/" + item_id, -> location.reload())
+      date = item.find(".item_date").text()
+      status = tgt.data("status")
+      haveto_confirm = status != "notyet"
+      status_message = if status == "ignore" then "に返信しなくても" else "を返信済みにして"
+      if not haveto_confirm or confirm("#{name} @ #{date} #{status_message}よろしいですか？")
+        $.post("/api/ut_karuta/update_status/#{item_id}/#{status}", -> location.reload())
       false
-    )
-    $("#list_form").on("click", ".update_flag_cancel", (ev) ->
-      item_id = $(ev.target).closest("[data-item-id]").data("item-id")
-      $.post("/api/ut_karuta/update_flag/cancel/" + item_id, -> location.reload())
     )

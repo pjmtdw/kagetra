@@ -5,7 +5,9 @@ Sequel.migration do
       String :name, size:64
       String :mail, size:128
       String :body, text:true
-      Integer :flag, null:false, default:0, comment:"返信済みなら1"
+      Integer :status, null:false, default:1, comment:"未返信なら1,返信済みなら2,無視するなら3"
+      String :status_change_user, size:24
+      DateTime :status_change_at
     end
   end
 end

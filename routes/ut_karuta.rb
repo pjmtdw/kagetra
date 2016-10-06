@@ -21,11 +21,8 @@ class MainApp < Sinatra::Base
         {message:e.message}
       end
     end
-    post '/update_flag/done/:id' do
-      UtKarutaForm.first(id:params[:id]).update(flag:[:done])
-    end
-    post '/update_flag/cancel/:id' do
-      UtKarutaForm.first(id:params[:id]).update(flag:[])
+    post '/update_status/:id/:status' do
+      UtKarutaForm.first(id:params[:id]).update_status(@user.name,params[:status].to_sym)
     end
   end
   get '/ut_karuta_list_form' do

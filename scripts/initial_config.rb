@@ -18,20 +18,29 @@ rescue Sequel::DatabaseError => e
   exit
 end
 
-require 'io/console'
 pass1 = nil
-$stdin.noecho{|stdin|
-  print "input shared password: "
-  pass1 = stdin.readline.chomp
-  puts
-  print "input again: "
-  pass2 = stdin.readline.chomp
-  puts
-  if pass1 != pass2 then
-    puts "two passwords does not match"
-    exit
+require 'optparse'
+OptionParser.new do |opts|
+  opts.on("-p", "--password PASSWORD", "use PASSWORD as shared password") do |password|
+    pass1 = password
   end
-}
+end.parse!
+
+if not pass1
+	require 'io/console'
+	$stdin.noecho{|stdin|
+	  print "input shared password: "
+	  pass1 = stdin.readline.chomp
+	  puts
+	  print "input again: "
+	  pass2 = stdin.readline.chomp
+	  puts
+	  if pass1 != pass2 then
+	    puts "two passwords does not match"
+	    exit
+	  end
+	}
+end
 DB.transaction{
   hash = Kagetra::Utils.hash_password(pass1)
   if MyConf.first(name: "shard_password").nil? then

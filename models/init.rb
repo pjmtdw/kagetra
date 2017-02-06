@@ -23,8 +23,10 @@ DB_OSM = if CONF_DB_OSM_DATABASE then
 if CONF_DB_DEBUG then
   DB.loggers << Logger.new($stdout)
   DB.sql_log_level = :debug
-  DB_OSM.loggers << Logger.new($stdout)
-  DB_OSM.sql_log_level = :debug
+  if DB_OSM then
+	  DB_OSM.loggers << Logger.new($stdout)
+	  DB_OSM.sql_log_level = :debug
+  end
 end
 
 DB.extension(:graph_each)

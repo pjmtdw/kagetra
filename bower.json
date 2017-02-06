@@ -9,7 +9,7 @@
   "license": "MIT",
   "dependencies": {
     "requirejs": "2.1.15",
-    "crypto-js": "http://crypto-js.googlecode.com/files/CryptoJS%20v3.1.2.zip",
+    "crypto-js": "3.1.9",
     "underscore": "1.7.0",
     "jquery": "1.11.1",
     "jquery-colorbox": "1.5.14",

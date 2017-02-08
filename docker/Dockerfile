@@ -1,12 +1,11 @@
 FROM centos:7
 
 # Basic Package Install
-RUN yum -y update
-RUN yum -y groupinstall "Development Tools"
 RUN curl --silent --location https://rpm.nodesource.com/setup_6.x | bash -
-RUN yum -y install \
+RUN yum -y update && yum -y install \
+      bzip2 gcc-c++ patch \
       epel-release \
-      ruby-devel ruby ruby-irb \
+      ruby-devel ruby \
       openssl-devel \
       readline-devel \
       sqlite-devel \ 
@@ -16,11 +15,14 @@ RUN yum -y install \
       postgresql-devel \
       pgbouncer \
       git \
-      nodejs
-RUN yum -y install nginx
+      nodejs &&\
+    yum -y install nginx
 
-# rbenv Setup
-RUN useradd kagetra
+
+RUN useradd -G postgres,nginx kagetra
+RUN chown kagetra:postgres -R /var/lib/pgsql/ /var/run/postgresql/ &&\
+    chown kagetra:nginx -R /var/lib/nginx/ /var/log/nginx/ /etc/nginx/
+
 
 USER kagetra
 ENV HOME=/home/kagetra LANGUAGE="en_US.UTF-8"  LANG="en_US.UTF-8" LC_ALL="en_US.UTF-8"
@@ -32,7 +34,6 @@ ENV PATH $HOME/.rbenv/bin:$PATH
 RUN echo 'eval "$(rbenv init -)"' >> ~/.bash_profile
 RUN rbenv install 2.4.0
 
-# kagetra Setup
 RUN git clone --depth 1 https://github.com/pjmtdw/kagetra.git
 WORKDIR /home/kagetra/kagetra
 
@@ -41,8 +42,8 @@ RUN bash -lc "gem install bundler &&bundle install --path .vendor/bundle"
 RUN npm install coffee-script@1.6.3 requirejs bower && \
     ./node_modules/bower/bin/bower install
 
-RUN cp conf.rb.sample conf.rb
-RUN sed -i -e '/^CONF_DB_USERNAME /{s/<user>/kagetra/}' conf.rb &&\
+RUN cp conf.rb.sample conf.rb && \
+    sed -i -e '/^CONF_DB_USERNAME /{s/<user>/kagetra/}' conf.rb &&\
     sed -i -e '/^CONF_DB_PASSWORD /{s/<pass>/kagetra/}' conf.rb &&\
     sed -i -e '/^CONF_DB_HOST /{s/<host>/localhost/}' conf.rb &&\
     sed -i -e '/^CONF_DB_PORT /{s/port/5432/}' conf.rb &&\
@@ -52,35 +53,21 @@ RUN sed -i -e '/^CONF_DB_USERNAME /{s/<user>/kagetra/}' conf.rb &&\
 RUN sed -i -e '/^add_import_path/{s/#{RUBY_VERSION}/2.4.0/}' deploy/compass_conf.rb
 RUN bash -lc "cd deploy && make"
 
-# PostgreSQL Setup
-USER root
-RUN usermod -a -G postgres kagetra
-RUN chown kagetra:postgres -R /var/lib/pgsql/ /var/run/postgresql/
-
-USER kagetra
-WORKDIR /home/kagetra/kagetra
-
-RUN initdb -D /var/lib/pgsql/data
-RUN pg_ctl start -D /var/lib/pgsql/data -s -w -t 300 && \
-      createdb -E UTF8 -O kagetra kagetra && \
-      bash -lc "bundle exec ./scripts/initial_config.rb" && \
-      bash -lc "bundle exec ./scripts/initial_config.rb -p kagetora" && \
+RUN initdb -D /var/lib/pgsql/data && \
+    pg_ctl start -D /var/lib/pgsql/data -s -w -t 300 && \
+    createdb -E UTF8 -O kagetra kagetra && \
+    bash -lc "bundle exec ./scripts/initial_config.rb" && \
+    bash -lc "bundle exec ./scripts/initial_config.rb -p kagetora" && \
     pg_ctl stop -D /var/lib/pgsql/data
 
-
-# Nginx Setup
-USER root
-RUN usermod -a -G nginx kagetra
 COPY nginx.conf /etc/nginx/nginx.conf
 RUN cp /home/kagetra/kagetra/deploy/nginx.site.example /etc/nginx/conf.d/kagetra.conf &&\
     sed -i -e 's!/path/to/kagetra!/home/kagetra/kagetra!' /etc/nginx/conf.d/kagetra.conf &&\
-    sed -i -e 's/listen 80;/listen 1530;/' /etc/nginx/conf.d/kagetra.conf &&\
-    chown kagetra:nginx -R /var/lib/nginx/ /var/log/nginx/
+    sed -i -e 's/listen 80;/listen 1530;/' /etc/nginx/conf.d/kagetra.conf
 
-USER kagetra
 CMD /usr/sbin/nginx &&\
-      pg_ctl start -D /var/lib/pgsql/data -s -w -t 300 &&\
-      bash -lc "cd scripts && ./unicorn_ctl.sh start" &&\
-      while true; do sleep 1000; done
+    pg_ctl start -D /var/lib/pgsql/data -s -w -t 300 &&\
+    bash -lc "cd scripts && ./unicorn_ctl.sh start" &&\
+    while true; do sleep 1000; done
 
 EXPOSE 1530

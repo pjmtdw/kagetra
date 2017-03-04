@@ -4,7 +4,7 @@
     %base(href="#{if @public_mode then '/public/' else '/' end}")
     %meta(name="robots" content="noindex,nofollow,noarchive")
     %meta(name="viewport" content="width=device-width, initial-scale=1.0")
-    %title #{G_APP_NAME} - #{yield_content(:title)}
+    %title #{G_APP_NAME} - #{title}
     %link(rel="shortcut icon" href="/img/favicon.ico")
     %link(rel="apple-touch-icon" href="/img/apple-touch-icon.png")
     %link(rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous")
@@ -27,6 +27,6 @@
         = ".top-bar-section {background: #{public_top_bar_color} !important;}";
         = ".top-bar-section ul {background: #{public_top_bar_color} !important;}";
   %body
-    = yield
+    = if top_bar then haml :top_bar end
     %div#app
   %script(src="/js/bundle.js")

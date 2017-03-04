@@ -459,7 +459,7 @@ class MainApp < Sinatra::Base
     end
   end
   get '/album' do
-    haml :album
+    haml_wrap 'アルバム'
   end
 
   # 縦横比は保持したまま画素数を増減する

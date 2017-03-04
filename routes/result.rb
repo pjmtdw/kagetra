@@ -84,7 +84,7 @@ class MainApp < Sinatra::Base
       user_games = cls.map{|x|x.single_games_dataset.order(Sequel.asc(:round)).all}.flatten.map{|gm|
         [gm.contest_user_id,gm.select_attr(*ugattrs)]
       }.each_with_object(Hash.new{[]}){|(uid,attrs),h|
-        if h[uid].empty?.! and attrs[:round] > h[uid].last[:round] +1 then
+        if h[uid].empty?.! and attrs[:round] > h[uid].last[:round]+1 then
           # 回戦に抜けがあった場合は休みを入れる
           h[uid] += [{result: :break}] * (attrs[:round]-h[uid].last[:round]-1)
         end
@@ -468,7 +468,7 @@ class MainApp < Sinatra::Base
     end
   end
   get '/result' do
-    haml :result
+    haml_wrap '大会結果'
   end
   get '/result/excel/:id/:filename' do
     send_excel(Event[params[:id]])

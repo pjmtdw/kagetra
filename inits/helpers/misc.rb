@@ -85,9 +85,9 @@ module MiscHelpers
     # sqrtの重み付け
     # 以下の方法はメモリを多少多めに利用するが
     # AlbumGroupの数は多くても数千，重みの最大は精々10程度で平均3ぐらいなので多分大丈夫
-    ag = AlbumGroup.where{ daily_choose_count > 0}.map{|ag|
-      w = Math.sqrt(ag.daily_choose_count).to_i
-      [ag] * w
+    ag = AlbumGroup.where{ daily_choose_count > 0}.map{|x|
+      w = Math.sqrt(x.daily_choose_count).to_i
+      [x] * w
     }.flatten.sample
     return if ag.nil?
     item = ag.items.to_a.sample
@@ -228,6 +228,11 @@ module MiscHelpers
       d[m] = x
     end
     x
+  end
+
+  def haml_wrap(title='', top_bar=true, **args)
+    p args.merge(title:title,top_bar:top_bar)
+    haml :layout, :locals => args.merge(title:title,top_bar:top_bar)
   end
 
 end

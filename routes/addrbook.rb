@@ -79,6 +79,6 @@ class MainApp < Sinatra::Base
     end
   end
   get '/addrbook' do
-    haml :addrbook
+    haml_wrap '名簿'
   end
 end

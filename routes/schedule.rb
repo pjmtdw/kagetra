@@ -239,6 +239,6 @@ class MainApp < Sinatra::Base
     end
   end
   get '/schedule' do
-    haml :schedule
+    haml_wrap '予定表'
   end
 end

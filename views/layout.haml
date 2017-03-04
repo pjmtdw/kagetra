@@ -7,13 +7,12 @@
     %title #{G_APP_NAME} - #{yield_content(:title)}
     %link(rel="shortcut icon" href="/img/favicon.ico")
     %link(rel="apple-touch-icon" href="/img/apple-touch-icon.png")
-    %link(rel="stylesheet" href="/css/v#{G_RESOURCE_VERSION}/app.css")
-    %link(rel="stylesheet" href="/css/v#{G_RESOURCE_VERSION}/colorbox.css")
-    %link(rel="stylesheet" href="/js/v#{G_RESOURCE_VERSION}/libs/select2/select2.css")
-    - this_css = yield_content(:css)
-    - this_css.strip.split(/\s*,\s*/).each do |x|
-      - path = if x.start_with?("/") then "#{x.sub(%r(^/(css|js)/)){|x|x+"/v#{G_RESOURCE_VERSION}/"}}.css" else "/css/v#{G_RESOURCE_VERSION}/#{x}.css" end
-      %link(rel="stylesheet" href="#{path}")
+    %link(rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous")
+
+    %script(crossorigin="anonymous" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" src="https://code.jquery.com/jquery-3.1.1.slim.min.js")
+    %script(crossorigin="anonymous" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js")
+    %script(crossorigin="anonymous" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js")
+
     %style(type="text/css")
       - curmonth = "%02d"%Date.today.month
       body{
@@ -27,28 +26,7 @@
         = ".top-bar-section li a {background: #{public_top_bar_color} !important;}";
         = ".top-bar-section {background: #{public_top_bar_color} !important;}";
         = ".top-bar-section ul {background: #{public_top_bar_color} !important;}";
-  -# 注意: content_for :haml で読み込むhamlファイルはブラウザにキャッシュされるので
-  -#      @userなどの動的な情報は含まれないようにすること(routesの 'get /haml/:prefix' と views/js/main.coffee の .load() を呼んでる箇所参照)
-  %body(data-haml="#{yield_content(:haml)}")
+  %body
     = yield
-    #body-end.row
-      %a.right(href="javascript:window.scrollTo(0,0);") &uArr; 一番上へ
-    /[if IE 9]
-      %script
-        var g_is_ie9 = true
-    - if not @public_mode
-      %script
-        var g_user_name='#{@user and @user.name}'
-        -if @user and @user.bbs_public_name
-          var g_user_bbs_public_name='#{@user.bbs_public_name}'
-    - else
-      %script
-        var g_user_name='#{get_permanent("bbs_name")}'
-    %script
-      var g_public_mode=#{!!@public_mode}
-    %script(src="/js/v#{G_RESOURCE_VERSION}/libs/requirejs/require.js" data-main="/js/main" data-start="#{yield_content(:js_start)}")
-    %script
-      var g_resource_version = '#{G_RESOURCE_VERSION}';
-      requirejs.config({
-      baseUrl: '/js/v#{G_RESOURCE_VERSION}'
-      })
+    %div#app
+  %script(src="/js/bundle.js")

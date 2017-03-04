@@ -1,0 +1,32 @@
+{
+  "name": "kagetra",
+  "version": "1.0.0",
+  "description": "Groupware for Kyogi-Karuta",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pjmtdw/kagetra.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pjmtdw/kagetra/issues"
+  },
+  "homepage": "https://github.com/pjmtdw/kagetra#readme",
+  "devDependencies": {
+    "babel-core": "^6.23.1",
+    "babel-loader": "^6.3.2",
+    "babel-preset-es2015": "^6.22.0",
+    "css-loader": "^0.26.2",
+    "vue-loader": "^11.1.4",
+    "vue-template-compiler": "^2.2.1",
+    "webpack": "^2.2.1"
+  },
+  "dependencies": {
+    "vue": "^2.2.1"
+  }
+}

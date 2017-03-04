@@ -1,7 +1,0 @@
-<% if(data.pages > 1){ %>
-<% for(i=0;i<data.pages;i++){ %>
-<% if(i+1==data.cur_page){continue;} %>
-%div
-  %a.page.button.small.round(data-page='{{i+1}}') {{!(_.isUndefined(data.page_infos))?data.page_infos[i]:((i+1)+"ページ目")}}
-<% } %>
-<% } %>

@@ -5,7 +5,7 @@
 export default {
   data() {
     return {
-      message: "hello world"
+      message: "予定表"
     }
   }
 }

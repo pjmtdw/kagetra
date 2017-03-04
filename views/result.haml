@@ -7,7 +7,6 @@
 - content_for :haml do
   result_body,event_detail
 = haml :top_bar
-= haml :result_common
 
 %script
   var g_points_str = '#{{single_point:G_SINGLE_POINT,single_point_local:G_SINGLE_POINT_LOCAL,team_point_local:G_TEAM_POINT_LOCAL}.to_json}';

@@ -12,7 +12,6 @@ require 'sinatra'
 require 'sinatra/namespace'
 require 'sinatra/content_for'
 if development? then
-  require 'sass/plugin/rack'
   require 'sinatra/reloader'
 end
 require 'logger'
@@ -25,7 +24,7 @@ require 'nkf'
 require 'redcarpet'
 require_relative '../libs/diff_match_patch-ruby/diff_match_patch.rb'
 G_DIMAPA = DiffPatchMatch.new
-require 'RMagick'
+require 'rmagick'
 require 'zip'
 
 require 'nokogiri'

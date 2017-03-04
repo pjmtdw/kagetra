@@ -39,7 +39,11 @@ class MainApp < Sinatra::Base
     path = request.path_info
     # 以下のURLはログインしなくてもアクセスできる
     return if ["/public/","/api/user/auth/","/api/board_message/","/js/","/img/","/css/"].any?{|s|path.start_with?(s)} or ["/","/robots.txt","/select_other_uid","/mobile/"].include?(path)
-    @user = get_user
+
+    @user = if settings.development? and ENV.has_key?("KAGETRA_USER_ID")
+              then User.first(id: ENV["KAGETRA_USER_ID"])
+              else get_user
+              end
     if @user.nil? then
       if path.start_with?("/api/") then
         halt 403, "login required"

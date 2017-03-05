@@ -236,7 +236,6 @@ module MiscHelpers
   end
 
   def haml_wrap(title='', top_bar=true, **args)
-    p args.merge(title:title,top_bar:top_bar)
     haml :layout, :locals => args.merge(title:title,top_bar:top_bar)
   end
 

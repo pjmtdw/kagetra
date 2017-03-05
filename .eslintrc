@@ -5,5 +5,8 @@
   ],
   "globals": {
     "axios": true
+  },
+  "rules": {
+    "indent": "off"
   }
 }

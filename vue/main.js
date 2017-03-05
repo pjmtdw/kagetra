@@ -1,12 +1,15 @@
 import Vue from 'vue';
+import VueRouter from 'vue-router';
 
-import addrbook from './components/addrbook.vue';
-import album from './components/album.vue';
-import bbs from './components/bbs.vue';
-import result from './components/result.vue';
-import schedule from './components/schedule.vue';
-import top from './components/top.vue';
-import wiki from './components/wiki.vue';
+import addrbook from './routers/addrbook';
+import album from './routers/album';
+import bbs from './routers/bbs';
+import result from './routers/result';
+import schedule from './routers/schedule';
+import top from './routers/top';
+import wiki from './routers/wiki';
+
+Vue.use(VueRouter);
 
 const routes = {
   addrbook,
@@ -21,6 +24,12 @@ const routes = {
 /* global location */
 const route = routes[location.pathname.substr(1)];
 
+const router = new VueRouter({
+  routes: route,
+  base: location.pathname,
+});
+
+
 axios.interceptors.response.use(null, (error) => {
   // TODO: Eslintに警告されないようなちゃんとしたダイアログにする
   /* global alert */
@@ -31,6 +40,5 @@ axios.interceptors.response.use(null, (error) => {
 
 /* eslint-disable no-new */
 new Vue({
-  el: '#app',
-  render: h => h(route),
-});
+  router,
+}).$mount('#app');

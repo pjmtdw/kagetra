@@ -1,5 +1,10 @@
 <template>
   <div class='mx-auto' style='width:45em;'>
+    <ul class='pagination'>
+      <li class='page-item' v-for='page in 10'>
+        <router-link class='page-link' :to='page.toString()'>{{page}}</router-link>
+      </li>
+    </ul>
     <div class='card thread' v-for='thread in threads'>
       <div class='card-header'>
         {{thread.title}}
@@ -17,15 +22,26 @@
 </template>
 <script>
 export default {
+  props: ['page'],
   created() {
-    axios.get('/api/bbs/threads?page=1').then((res) => {
-      this.threads = res.data;
-    });
+    this.fetch(this.page);
   },
   data() {
     return {
       threads: [],
     };
+  },
+  methods: {
+    fetch(page) {
+      axios.get(`/api/bbs/threads?page=${page}`).then((res) => {
+        this.threads = res.data;
+      });
+    },
+  },
+  watch: {
+    page(val) {
+      this.fetch(val);
+    },
   },
 };
 </script>

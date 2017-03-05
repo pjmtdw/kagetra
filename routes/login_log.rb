@@ -108,7 +108,4 @@ class MainApp < Sinatra::Base
       {list:res.to_a.sort_by{|k,v|k}.reverse}
     end
   end
-  get '/login_log' do
-    haml :login_log
-  end
 end

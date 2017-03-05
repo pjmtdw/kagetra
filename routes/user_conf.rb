@@ -8,7 +8,4 @@ class MainApp < Sinatra::Base
       @user.update(bbs_public_name:@json["bbs_public_name"])
     end
   end
-  get '/user_conf' do
-    haml :user_conf
-  end
 end

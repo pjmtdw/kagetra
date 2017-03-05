@@ -81,8 +81,4 @@ class MainApp < Sinatra::Base
       {meta:meta,ranking:ranking}
     end
   end
-  get '/result_ranking' do
-    @minyear = Event.where(kind:Event.kind__contest).min(:date).year
-    haml :result_ranking
-  end
 end

@@ -224,13 +224,4 @@ class MainApp < Sinatra::Base
                 }.compact
     {list:list,minyear:minyear,maxyear:Date.today.year,curyear:year}
   end
-  get '/result_list' do
-    haml :result_list
-  end
-  get '/result_promotion' do
-    haml :result_promotion
-  end
-  get '/result_record' do
-    haml :result_record
-  end
 end

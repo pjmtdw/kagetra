@@ -11,7 +11,7 @@ class MainApp < Sinatra::Base
         rs += ["/api/event/item/"] # 予定表の「情報」ボタンも公開可能にする
       end
       rs.any?{|z| path.start_with?(z)}
-    } or path.start_with?("/haml/") or path.start_with?("/api/board_message/")
+    } or path.start_with?("/api/board_message/")
     @public_mode = true
     call env.merge("PATH_INFO" => path)
   end
@@ -126,10 +126,5 @@ class MainApp < Sinatra::Base
   end
   get '/etc' do
     redirect '/top'
-  end
-  get '/haml/v:resource_version/:prefix' do
-    # ブラウザ側にキャッシュさせるのでhamlファイルには@userなどの動的な情報が含まれないようにすること
-    expires (17*86400), :public
-    haml params[:prefix].to_sym, layout: nil
   end
 end

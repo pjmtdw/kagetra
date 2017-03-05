@@ -285,9 +285,6 @@ class MainApp < Sinatra::Base
   end
   comment_routes("/api/event",Event,EventComment,true)
   attached_routes("event",Event,EventAttachedFile)
-  get '/event_catalog' do
-    haml :event_catalog
-  end
   get '/api/event_catalog/list' do
     query = Event.where(done:false).order(Sequel.asc(:date),Sequel.asc(:id))
     if @public_mode then

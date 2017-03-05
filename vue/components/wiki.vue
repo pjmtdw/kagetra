@@ -5,10 +5,10 @@
 export default {
   data() {
     return {
-      message: "Wiki"
-    }
-  }
-}
+      message: 'Wiki',
+    };
+  },
+};
 </script>
 <style>
 .hello {

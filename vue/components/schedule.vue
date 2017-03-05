@@ -5,10 +5,10 @@
 export default {
   data() {
     return {
-      message: "予定表"
-    }
-  }
-}
+      message: '予定表',
+    };
+  },
+};
 </script>
 <style>
 .hello {

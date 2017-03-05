@@ -5,10 +5,10 @@
 export default {
   data() {
     return {
-      message: "TOP"
-    }
-  }
-}
+      message: 'TOP',
+    };
+  },
+};
 </script>
 <style>
 .hello {

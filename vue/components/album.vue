@@ -5,10 +5,10 @@
 export default {
   data() {
     return {
-      message: "アルバム"
-    }
-  }
-}
+      message: 'アルバム',
+    };
+  },
+};
 </script>
 <style>
 .hello {

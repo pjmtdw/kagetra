@@ -5,10 +5,10 @@
 export default {
   data() {
     return {
-      message: "掲示板"
-    }
-  }
-}
+      message: '掲示板',
+    };
+  },
+};
 </script>
 <style>
 .hello {

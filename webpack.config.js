@@ -4,14 +4,21 @@ module.exports = {
     filename: './public/js/bundle.js'
   },
   module: {
-    loaders: [{
-      test: /\.js$/,
-      exclude: /node_modules/,
-      loader: 'babel-loader'
-    }, {
-      test: /\.vue$/,
-      loader: 'vue-loader'
-    }]
+    rules: [{
+        enforce: "pre",
+        test: /\.(js|vue)$/,
+        exclude: /node_modules/,
+        loader: "eslint-loader"
+      },
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        loader: 'babel-loader'
+      }, {
+        test: /\.vue$/,
+        loader: 'vue-loader'
+      }
+    ]
   },
   resolve: {
     extensions: ['.js', '.vue'],

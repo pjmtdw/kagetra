@@ -155,7 +155,7 @@ class MainApp < Sinatra::Base
         logger.warn e.message
         $stderr.puts e.message
         FileUtils.rm(target_file,force:true) unless attached
-        {_error_:"送信失敗"}
+        error_response('送信失敗')
       end
       "<div id='response'>#{res.to_json}</div>"
     end

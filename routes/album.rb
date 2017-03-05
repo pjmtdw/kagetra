@@ -80,7 +80,7 @@ class MainApp < Sinatra::Base
           group.destroy
           {}
         else
-          {_error_:"空でないフォルダは削除できません"}
+          error_response("空でないフォルダは削除できません")
         end
       }
     end
@@ -555,7 +555,7 @@ class MainApp < Sinatra::Base
           process_image(group,min_index,filename,tfile)
           {result:"OK",group_id:group.id}
         else
-          {_error_:"ファイルの拡張子が間違いです: #{filename.downcase}"}
+          error_response("ファイルの拡張子が間違いです: #{filename.downcase}")
         end
       end
     }

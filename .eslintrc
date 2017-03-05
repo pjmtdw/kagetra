@@ -3,4 +3,7 @@
   "plugins": [
     "html"
   ],
+  "globals": {
+    "axios": true
+  }
 }

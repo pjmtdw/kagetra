@@ -9,24 +9,9 @@ DB = Sequel.postgres(
   sslmode: "disable"
 )
 
-DB_OSM = if CONF_DB_OSM_DATABASE then
-  Sequel.postgres(
-    CONF_DB_OSM_DATABASE,
-    host: CONF_DB_HOST,
-    port: CONF_DB_PORT,
-    user: CONF_DB_USERNAME,
-    password: CONF_DB_PASSWORD,
-    sslmode: "disable"
-  )
- end
-
 if CONF_DB_DEBUG then
   DB.loggers << Logger.new($stdout)
   DB.sql_log_level = :debug
-  if DB_OSM then
-	  DB_OSM.loggers << Logger.new($stdout)
-	  DB_OSM.sql_log_level = :debug
-  end
 end
 
 DB.extension(:graph_each)

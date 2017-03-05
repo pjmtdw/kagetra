@@ -21,6 +21,11 @@ module MiscHelpers
     str == Kagetra::Utils.openssl_dec(enc,pass)
   end
 
+  def error_response(message)
+    status 400
+    {error_message: message}
+  end
+
   def with_update
     begin
       DB.transaction{
@@ -33,7 +38,7 @@ module MiscHelpers
       bt = e.backtrace.join("\n")
       logger.puts bt
       $stderr.puts bt
-      {_error_: e.message }
+      error_response(e.message)
     end
   end
 

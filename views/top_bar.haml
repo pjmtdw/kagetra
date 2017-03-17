@@ -1,8 +1,20 @@
-%nav.navbar
-	%a.nav-item(href="/top") [TOP]
-	%a.nav-item(href="/bbs") [掲示板]
-	%a.nav-item(href="/result") [大会結果]
-	%a.nav-item(href="/schedule") [予定表]
-	%a.nav-item(href="/wiki") [Wiki]
-	%a.nav-item(href="/album") [Album]
-	%a.nav-item(href="/addrbook") [名簿]
+%nav.navbar.navbar-toggleable-md.fixed-top.navbar-light.bg-faded
+	%button.navbar-toggler.navbar-toggler-right(type="button" data-toggle="collapse" data-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation")
+		%span.navbar-toggler-icon
+	
+	%div#navbarContent.collapse.navbar-collapse
+		%ul.navbar-nav.mr-auto
+			%li.nav-item
+				%a.nav-link(href="/top") [TOP]
+			%li.nav-item
+				%a.nav-link(href="/bbs") [掲示板]
+			%li.nav-item
+				%a.nav-link(href="/result") [大会結果]
+			%li.nav-item
+				%a.nav-link(href="/schedule") [予定表]
+			%li.nav-item
+				%a.nav-link(href="/wiki") [Wiki]
+			%li.nav-item
+				%a.nav-link(href="/album") [Album]
+			%li.nav-item
+				%a.nav-link(href="/addrbook") [名簿]

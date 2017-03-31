@@ -25,8 +25,9 @@ class Event < Sequel::Model(:events)
   serialized_attr_accessor :kind__contest
   def validate
     super
-    error.add(:date,"cannot be null for contest") if self.kind == :contest and self.date.nil?
-    error.add(:forbidden_attrs,"is invalid") unless self.forbidden_attrs.all?{|o| o.is_a?(Integer) and UserAttributeValue[o] }
+    # user can add contest which is done from contest result page, however, prevent creating contest which has no date since it cannot be shown in result page
+    errors.add(:date,"cannot be null for contest which is done") if self.done and self.kind.to_sym == :contest and self.date.nil?
+    errors.add(:forbidden_attrs,"is invalid") unless self.forbidden_attrs.all?{|o| o.is_a?(Integer) and UserAttributeValue[o] }
   end
   def self.new_events(user)
     search_from = [user.show_new_from||Time.now,Time.now-G_NEWLY_DAYS_MAX*86400].max

@@ -43,7 +43,7 @@ class AlbumItem < Sequel::Model(:album_items)
 
   def validate
     super
-    error.add(:rotate,"must be one of 0,90,180,270") unless [0,90,180,270].include?(self.rotate.to_i)
+    errors.add(:rotate,"must be one of 0,90,180,270") unless [0,90,180,270].include?(self.rotate.to_i)
   end
 
   def before_create

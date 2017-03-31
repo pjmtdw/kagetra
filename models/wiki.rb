@@ -8,7 +8,7 @@ class WikiItem < Sequel::Model(:wiki_items)
  
   def validate
     super
-    error.add(:title,"must not include / ") if self.title.include?("/")
+    errors.add(:title,"must not include / ") if self.title.include?("/")
   end
 
   # each_revisions_until を使うにはこの関数を実装しておく必要がある

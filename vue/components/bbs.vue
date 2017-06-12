@@ -43,7 +43,7 @@ export default {
         const max = Math.floor((COUNT - 1) / THREADS_PER_PAGE) + 1;
         const p = Number(page);
         if (p <= PAGINATE_LIMIT) {
-          this.pages = _.range(_.max([max, PAGINATE_LIMIT * 2]));
+          this.pages = _.range(1, _.min([max, PAGINATE_LIMIT * 2]) + 1);
         } else if (p > max - PAGINATE_LIMIT) {
           this.pages = _.range(p - PAGINATE_LIMIT, max + 1);
         } else {

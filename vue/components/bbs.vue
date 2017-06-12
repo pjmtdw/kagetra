@@ -35,23 +35,19 @@ export default {
   methods: {
     fetch(page) {
       axios.get(`/api/bbs/threads?page=${page}`).then((res) => {
+        const PAGINATE_LIMIT = 5;
         const THREADS_PER_PAGE = res.data.pop().tpp;
         const COUNT = res.data.pop().count;
         this.threads = res.data;
+
         const max = Math.floor((COUNT - 1) / THREADS_PER_PAGE) + 1;
         const p = Number(page);
-        if (p < 6) {
-          this.pages = max > 10 ? 10 : max;
-        } else if (p > max - 5) {
-          this.pages = [];
-          for (let i = p - 5; i <= max; i++) {
-            this.pages.push(i);
-          }
+        if (p <= PAGINATE_LIMIT) {
+          this.pages = _.range(_.max([max, PAGINATE_LIMIT * 2]));
+        } else if (p > max - PAGINATE_LIMIT) {
+          this.pages = _.range(p - PAGINATE_LIMIT, max + 1);
         } else {
-          this.pages = [];
-          for (let i = p - 5; i <= p + 5; i++) {
-            this.pages.push(i);
-          }
+          this.pages = _.range(p - PAGINATE_LIMIT, p + PAGINATE_LIMIT + 1);
         }
       });
     },

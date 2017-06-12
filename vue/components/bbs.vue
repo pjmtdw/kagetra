@@ -1,7 +1,7 @@
 <template>
   <div class='mx-auto' style='width:45em;'>
     <ul class='pagination'>
-      <li class='page-item' v-for='page in 10'>
+      <li class='page-item' v-for='page in pages'>
         <router-link class='page-link' :to='page.toString()'>{{page}}</router-link>
       </li>
     </ul>
@@ -29,12 +29,26 @@ export default {
   data() {
     return {
       threads: [],
+      pages: [],
     };
   },
   methods: {
     fetch(page) {
       axios.get(`/api/bbs/threads?page=${page}`).then((res) => {
+        const PAGINATE_LIMIT = 5;
+        const THREADS_PER_PAGE = res.data.pop().tpp;
+        const COUNT = res.data.pop().count;
         this.threads = res.data;
+
+        const max = Math.floor((COUNT - 1) / THREADS_PER_PAGE) + 1;
+        const p = Number(page);
+        if (p <= PAGINATE_LIMIT) {
+          this.pages = _.range(_.max([max, PAGINATE_LIMIT * 2]));
+        } else if (p > max - PAGINATE_LIMIT) {
+          this.pages = _.range(p - PAGINATE_LIMIT, max + 1);
+        } else {
+          this.pages = _.range(p - PAGINATE_LIMIT, p + PAGINATE_LIMIT + 1);
+        }
       });
     },
   },

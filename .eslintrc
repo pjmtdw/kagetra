@@ -4,9 +4,15 @@
     "html"
   ],
   "globals": {
-    "axios": true
+    "axios": true,
+    "_": true
   },
   "rules": {
-    "indent": ["error", 2]
+    "indent": ["error", 2],
+    "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }]
+  },
+  "env": {
+    "browser": true,
+    "jquery": true
   }
 }

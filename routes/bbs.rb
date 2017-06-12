@@ -24,7 +24,7 @@ class MainApp < Sinatra::Base
       query.paginate(page,BBS_THREADS_PER_PAGE).order(Sequel.desc(:last_comment_date),Sequel.desc(:bbs_threads__id)).map{|t|
         items = t.comments_dataset.order(Sequel.asc(:created_at)).map{|c|c.show(@user,@public_mode)}
         t.select_attr(:id,:title,:public).merge(items:items,has_new_comment:t.has_new_comment(@user))
-      }
+      }.push(count:BbsThread.where(cond).select(:id).all.length).push(tpp:BBS_THREADS_PER_PAGE)
     end
     def create_item(thread,is_first)
       c = BbsItem.create(

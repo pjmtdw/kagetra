@@ -28,9 +28,14 @@
         </div>
       </div>
     </form>
-    <form id="search-form" class="collapse">
+    <form id="search-form" class="collapse my-1">
       <div class="card card-block">
-        
+        <div class="form-group input-group">
+          <input class="form-control" name="query" type="text" placeholder="検索文字列">
+          <span class="input-group-btn">
+            <button class="btn btn-secondary" type="button" v-on:click="search">検索</button>
+          </span>
+        </div>
       </div>
     </form>
     <ul class='pagination my-2'>
@@ -75,17 +80,28 @@ export default {
     );
 
     $('input[name="user_name"]').val(this.name);
+    // Enterでsubmitされるかわりに検索を実行
+    $('input[name="query"]').on('keypress', (e) => {
+      if (e.keyCode === 13) {
+        this.search();
+        e.preventDefault();
+      }
+    });
   },
   data() {
     return {
       threads: [],
       pages: [],
       name: g_user_name,
+      query: '',
     };
   },
   methods: {
     fetch(page) {
-      axios.get(`/api/bbs/threads?page=${page}`).then((res) => {
+      let url = `/api/bbs/threads?page=${page}`;
+      if (this.query) url += `&qs=${encodeURIComponent(this.query)}`;
+
+      axios.get(url).then((res) => {
         const PAGINATE_LIMIT = 5;
         const THREADS_PER_PAGE = res.data.pop().tpp;
         const COUNT = res.data.pop().count;
@@ -103,7 +119,6 @@ export default {
         }
       });
     },
-
     create_new_thread() {
       const userName = $('input[name="user_name"]').val();
       const title = $('input[name="title"]').val();
@@ -123,6 +138,10 @@ export default {
         $('textarea[name="body"]').val('');
       }).catch(() => {
       });
+    },
+    search() {
+      this.query = $('input[name="query"]').val();
+      this.fetch(this.page);
     },
   },
   watch: {

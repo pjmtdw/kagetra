@@ -3,15 +3,20 @@
     <button id="new-thread-toggle" class="btn btn-primary m-2" data-toggle="collapse" href="#new-thread-form" aria-expanded="false" aria-controls="new-thread-form">
       スレッド作成
     </button>
-    <button id="search-toggle" class="btn btn-primary m-2" data-toggle="collapse" href="#search-form" aria-expanded="false" aria-controls="search-form">
-      検索
-    </button>
+    <form id="search-form" class="float-right">
+      <div class="form-group input-group my-2">
+        <input class="form-control" name="query" type="text" placeholder="検索文字列">
+        <span class="input-group-btn">
+          <button class="btn btn-secondary" type="button" v-on:click="search">検索</button>
+        </span>
+      </div>
+    </form>
     <form id="new-thread-form" class="collapse my-1">
       <div class="card card-block">
-        <div class="form-group">
+        <div class="form-group m-2">
           <input class="btn btn-primary" type="button" value="送信" v-on:click="create_new_thread">
         </div>
-        <div class="form-group form-inline">
+        <div class="form-group form-inline mx-2">
           <label>名前<input class="form-control mx-2" name="user_name" type="text" v-bind:value="name"></label>
           <div class="form-check ml-5">
             <label class="form-check-label">
@@ -20,17 +25,12 @@
             </label>
           </div>
         </div>
-        <div class="form-group">
+        <div class="form-group mx-3">
           <label style="width:100%;">タイトル<input class="form-control" type="text" name="title"></label>
         </div>
-        <div class="form-group">
+        <div class="form-group mx-3">
           <label style="width:100%;">内容<textarea class="form-control" name="body" rows="30"></textarea></label>
         </div>
-      </div>
-    </form>
-    <form id="search-form" class="collapse">
-      <div class="card card-block">
-        
       </div>
     </form>
     <ul class='pagination my-2'>
@@ -75,21 +75,32 @@ export default {
     );
 
     $('input[name="user_name"]').val(this.name);
+    // Enterでsubmitされるかわりに検索を実行
+    $('input[name="query"]').on('keypress', (e) => {
+      if (e.keyCode === 13) {
+        this.search();
+        e.preventDefault();
+      }
+    });
   },
   data() {
     return {
       threads: [],
       pages: [],
       name: g_user_name,
+      query: '',
     };
   },
   methods: {
     fetch(page) {
-      axios.get(`/api/bbs/threads?page=${page}`).then((res) => {
+      let url = `/api/bbs/threads?page=${page}`;
+      if (this.query && $('#search-form').css('display') !== 'none') url += `&qs=${encodeURIComponent(this.query)}`;
+
+      axios.get(url).then((res) => {
         const PAGINATE_LIMIT = 5;
-        const THREADS_PER_PAGE = res.data.pop().tpp;
+        const THREADS_PER_PAGE = res.data.pop().threads_per_page;
         const COUNT = res.data.pop().count;
-        this.threads = res.data;
+        this.threads = _.filter(res.data, (v, key) => _.isInteger(key));
 
         const max = Math.floor((COUNT - 1) / THREADS_PER_PAGE) + 1;
         const p = Number(page);
@@ -100,19 +111,27 @@ export default {
           this.pages = _.range(p - PAGINATE_LIMIT, max + 1);
         } else {
           this.pages = _.range(p - PAGINATE_LIMIT, p + PAGINATE_LIMIT + 1);
-        }
+        }console.log(THREADS_PER_PAGE);
       });
     },
-
     create_new_thread() {
-      const userName = $('input[name="user_name"]').val();
-      const title = $('input[name="title"]').val();
-      const body = $('textarea[name="body"]').val();
+      if ($('input[name="title"]').val() === '') {
+        $('<div class="alert alert-warning alert-dismisible fade show" role="alert"></div>')
+          .prependTo('#container').html('タイトルを入力してください').alert();
+        // /* eslint-disable no-alert */
+        // alert('タイトルを入力してください');
+        return;
+      }
+      if ($('textarea[name="body"]').val() === '') {
+        /* eslint-disable no-alert */
+        alert('内容がありません');
+        return;
+      }
       const data = {
-        user_name: userName || this.name,
+        user_name: $('input[name="user_name"]').val() || this.name,
         public: $('input[name="public"]')[0].checked,
-        title: title || null,
-        body: body || null,
+        title: $('input[name="title"]').val(),
+        body: $('textarea[name="body"]').val(),
       };
       axios.post('/api/bbs/thread', data).then(() => {
         $('#new-thread-toggle').click();
@@ -123,6 +142,10 @@ export default {
         $('textarea[name="body"]').val('');
       }).catch(() => {
       });
+    },
+    search() {
+      this.query = $('input[name="query"]').val();
+      this.fetch(this.page);
     },
   },
   watch: {

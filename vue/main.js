@@ -24,6 +24,9 @@ const routes = {
 /* global location */
 const route = routes[location.pathname.substr(1)];
 
+// for navbar
+$(`#${location.pathname.substr(1)}`).addClass('active');
+
 const router = new VueRouter({
   routes: route,
   base: location.pathname,

@@ -94,7 +94,7 @@ export default {
   methods: {
     fetch(page) {
       let url = `/api/bbs/threads?page=${page}`;
-      if (this.query && $('#search-form').css('display') !== 'none') url += `&qs=${encodeURIComponent(this.query)}`;
+      if (this.query) url += `&qs=${encodeURIComponent(this.query)}`;
 
       axios.get(url).then((res) => {
         const PAGINATE_LIMIT = 5;

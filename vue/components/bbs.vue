@@ -1,16 +1,18 @@
 <template>
   <div id="container" class='mx-auto'>
-    <button id="new-thread-toggle" class="btn btn-primary m-2" data-toggle="collapse" href="#new-thread-form" aria-expanded="false" aria-controls="new-thread-form">
-      スレッド作成
-    </button>
-    <form id="search-form" class="float-right">
-      <div class="form-group input-group my-2">
-        <input class="form-control" name="query" type="text" placeholder="検索文字列">
-        <span class="input-group-btn">
-          <button class="btn btn-secondary" type="button" v-on:click="search">検索</button>
-        </span>
-      </div>
-    </form>
+    <div class="d-flex flex-row">
+      <button id="new-thread-toggle" class="btn btn-primary m-2" data-toggle="collapse" href="#new-thread-form" aria-expanded="false" aria-controls="new-thread-form">
+        スレッド作成
+      </button>
+      <form id="search-form" class="ml-auto">
+        <div class="form-group input-group my-2">
+          <input class="form-control" name="query" type="text" placeholder="検索文字列">
+          <span class="input-group-btn">
+            <button class="btn btn-secondary" type="button" v-on:click="search">検索</button>
+          </span>
+        </div>
+      </form>
+    </div>
     <form id="new-thread-form" class="collapse my-1">
       <div class="card card-block">
         <div class="form-group m-2">
@@ -40,7 +42,9 @@
     </ul>
     <div class='card thread' v-for='thread in threads'>
       <div class='card-header'>
-        {{thread.title}}
+        <span>{{thread.title}}</span>
+        <span v-if="thread.public" class="float-right mx-1 is-public">外部公開</span>
+        <span v-if="thread.has_new_comment" class="float-right mx-1 is-new">新着あり</span>
       </div>
       <ul class="list-group list-group-flush">
         <li class='list-group-item' v-for='item in thread.items'>
@@ -94,7 +98,7 @@ export default {
   methods: {
     fetch(page) {
       let url = `/api/bbs/threads?page=${page}`;
-      if (this.query && $('#search-form').css('display') !== 'none') url += `&qs=${encodeURIComponent(this.query)}`;
+      if (this.query) url += `&qs=${encodeURIComponent(this.query)}`;
 
       axios.get(url).then((res) => {
         const PAGINATE_LIMIT = 5;
@@ -111,20 +115,16 @@ export default {
           this.pages = _.range(p - PAGINATE_LIMIT, max + 1);
         } else {
           this.pages = _.range(p - PAGINATE_LIMIT, p + PAGINATE_LIMIT + 1);
-        }console.log(THREADS_PER_PAGE);
+        }
       });
     },
     create_new_thread() {
       if ($('input[name="title"]').val() === '') {
-        $('<div class="alert alert-warning alert-dismisible fade show" role="alert"></div>')
-          .prependTo('#container').html('タイトルを入力してください').alert();
-        // /* eslint-disable no-alert */
-        // alert('タイトルを入力してください');
+        $.notify('warning', 'タイトルを入力してください');
         return;
       }
       if ($('textarea[name="body"]').val() === '') {
-        /* eslint-disable no-alert */
-        alert('内容がありません');
+        $.notify('warning', '内容がありません');
         return;
       }
       const data = {
@@ -140,7 +140,10 @@ export default {
         $('input[name="public"]')[0].checked = false;
         $('input[name="title"]').val('');
         $('textarea[name="body"]').val('');
+        $.notify('clear');
+        $.notify('success', '投稿しました');
       }).catch(() => {
+        $.notify('danger', '投稿に失敗しました');
       });
     },
     search() {
@@ -156,32 +159,28 @@ export default {
 };
 </script>
 <style scoped>
-@media screen and (min-width: 800px) {
-  #container {
-    width: 680px;
-  }
-}
-
-@media screen and (max-width: 799px) {
-  #container {
-    width: 85%;
-  }
+#container {
+  width: 85%;
+  max-width: 680px;
 }
 
 .thread {
   white-space: pre-line;
   margin-bottom: 1.5em;
 }
-
-.thread-info {
+.thread .thread-info {
   width: 100%;
 }
-
-.name {
+.thread .name {
   color: #040;
 }
-
-.date {
+.thread .date {
   color: brown;
+}
+.thread .is-public {
+  color: blue;
+}
+.thread .is-new {
+  color: #f80;
 }
 </style>

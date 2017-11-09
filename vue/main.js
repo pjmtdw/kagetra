@@ -76,10 +76,7 @@ const router = new VueRouter({
 
 
 axios.interceptors.response.use(null, (error) => {
-  // TODO: Eslintに警告されないようなちゃんとしたダイアログにする
-  /* global alert */
-  /* eslint-disable no-alert */
-  alert(`エラー: ${error.response.data.error_message}`);
+  $.notify('danger', `エラー: ${error.response.data.error_message}`);
   return Promise.reject(error);
 });
 

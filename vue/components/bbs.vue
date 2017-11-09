@@ -16,10 +16,10 @@
     <form id="new-thread-form" class="collapse my-1">
       <div class="card card-block">
         <div class="form-group m-2">
-          <input class="btn btn-primary" type="button" value="送信" v-on:click="create_new_thread">
+          <input class="btn btn-outline-primary" type="button" value="送信" v-on:click="create_new_thread">
         </div>
         <div class="form-group form-inline mx-2">
-          <label>名前<input class="form-control mx-2" name="user_name" type="text" v-bind:value="name"></label>
+          <label>名前<input class="form-control mx-2" name="user_name" type="text" :value="name"></label>
           <div class="form-check ml-5">
             <label class="form-check-label">
               <input class="form-check-input" name="public" type="checkbox">
@@ -36,26 +36,39 @@
       </div>
     </form>
     <ul class='pagination my-2'>
-      <li v-for='i in pages' class='page-item' v-bind:class="{ active: page === String(i) }">
+      <li v-for='i in pages' class='page-item' :class="{ active: page === String(i) }">
         <router-link class='page-link' :to='i.toString()'>{{i}}</router-link>
       </li>
     </ul>
     <div class='card thread' v-for='thread in threads'>
-      <div class='card-header'>
-        <span>{{thread.title}}</span>
-        <span v-if="thread.public" class="float-right mx-1 is-public">外部公開</span>
-        <span v-if="thread.has_new_comment" class="float-right mx-1 is-new">新着あり</span>
+      <div class='card-header h5'>
+        <span class="h6">{{thread.title}}</span>
+        <span v-if="thread.public" class="float-right badge badge-primary mx-1">外部公開</span>
+        <span v-if="thread.has_new_comment" class="float-right badge badge-success mx-1">新着あり</span>
       </div>
       <ul class="list-group list-group-flush">
         <li class='list-group-item' v-for='item in thread.items'>
           <div class="thread-info">
             <span class='name'>{{item.user_name}}</span>＠<span class='date'>{{item.date}}</span>
+            <button class="edit-item float-right btn btn-success" :href="item.id" aria-expanded="false">編集</button>
           </div>
-          <div>
+          <div :id="'item' + item.id">
             {{item.body}}
           </div>
+          <form :id="'editItem' + item.id" style="display: none;">
+            <input class="btn btn-outline-success" type="button" value="送信">
+            <input class="btn btn-outline-danger" type="button" value="削除">
+          </form>
         </li>
       </ul>
+      <div>
+        <button class="new-item-toggle btn btn-success mt-3 mb-2 ml-3" data-toggle="collapse" :href="'#new-item-form' + thread.id" aria-expanded="false" :aria-controls="'new-item-form' + thread.id">書き込み</button>
+        <form :id="'new-item-form' + thread.id" class="collapse ml-3">
+          <div class="form-group m-2">
+            <input class="btn btn-outline-success" type="button" value="送信">
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 </template>
@@ -68,15 +81,29 @@ export default {
   },
   mounted() {
     const $toggle = $('#new-thread-toggle');
-    $toggle.click(
-      () => {
-        if ($toggle.attr('aria-expanded') === 'true') {
-          $toggle.html('スレッド作成');
-        } else {
-          $toggle.html('キャンセル');
-        }
-      },
-    );
+    $toggle.click(() => {
+      $toggle.html($toggle.attr('aria-expanded') === 'true' ? 'スレッド作成' : 'キャンセル');
+    });
+    // まだDOMが生成されていない部分なのでdocumentに対して設定
+    $(document).on('click', '.new-item-toggle', (evt) => {
+      const $itemToggle = $(evt.target);
+      $itemToggle.html($itemToggle.attr('aria-expanded') === 'false' ? '書き込み' : 'キャンセル');
+    });
+    $(document).on('click', '.edit-item', (evt) => {
+      const $editToggle = $(evt.target);
+      const $item = $(`#item${$editToggle.attr('href')}`);
+      const $edit = $(`#editItem${$editToggle.attr('href')}`);
+      const expanded = $editToggle.attr('aria-expanded') === 'true';
+      $editToggle.html(expanded ? '編集' : 'キャンセル');
+      $editToggle.attr('aria-expanded', expanded ? 'false' : 'true');
+      if (expanded) {
+        $item.show();
+        $edit.hide();
+      } else {
+        $item.hide();
+        $edit.show();
+      }
+    });
 
     $('input[name="user_name"]').val(this.name);
     // Enterでsubmitされるかわりに検索を実行
@@ -116,6 +143,8 @@ export default {
         } else {
           this.pages = _.range(p - PAGINATE_LIMIT, p + PAGINATE_LIMIT + 1);
         }
+      }).catch(() => {
+        $.notify('danger', '投稿の取得に失敗しました');
       });
     },
     create_new_thread() {
@@ -134,8 +163,6 @@ export default {
         body: $('textarea[name="body"]').val(),
       };
       axios.post('/api/bbs/thread', data).then(() => {
-        $('#new-thread-toggle').click();
-        this.fetch(this.page);
         $('input[name="user_name"]').val(this.name);
         $('input[name="public"]')[0].checked = false;
         $('input[name="title"]').val('');
@@ -176,11 +203,5 @@ export default {
 }
 .thread .date {
   color: brown;
-}
-.thread .is-public {
-  color: blue;
-}
-.thread .is-new {
-  color: #f80;
 }
 </style>

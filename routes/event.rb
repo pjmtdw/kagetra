@@ -100,25 +100,30 @@ class MainApp < Sinatra::Base
         if hide_result and not edit_mode then return end
         participant_names.merge!(Hash[ucs.map{|u|[u.id,u.user_name]}])
       }
+
+      # created_at が登録時間なのでその順番でソート
+      sort_by_registered_time = ->(ucs){
+        ucs.map{|k,v|[k,v.sort_by(&:created_at)]}
+      }
       cond = if edit_mode then {} else {positive:true} end
       choices = ev.choices_dataset.where(cond)
       res = if ev.hide_choice and not edit_mode then
-              res = Hash.new{[]}
+              r = Hash.new{[]}
               choices.each{|c|
                 ucs = c.user_choices
                 add_participant_names.call(ucs,c.hide_result)
                 ucs.each{|uc|
-                  res[uc.attr_value_id] <<= uc
+                  r[uc.attr_value_id] <<= uc
                 }
               }
-              {-1 => sort_and_map.call(res)}
+              r = sort_by_registered_time.call(r)
+              {-1 => sort_and_map.call(r)}
             else
               choices.to_a.each_with_object({}){|c,obj|
                 ucs = c.user_choices
                 add_participant_names.call(ucs,c.hide_result)
-                obj[c.id] = sort_and_map.call(
-                  ucs.group_by{|x|x.attr_value_id}
-                )
+                uuu = sort_by_registered_time.call(ucs.group_by(&:attr_value_id))
+                obj[c.id] = sort_and_map.call(uuu)
               }
             end
       {

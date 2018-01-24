@@ -58,8 +58,7 @@ $.notify = (type, message) => {
     .html(message)
     .append($('<button class="close p-0 type="button" data-dismiss="alert" aria-label="Close"></button>')
       .css({ top: 0, right: 0 })
-      .html('<span aria-hidden="true">&times;</span>'),
-    )
+      .html('<span aria-hidden="true">&times;</span>'))
     .prependTo('#app');
 
   alignNotify();

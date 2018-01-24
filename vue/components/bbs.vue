@@ -1,5 +1,5 @@
 <template>
-  <div id="container" class='mx-auto'>
+  <div id="container" class="mx-auto">
     <div class="d-flex flex-row">
       <button id="new-thread-toggle" class="btn btn-primary m-2" data-toggle="collapse" href="#new-thread-form" aria-expanded="false" aria-controls="new-thread-form">
         スレッド作成
@@ -8,7 +8,7 @@
         <div class="form-group input-group my-2">
           <input class="form-control" name="query" type="text" placeholder="検索文字列">
           <span class="input-group-btn">
-            <button class="btn btn-secondary" type="button" v-on:click="search">検索</button>
+            <button class="btn btn-secondary" type="button" @click="search">検索</button>
           </span>
         </div>
       </form>
@@ -16,7 +16,7 @@
     <form id="new-thread-form" class="collapse my-1">
       <div class="card card-block">
         <div class="form-group m-2">
-          <input class="btn btn-outline-primary" type="button" value="送信" v-on:click="create_new_thread">
+          <input class="btn btn-outline-primary" type="button" value="送信" @click="create_new_thread">
         </div>
         <div class="form-group form-inline mx-2">
           <label>名前<input class="form-control mx-2" name="user_name" type="text" :value="name"></label>
@@ -31,29 +31,31 @@
           <label style="width:100%;">タイトル<input class="form-control" type="text" name="title"></label>
         </div>
         <div class="form-group mx-3">
-          <label style="width:100%;">内容<textarea class="form-control" name="body" rows="30"></textarea></label>
+          <label style="width:100%;">
+            内容<textarea class="form-control" name="body" rows="30"/>
+          </label>
         </div>
       </div>
     </form>
-    <ul class='pagination my-2'>
-      <li v-for='i in pages' class='page-item' :class="{ active: page === String(i) }">
-        <router-link class='page-link' :to='i.toString()'>{{i}}</router-link>
+    <ul class="pagination my-2">
+      <li v-for="i in pages" class="page-item" :class="{ active: page === String(i) }" :key="i">
+        <router-link class="page-link" :to="i.toString()">{{ i }}</router-link>
       </li>
     </ul>
-    <div class='card thread' v-for='thread in threads'>
-      <div class='card-header h5'>
-        <span class="h6">{{thread.title}}</span>
+    <div class="card thread" v-for="thread in threads" :key="thread.id">
+      <div class="card-header h5">
+        <span class="h6">{{ thread.title }}</span>
         <span v-if="thread.public" class="float-right badge badge-primary mx-1">外部公開</span>
         <span v-if="thread.has_new_comment" class="float-right badge badge-success mx-1">新着あり</span>
       </div>
       <ul class="list-group list-group-flush">
-        <li class='list-group-item' v-for='item in thread.items'>
+        <li class="list-group-item" v-for="item in thread.items" :key="item.id">
           <div class="thread-info">
-            <span class='name'>{{item.user_name}}</span>＠<span class='date'>{{item.date}}</span>
+            <span class="name">{{ item.user_name }}</span>＠<span class="date">{{ item.date }}</span>
             <button class="edit-item float-right btn btn-success" :href="item.id" aria-expanded="false">編集</button>
           </div>
           <div :id="'item' + item.id">
-            {{item.body}}
+            {{ item.body }}
           </div>
           <form :id="'editItem' + item.id" style="display: none;">
             <input class="btn btn-outline-success" type="button" value="送信">
@@ -75,7 +77,25 @@
 <script>
 /* global g_user_name */
 export default {
-  props: ['page'],
+  props: {
+    page: {
+      type: String,
+      default: '1',
+    },
+  },
+  data() {
+    return {
+      threads: [],
+      pages: [],
+      name: g_user_name,
+      query: '',
+    };
+  },
+  watch: {
+    page(val) {
+      this.fetch(val);
+    },
+  },
   created() {
     this.fetch(this.page);
   },
@@ -113,14 +133,6 @@ export default {
         e.preventDefault();
       }
     });
-  },
-  data() {
-    return {
-      threads: [],
-      pages: [],
-      name: g_user_name,
-      query: '',
-    };
   },
   methods: {
     fetch(page) {
@@ -176,11 +188,6 @@ export default {
     search() {
       this.query = $('input[name="query"]').val();
       this.fetch(this.page);
-    },
-  },
-  watch: {
-    page(val) {
-      this.fetch(val);
     },
   },
 };

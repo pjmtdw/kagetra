@@ -8,7 +8,7 @@ RUN yum -y update && yum -y install \
       ruby-devel ruby \
       openssl-devel \
       readline-devel \
-      sqlite-devel \ 
+      sqlite-devel \
       ImageMagick-devel \
       postgresql \
       postgresql-server \
@@ -47,7 +47,7 @@ RUN cp conf.rb.sample conf.rb && \
     sed -i -e '/^CONF_DB_PASSWORD /{s/<pass>/kagetra/}' conf.rb &&\
     sed -i -e '/^CONF_DB_HOST /{s/<host>/localhost/}' conf.rb &&\
     sed -i -e '/^CONF_DB_PORT /{s/port/5432/}' conf.rb &&\
-    sed -i -e '/^CONF_DB_DATABASE /{s/<db>/kagetra/}' conf.rb &&\
+    sed -i -e '/^CONF_DB_DATABASE /{s/<db>/kagetra/}' conf.rb
 
 RUN sed -i -e '/^add_import_path/{s/#{RUBY_VERSION}/2.4.0/}' deploy/compass_conf.rb
 RUN bash -lc "cd deploy && make"

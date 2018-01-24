@@ -1,15 +1,32 @@
 {
-  "extends": "airbnb-base",
-  "plugins": [
-    "html"
+  "parser": "vue-eslint-parser",
+  "extends": [
+    "airbnb-base",
+    "plugin:vue/recommended"
   ],
   "globals": {
     "axios": true,
     "_": true
   },
   "rules": {
-    "indent": ["error", 2],
-    "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }]
+    "indent": [
+      "error",
+      2
+    ],
+    "no-plusplus": [
+      "error",
+      {
+        "allowForLoopAfterthoughts": true
+      }
+    ],
+    "max-len": 1,
+    "vue/max-attributes-per-line": [1, {
+      "singleline": 10,
+      "multiline": {
+        "max": 10,
+        "allowFirstLine": true
+      }
+    }]
   },
   "env": {
     "browser": true,

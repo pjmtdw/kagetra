@@ -68,6 +68,17 @@ $.notify = (type, message) => {
   setTimeout(() => { $notify.remove(); }, 30 * 1000);
 };
 
+// formの値をobject化
+$.fn.extend({
+  serializeObject() {
+    const res = {};
+    _.forEach(this.serializeArray(), (v) => {
+      res[v.name] = v.value;
+    });
+    return res;
+  },
+});
+
 const router = new VueRouter({
   routes: route,
   base: location.pathname,
@@ -83,4 +94,3 @@ axios.interceptors.response.use(null, (error) => {
 new Vue({
   router,
 }).$mount('#app');
-

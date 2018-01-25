@@ -17,4 +17,3 @@ class BbsItem < Sequel::Model(:bbs_items)
     super
   end
 end
-

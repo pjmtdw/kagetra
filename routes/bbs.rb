@@ -2,7 +2,9 @@
 class MainApp < Sinatra::Base
   namespace '/api/bbs' do
     BBS_THREADS_PER_PAGE = 5
-    def create_query(qs)
+    get '/threads' do
+      page = params["page"].to_i
+      qs = params["qs"]
       cond = if @public_mode then {public:true} else {} end
       query = BbsThread.where(cond)
       if qs then
@@ -19,24 +21,14 @@ class MainApp < Sinatra::Base
           query = query.where(qb)
         }
       end
-      return query
-    end
-    get '/threads' do
-      page = params["page"].to_i
-      qs = params["qs"]
-      query = create_query(qs)
       threads = query.paginate(page,BBS_THREADS_PER_PAGE).order(Sequel.desc(:last_comment_date),Sequel.desc(:bbs_threads__id)).map{|t|
         items = t.comments_dataset.order(Sequel.asc(:created_at)).map{|c|c.show(@user,@public_mode)}
         t.select_attr(:id,:title,:public).merge(items:items,has_new_comment:t.has_new_comment(@user))
       }
-      return threads
-    end
-    get '/threads/info' do
-      qs = params["qs"]
-      query = create_query(qs)
       return {
         count: query.count,
-        threads_per_page: BBS_THREADS_PER_PAGE
+        threads_per_page: BBS_THREADS_PER_PAGE,
+        threads: threads
       }
     end
     def create_item(thread,is_first)

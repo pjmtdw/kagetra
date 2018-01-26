@@ -152,14 +152,11 @@ export default {
       const baseUrl = '/api/bbs/threads';
       let queryUrl = `?page=${page}`;
       if (this.query) queryUrl += `&qs=${encodeURIComponent(this.query)}`;
-      axios.all([
-        axios.get(`${baseUrl}/info${queryUrl}`),
-        axios.get(`${baseUrl}${queryUrl}`),
-      ]).then(([info, res]) => {
-        const COUNT = info.data.count;
-        const THREADS_PER_PAGE = info.data.threads_per_page;
+      axios.get(`${baseUrl}${queryUrl}`).then((res) => {
+        const COUNT = res.data.count;
+        const THREADS_PER_PAGE = res.data.threads_per_page;
         const PAGINATE_LIMIT = 5;
-        this.threads = _.filter(res.data, (v, key) => _.isInteger(key));
+        this.threads = res.data.threads;
 
         const max = Math.floor((COUNT - 1) / THREADS_PER_PAGE) + 1;
         const p = Number(page);

@@ -1,29 +1,36 @@
 module.exports = {
   entry: './vue/main',
   output: {
-    filename: './public/js/bundle.js'
+    filename: './public/js/bundle.js',
   },
   module: {
-    rules: [{
-        enforce: "pre",
+    rules: [
+      {
+        enforce: 'pre',
         test: /\.(js|vue)$/,
         exclude: /node_modules/,
-        loader: "eslint-loader"
+        loader: 'eslint-loader',
       },
       {
         test: /\.js$/,
         exclude: /node_modules/,
-        loader: 'babel-loader'
-      }, {
+        loader: 'babel-loader',
+      },
+      {
         test: /\.vue$/,
-        loader: 'vue-loader'
-      }
-    ]
+        loader: 'vue-loader',
+        options: {
+          loaders: {
+            scss: 'vue-style-loader!css-loader!sass-loader', // <style lang="scss">
+          },
+        },
+      },
+    ],
   },
   resolve: {
     extensions: ['.js', '.vue'],
     alias: {
-      'vue$': 'vue/dist/vue.esm.js',
-    }
-  }
-}
+      vue$: 'vue/dist/vue.esm.js',
+    },
+  },
+};

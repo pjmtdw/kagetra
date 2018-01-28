@@ -32,6 +32,8 @@
     - else
       %script
         var g_user_name='#{get_permanent("bbs_name")}';
+    -# for IE
+    %script(src="https://www.promisejs.org/polyfills/promise-7.0.4.min.js")
     %script(src="https://unpkg.com/axios/dist/axios.min.js")
     %script(src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js")
     %script(crossorigin="anonymous" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" src="https://code.jquery.com/jquery-3.2.1.slim.min.js")

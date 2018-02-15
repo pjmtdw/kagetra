@@ -45,7 +45,7 @@
       </div>
     </form>
     <ul class="pagination my-2">
-      <li v-for="i in pages" class="page-item" :class="{ active: page === String(i) }" :key="i">
+      <li v-for="i in pages" class="page-item" :class="{ active: page == i }" :key="i">
         <router-link class="page-link" :to="i.toString()">{{ i }}</router-link>
       </li>
     </ul>
@@ -124,7 +124,6 @@ export default {
       const $itemToggle = $(evt.target);
       const expanded = $itemToggle.attr('aria-expanded') === 'true';
       $itemToggle.html(expanded ? '書き込み' : 'キャンセル');
-      $itemToggle.attr('aria-expanded', expanded ? 'false' : 'true');
     });
     $('#container').on('click', '.edit-item', (evt) => {
       const $editToggle = $(evt.target);
@@ -242,7 +241,7 @@ export default {
   },
 };
 </script>
-<style scoped>
+<style lang="scss" scoped>
 #container {
   width: 85%;
   max-width: 680px;
@@ -251,21 +250,25 @@ export default {
 .thread {
   white-space: pre-line;
   margin-bottom: 1.5em;
-}
-.thread.private {
-  border: 1px solid green;
-  background-color: #FFD;
-}
-.thread.private li {
-  background-color: #FFD;
-}
-.thread .thread-info {
-  width: 100%;
-}
-.thread .name {
-  color: #040;
-}
-.thread .date {
-  color: brown;
+
+  &.private {
+    border: 1px solid green;
+    background-color: #FFD;
+    li {
+      background-color: #FFD;
+    }
+  }
+
+  .thread-info {
+    width: 100%;
+  }
+
+  .name {
+    color: #040;
+  }
+
+  .date {
+    color: brown;
+  }
 }
 </style>

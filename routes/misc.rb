@@ -36,6 +36,8 @@ class MainApp < Sinatra::Base
   end
   before do
     return if @public_mode
+    # pathの末尾の/は無視
+    request.path_info.chop! if request.path_info[-1] == '/'
     path = request.path_info
     # 以下のURLはログインしなくてもアクセスできる
     return if ["/public/","/api/user/auth/","/api/board_message/","/js/","/img/","/css/"].any?{|s|path.start_with?(s)} or ["/","/robots.txt","/select_other_uid","/mobile/"].include?(path)

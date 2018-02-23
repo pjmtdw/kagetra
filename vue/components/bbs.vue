@@ -1,7 +1,7 @@
 <template>
   <div id="container" class="mx-auto">
     <div class="d-flex flex-row">
-      <button id="new-thread-toggle" class="btn btn-primary m-2" data-toggle="collapse" href="#new-thread-form" aria-expanded="false" aria-controls="new-thread-form">
+      <button id="new-thread-toggle" class="btn btn-success m-2" data-toggle="collapse" href="#new-thread-form" aria-expanded="false" aria-controls="new-thread-form">
         スレッド作成
       </button>
       <form id="search-form" class="ml-auto" @submit.prevent="search">
@@ -16,12 +16,12 @@
     <form id="new-thread-form" class="collapse my-1" @submit.prevent>
       <div class="card card-block">
         <div class="form-group m-2">
-          <button class="btn btn-outline-primary" type="button" @click="create_new_thread">送信</button>
+          <button class="btn btn-outline-success" type="button" @click="create_new_thread">送信</button>
         </div>
         <div class="form-group form-inline mx-3">
           <label>
             名前
-            <input class="form-control mx-2" type="text" name="user_name" placeholder="名前" :value="name">
+            <input class="form-control ml-md-2" type="text" name="user_name" placeholder="名前" :value="name">
           </label>
           <div class="form-check ml-5">
             <label class="form-check-label">
@@ -44,7 +44,7 @@
         </div>
       </div>
     </form>
-    <ul class="pagination my-2">
+    <ul class="pagination my-2 justify-content-center">
       <li v-for="i in pages" class="page-item" :class="{ active: page == i }" :key="i">
         <router-link class="page-link" :to="i.toString()">{{ i }}</router-link>
       </li>
@@ -56,17 +56,15 @@
         <span v-if="thread.has_new_comment" class="float-right badge badge-info mx-1">新着あり</span>
       </div>
       <ul class="list-group list-group-flush">
-        <li class="list-group-item" v-for="item in thread.items" :key="item.id">
+        <li class="list-group-item px-3" v-for="item in thread.items" :key="item.id">
           <div class="thread-info d-flex">
             <span class="name">{{ item.user_name }}</span>＠<span class="date mr-auto">{{ item.date }}</span>
-            <h6 class="align-self-center"><span v-if="item.is_new" class="badge badge-info mx-1">New</span></h6>
+            <h6 v-if="item.is_new" class="align-self-center"><span class="badge badge-info mx-1">New</span></h6>
             <button class="edit-item btn btn-success btn-sm" v-if="item.editable" :data-id="item.id" aria-expanded="false">
               編集
             </button>
           </div>
-          <div :id="'item' + item.id" class="thread-body">
-            {{ item.body }}
-          </div>
+          <div :id="'item' + item.id" class="thread-body pl-1">{{ item.body }}</div>
           <form :id="'editItem' + item.id" class="mt-3 d-none" v-if="item.editable" :data-id="item.id" @submit.prevent>
             <button class="btn btn-outline-success" type="button" @click="edit_item">送信</button>
             <button class="btn btn-outline-danger" type="button" @click="delete_item">削除</button>
@@ -172,31 +170,31 @@ export default {
       });
     },
     create_new_thread() {
-      if ($('input[name="title"]', '#new-thread-form').val() === '') {
+      if ($('#new-thread-form input[name="title"]').val() === '') {
         $.notify('warning', 'タイトルを入力してください');
         return;
       }
-      if ($('textarea[name="body"]', '#new-thread-form').val() === '') {
+      if ($('#new-thread-form textarea[name="body"]').val() === '') {
         $.notify('warning', '内容がありません');
         return;
       }
       const data = $('#new-thread-form').serializeObject();
-      data.public = $('input[name="public"]', '#new-thread-form')[0].checked;
+      data.public = $('#new-thread-form input[name="public"]')[0].checked;
       axios.post('/api/bbs/thread', data).then(() => {
-        $('input[name="user_name"]').val(this.name);
-        $('input[name="public"]')[0].checked = false;
-        $('input[name="title"]').val('');
-        $('textarea[name="body"]').val('');
+        $('#new-thread-form input[name="user_name"]').val(this.name);
+        $('#new-thread-form input[name="public"]')[0].checked = false;
+        $('#new-thread-form input[name="title"]').val('');
+        $('#new-thread-form textarea[name="body"]').val('');
+        $('#new-thread-toggle').click();
         $.notify('clear');
         $.notify('success', '投稿しました');
-        $('#new-thread-toggle').click();
         this.fetch(this.page);
       }).catch(() => {
         $.notify('danger', '投稿に失敗しました');
       });
     },
     search() {
-      this.query = $('input[name="query"]', '#search-form').val();
+      this.query = $('#search-form input[name="query"]').val();
       this.fetch(this.page);
     },
     edit_item(evt) {
@@ -205,7 +203,7 @@ export default {
       const $toggle = $(`button[data-id="${id}"]`);
       const data = $form.serializeObject();
       axios.put(`/api/bbs/item/${id}`, data).then(() => {
-        $toggle.trigger('click');
+        $toggle.click();
         $.notify('clear');
         $.notify('success', '更新しました');
         this.fetch(this.page);
@@ -216,7 +214,6 @@ export default {
     delete_item(evt) {
       const $form = $(evt.target).parent();
       const id = Number($form.attr('data-id'));
-      // const $toggle = $(`button[data-id="${id}"]`);
       axios.delete(`/api/bbs/item/${id}`).then(() => {
         $.notify('clear');
         $.notify('success', '削除しました');
@@ -230,7 +227,9 @@ export default {
       const data = $form.serializeObject();
       const $toggle = $(`button[href="#new-item-form${data.thread_id}"]`);
       axios.post('/api/bbs/item', data).then(() => {
-        $toggle.trigger('click');
+        $('input[name="user_name"]', $form).val(this.name);
+        $('textarea[name="body"]', $form).val('');
+        $toggle.click();
         $.notify('clear');
         $.notify('success', '投稿しました');
         this.fetch(this.page);
@@ -242,9 +241,10 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
+@import '../sass/common.scss';
 #container {
-  width: 85%;
-  max-width: 680px;
+  width: 100%;
+  max-width: 750px;
 }
 
 .thread {
@@ -270,5 +270,9 @@ export default {
   .date {
     color: brown;
   }
+}
+
+.form-inline .form-check {
+  width: auto;
 }
 </style>

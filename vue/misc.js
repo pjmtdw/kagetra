@@ -8,6 +8,10 @@ export default (routeName) => {
   $.notify = (type, message) => {
     // クリア
     if (type === 'clear') {
+      $('.notify.alert-danger, .notify.alert-warning').remove();
+      return;
+    }
+    if (type === 'clear-all') {
       $('.notify').remove();
       return;
     }
@@ -24,11 +28,11 @@ export default (routeName) => {
 
     const $notify = $('<div role="alert"></div>').addClass(`notify alert alert-${type} alert-dismissible fade show w-25 m-1`)
       .css({
-        position: 'absolute',
+        position: 'fixed',
         'z-index': 200,
         right: '10px',
         'box-shadow': '5px 5px 10px 0 rgba(0, 0, 0, 0.2)',
-        'min-width': '150px',
+        'min-width': '200px',
       })
       .html(message)
       .append($('<button class="close p-0 type="button" data-dismiss="alert" aria-label="Close"></button>')

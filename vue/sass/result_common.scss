@@ -1,0 +1,50 @@
+.table-name {
+  min-width: 90px;
+  max-width: 90px;
+  table-layout: fixed;
+  thead {
+    background-color: #FDC;
+  }
+  td, th {
+    border: 1px dotted gray;
+    font-size: 0.875em;
+  }
+  td {
+    // height: 80px;
+    background-color: #FFD;
+    .prize{
+      margin-top: 5px;
+      color: purple;
+      font-weight: bold;
+    }
+  }
+}
+.table-result {
+  thead {
+    background-color: #FDC;
+  }
+  td, th {
+    min-width: 108px;
+    max-width: 128px;
+    border: 1px dotted gray;
+    font-size: 0.875em;
+  }
+  td {
+    // height: 80px;
+    &.result-default_win {
+    background-color: #DDD;
+    }
+    &.result-win {
+      background-color: #FFF;
+    }
+    &.result-lose {
+      background-color: #CFF;
+    }
+    &.result-break {
+      background-color: #FFD;
+    }
+    &.result-now {
+      background-color: #FDD;
+    }
+  }
+}

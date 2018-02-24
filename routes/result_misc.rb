@@ -4,7 +4,7 @@ class MainApp < Sinatra::Base
   RESULT_SEARCH_NAME_LIMIT = 100
   namespace '/api/result_misc' do
     post '/search_name' do
-      query = "%#{params[:q]}%"
+      query = "%#{@json["q"]}%"
       list1 = ContestUser.where(Sequel.like(:name,query)).limit(RESULT_SEARCH_NAME_LIMIT/2)
         .group_and_count(:name).order(Sequel.desc(:count)).map(&:name)
       list2 = ContestGame.where(Sequel.like(:opponent_name,query)).limit(RESULT_SEARCH_NAME_LIMIT/2)
@@ -70,7 +70,7 @@ class MainApp < Sinatra::Base
             Sequel.function(:sum,:point).coalesce_0.as("point"),
             Sequel.function(:sum,:point_local).coalesce_0.as("point_local")).first
           res = res.to_hash.merge(year:y)
-          
+
 
           if not games_op.empty? then
             # 勝ち数負け数(敵として出場した場合)
@@ -118,7 +118,7 @@ class MainApp < Sinatra::Base
 
       # 級の名前と回戦の名前を取得(味方として出場した大会のみ)
 
-      clids = if eid_required.empty? or cusers.empty? then [] else ContestUser.where(event_id:eid_required,id:cusers).map(&:contest_class_id) end 
+      clids = if eid_required.empty? or cusers.empty? then [] else ContestUser.where(event_id:eid_required,id:cusers).map(&:contest_class_id) end
       class_info = Hash[ContestClass.where(id:clids).map{|c|
         r = c.select_attr(:class_name)
         # 空のとき c.round_name をそのまま返してしまうと後で更新するときに Immutable resources cannot be modified エラーが出る

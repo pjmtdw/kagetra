@@ -10,8 +10,10 @@ import top from './routers/top';
 import wiki from './routers/wiki';
 
 import misc from './misc';
+import playerSearch from './components/player_search.vue';
 
 Vue.use(VueRouter);
+Vue.component('player-search', playerSearch);
 
 const routes = {
   addrbook,

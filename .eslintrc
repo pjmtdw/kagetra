@@ -26,7 +26,9 @@
         "max": 10,
         "allowFirstLine": true
       }
-    }]
+    }],
+    "vue/require-default-prop": 1,
+    "vue/require-v-for-key": 0
   },
   "env": {
     "browser": true,

@@ -24,7 +24,7 @@
             {{ ct.name }}
           </router-link>
         </nav>
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-4 mt-md-1">
           <div class="btn-group">
             <button type="button" class="btn btn-info" data-toggle="modal" data-target="#past_result" @click="fetch_past_info">過去の結果</button>
             <button type="button" class="btn btn-info dropdown-toggle dropdown-toggle-split" data-toggle="dropdown"
@@ -89,24 +89,31 @@
       </div>
     </nav>
     <div v-if="name" class="tab-content">
+      <!-- 結果 -->
       <div class="tab-pane border border-top-0 bg-white rounded-bottom fade show active" id="nav-result" role="tabpanel" aria-labelledby="nav-result-tab">
         <div class="d-flex justify-content-between">
-          <div>
+          <div class="ml-2">
             <button class="btn btn-success m-2">編集開始</button>
             <button class="btn btn-success m-2">出場者編集</button>
           </div>
           <div>
-            <button class="btn btn-info m-2" @click="fetch(contest_id)">更新</button>
+            <button class="btn btn-info m-2" @click="fetch">更新</button>
           </div>
         </div>
-        <div v-for="res in contest_results" :key="res.class_id" class="mb-5">
-          <span class="badge badge-pill badge-primary">{{ contest_classes[res.class_id].class_name }}</span>
-          <span v-if="contest_classes[res.class_id].num_person" class="badge badge-secondary">{{ contest_classes[res.class_id].num_person }}人</span>
-          <div class="d-flex flex-row">
+        <div v-for="(res, i) in contest_results" v-if="res.rounds.length" :key="team_size === 1 ? res.class_id : res.team_id" class="mb-5">
+          <template v-if="!(i > 0 && res.class_id === contest_results[i-1].class_id && contest_results[i-1].rounds.length)">
+            <span class="badge badge-pill badge-primary class-name">{{ contest_classes[res.class_id].class_name }}</span>
+            <span v-if="contest_classes[res.class_id].num_person" class="badge badge-secondary">{{ contest_classes[res.class_id].num_person }}人</span>
+          </template>
+          <div class="d-flex flex-row mt-1">
             <table class="table-name">
               <thead>
-                <tr>
-                  <th scope="col" class="text-center">名前</th>
+                <tr :class="team_size === 1 ? `row-team-${res.team_id}` : `row-cls-${res.class_id}`">
+                  <th v-if="team_size === 1" scope="col" class="text-center">名前</th>
+                  <th v-if="team_size > 1" scope="col" class="text-center">
+                    <div>{{ res.header_left.team_name }}</div>
+                    <div class="team-prize">{{ res.header_left.team_prize }}</div>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -126,8 +133,11 @@
             <div class="table-responsive">
               <table class="table-result">
                 <thead>
-                  <tr>
-                    <th v-for="(round, i) in res.rounds" :key="i" scope="col" class="text-center">{{ round.name === null ? `${i+1}回戦` : round.name }}</th>
+                  <tr :class="team_size === 1 ? `row-team-${res.team_id}` : `row-cls-${res.class_id}`">
+                    <th v-for="(round, i) in res.rounds" :key="i" scope="col" class="text-center">
+                      <div>{{ round.name === null ? `${i+1}回戦` : round.name }}</div>
+                      <div v-if="team_size > 1">{{ round.op_team_name }}</div>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -137,15 +147,18 @@
                       <div v-else-if="game.result === 'default_win'">不戦</div>
                       <template v-else-if="game.result === 'win'">
                         <div>○ {{ game.score_str }} {{ game.opponent_name }}</div>
-                        <div>({{ game.opponent_belongs }})</div>
+                        <div v-if="game.opponent_belongs">({{ game.opponent_belongs }})</div>
+                        <div v-else-if="game.opponent_order">({{ orders[game.opponent_order] }})</div>
                       </template>
                       <template v-else-if="game.result === 'lose'">
                         <div>● {{ game.score_str }} {{ game.opponent_name }}</div>
-                        <div>({{ game.opponent_belongs }})</div>
+                        <div v-if="game.opponent_belongs">({{ game.opponent_belongs }})</div>
+                        <div v-else-if="game.opponent_order">({{ orders[game.opponent_order] }})</div>
                       </template>
                       <template v-else-if="game.result === 'now'">
                         <div>対戦中 {{ game.opponent_name }}</div>
-                        <div>({{ game.opponent_belongs }})</div>
+                        <div v-if="game.opponent_belongs">({{ game.opponent_belongs }})</div>
+                        <div v-else-if="game.opponent_order">({{ orders[game.opponent_order] }})</div>
                       </template>
                     </td>
                   </tr>
@@ -155,7 +168,8 @@
           </div>
         </div>
       </div>
-      <div class="tab-pane border border-top-0 bg-white rounded-bottom fade" id="nav-info" role="tabpanel" aria-labelledby="nav-info-tab">
+      <!-- 情報 -->
+      <div class="tab-pane border border-top-0 bg-white rounded-bottom fade pb-3" id="nav-info" role="tabpanel" aria-labelledby="nav-info-tab">
         <div class="container">
           <div class="row">
             <div class="col-12 col-md-8">
@@ -191,7 +205,8 @@
                 <h6 class="card-header"><strong>日時</strong></h6>
                 <div class="card-body">
                   <span>{{ date }}</span>
-                  <span v-if="start_at">{{ start_at }} 〜</span>
+                  <span v-if="start_at">{{ start_at }}</span>
+                  <span v-if="start_at || end_at">〜</span>
                   <span v-if="end_at">{{ end_at }}</span>
                 </div>
               </div>
@@ -205,9 +220,9 @@
               </div>
             </div>
           </div>
-          <div v-if="attached" class="row">
+          <div v-if="attached.length" class="row">
             <div class="col">
-              <div class="card my-3">
+              <div class="card mt-3">
                 <h6 class="card-header"><strong>添付ファイル</strong></h6>
                 <div class="card-body">
                   <a v-for="at in attached" :href="`/static/event/attached/${at.id}/${encodeURI(at.orig_name)}`" class="d-block">{{ at.orig_name }}</a>
@@ -217,13 +232,16 @@
           </div>
         </div>
       </div>
-      <div class="tab-pane border border-top-0 bg-white rounded-bottom fade" id="nav-comment" role="tabpanel" aria-labelledby="nav-comment-tab">
-        <button class="btn btn-success m-2" @click="post_new_comment">
-          書き込む
-        </button>
-        <span class="m-2">
-          <strong>{{ thread_name }}</strong>
-        </span>
+      <!-- コメント -->
+      <div class="tab-pane border border-top-0 bg-white rounded-bottom fade pb-3" id="nav-comment" role="tabpanel" aria-labelledby="nav-comment-tab">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 class="m-2">
+            <strong>{{ thread_name }}</strong>
+          </h5>
+          <button class="btn btn-success m-2" @click="toggle_new_comment">
+            書き込む
+          </button>
+        </div>
         <nav v-if="pages > 1" class="pl-2">
           <ul class="pagination">
             <li v-for="p in pages" :key="p" class="page-item" :class="{'active': p == cur_page}">
@@ -256,6 +274,7 @@ export default {
   },
   data() {
     return {
+      orders: ['', '主将', '副将', '三将', '四将', '五将', '六将', '七将', '八将'],
       // result
       id: 0,
       official: null,
@@ -342,7 +361,7 @@ export default {
         });
       });
     },
-    post_new_comment() {
+    toggle_new_comment() {
     },
     load_comment(e) {
       this.cur_page = Number($(e.target).html());
@@ -367,7 +386,7 @@ export default {
     set_cell_height() {
       // セルの高さを揃える
       const rows = new Set();
-      $('.table-result tbody tr').each((index, elem) => {
+      $('.table-result tbody tr, .table-result thead tr').each((index, elem) => {
         rows.add($(elem).attr('class'));
       });
       rows.forEach((v) => {
@@ -390,6 +409,11 @@ export default {
   max-width: 860px;
 }
 
+.dropdown-menu {
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
 #nav-result-tab, #nav-info-tab, #nav-comment-tab {
   &:not(.active) {
     background-color: #f8f9fa;
@@ -399,24 +423,21 @@ export default {
   }
 }
 
-// #recent_list a {
-//   font-size: 0.8rem;
-//   @media screen and (max-width: 767.98px) {
-//     font-size: 0.7rem;
-//   }
-// }
-
 .unofficial {
   color: green;
 }
 .date {
   color: brown;
 }
+
+.class-name {
+  background-color: maroon;
+}
+.team-prize {
+  color: #039;
+}
+
 .comment {
   border-top: gray dotted 1px;
-}
-.dropdown-menu {
-  max-height: 50vh;
-  overflow-y: auto;
 }
 </style>

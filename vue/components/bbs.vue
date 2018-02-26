@@ -1,7 +1,8 @@
 <template>
   <div id="container" class="mx-auto">
     <div class="d-flex flex-row">
-      <button id="new-thread-toggle" class="btn btn-success m-2" data-toggle="collapse" href="#new-thread-form" aria-expanded="false" aria-controls="new-thread-form">
+      <button id="new-thread-toggle" class="btn btn-success m-2" data-toggle="collapse" href="#new-thread-form"
+              aria-expanded="false" aria-controls="new-thread-form" @click="toggle_new_thread">
         スレッド作成
       </button>
       <form id="search-form" class="ml-auto" @submit.prevent="search">
@@ -14,9 +15,9 @@
       </form>
     </div>
     <form id="new-thread-form" class="collapse my-1" @submit.prevent>
-      <div class="card card-block">
+      <div class="card">
         <div class="form-group m-2">
-          <button class="btn btn-outline-success" type="button" @click="create_new_thread">送信</button>
+          <button class="btn btn-success" type="button" @click="create_new_thread">送信</button>
         </div>
         <div class="form-group form-inline mx-3">
           <label>
@@ -39,7 +40,7 @@
         <div class="form-group mx-3">
           <label style="width:100%;">
             内容
-            <textarea class="form-control" name="body" rows="4" placeholder="内容"/>
+            <textarea class="form-control" name="body" rows="4" placeholder="内容" @input="autosize_textarea(this.$($event.target))"/>
           </label>
         </div>
       </div>
@@ -60,28 +61,29 @@
           <div class="thread-info d-flex">
             <span class="name">{{ item.user_name }}</span>＠<span class="date mr-auto">{{ item.date }}</span>
             <h6 v-if="item.is_new" class="align-self-center"><span class="badge badge-info mx-1">New</span></h6>
-            <button class="edit-item btn btn-success btn-sm" v-if="item.editable" :data-id="item.id" aria-expanded="false">
+            <button class="edit-item btn btn-outline-success btn-sm" v-if="item.editable" :data-id="item.id" @click="toggle_edit_item">
               編集
             </button>
           </div>
           <div :id="'item' + item.id" class="thread-body pl-1">{{ item.body }}</div>
           <form :id="'editItem' + item.id" class="mt-3 d-none" v-if="item.editable" :data-id="item.id" @submit.prevent>
-            <button class="btn btn-outline-success" type="button" @click="edit_item">送信</button>
-            <button class="btn btn-outline-danger" type="button" @click="delete_item">削除</button>
+            <button class="btn btn-success" type="button" @click="edit_item">送信</button>
+            <button class="btn btn-danger" type="button" @click="delete_item">削除</button>
             <input class="form-control my-2" type="text" name="user_name" placeholder="名前" :value="item.user_name">
-            <textarea class="form-control" name="body" rows="4" placeholder="内容"/>
+            <textarea class="form-control" name="body" rows="4" placeholder="内容" @input="autosize_textarea(this.$($event.target))"/>
           </form>
         </li>
       </ul>
       <div>
-        <button class="new-item-toggle btn btn-success mt-3 mb-2 ml-3" data-toggle="collapse" :href="'#new-item-form' + thread.id" aria-expanded="false" :aria-controls="'new-item-form' + thread.id">
-          書き込み
+        <button class="new-item-toggle btn btn-success my-2 ml-3" data-toggle="collapse" :href="'#new-item-form' + thread.id"
+                aria-expanded="false" :aria-controls="'new-item-form' + thread.id" @click="toggle_new_item">
+          書き込む
         </button>
-        <form :id="'new-item-form' + thread.id" class="collapse ml-3 mb-3" @submit.prevent>
+        <form :id="'new-item-form' + thread.id" class="collapse m-3" @submit.prevent>
           <input type="hidden" name="thread_id" :value="thread.id">
-          <button class="btn btn-outline-success" type="button" @click="create_new_item">送信</button>
+          <button class="btn btn-success" type="button" @click="create_new_item">送信</button>
           <input class="form-control my-2" type="text" name="user_name" placeholder="名前" :value="name">
-          <textarea class="form-control" name="body" rows="4" placeholder="内容"/>
+          <textarea class="form-control" name="body" rows="4" placeholder="内容" @input="autosize_textarea(this.$($event.target))"/>
         </form>
       </div>
     </div>
@@ -112,38 +114,6 @@ export default {
   created() {
     this.fetch(this.page);
   },
-  mounted() {
-    const $toggle = $('#new-thread-toggle');
-    $toggle.click(() => {
-      $toggle.html($toggle.attr('aria-expanded') === 'true' ? 'スレッド作成' : 'キャンセル');
-    });
-    // まだDOMが生成されていない部分なので親要素に対して設定
-    $('#container').on('click', '.new-item-toggle', (evt) => {
-      const $itemToggle = $(evt.target);
-      const expanded = $itemToggle.attr('aria-expanded') === 'true';
-      $itemToggle.html(expanded ? '書き込み' : 'キャンセル');
-    });
-    $('#container').on('click', '.edit-item', (evt) => {
-      const $editToggle = $(evt.target);
-      const id = $editToggle.attr('data-id');
-      const $item = $(`#item${id}`);
-      const $edit = $(`#editItem${id}`);
-      const expanded = $editToggle.attr('aria-expanded') === 'true';
-      $editToggle.html(expanded ? '編集' : 'キャンセル');
-      $editToggle.attr('aria-expanded', expanded ? 'false' : 'true');
-      $item.toggleClass('d-none');
-      $edit.toggleClass('d-none');
-      if (!expanded) {
-        $('textarea', $edit).val($item.html().trim());
-        $('textarea', $edit).trigger('input');
-      }
-    });
-    // textareaの行数を内容に合わせて変更
-    $('#container').on('input', 'textarea', (evt) => {
-      const $tgt = $(evt.target);
-      $tgt.attr('rows', _.max([$tgt.val().split('\n').length, 4]));
-    });
-  },
   methods: {
     fetch(page) {
       const baseUrl = '/api/bbs/threads';
@@ -168,6 +138,17 @@ export default {
       }).catch(() => {
         $.notify('danger', '投稿の取得に失敗しました');
       });
+    },
+    autosize_textarea($ta) {
+      // textareaの行数を内容に合わせて変更
+      $ta.attr('rows', _.max([$ta.val().split('\n').length, 4]));
+    },
+    toggle_new_thread() {
+      const $toggle = $('#new-thread-toggle');
+      const expanded = $toggle.hasClass('btn-outline-success');
+      $toggle.html(expanded ? 'スレッド作成' : 'キャンセル');
+      $toggle.toggleClass('btn-success');
+      $toggle.toggleClass('btn-outline-success');
     },
     create_new_thread() {
       if ($('#new-thread-form input[name="title"]').val() === '') {
@@ -197,6 +178,21 @@ export default {
       this.query = $('#search-form input[name="query"]').val();
       this.fetch(this.page);
     },
+    toggle_edit_item(e) {
+      const $editToggle = $(e.target);
+      const id = $editToggle.attr('data-id');
+      const $item = $(`#item${id}`);
+      const $edit = $(`#editItem${id}`);
+      const expanded = $editToggle.html() === 'キャンセル';
+      $editToggle.html(expanded ? '編集' : 'キャンセル');
+      $item.toggleClass('d-none');
+      $edit.toggleClass('d-none');
+      if (!expanded) {
+        const $ta = $('textarea', $edit);
+        $ta.val($item.html().trim());
+        this.autosize_textarea($ta);
+      }
+    },
     edit_item(evt) {
       const $form = $(evt.target).parent();
       const id = Number($form.attr('data-id'));
@@ -221,6 +217,13 @@ export default {
       }).catch(() => {
         $.notify('danger', '削除に失敗しました');
       });
+    },
+    toggle_new_item(e) {
+      const $itemToggle = $(e.target);
+      const expanded = $itemToggle.hasClass('btn-outline-success');
+      $itemToggle.html(expanded ? '書き込む' : 'キャンセル');
+      $itemToggle.toggleClass('btn-success');
+      $itemToggle.toggleClass('btn-outline-success');
     },
     create_new_item(evt) {
       const $form = $(evt.target).parent();

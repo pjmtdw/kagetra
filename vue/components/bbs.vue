@@ -1,5 +1,6 @@
 <template>
   <div id="container" class="mx-auto">
+    <!-- スレッド作成, 検索 -->
     <div class="d-flex flex-row">
       <button id="new-thread-toggle" class="btn btn-success m-2" data-toggle="collapse" href="#new-thread-form"
               aria-expanded="false" aria-controls="new-thread-form" @click="toggle_new_thread">
@@ -17,7 +18,7 @@
     <form id="new-thread-form" class="collapse my-1" @submit.prevent>
       <div class="card">
         <div class="form-group m-2">
-          <button class="btn btn-success" type="button" @click="create_new_thread">送信</button>
+          <button class="btn btn-success" type="button" @click="create_new_thread">投稿</button>
         </div>
         <div class="form-group form-inline mx-3">
           <label>
@@ -45,11 +46,13 @@
         </div>
       </div>
     </form>
+    <!-- pagination -->
     <ul class="pagination my-2 justify-content-center">
       <li v-for="i in pages" class="page-item" :class="{ active: page == i }" :key="i">
         <router-link class="page-link" :to="i.toString()">{{ i }}</router-link>
       </li>
     </ul>
+    <!-- 投稿 -->
     <div class="card thread" :class="{'border-primary': thread.public, 'private': !thread.public}" v-for="thread in threads" :key="thread.id">
       <div class="card-header h5">
         <span class="h6">{{ thread.title }}</span>
@@ -59,17 +62,17 @@
       <ul class="list-group list-group-flush">
         <li class="list-group-item px-3" v-for="item in thread.items" :key="item.id">
           <div class="thread-info d-flex">
-            <span class="name">{{ item.user_name }}</span>＠<span class="date mr-auto">{{ item.date }}</span>
+            <span class="name">{{ item.user_name }}</span>＠<span class="date">{{ item.date }}</span>
             <h6 v-if="item.is_new" class="align-self-center"><span class="badge badge-info mx-1">New</span></h6>
-            <button class="edit-item btn btn-outline-success btn-sm" v-if="item.editable" :data-id="item.id" @click="toggle_edit_item">
+            <button class="edit-item btn btn-outline-success btn-sm ml-auto" v-if="item.editable" :data-id="item.id" @click="toggle_edit_item">
               編集
             </button>
           </div>
           <div :id="'item' + item.id" class="thread-body pl-1">{{ item.body }}</div>
           <form :id="'editItem' + item.id" class="mt-3 d-none" v-if="item.editable" :data-id="item.id" @submit.prevent>
-            <button class="btn btn-success" type="button" @click="edit_item">送信</button>
+            <button class="btn btn-success" type="button" @click="edit_item">保存</button>
             <button class="btn btn-danger" type="button" @click="delete_item">削除</button>
-            <input class="form-control my-2" type="text" name="user_name" placeholder="名前" :value="item.user_name">
+            <input class="form-control w-auto my-2" type="text" name="user_name" placeholder="名前" :value="item.user_name">
             <textarea class="form-control" name="body" rows="4" placeholder="内容" @input="autosize_textarea(this.$($event.target))"/>
           </form>
         </li>
@@ -81,8 +84,8 @@
         </button>
         <form :id="'new-item-form' + thread.id" class="collapse m-3" @submit.prevent>
           <input type="hidden" name="thread_id" :value="thread.id">
-          <button class="btn btn-success" type="button" @click="create_new_item">送信</button>
-          <input class="form-control my-2" type="text" name="user_name" placeholder="名前" :value="name">
+          <button class="btn btn-success" type="button" @click="create_new_item">投稿</button>
+          <input class="form-control w-auto my-2" type="text" name="user_name" placeholder="名前" :value="name">
           <textarea class="form-control" name="body" rows="4" placeholder="内容" @input="autosize_textarea(this.$($event.target))"/>
         </form>
       </div>
@@ -201,7 +204,7 @@ export default {
       axios.put(`/api/bbs/item/${id}`, data).then(() => {
         $toggle.click();
         $.notify('clear');
-        $.notify('success', '更新しました');
+        $.notify('success', '保存しました');
         this.fetch(this.page);
       }).catch(() => {
         $.notify('danger', '更新に失敗しました');

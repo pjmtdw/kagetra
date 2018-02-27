@@ -26,7 +26,8 @@ export default (routeName) => {
       });
     };
 
-    const $notify = $('<div role="alert"></div>').addClass(`notify alert alert-${type} alert-dismissible fade show w-25 m-1`)
+    const $notify = $('<div role="alert"></div>')
+      .addClass(`notify alert alert-${type} alert-dismissible fade show w-25 m-1`)
       .css({
         position: 'fixed',
         'z-index': 200,
@@ -45,6 +46,45 @@ export default (routeName) => {
 
     // 10秒後に消える
     setTimeout(() => { $notify.remove(); }, 10 * 1000);
+  };
+
+  // 確認ダイアログ
+  // @param message 確認メッセージ
+  // @param title タイトル
+  // @return Promise okならresolve
+  $.confirm = (message, title = '確認') => {
+    const $confirm = $(`
+    <div class="modal fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+        <div class="modal-content" style="box-shadow: 5px 5px 10px 5px rgba(0, 0, 0, 0.2);">
+          <div class="modal-header">
+            <h5 class="modal-title">${title}</h5>
+          </div>
+          <div class="modal-body">
+            <p>${message}</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">キャンセル</button>
+            <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal">OK</button>
+          </div>
+        </div>
+      </div>
+    </div>`).css({
+      'z-index': 1100,
+    }).prependTo('#app');
+    $confirm.modal();
+
+    const promise = new $.Deferred();
+    $('button.btn-ok', $confirm).click(() => {
+      promise.resolve();
+    });
+    $confirm.on('hidden.bs.modal', () => {
+      if (promise.state() === 'pending') {
+        promise.reject();
+      }
+      $confirm.remove();
+    });
+    return promise;
   };
 
   // formの値をobject化

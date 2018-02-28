@@ -56,7 +56,7 @@ export default (routeName) => {
     const $confirm = $(`
     <div class="modal fade" tabindex="-1" role="dialog">
       <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
-        <div class="modal-content" style="box-shadow: 5px 5px 10px 5px rgba(0, 0, 0, 0.2);">
+        <div class="modal-content bg-light" style="box-shadow: 5px 5px 10px 5px rgba(0, 0, 0, 0.2);">
           <div class="modal-header">
             <h5 class="modal-title">${title}</h5>
           </div>
@@ -83,6 +83,44 @@ export default (routeName) => {
         promise.reject();
       }
       $confirm.remove();
+    });
+    return promise;
+  };
+
+  // 入力ダイアログ
+  // @param title タイトル
+  // @return Promise okならresolve, 引数はinputされた内容
+  $.inputDialog = (title) => {
+    const $dialog = $(`
+    <div class="modal fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+        <div class="modal-content bg-light" style="box-shadow: 5px 5px 10px 5px rgba(0, 0, 0, 0.2);">
+          <div class="modal-header">
+            <h5 class="modal-title">${title}</h5>
+          </div>
+          <div class="modal-body">
+            <input type="text" class="form-control">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">キャンセル</button>
+            <button type="button" class="btn btn-success btn-ok" data-dismiss="modal">OK</button>
+          </div>
+        </div>
+      </div>
+    </div>`).css({
+      'z-index': 1100,
+    }).prependTo('#app');
+    $dialog.modal();
+
+    const promise = new $.Deferred();
+    $('button.btn-ok', $dialog).click(() => {
+      promise.resolve($('input', $dialog).val());
+    });
+    $dialog.on('hidden.bs.modal', () => {
+      if (promise.state() === 'pending') {
+        promise.reject();
+      }
+      $dialog.remove();
     });
     return promise;
   };

@@ -2,16 +2,22 @@ export default (routeName) => {
   // for navbar
   $(`nav #${routeName}`).addClass('active');
 
+  // notify error message
+  axios.interceptors.response.use(null, (error) => {
+    $.notify('danger', `エラー: ${error.response.data.error_message}`);
+    return Promise.reject(error);
+  });
+
   // 通知機能追加
   // @param type 通知のスタイル(bootstrapのalert準拠. primaryなど)
   // @param message 通知の内容
   $.notify = (type, message) => {
     // クリア
-    if (type === 'clear') {
+    if (type === 'success') {
       $('.notify.alert-danger, .notify.alert-warning').remove();
       return;
     }
-    if (type === 'clear-all') {
+    if (type === 'clear') {
       $('.notify').remove();
       return;
     }
@@ -30,7 +36,7 @@ export default (routeName) => {
       .addClass(`notify alert alert-${type} alert-dismissible fade show w-25 m-1`)
       .css({
         position: 'fixed',
-        'z-index': 200,
+        'z-index': 1200,
         right: '10px',
         'box-shadow': '5px 5px 10px 0 rgba(0, 0, 0, 0.2)',
         'min-width': '200px',
@@ -125,19 +131,35 @@ export default (routeName) => {
     return promise;
   };
 
-  // formの値をobject化
+  // 定数等
+  $.util = {
+    weekday_ja: '日月火水木金土日',
+    result_str: { win: '○', lose: '●', now: '対戦中' },
+    order_str: [null, '主将', '副将', '三将', '四将', '五将', '六将', '七将', '八将'],
+  };
+
+  // jQuery拡張
   $.fn.extend({
+    // formの値をobject化
     serializeObject() {
       const res = {};
       _.forEach(this.serializeArray(), (v) => {
         res[v.name] = v.value;
       });
+      _.forEach(this.find('input[type="checkbox"]:not(:checked)'), (v) => {
+        res[$(v).attr('name')] = false;
+      });
       return res;
     },
-  });
-
-  axios.interceptors.response.use(null, (error) => {
-    $.notify('danger', `エラー: ${error.response.data.error_message}`);
-    return Promise.reject(error);
+    // トグルbutton
+    toggleBtnText(beforeText, afterText) {
+      if (this.data('toggled')) {
+        this.html(beforeText);
+        this.data('toggled', false);
+      } else {
+        this.html(afterText);
+        this.data('toggled', true);
+      }
+    },
   });
 };

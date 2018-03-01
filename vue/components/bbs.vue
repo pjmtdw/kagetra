@@ -33,13 +33,13 @@
           </div>
         </div>
         <div class="form-group mx-3">
-          <label style="width:100%;">
+          <label class="w-100">
             タイトル
             <input class="form-control" type="text" name="title" placeholder="タイトル">
           </label>
         </div>
         <div class="form-group mx-3">
-          <label style="width:100%;">
+          <label class="w-100">
             内容
             <textarea class="form-control" name="body" rows="4" placeholder="内容" @input="autosize_textarea(this.$($event.target))"/>
           </label>
@@ -146,10 +146,9 @@ export default {
       // textareaの行数を内容に合わせて変更
       $ta.attr('rows', _.max([$ta.val().split('\n').length, 4]));
     },
-    toggle_new_thread() {
-      const $toggle = $('#new-thread-toggle');
-      const expanded = $toggle.hasClass('btn-outline-success');
-      $toggle.html(expanded ? 'スレッド作成' : 'キャンセル');
+    toggle_new_thread(e) {
+      const $toggle = $(e.target);
+      $toggle.toggleBtnText('スレッド作成', 'キャンセル');
       $toggle.toggleClass('btn-success');
       $toggle.toggleClass('btn-outline-success');
     },
@@ -163,14 +162,12 @@ export default {
         return;
       }
       const data = $('#new-thread-form').serializeObject();
-      data.public = $('#new-thread-form input[name="public"]')[0].checked;
       axios.post('/api/bbs/thread', data).then(() => {
         $('#new-thread-form input[name="user_name"]').val(this.name);
         $('#new-thread-form input[name="public"]')[0].checked = false;
         $('#new-thread-form input[name="title"]').val('');
         $('#new-thread-form textarea[name="body"]').val('');
         $('#new-thread-toggle').click();
-        $.notify('clear');
         $.notify('success', '投稿しました');
         this.fetch(this.page);
       }).catch(() => {
@@ -186,11 +183,10 @@ export default {
       const id = $editToggle.attr('data-id');
       const $item = $(`#item${id}`);
       const $edit = $(`#editItem${id}`);
-      const expanded = $editToggle.html() === 'キャンセル';
-      $editToggle.html(expanded ? '編集' : 'キャンセル');
+      $editToggle.toggleBtnText('編集', 'キャンセル');
       $item.toggleClass('d-none');
       $edit.toggleClass('d-none');
-      if (!expanded) {
+      if ($editToggle.data('toggled')) {
         const $ta = $('textarea', $edit);
         $ta.val($item.html().trim());
         this.autosize_textarea($ta);
@@ -203,8 +199,7 @@ export default {
       const data = $form.serializeObject();
       axios.put(`/api/bbs/item/${id}`, data).then(() => {
         $toggle.click();
-        $.notify('clear');
-        $.notify('success', '保存しました');
+        $.notify('success', '変更を保存しました');
         this.fetch(this.page);
       }).catch(() => {
         $.notify('danger', '更新に失敗しました');
@@ -214,7 +209,6 @@ export default {
       const $form = $(evt.target).parent();
       const id = Number($form.attr('data-id'));
       axios.delete(`/api/bbs/item/${id}`).then(() => {
-        $.notify('clear');
         $.notify('success', '削除しました');
         this.fetch(this.page);
       }).catch(() => {
@@ -223,8 +217,7 @@ export default {
     },
     toggle_new_item(e) {
       const $itemToggle = $(e.target);
-      const expanded = $itemToggle.hasClass('btn-outline-success');
-      $itemToggle.html(expanded ? '書き込む' : 'キャンセル');
+      $itemToggle.toggleBtnText('書き込む', 'キャンセル');
       $itemToggle.toggleClass('btn-success');
       $itemToggle.toggleClass('btn-outline-success');
     },
@@ -236,7 +229,6 @@ export default {
         $('input[name="user_name"]', $form).val(this.name);
         $('textarea[name="body"]', $form).val('');
         $toggle.click();
-        $.notify('clear');
         $.notify('success', '投稿しました');
         this.fetch(this.page);
       }).catch(() => {

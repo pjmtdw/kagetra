@@ -185,6 +185,8 @@ export default {
       $.confirm('本当に変更を破棄して閉じますか？').then(() => {
         this.changed = false;
         $(this.$el).modal('hide');
+      }).catch(() => {
+        $('body').addClass('modal-open');
       });
     });
   },
@@ -235,6 +237,8 @@ export default {
         }).catch(() => {
           $.notify('danger', '削除に失敗しました.');
         });
+      }).catch(() => {
+        $('body').addClass('modal-open');
       });
     },
     add_event_group() {
@@ -245,6 +249,8 @@ export default {
         }).catch(() => {
           $.notify('danger', '追加に失敗しました.');
         });
+      }).always(() => {
+        $('body').addClass('modal-open');
       });
     },
     submit_file_done() {

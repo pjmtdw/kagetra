@@ -79,17 +79,20 @@ export default (routeName) => {
     }).prependTo('#app');
     $confirm.modal();
 
-    const promise = new $.Deferred();
-    $('button.btn-ok', $confirm).click(() => {
-      promise.resolve();
+    const def = new $.Deferred();
+    $('button.btn-ok', $confirm).click((e) => {
+      $(e.target).data('clicked', true);
     });
+    // 閉じた後にresolve or reject
     $confirm.on('hidden.bs.modal', () => {
-      if (promise.state() === 'pending') {
-        promise.reject();
+      if ($('button.btn-ok', $confirm).data('clicked')) {
+        def.resolve();
+      } else {
+        def.reject();
       }
       $confirm.remove();
     });
-    return promise;
+    return def.promise();
   };
 
   // 入力ダイアログ
@@ -117,17 +120,19 @@ export default (routeName) => {
     }).prependTo('#app');
     $dialog.modal();
 
-    const promise = new $.Deferred();
-    $('button.btn-ok', $dialog).click(() => {
-      promise.resolve($('input', $dialog).val());
+    const def = new $.Deferred();
+    $('button.btn-ok', $dialog).click((e) => {
+      $(e.target).data('clicked', true);
     });
     $dialog.on('hidden.bs.modal', () => {
-      if (promise.state() === 'pending') {
-        promise.reject();
+      if ($('button.btn-ok', $dialog).data('clicked')) {
+        def.resolve($('input', $dialog).val());
+      } else {
+        def.reject();
       }
       $dialog.remove();
     });
-    return promise;
+    return def.promise();
   };
 
   // 定数等

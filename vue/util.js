@@ -15,7 +15,6 @@ export default (routeName) => {
     // クリア
     if (type === 'success') {
       $('.notify.alert-danger, .notify.alert-warning').remove();
-      return;
     }
     if (type === 'clear') {
       $('.notify').remove();

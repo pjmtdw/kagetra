@@ -7,3 +7,23 @@
 .pre {
   white-space: pre-line;
 }
+
+.w-auto {
+  width: auto!important;
+}
+
+.flex-grow {
+  flex-grow: 1;
+}
+
+.alert {
+  &.alert-success {
+    border-left: 4px solid darkgreen;
+  }
+  &.alert-warning {
+    border-left: 4px solid orange;
+  }
+  &.aler-danger {
+    border-left: 4px solid red;
+  }
+}

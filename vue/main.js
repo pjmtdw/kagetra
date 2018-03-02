@@ -9,11 +9,15 @@ import schedule from './routers/schedule';
 import top from './routers/top';
 import wiki from './routers/wiki';
 
-import misc from './misc';
+import util from './util';
 import playerSearch from './components/player_search.vue';
+import contestDialog from './components/contest_dialog.vue';
+import filePost from './components/file_post.vue';
 
 Vue.use(VueRouter);
 Vue.component('player-search', playerSearch);
+Vue.component('contest-dialog', contestDialog);
+Vue.component('file-post', filePost);
 
 const routes = {
   addrbook,
@@ -29,7 +33,7 @@ const routes = {
 const routeName = location.pathname.split('/')[1];
 const route = routes[routeName];
 
-misc(routeName);
+util(routeName);
 
 const router = new VueRouter({
   routes: route,

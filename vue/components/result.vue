@@ -1,5 +1,6 @@
 <template>
   <div id="container" class="mx-auto">
+    <!-- nav, 選手名検索 -->
     <div class="container my-2">
       <div class="row">
         <nav id="nav-result-pages" class="col-12 col-md-8">
@@ -11,21 +12,23 @@
             <li class="page-item"><router-link class="page-link p-1 p-sm-2" to="/list">ランキング</router-link></li>
           </ul>
         </nav>
-        <div class="col-12 col-md-4 p-0 mt-2 mt-md-0">
-          <player-search id="top-plsearch" class="justify-content-md-start" placeholder="選手名検索" />
+        <div class="col-12 col-md-4 mt-2 mt-md-0">
+          <player-search class="justify-content-md-start" placeholder="選手名検索" />
         </div>
       </div>
     </div>
-    <div v-if="recent_list" class="container">
+    <!-- 前後の大会, 過去の結果等 -->
+    <div class="container">
       <div class="row">
-        <nav id="recent_list" class="col-12 col-md-8 nav nav-pills flex-row flex-wrap justify-content-center justify-content-md-start" role="tablist">
-          <router-link v-for="ct in recent_list" :to="`/${ct.id}`" :key="ct.id"
+        <nav v-if="recent_list" id="recent_list"
+             class="col-12 col-md-8 nav nav-pills flex-row flex-wrap justify-content-center justify-content-md-start mb-1" role="tablist">
+          <router-link v-for="ct in recent_list" :to="ct.id.toString()" :key="ct.id"
                        class="nav-link p-1 p-sm-2" :class="{active: (ct.id == contest_id) || (contest_id == -1 && ct.most_recent)}" role="tab">
             {{ ct.name }}
           </router-link>
         </nav>
-        <div class="col-12 col-md-4 mt-md-1">
-          <div class="btn-group">
+        <div class="col-12 col-md-4 mb-1">
+          <div v-if="event_group_id" class="btn-group mb-1">
             <button type="button" class="btn btn-info" data-toggle="modal" data-target="#past_result" @click="fetch_past_info">過去の結果</button>
             <button type="button" class="btn btn-info dropdown-toggle dropdown-toggle-split" data-toggle="dropdown"
                     aria-haspopup="true" aria-expanded="false"/>
@@ -33,8 +36,11 @@
               <router-link v-for="g in group" :key="g.id" :to="`/${g.id}`" class="dropdown-item">{{ g.date }} {{ g.name }}</router-link>
             </div>
           </div>
-          <button type="button" class="btn btn-success mx-1">大会追加</button>
-          <a class="align-self-center" :href="`result/excel/${id}/${date}_${encodeURI(name)}.xls`">印刷用</a>
+          <div class="btn-group ml-1 mb-1" role="group">
+            <!-- <button v-if="!editable" type="button" class="btn btn-success" data-toggle="modal" data-target="#add_event_dialog">追加</button> -->
+            <button v-if="!editable" type="button" class="btn btn-success" data-toggle="modal" data-target="#edit_event_dialog">編集</button>
+            <a :href="`result/excel/${id}/${date}_${encodeURI(name)}.xls`" class="btn btn-secondary">保存</a>
+          </div>
           <div id="past_result" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
             <div class="modal-dialog modal-lg" role="document">
               <div class="modal-content">
@@ -76,11 +82,13 @@
         </div>
       </div>
     </div>
+    <!-- 大会名, 日時 -->
     <div v-if="name" class="mt-4 mb-3">
-      <span class="h5 mx-1" :class="{'unofficial': !official}">{{ official ? '♠' : '♣' }}</span>
+      <span class="h5 mx-1" :class="{'unofficial': !official}">{{ official ? '&spades;' : '&clubs;' }}</span>
       <span class="h5"><strong>{{ name }}</strong></span>
       <span class="h6 date">@{{ date }}</span>
     </div>
+    <!-- タブ -->
     <nav v-if="name" class="mt-2">
       <div class="nav nav-tabs" id="nav-tab" role="tablist">
         <a class="nav-item nav-link border active" id="nav-result-tab" data-toggle="tab" href="#nav-result" role="tab" aria-controls="nav-result" aria-selected="true">結果</a>
@@ -88,6 +96,7 @@
         <a class="nav-item nav-link border" id="nav-comment-tab" data-toggle="tab" href="#nav-comment" role="tab" aria-controls="nav-comment" aria-selected="false">コメント({{ comment_count }})</a>
       </div>
     </nav>
+    <!-- タブの中 -->
     <div v-if="name" class="tab-content">
       <!-- 結果 -->
       <div class="tab-pane border border-top-0 bg-white rounded-bottom fade show active" id="nav-result" role="tabpanel" aria-labelledby="nav-result-tab">
@@ -143,22 +152,18 @@
                 <tbody>
                   <tr v-for="user in res.user_results" :key="user.cuid" :class="`row-${user.cuid}`">
                     <td v-for="game in user.game_results" class="text-center" :class="`result-${game.result}`">
-                      <div v-if="game.result === 'break'" />
+                      <div v-if="game.result === 'break'"/>
                       <div v-else-if="game.result === 'default_win'">不戦</div>
-                      <template v-else-if="game.result === 'win'">
-                        <div>○ {{ game.score_str }} {{ game.opponent_name }}</div>
-                        <div v-if="game.opponent_belongs">({{ game.opponent_belongs }})</div>
-                        <div v-else-if="game.opponent_order">({{ orders[game.opponent_order] }})</div>
-                      </template>
-                      <template v-else-if="game.result === 'lose'">
-                        <div>● {{ game.score_str }} {{ game.opponent_name }}</div>
-                        <div v-if="game.opponent_belongs">({{ game.opponent_belongs }})</div>
-                        <div v-else-if="game.opponent_order">({{ orders[game.opponent_order] }})</div>
-                      </template>
-                      <template v-else-if="game.result === 'now'">
-                        <div>対戦中 {{ game.opponent_name }}</div>
-                        <div v-if="game.opponent_belongs">({{ game.opponent_belongs }})</div>
-                        <div v-else-if="game.opponent_order">({{ orders[game.opponent_order] }})</div>
+                      <template v-else>
+                        <div>{{ result_str[game.result] }} {{ game.score_str }} {{ game.opponent_name }}</div>
+                        <div v-if="game.opponent_belongs">
+                          ({{ game.opponent_belongs }})
+                          <span v-if="game.comment" data-toggle="tooltip" data-placement="bottom" :title="game.comment">※</span>
+                        </div>
+                        <div v-else-if="game.opponent_order">
+                          ({{ order_str[game.opponent_order] }})
+                          <span v-if="game.comment" data-toggle="tooltip" data-placement="bottom" :title="game.comment">※</span>
+                        </div>
                       </template>
                     </td>
                   </tr>
@@ -174,7 +179,9 @@
           <div class="row">
             <div class="col-12 col-md-8">
               <div class="card mt-3">
-                <h6 class="card-header"><strong>大会/行事名</strong></h6>
+                <div class="card-header d-flex align-items-center justify-content-between">
+                  <h6 class="mb-0"><strong>大会/行事名</strong></h6>
+                </div>
                 <div class="card-body">
                   {{ name }}
                   <span v-if="formal_name">({{ formal_name }})</span>
@@ -220,7 +227,7 @@
               </div>
             </div>
           </div>
-          <div v-if="attached.length" class="row">
+          <div class="row">
             <div class="col">
               <div class="card mt-3">
                 <h6 class="card-header"><strong>添付ファイル</strong></h6>
@@ -262,6 +269,10 @@
         </div>
       </div>
     </div>
+    <!-- 大会追加form -->
+    <!-- <contest-dialog id="add_event_dialog" @complete="update"/> -->
+    <!-- 大会編集form -->
+    <contest-dialog id="edit_event_dialog" :contestid="id" @complete="update"/>
   </div>
 </template>
 <script>
@@ -274,7 +285,8 @@ export default {
   },
   data() {
     return {
-      orders: ['', '主将', '副将', '三将', '四将', '五将', '六将', '七将', '八将'],
+      result_str: $.util.result_str,
+      order_str: $.util.order_str,
       // result
       id: 0,
       official: null,
@@ -284,7 +296,7 @@ export default {
       recent_list: [],
       contest_classes: [],
       contest_results: [],
-      event_group_id: -1,
+      event_group_id: null,
       group: [],
       album_groups: [],
       // detail
@@ -308,33 +320,32 @@ export default {
       past_list: [],
       past_name: '',
       past_pages: 1,
+      // edit
+      all_event_groups: [],
     };
   },
   watch: {
-    contest_id(val) {
-      this.fetch(val);
+    contest_id() {
+      this.fetch();
       $('#nav-result-tab').tab('show');
     },
   },
   created() {
-    this.fetch().then(() => {
-      this.fetch_detail();
-    });
-  },
-  mounted() {
-    $('#nav-result-tab').on('shown.bs.tab', this.set_cell_height);
+    this.fetch();
   },
   updated() {
     this.set_cell_height();
+    $('[data-toggle="tooltip"]').tooltip();
   },
   methods: {
     fetch() {
       const baseUrl = '/api/result/contest';
       const url = this.contest_id === '-1' ? `${baseUrl}/latest` : `${baseUrl}/${this.contest_id}`;
-      return axios.get(url).then((res) => {
+      axios.get(url).then((res) => {
         _.forEach(res.data, (v, key) => {
           this[key] = v;
         });
+        this.fetch_detail();
         this.fetch_comment();
       }).catch(() => {
         $.notify('danger', '大会の取得に失敗しました');
@@ -382,6 +393,9 @@ export default {
     load_past_list(e) {
       this.past_cur_page = Number($(e.target).html());
       this.fetch_past_info();
+    },
+    update() {
+      this.fetch();
     },
     set_cell_height() {
       // セルの高さを揃える

@@ -39,7 +39,7 @@ class MainApp < Sinatra::Base
 
     def event_info(ev,user,opts = {})
       today = Date.today
-      is_owner = user && ev.owners.map(&:id).include?(user.id) 
+      is_owner = user && ev.owners.map(&:id).include?(user.id)
       attrs = [:place,:name,:date,:kind,:official,:deadline,:created_at,:id,:team_size,:event_group_id,:public]
       if not @public_mode then
         attrs += [:participant_count,:comment_count,:last_comment_date]
@@ -265,7 +265,7 @@ class MainApp < Sinatra::Base
     end
     post '/group/new' do
       with_update{
-        name = params[:name]
+        name = @json['name']
         EventGroup.create(name:name).select_attr(:id,:name)
       }
     end

@@ -1,5 +1,5 @@
 <template>
-  <div :id="id" class="input-group justify-content-center">
+  <div class="input-group justify-content-center">
     <div class="input-group-prepend">
       <span class="input-group-text">検索</span>
     </div>
@@ -34,21 +34,17 @@ export default {
     };
   },
   mounted() {
-    // 1画面にこのコンポーネントが複数あった場合に区別するためidが必要
-    if (this.id === '') {
-      console.warn('id must be setted');
-    }
-
-    $(`#${this.id} .search`).focus(() => {
-      $(`#${this.id} .autocomplete`).addClass('show');
+    const e = this.$el;
+    $('.search', e).focus(() => {
+      $('.autocomplete', e).addClass('show');
     }).blur(() => {
-      $(`#${this.id} .autocomplete`).removeClass('show');
+      $('.autocomplete', e).removeClass('show');
     });
   },
   methods: {
     fetch_candidate() {
       const url = '/api/result_misc/search_name';
-      const q = $(`#${this.id} .search`).val();
+      const q = $('.search', this.$el).val();
       if (q === this.input) return;
       else if (q === '') {
         this.candidates = [];

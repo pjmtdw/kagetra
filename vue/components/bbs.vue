@@ -18,14 +18,14 @@
     <form id="new-thread-form" class="collapse my-1" @submit.prevent>
       <div class="card">
         <div class="form-group m-2">
-          <button class="btn btn-success" type="button" @click="create_new_thread">投稿</button>
+          <button class="btn btn-success" type="button" @click="post_thread">投稿</button>
         </div>
         <div class="form-group form-inline mx-3">
           <label>
             名前
-            <input class="form-control ml-md-2" type="text" name="user_name" placeholder="名前" :value="name">
+            <input class="form-control ml-md-2" type="text" name="user_name" placeholder="名前" v-model="name">
           </label>
-          <div class="form-check ml-5">
+          <div class="form-check w-auto ml-5">
             <label class="form-check-label">
               <input class="form-check-input" type="checkbox" name="public">
               外部公開
@@ -41,7 +41,7 @@
         <div class="form-group mx-3">
           <label class="w-100">
             内容
-            <textarea class="form-control" name="body" rows="4" placeholder="内容" @input="autosize_textarea(this.$($event.target))"/>
+            <textarea class="form-control" name="body" :rows="rows" placeholder="内容" v-model="body"/>
           </label>
         </div>
       </div>
@@ -52,42 +52,20 @@
         <router-link class="page-link" :to="i.toString()">{{ i }}</router-link>
       </li>
     </ul>
-    <!-- 投稿 -->
-    <div class="card thread" :class="{'border-primary': thread.public, 'private': !thread.public}" v-for="thread in threads" :key="thread.id">
+    <!-- スレッド -->
+    <div class="card mb-4" :class="{'border-primary': thread.public, 'private': !thread.public}" v-for="thread in threads" :key="thread.id">
       <div class="card-header h5">
         <span class="h6">{{ thread.title }}</span>
         <span v-if="thread.public" class="float-right badge badge-primary mx-1">外部公開</span>
         <span v-if="thread.has_new_comment" class="float-right badge badge-info mx-1">新着あり</span>
       </div>
-      <ul class="list-group list-group-flush">
-        <li class="list-group-item px-3" v-for="item in thread.items" :key="item.id">
-          <div class="thread-info d-flex">
-            <span class="name">{{ item.user_name }}</span>＠<span class="date">{{ item.date }}</span>
-            <h6 v-if="item.is_new" class="align-self-center"><span class="badge badge-info mx-1">New</span></h6>
-            <button class="edit-item btn btn-outline-success btn-sm ml-auto" v-if="item.editable" :data-id="item.id" @click="toggle_edit_item">
-              編集
-            </button>
-          </div>
-          <div :id="'item' + item.id" class="thread-body pl-1">{{ item.body }}</div>
-          <form :id="'editItem' + item.id" class="mt-3 d-none" v-if="item.editable" :data-id="item.id" @submit.prevent>
-            <button class="btn btn-success" type="button" @click="edit_item">保存</button>
-            <button class="btn btn-danger" type="button" @click="delete_item">削除</button>
-            <input class="form-control w-auto my-2" type="text" name="user_name" placeholder="名前" :value="item.user_name">
-            <textarea class="form-control" name="body" rows="4" placeholder="内容" @input="autosize_textarea(this.$($event.target))"/>
-          </form>
-        </li>
-      </ul>
+      <comment-list :comments="thread.items" url="/api/bbs/item" item_class="px-3" @done="fetch(page)"/>
       <div>
-        <button class="new-item-toggle btn btn-success my-2 ml-3" data-toggle="collapse" :href="'#new-item-form' + thread.id"
-                aria-expanded="false" :aria-controls="'new-item-form' + thread.id" @click="toggle_new_item">
+        <button class="new-item-toggle btn btn-success my-2 ml-3" data-toggle="collapse" :href="`#new-item-form${thread.id}`"
+                aria-expanded="false" :aria-controls="`new-item-form${thread.id}`" @click="toggle_new_item">
           書き込む
         </button>
-        <form :id="'new-item-form' + thread.id" class="collapse m-3" @submit.prevent>
-          <input type="hidden" name="thread_id" :value="thread.id">
-          <button class="btn btn-success" type="button" @click="create_new_item">投稿</button>
-          <input class="form-control w-auto my-2" type="text" name="user_name" placeholder="名前" :value="name">
-          <textarea class="form-control" name="body" rows="4" placeholder="内容" @input="autosize_textarea(this.$($event.target))"/>
-        </form>
+        <new-comment-form :id="`new-item-form${thread.id}`" class="mx-3 mb-3 mt-2" url="/api/bbs/item" :thread_id="thread.id" @done="post_done"/>
       </div>
     </div>
   </div>
@@ -105,9 +83,16 @@ export default {
     return {
       threads: [],
       pages: [],
-      name: g_user_name,
       query: '',
+      // new thread
+      name: g_user_name,
+      body: '',
     };
+  },
+  computed: {
+    rows() {
+      return _.max([this.body.split('\n').length, 4]);
+    },
   },
   watch: {
     page(val) {
@@ -142,31 +127,32 @@ export default {
         $.notify('danger', '投稿の取得に失敗しました');
       });
     },
-    autosize_textarea($ta) {
-      // textareaの行数を内容に合わせて変更
-      $ta.attr('rows', _.max([$ta.val().split('\n').length, 4]));
-    },
     toggle_new_thread(e) {
       const $toggle = $(e.target);
       $toggle.toggleBtnText('スレッド作成', 'キャンセル');
       $toggle.toggleClass('btn-success');
       $toggle.toggleClass('btn-outline-success');
     },
-    create_new_thread() {
-      if ($('#new-thread-form input[name="title"]').val() === '') {
+    post_thread() {
+      if (!$('#new-thread-form input[name="user_name"]').val()) {
+        $.notify('warning', '名前を入力してください');
+        return;
+      }
+      if (!$('#new-thread-form input[name="title"]').val()) {
         $.notify('warning', 'タイトルを入力してください');
         return;
       }
-      if ($('#new-thread-form textarea[name="body"]').val() === '') {
+      if (!$('#new-thread-form textarea[name="body"]').val()) {
         $.notify('warning', '内容がありません');
         return;
       }
       const data = $('#new-thread-form').serializeObject();
       axios.post('/api/bbs/thread', data).then(() => {
-        $('#new-thread-form input[name="user_name"]').val(this.name);
+        /* eslint-disable camelcase */
+        this.name = g_user_name;
+        this.body = '';
         $('#new-thread-form input[name="public"]')[0].checked = false;
         $('#new-thread-form input[name="title"]').val('');
-        $('#new-thread-form textarea[name="body"]').val('');
         $('#new-thread-toggle').click();
         $.notify('success', '投稿しました');
         this.fetch(this.page);
@@ -178,62 +164,15 @@ export default {
       this.query = $('#search-form input[name="query"]').val();
       this.fetch(this.page);
     },
-    toggle_edit_item(e) {
-      const $editToggle = $(e.target);
-      const id = $editToggle.attr('data-id');
-      const $item = $(`#item${id}`);
-      const $edit = $(`#editItem${id}`);
-      $editToggle.toggleBtnText('編集', 'キャンセル');
-      $item.toggleClass('d-none');
-      $edit.toggleClass('d-none');
-      if ($editToggle.data('toggled')) {
-        const $ta = $('textarea', $edit);
-        $ta.val($item.html().trim());
-        this.autosize_textarea($ta);
-      }
-    },
-    edit_item(evt) {
-      const $form = $(evt.target).parent();
-      const id = Number($form.attr('data-id'));
-      const $toggle = $(`button[data-id="${id}"]`);
-      const data = $form.serializeObject();
-      axios.put(`/api/bbs/item/${id}`, data).then(() => {
-        $toggle.click();
-        $.notify('success', '変更を保存しました');
-        this.fetch(this.page);
-      }).catch(() => {
-        $.notify('danger', '更新に失敗しました');
-      });
-    },
-    delete_item(evt) {
-      const $form = $(evt.target).parent();
-      const id = Number($form.attr('data-id'));
-      axios.delete(`/api/bbs/item/${id}`).then(() => {
-        $.notify('success', '削除しました');
-        this.fetch(this.page);
-      }).catch(() => {
-        $.notify('danger', '削除に失敗しました');
-      });
-    },
     toggle_new_item(e) {
-      const $itemToggle = $(e.target);
-      $itemToggle.toggleBtnText('書き込む', 'キャンセル');
-      $itemToggle.toggleClass('btn-success');
-      $itemToggle.toggleClass('btn-outline-success');
+      const $toggle = $(e.target);
+      $toggle.toggleBtnText('書き込む', 'キャンセル');
+      $toggle.toggleClass('btn-success');
+      $toggle.toggleClass('btn-outline-success');
     },
-    create_new_item(evt) {
-      const $form = $(evt.target).parent();
-      const data = $form.serializeObject();
-      const $toggle = $(`button[href="#new-item-form${data.thread_id}"]`);
-      axios.post('/api/bbs/item', data).then(() => {
-        $('input[name="user_name"]', $form).val(this.name);
-        $('textarea[name="body"]', $form).val('');
-        $toggle.click();
-        $.notify('success', '投稿しました');
-        this.fetch(this.page);
-      }).catch(() => {
-        $.notify('danger', '投稿に失敗しました');
-      });
+    post_done(id) {
+      $(`button[href="#new-item-form${id}"]`).click();
+      this.fetch(this.page);
     },
   },
 };
@@ -245,32 +184,8 @@ export default {
   max-width: 750px;
 }
 
-.thread {
-  white-space: pre-line;
-  margin-bottom: 1.5em;
-
-  &.private {
-    border: 1px solid green;
-    background-color: #FFD;
-    li {
-      background-color: #FFD;
-    }
-  }
-
-  .thread-info {
-    width: 100%;
-  }
-
-  .name {
-    color: #040;
-  }
-
-  .date {
-    color: brown;
-  }
-}
-
-.form-inline .form-check {
-  width: auto;
+.card.private {
+  border: 1px solid green;
+  background-color: #FFD;
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <form class="container mb-3">
+  <form class="container mb-3" @submit.prevent>
     <div class="row">
       <div class="custom-file col-sm-6 col-12">
         <input type="file" name="file" :id="`file_input${index}`" class="custom-file-input text-truncate" @change="set_filename" multiple>
@@ -82,7 +82,7 @@ export default {
       }, Promise.resolve()).then(() => {
         $.notify('success', `${this.filename()}を送信しました.`);
         this.delete_form();
-        this.$emit('complete');
+        this.$emit('done');
       }).catch(() => {
         $.notify('danger', `${this.filename()}の送信に失敗しました.`);
       });

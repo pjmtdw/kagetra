@@ -16,6 +16,10 @@
   flex-grow: 1;
 }
 
+[data-toggle="tooltip"] {
+  border-bottom: 1px dashed rgba(black, 0.4);
+}
+
 .alert {
   &.alert-success {
     border-left: 4px solid darkgreen;

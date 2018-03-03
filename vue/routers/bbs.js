@@ -2,7 +2,7 @@ import bbs from '../components/bbs.vue';
 
 export default [{
   name: 'bbs',
-  path: '/:page',
+  path: '/:page(\\d+)',
   component: bbs,
   props: true,
 }, {

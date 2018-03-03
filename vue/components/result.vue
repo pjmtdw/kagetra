@@ -13,7 +13,7 @@
           </ul>
         </nav>
         <div class="col-12 col-md-4 mt-2 mt-md-0">
-          <player-search class="justify-content-md-start" placeholder="選手名検索" />
+          <player-search class="justify-content-md-start" placeholder="選手名検索"/>
         </div>
       </div>
     </div>
@@ -23,7 +23,7 @@
         <nav v-if="recent_list" id="recent_list"
              class="col-12 col-md-8 nav nav-pills flex-row flex-wrap justify-content-center justify-content-md-start mb-1" role="tablist">
           <router-link v-for="ct in recent_list" :to="ct.id.toString()" :key="ct.id"
-                       class="nav-link p-1 p-sm-2" :class="{active: (ct.id == contest_id) || (contest_id == -1 && ct.most_recent)}" role="tab">
+                       class="nav-link p-1 p-sm-2" :class="{active: (ct.id == contest_id) || (contest_id === null && ct.most_recent)}" role="tab">
             {{ ct.name }}
           </router-link>
         </nav>
@@ -36,9 +36,9 @@
               <router-link v-for="g in group" :key="g.id" :to="`/${g.id}`" class="dropdown-item">{{ g.date }} {{ g.name }}</router-link>
             </div>
           </div>
-          <div class="btn-group ml-1 mb-1" role="group">
+          <div class="btn-group mb-1" role="group">
             <!-- <button v-if="!editable" type="button" class="btn btn-success" data-toggle="modal" data-target="#add_event_dialog">追加</button> -->
-            <button v-if="!editable" type="button" class="btn btn-success" data-toggle="modal" data-target="#edit_event_dialog">編集</button>
+            <button v-if="!editable" type="button" class="btn btn-success" data-toggle="modal" data-target="#edit_event_dialog">大会編集</button>
             <a :href="`result/excel/${id}/${date}_${encodeURI(name)}.xls`" class="btn btn-secondary">保存</a>
           </div>
           <div id="past_result" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
@@ -91,15 +91,22 @@
     <!-- タブ -->
     <nav v-if="name" class="mt-2">
       <div class="nav nav-tabs" id="nav-tab" role="tablist">
-        <a class="nav-item nav-link border active" id="nav-result-tab" data-toggle="tab" href="#nav-result" role="tab" aria-controls="nav-result" aria-selected="true">結果</a>
-        <a class="nav-item nav-link border" id="nav-info-tab" data-toggle="tab" href="#nav-info" role="tab" aria-controls="nav-info" aria-selected="false">情報</a>
-        <a class="nav-item nav-link border" id="nav-comment-tab" data-toggle="tab" href="#nav-comment" role="tab" aria-controls="nav-comment" aria-selected="false">コメント({{ comment_count }})</a>
+        <a class="nav-item nav-link border active" id="nav-result-tab" data-toggle="tab" href="#nav-result" role="tab" aria-controls="nav-result" aria-selected="true">
+          結果
+        </a>
+        <a class="nav-item nav-link border" id="nav-info-tab" data-toggle="tab" href="#nav-info" role="tab" aria-controls="nav-info" aria-selected="false">
+          情報
+        </a>
+        <a class="nav-item nav-link border" id="nav-comment-tab" data-toggle="tab" href="#nav-comment" role="tab" aria-controls="nav-comment" aria-selected="false">
+          コメント
+          <span v-if="comment_count">({{ comment_count }})</span>
+        </a>
       </div>
     </nav>
     <!-- タブの中 -->
     <div v-if="name" class="tab-content">
       <!-- 結果 -->
-      <div class="tab-pane border border-top-0 bg-white rounded-bottom fade show active" id="nav-result" role="tabpanel" aria-labelledby="nav-result-tab">
+      <div class="tab-pane border border-top-0 bg-white rounded-bottom show active" id="nav-result" role="tabpanel" aria-labelledby="nav-result-tab">
         <div class="d-flex justify-content-between">
           <div class="ml-2">
             <button class="btn btn-success m-2">編集開始</button>
@@ -174,7 +181,7 @@
         </div>
       </div>
       <!-- 情報 -->
-      <div class="tab-pane border border-top-0 bg-white rounded-bottom fade pb-3" id="nav-info" role="tabpanel" aria-labelledby="nav-info-tab">
+      <div class="tab-pane border border-top-0 bg-white rounded-bottom pb-3" id="nav-info" role="tabpanel" aria-labelledby="nav-info-tab">
         <div class="container">
           <div class="row">
             <div class="col-12 col-md-8">
@@ -232,7 +239,9 @@
               <div class="card mt-3">
                 <h6 class="card-header"><strong>添付ファイル</strong></h6>
                 <div class="card-body">
-                  <a v-for="at in attached" :href="`/static/event/attached/${at.id}/${encodeURI(at.orig_name)}`" class="d-block">{{ at.orig_name }}</a>
+                  <a v-for="at in attached" :key="at.id" :href="`/static/event/attached/${at.id}/${encodeURI(at.orig_name)}`" class="d-block">
+                    {{ at.orig_name }}
+                  </a>
                 </div>
               </div>
             </div>
@@ -240,15 +249,17 @@
         </div>
       </div>
       <!-- コメント -->
-      <div class="tab-pane border border-top-0 bg-white rounded-bottom fade pb-3" id="nav-comment" role="tabpanel" aria-labelledby="nav-comment-tab">
+      <div class="tab-pane border border-top-0 bg-white rounded-bottom pb-3" id="nav-comment" role="tabpanel" aria-labelledby="nav-comment-tab">
         <div class="d-flex justify-content-between align-items-center">
           <h5 class="m-2">
             <strong>{{ thread_name }}</strong>
           </h5>
-          <button class="btn btn-success m-2" @click="toggle_new_comment">
+          <button id="new-comment-toggle" class="btn btn-success m-2" data-toggle="collapse" href="#new-comment-form"
+                  aria-expanded="false" aria-controls="new-comment-form" @click="toggle_new_comment">
             書き込む
           </button>
         </div>
+        <new-comment-form id="new-comment-form" class="mx-3 mb-3 mt-2" url="/api/event/comment/item" :thread_id="id" @done="post_done"/>
         <nav v-if="pages > 1" class="pl-2">
           <ul class="pagination">
             <li v-for="p in pages" :key="p" class="page-item" :class="{'active': p == cur_page}">
@@ -258,21 +269,13 @@
             </li>
           </ul>
         </nav>
-        <div v-for="comment in list" class="comment py-1">
-          <div class="pl-1">
-            <span>{{ comment.user_name }}</span>
-            <span class="date">@{{ comment.date }}</span>
-          </div>
-          <div class="pt-2 pl-3">
-            {{ comment.body }}
-          </div>
-        </div>
+        <comment-list :comments="list" url="/api/event/comment/item" item_class="px-2 py-1" @done="fetch_comment"/>
       </div>
     </div>
     <!-- 大会追加form -->
-    <!-- <contest-dialog id="add_event_dialog" @complete="update"/> -->
+    <!-- <contest-dialog id="add_event_dialog" @done="update"/> -->
     <!-- 大会編集form -->
-    <contest-dialog id="edit_event_dialog" :contestid="id" @complete="update"/>
+    <contest-dialog id="edit_event_dialog" :contest_id="id" @done="fetch"/>
   </div>
 </template>
 <script>
@@ -280,13 +283,15 @@ export default {
   props: {
     contest_id: {
       type: String,
-      default: '-1',
+      default: null,
     },
   },
   data() {
     return {
       result_str: $.util.result_str,
       order_str: $.util.order_str,
+      // user_name: g_user_name,
+      comment_body: '',
       // result
       id: 0,
       official: null,
@@ -308,7 +313,7 @@ export default {
       attached: [],
       editable: false,
       // comment
-      comment_count: 0,
+      comment_count: null,
       cur_page: 1,
       pages: 1,
       thread_name: '',
@@ -323,6 +328,11 @@ export default {
       // edit
       all_event_groups: [],
     };
+  },
+  computed: {
+    rows() {
+      return _.max([this.comment_body.split('\n').length, 4]);
+    },
   },
   watch: {
     contest_id() {
@@ -340,7 +350,7 @@ export default {
   methods: {
     fetch() {
       const baseUrl = '/api/result/contest';
-      const url = this.contest_id === '-1' ? `${baseUrl}/latest` : `${baseUrl}/${this.contest_id}`;
+      const url = this.contest_id === null ? `${baseUrl}/latest` : `${baseUrl}/${this.contest_id}`;
       axios.get(url).then((res) => {
         _.forEach(res.data, (v, key) => {
           this[key] = v;
@@ -372,10 +382,18 @@ export default {
         });
       });
     },
-    toggle_new_comment() {
-    },
     load_comment(e) {
       this.cur_page = Number($(e.target).html());
+      this.fetch_comment();
+    },
+    toggle_new_comment(e) {
+      const $toggle = $(e.target);
+      $toggle.toggleBtnText('書き込む', 'キャンセル');
+      $toggle.toggleClass('btn-success');
+      $toggle.toggleClass('btn-outline-success');
+    },
+    post_done() {
+      $('#new-comment-toggle').click();
       this.fetch_comment();
     },
     fetch_past_info() {
@@ -394,9 +412,6 @@ export default {
       this.past_cur_page = Number($(e.target).html());
       this.fetch_past_info();
     },
-    update() {
-      this.fetch();
-    },
     set_cell_height() {
       // セルの高さを揃える
       const rows = new Set();
@@ -410,6 +425,10 @@ export default {
         });
         $(`.${v}`).css('height', maxH);
       });
+    },
+    autosize_textarea($ta) {
+      // textareaの行数を内容に合わせて変更
+      $ta.attr('rows', _.max([$ta.val().split('\n').length, 4]));
     },
   },
 };
@@ -449,9 +468,5 @@ export default {
 }
 .team-prize {
   color: #039;
-}
-
-.comment {
-  border-top: gray dotted 1px;
 }
 </style>

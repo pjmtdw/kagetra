@@ -3,7 +3,7 @@ import resultList from '../components/result_list.vue';
 
 export default [{
   name: 'list',
-  path: '/list/:year',
+  path: '/list/:year(\\d+)',
   component: resultList,
   props: true,
 }, {
@@ -14,13 +14,10 @@ export default [{
   },
 }, {
   name: 'result',
-  path: '/:contest_id',
+  path: '/:contest_id(\\d+)',
   component: result,
   props: true,
 }, {
   path: '*',
   component: result,
-  props: {
-    contest_id: '-1',
-  },
 }];

@@ -10,11 +10,15 @@ import top from './routers/top';
 import wiki from './routers/wiki';
 
 import util from './util';
+import newCommentForm from './components/new_comment_form.vue';
+import commentList from './components/comment_list.vue';
 import playerSearch from './components/player_search.vue';
 import contestDialog from './components/contest_dialog.vue';
 import filePost from './components/file_post.vue';
 
 Vue.use(VueRouter);
+Vue.component('new-comment-form', newCommentForm);
+Vue.component('comment-list', commentList);
 Vue.component('player-search', playerSearch);
 Vue.component('contest-dialog', contestDialog);
 Vue.component('file-post', filePost);

@@ -141,6 +141,23 @@ export default (routeName) => {
     result_str: { win: '○', lose: '●', now: '対戦中' },
     order_str: [null, '主将', '副将', '三将', '四将', '五将', '六将', '七将', '八将'],
   };
+  // 日付(String)->Date. YYYY-MM-DD形式.
+  $.util.parseDate = (str) => {
+    const r = str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (r === null) return null;
+    return new Date(Number(r[1]), Number(r[2]) - 1, Number(r[3]));
+  };
+  // Date->曜日(String)
+  $.util.getWeekDay = (arg) => {
+    let date = arg;
+    if (typeof arg === 'string') {
+      date = $.util.parseDate(arg);
+    }
+    if (!_.isDate(date)) {
+      return null;
+    }
+    return $.util.weekday_ja[date.getDay()];
+  };
 
   // jQuery拡張
   $.fn.extend({

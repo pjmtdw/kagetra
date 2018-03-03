@@ -10,7 +10,7 @@
           </button>
         </div>
         <div class="modal-body">
-          <form class="form-contest" @change="changed = true">
+          <form class="form-contest" @change="changed = true" @submit.prevent>
             <div class="form-row">
               <div class="form-group col-lg-4 col-sm-6">
                 <label>
@@ -22,7 +22,7 @@
                     <input type="checkbox" name="public" :checked="is_public">
                     <span>
                       公開
-                      <u class="font-weight-bold ml-1" data-toggle="tooltip" data-placement="bottom" title="外部公開版の予定表や大会行事案内に表示されます．ただし登録者一覧およびコメントは公開されません．" >[?]</u>
+                      <span class="font-weight-bold ml-1" data-toggle="tooltip" data-placement="bottom" title="外部公開版の予定表や大会行事案内に表示されます．ただし登録者一覧およびコメントは公開されません．" >[?]</span>
                     </span>
                   </label>
                 </div>
@@ -113,8 +113,8 @@
                 <p class="d-inline ml-2">{{ f.description }}</p>
               </div>
               <div class="mt-3"/>
-              <file-post v-for="i in new_attach_count" :key="i" :id="contestid === -1 ? 0 : contestid" namespace="event"
-                         @complete="submit_file_done"/>
+              <file-post v-for="i in new_attach_count" :key="i" :id="add ? 0 : contest_id" namespace="event"
+                         @done="submit_file_done"/>
               <button type="button" class="btn btn-outline-success float-right" @click="new_attach_count++">追加</button>
             </div>
           </div>
@@ -136,9 +136,9 @@ export default {
       type: String,
       default: null,
     },
-    contestid: {
+    contest_id: {
       type: Number,
-      default: -1,
+      default: null,
     },
     editing: {
       type: Boolean,
@@ -170,7 +170,7 @@ export default {
   },
   computed: {
     add() {
-      return this.contestid === -1;
+      return this.contest_id === null;
     },
     rows() {
       return _.max([this.description.split('\n').length, 4]);
@@ -192,7 +192,7 @@ export default {
   },
   methods: {
     fetch_edit() {
-      const url = `/api/event/item/${this.contestid === -1 ? 'contest' : this.contestid}?detail=true&edit=true`;
+      const url = `/api/event/item/${this.add ? 'contest' : this.contest_id}?detail=true&edit=true`;
       axios.get(url).then((res) => {
         _.forEach(res.data, (v, key) => {
           if (key === 'id') {
@@ -208,7 +208,7 @@ export default {
       });
     },
     fetch_edit_attached() {
-      const url = `/api/event/item/${this.contestid === -1 ? 'contest' : this.contestid}?detail=true&edit=true`;
+      const url = `/api/event/item/${this.add ? 'contest' : this.contest_id}?detail=true&edit=true`;
       axios.get(url).then((res) => {
         this.attached = res.data.attached;
       }).catch(() => {
@@ -218,19 +218,19 @@ export default {
     edit_event() {
       let data = $('form.form-contest', this.$el).serializeObject();
       data = _.mapValues(data, v => (v === '' ? null : v));
-      const url = `/api/event/item/${this.contestid}`;
+      const url = `/api/event/item/${this.contest_id}`;
       axios.put(url, data).then(() => {
         $.notify('success', '保存しました.');
         this.changed = false;
         $(this.$el).modal('hide');
-        this.$emit('complete');
+        this.$emit('done');
       }).catch(() => {
         $.notify('danger', '保存に失敗しました.');
       });
     },
     delete_event() {
       $.confirm('本当に削除していいですか？').then(() => {
-        axios.delete(`/api/event/item/${this.contestid}`).then(() => {
+        axios.delete(`/api/event/item/${this.contest_id}`).then(() => {
           $.notify('success', '削除しました.');
           $(this.$el).modal('hide');
           location.href = '/result#/';
@@ -260,7 +260,7 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-// @import '../sass/common.scss';
+@import '../sass/common.scss';
 .card {
   box-shadow: 0px 2px 4px rgba(black, 0.1);
 }

@@ -12,22 +12,21 @@
   width: auto!important;
 }
 
-.flex-grow {
-  flex-grow: 1;
-}
-
 [data-toggle="tooltip"] {
   border-bottom: 1px dashed rgba(black, 0.4);
 }
 
-.alert {
-  &.alert-success {
-    border-left: 4px solid darkgreen;
+.badge-light-shadow {
+  background-color: #eee;
+  box-shadow: 1px 1px 1px 1px rgba(black, 0.2);
+  &:hover {
+    background-color: #ddd;
+    text-decoration: none;
   }
-  &.alert-warning {
-    border-left: 4px solid orange;
-  }
-  &.aler-danger {
-    border-left: 4px solid red;
-  }
+}
+
+.card-border-title {
+  position: relative;
+  padding-left: 10px;
+  top: -.75em;
 }

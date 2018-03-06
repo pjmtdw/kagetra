@@ -11,7 +11,6 @@ class MainApp < Sinatra::Base
         .group_and_count(:opponent_name).order(Sequel.desc(:count)).map(&:opponent_name)
       results = (list1+list2).uniq
       {results:results}
-
     end
 
     post '/record' do

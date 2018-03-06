@@ -1,29 +1,43 @@
 <template>
-  <div class="input-group justify-content-center">
-    <div class="input-group-prepend">
+  <div class="input-group justify-content-center" :class="inline ? ['input-group-sm', 'd-inline-flex'] : null">
+    <div v-if="!complete" class="input-group-prepend">
       <span class="input-group-text">検索</span>
     </div>
-    <div class="dropdown">
-      <input class="search form-control" name="query" type="text" autocomplete="off" :placeholder="placeholder" @input="fetch_candidate">
+    <div class="dropdown" :class="{'input-group-sm': inline}">
+      <input class="search form-control" :class="{'appended': clear_when_set}" name="query" type="search" autocomplete="off" :placeholder="placeholder" @input="fetch_candidate">
       <div class="autocomplete dropdown-menu mt-0">
-        <a v-for="c in candidates" class="dropdown-item" href="#">{{ c }}</a>
+        <span v-if="complete">
+          <a v-for="c in candidates" class="dropdown-item" href="#" @click="click_name">{{ c }}</a>
+        </span>
+        <span v-else>
+          <a v-for="c in candidates" class="dropdown-item" href="#">{{ c }}</a>
+        </span>
         <span v-if="searching">Searching...</span>
-        <span v-if="input !== '' && candidates.length === 0">No matches found</span>
-        <span v-if="input === ''">Please enter 1 or more character</span>
+        <span v-else-if="input !== '' && candidates.length === 0">No matches found</span>
+        <span v-else-if="input === ''">Please enter 1 or more character</span>
       </div>
     </div>
   </div>
 </template>
 <script>
+// inputにv-modelを使うと入力確定前には値が取得できない
 export default {
   props: {
-    id: {
-      type: String,
-      default: '',
-    },
     placeholder: {
       type: String,
-      default: '',
+      default: null,
+    },
+    complete: { // 補完 or リンク
+      type: Boolean,
+      default: true,
+    },
+    inline: {
+      type: Boolean,
+      default: false,
+    },
+    clear_when_set: {
+      type: Boolean,
+      default: false,
     },
   },
   data() {
@@ -38,7 +52,8 @@ export default {
     $('.search', e).focus(() => {
       $('.autocomplete', e).addClass('show');
     }).blur(() => {
-      $('.autocomplete', e).removeClass('show');
+      // すぐに消すとclickイベントが発生しない
+      setTimeout(() => $('.autocomplete', e).removeClass('show'), 50);
     });
   },
   methods: {
@@ -60,15 +75,31 @@ export default {
         $.notify('danger', '候補の取得に失敗しました。');
       });
     },
+    click_name(e) {
+      const name = $(e.target).html();
+      if (this.clear_when_set) {
+        $('.search', this.$el).val('');
+        this.input = '';
+        this.candidates = [];
+      } else {
+        $('.search', this.$el).val(name);
+        this.fetch_candidate();
+      }
+      this.$emit('complete', name, this.$el);
+    },
   },
 };
 </script>
 <style lang="scss" scoped>
 // @import '../sass/common.scss';
-.search {
+.input-group-prepend + div .search {
   max-width: 150px;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
+}
+.appended {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
 }
 .dropdown-menu {
   max-height: 50vh;

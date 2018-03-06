@@ -7,11 +7,9 @@
   }
   td, th {
     border: 1px dotted gray;
-    border-right: 0;
     font-size: 0.875em;
   }
   td {
-    // height: 80px;
     background-color: #FFD;
     .prize{
       margin-top: 5px;
@@ -28,10 +26,10 @@
     min-width: 108px;
     max-width: 128px;
     border: 1px dotted gray;
+    border-left: 0;
     font-size: 0.875em;
   }
   td {
-    // height: 80px;
     &.result-default_win {
     background-color: #DDD;
     }

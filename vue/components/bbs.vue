@@ -8,7 +8,7 @@
       </button>
       <form id="search-form" class="ml-auto" @submit.prevent="search">
         <div class="form-group input-group my-2">
-          <input class="form-control" name="query" type="text" placeholder="検索文字列">
+          <input class="form-control" name="query" type="search" placeholder="検索文字列">
           <div class="input-group-append">
             <button class="btn btn-secondary" type="button" @click="search">検索</button>
           </div>
@@ -23,7 +23,7 @@
         <div class="form-group form-inline mx-3">
           <label>
             名前
-            <input class="form-control ml-md-2" type="text" name="user_name" placeholder="名前" v-model="name">
+            <input class="form-control ml-md-2" type="text" name="user_name" placeholder="名前" v-model="name" required>
           </label>
           <div class="form-check w-auto ml-5">
             <label class="form-check-label">
@@ -35,13 +35,13 @@
         <div class="form-group mx-3">
           <label class="w-100">
             タイトル
-            <input class="form-control" type="text" name="title" placeholder="タイトル">
+            <input class="form-control" type="text" name="title" placeholder="タイトル" required>
           </label>
         </div>
         <div class="form-group mx-3">
           <label class="w-100">
             内容
-            <textarea class="form-control" name="body" :rows="rows" placeholder="内容" v-model="body"/>
+            <textarea class="form-control" name="body" :rows="rows" placeholder="内容" v-model="body" required/>
           </label>
         </div>
       </div>
@@ -132,27 +132,24 @@ export default {
       $toggle.toggleBtnText('スレッド作成', 'キャンセル');
       $toggle.toggleClass('btn-success');
       $toggle.toggleClass('btn-outline-success');
+      this.$nextTick(() => $('#new-thread-form input[name="title"]').focus());
     },
     post_thread() {
-      if (!$('#new-thread-form input[name="user_name"]').val()) {
-        $.notify('warning', '名前を入力してください');
+      const $form = $('#new-thread-form');
+      if (!$form.check()) {
+        if (!$('textarea[name="body"]', $form).val()) $.notify('warning', '内容がありません');
+        if (!$('input[name="title"]', $form).val()) $.notify('warning', 'タイトルを入力してください');
+        if (!$('input[name="user_name"]', $form).val()) $.notify('warning', '名前を入力してください');
         return;
       }
-      if (!$('#new-thread-form input[name="title"]').val()) {
-        $.notify('warning', 'タイトルを入力してください');
-        return;
-      }
-      if (!$('#new-thread-form textarea[name="body"]').val()) {
-        $.notify('warning', '内容がありません');
-        return;
-      }
-      const data = $('#new-thread-form').serializeObject();
+      const data = $form.serializeObject();
       axios.post('/api/bbs/thread', data).then(() => {
         /* eslint-disable camelcase */
         this.name = g_user_name;
+        $('input[name="public"]', $form)[0].checked = false;
+        $('input[name="title"]', $form).val('');
         this.body = '';
-        $('#new-thread-form input[name="public"]')[0].checked = false;
-        $('#new-thread-form input[name="title"]').val('');
+        $form.removeClass('was-validated');
         $('#new-thread-toggle').click();
         $.notify('success', '投稿しました');
         this.fetch(this.page);

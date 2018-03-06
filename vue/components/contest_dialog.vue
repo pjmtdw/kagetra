@@ -9,7 +9,7 @@
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <div class="modal-body">
+        <div v-show="loaded" class="modal-body">
           <form class="form-contest" @change="changed = true" @submit.prevent>
             <div class="form-row">
               <div class="form-group col-lg-4 col-sm-6">
@@ -22,9 +22,9 @@
                     <input type="checkbox" name="public" :checked="is_public">
                     <span>
                       公開
-                      <span class="font-weight-bold ml-1" data-toggle="tooltip" data-placement="bottom" title="外部公開版の予定表や大会行事案内に表示されます．ただし登録者一覧およびコメントは公開されません．" >[?]</span>
                     </span>
                   </label>
+                  <span class="font-weight-bold ml-1" data-toggle="tooltip" data-placement="bottom" title="外部公開版の予定表や大会行事案内に表示されます．ただし登録者一覧およびコメントは公開されません．" >[?]</span>
                 </div>
               </div>
             </div>
@@ -72,28 +72,28 @@
               </div>
             </div>
             <div class="form-row">
-              <div class="form-group col-sm-4">
-                <label>
+              <div class="form-group col-lg-4 col-12">
+                <label class="w-100">
                   場所
-                  <input type="text" class="form-control" name="place" placeholder="場所" :value="place">
+                  <input type="text" class="form-control w-100" name="place" placeholder="場所" :value="place">
                 </label>
               </div>
-              <div class="form-group col-lg-3 col-sm-4 col-6">
+              <div class="form-group col-lg-3 col-sm-4 col-12">
                 <label>
                   開催日
-                  <input type="text" class="form-control" name="date" placeholder="YYYY-MM-DD" :value="date">
+                  <input type="date" class="form-control" name="date" placeholder="YYYY-MM-DD" :value="date">
                 </label>
               </div>
-              <div class="form-group col-sm-2 col-3">
+              <div class="form-group col-sm-2 col-6">
                 <label>
                   開始時刻
-                  <input type="text" class="form-control" name="start_at" placeholder="hh:mm" :value="start_at">
+                  <input type="time" class="form-control" name="start_at" placeholder="hh:mm" :value="start_at">
                 </label>
               </div>
-              <div class="form-group col-sm-2 col-3">
+              <div class="form-group col-sm-2 col-6">
                 <label>
                   終了時刻
-                  <input type="text" class="form-control" name="end_at" placeholder="hh:mm" :value="end_at">
+                  <input type="time" class="form-control" name="end_at" placeholder="hh:mm" :value="end_at">
                 </label>
               </div>
             </div>
@@ -109,20 +109,18 @@
             <div class="card-body">
               <h5 class="card-title">添付ファイル</h5>
               <div v-for="f in attached" :key="f.id">
-                <a :href="`/static/event/attached/${f.id}/${encodeURI(f.orig_name)}`">{{ f.orig_name }}</a>
+                <a :href="`/static/event/attached/${f.id}/${encodeURI(f.orig_name)}`" class="badge badge-light-shadow">{{ f.orig_name }}</a>
                 <p class="d-inline ml-2">{{ f.description }}</p>
               </div>
               <div class="mt-3"/>
-              <file-post v-for="i in new_attach_count" :key="i" :id="add ? 0 : contest_id" namespace="event"
-                         @done="submit_file_done"/>
-              <button type="button" class="btn btn-outline-success float-right" @click="new_attach_count++">追加</button>
+              <file-post :id="add ? 0 : contest_id" namespace="event" @done="submit_file_done"/>
             </div>
           </div>
         </div>
         <div class="modal-footer">
           <button v-if="!add" type="button" class="btn btn-danger mr-auto" @click="delete_event">削除</button>
           <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">キャンセル</button>
-          <button type="button" class="btn btn-success" @click="edit_event">保存</button>
+          <button type="button" class="btn btn-success" @click="edit_event" :disabled="!loaded">保存</button>
         </div>
       </div>
     </div>
@@ -147,8 +145,8 @@ export default {
   },
   data() {
     return {
+      loaded: false,
       user_name: g_user_name,
-      new_attach_count: 1,
       changed: false,
       submitting: {},
       // edit
@@ -180,7 +178,10 @@ export default {
     $(this.$el).on('show.bs.modal', () => {
       this.fetch_edit();
     }).on('hide.bs.modal', (e) => {
-      if (!this.changed) return;
+      if (!this.changed) {
+        this.$emit('done');
+        return;
+      }
       e.preventDefault();
       $.confirm('本当に変更を破棄して閉じますか？').then(() => {
         this.changed = false;
@@ -203,6 +204,7 @@ export default {
             this[key] = v;
           }
         });
+        this.loaded = true;
       }).catch(() => {
         $.notify('danger', '情報の取得に失敗しました');
       });
@@ -217,25 +219,30 @@ export default {
     },
     edit_event() {
       let data = $('form.form-contest', this.$el).serializeObject();
-      data = _.mapValues(data, v => (v === '' ? null : v));
+      data = _.mapValues(data, v => (v.trim() === '' ? null : v));
       const url = `/api/event/item/${this.contest_id}`;
-      axios.put(url, data).then(() => {
-        $.notify('success', '保存しました.');
+      const onSave = () => {
+        $.notify('success', '保存しました');
         this.changed = false;
         $(this.$el).modal('hide');
         this.$emit('done');
-      }).catch(() => {
-        $.notify('danger', '保存に失敗しました.');
+      };
+      if (!this.changed) {
+        onSave();
+        return;
+      }
+      axios.put(url, data).then(onSave).catch(() => {
+        $.notify('danger', '保存に失敗しました');
       });
     },
     delete_event() {
       $.confirm('本当に削除していいですか？').then(() => {
         axios.delete(`/api/event/item/${this.contest_id}`).then(() => {
-          $.notify('success', '削除しました.');
+          $.notify('success', '削除しました');
           $(this.$el).modal('hide');
           location.href = '/result#/';
         }).catch(() => {
-          $.notify('danger', '削除に失敗しました.');
+          $.notify('danger', '削除に失敗しました');
         });
       }).catch(() => {
         $('body').addClass('modal-open');
@@ -244,10 +251,10 @@ export default {
     add_event_group() {
       $.inputDialog('追加する恒例大会名').then((name) => {
         axios.post('/api/event/group/new', { name }).then(() => {
-          $.notify('success', '追加しました.');
+          $.notify('success', '追加しました');
           this.fetch_edit();
         }).catch(() => {
-          $.notify('danger', '追加に失敗しました.');
+          $.notify('danger', '追加に失敗しました');
         });
       }).always(() => {
         $('body').addClass('modal-open');
@@ -262,6 +269,6 @@ export default {
 <style lang="scss" scoped>
 @import '../sass/common.scss';
 .card {
-  box-shadow: 0px 2px 4px rgba(black, 0.1);
+  box-shadow: 1px 2px 4px rgba(black, 0.1);
 }
 </style>

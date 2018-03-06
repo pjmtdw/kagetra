@@ -13,8 +13,8 @@
       <form :id="'editItem' + item.id" class="mt-3 d-none" v-if="item.editable" :data-id="item.id" @submit.prevent>
         <button class="btn btn-success" type="button" @click="edit_item">保存</button>
         <button class="btn btn-danger" type="button" @click="delete_item">削除</button>
-        <input class="form-control w-auto my-2" type="text" name="user_name" placeholder="名前" :value="item.user_name">
-        <textarea class="form-control" name="body" rows="4" placeholder="内容" @input="autosize_textarea(this.$($event.target))"/>
+        <input class="form-control w-auto my-2" type="text" name="user_name" placeholder="名前" :value="item.user_name" required>
+        <textarea class="form-control" name="body" rows="4" placeholder="内容" @input="autosize_textarea(this.$($event.target))" required/>
       </form>
     </div>
   </div>
@@ -49,6 +49,7 @@ export default {
       if ($editToggle.data('toggled')) {
         const $ta = $('textarea', $edit);
         $ta.val($item.html().trim());
+        $ta.focus();
         this.autosize_textarea($ta);
       }
     },
@@ -57,13 +58,13 @@ export default {
       const id = Number($form.attr('data-id'));
       const $toggle = $(`button[data-id="${id}"]`);
       const data = $form.serializeObject();
-      if (!data.user_name) {
-        $.notify('warning', '名前を入力してください');
-      }
-      if (!data.body) {
-        $.notify('wanring', '内容を入力してください');
+      if (!$form.check()) {
+        if (!data.body) $.notify('warning', '内容がありません');
+        if (!data.user_name) $.notify('warning', '名前を入力してください');
+        return;
       }
       axios.put(`${this.url}/${id}`, data).then(() => {
+        $form.removeClass('was-validated');
         $toggle.click();
         $.notify('success', '変更を保存しました');
         this.$emit('done');
@@ -74,11 +75,9 @@ export default {
     delete_item(e) {
       const $form = $(e.target).parents('form');
       const id = Number($form.attr('data-id'));
-      axios.delete(`${this.url}/${id}`).then(() => {
+      axios.delete(`${this.url}/${id}`).always(() => {
         $.notify('success', '削除しました');
         this.$emit('done');
-      }).catch(() => {
-        $.notify('danger', '削除に失敗しました');
       });
     },
     autosize_textarea($ta) {

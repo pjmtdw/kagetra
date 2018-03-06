@@ -11,7 +11,7 @@
         </label>
         <input :id="`desc_input${index}`" type="text" name="description" class="form-control d-inline-block" v-model="description">
         <button type="button" class="btn btn-success ml-2 mr-1" @click="upload">送信</button>
-        <button type="button" class="close" aria-label="Close" @click="delete_form">
+        <button v-if="removable" type="button" class="close" aria-label="Close" @click="delete_form">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
@@ -33,6 +33,10 @@ export default {
       type: Number,
       default: 1,
     },
+    removable: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
@@ -40,11 +44,11 @@ export default {
     };
   },
   methods: {
-    files() {
+    get_files() {
       return $('input[type="file"]', this.$el)[0].files;
     },
-    filename() {
-      const files = this.files();
+    get_filename() {
+      const files = this.get_files();
       const n = files.length;
       if (n > 1) {
         return `${n}ファイル`;
@@ -53,17 +57,27 @@ export default {
       }
       return null;
     },
-    set_filename(e) {
-      $(e.target).next().html(this.filename() || 'ファイルを選択');
+    set_filename() {
+      $('input[type="file"]').next().html(this.get_filename() || 'ファイルを選択');
     },
     delete_form() {
-      $(this.$el).hide();
+      if (this.removable) {
+        $(this.$el).hide();
+      } else {
+        $('input', this.$el).val(null);
+        this.set_filename();
+      }
     },
     upload() {
       const url = `/${this.namespace}/attached/${this.id}`;
+      const files = this.get_files();
+      if (!files.length) {
+        $.notify('warning', 'ファイルが選択されていません');
+        return;
+      }
       // 同時に送るとデータベースのロックでエラーになるので順番に送る
       /* eslint-disable arrow-body-style */
-      _.reduce(this.files(), (promise, file) => {
+      _.reduce(files, (promise, file) => {
         return promise.then(() => {
           const data = new FormData();
           data.append('file', file);
@@ -80,11 +94,11 @@ export default {
           return axios.post(url, data, config);
         });
       }, Promise.resolve()).then(() => {
-        $.notify('success', `${this.filename()}を送信しました.`);
+        $.notify('success', `${this.get_filename()}を送信しました.`);
         this.delete_form();
         this.$emit('done');
       }).catch(() => {
-        $.notify('danger', `${this.filename()}の送信に失敗しました.`);
+        $.notify('danger', `${this.get_filename()}の送信に失敗しました.`);
       });
     },
   },

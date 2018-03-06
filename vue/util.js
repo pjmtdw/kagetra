@@ -80,8 +80,19 @@ export default (routeName) => {
     $confirm.modal();
 
     const def = new $.Deferred();
-    $('button.btn-ok', $confirm).click((e) => {
+    const $ok = $('button.btn-ok', $confirm);
+    const $cancel = $('button:not(.btn-ok)', $confirm);
+    $ok.click((e) => {
       $(e.target).data('clicked', true);
+    });
+    $confirm.keydown((e) => {
+      if (e.which === 13 || e.keyCode === 13) {
+        // Enter
+        $ok.click();
+      } else if (_.includes([8, 46, 243], e.which) || _.includes([8, 46, 243], e.keyCode)) {
+        // BS, Del, ESC
+        $cancel.click();
+      }
     });
     // 閉じた後にresolve or reject
     $confirm.on('hidden.bs.modal', () => {
@@ -107,7 +118,9 @@ export default (routeName) => {
             <h5 class="modal-title">${title}</h5>
           </div>
           <div class="modal-body">
-            <input type="text" class="form-control">
+            <form>
+              <input type="text" class="form-control" required>
+            </form>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">キャンセル</button>
@@ -121,11 +134,34 @@ export default (routeName) => {
     $dialog.modal();
 
     const def = new $.Deferred();
-    $('button.btn-ok', $dialog).click((e) => {
+    const $ok = $('button.btn-ok', $dialog);
+    const $cancel = $('button:not(.btn-ok)', $dialog);
+    $ok.click((e) => {
       $(e.target).data('clicked', true);
     });
+    $dialog.keydown((e) => {
+      if (e.which === 13 || e.keyCode === 13) {
+        // Enter
+        $ok.click();
+      } else if (e.which === 243 || e.keyCode === 243) {
+        // ESC
+        $cancel.click();
+      }
+    });
+    const $form = $('form', $dialog);
+    $form.submit(e => e.preventDefault());
+    $dialog.on('shown.bs.modal', () => {
+      $('input', $dialog).focus();
+    });
+    $dialog.on('hide.bs.modal', (e) => {
+      if ($ok.data('clicked') && !$form.check()) {
+        $.notify('warning', '入力してください.');
+        $ok.data('clicked', false);
+        e.preventDefault();
+      }
+    });
     $dialog.on('hidden.bs.modal', () => {
-      if ($('button.btn-ok', $dialog).data('clicked')) {
+      if ($ok.data('clicked')) {
         def.resolve($('input', $dialog).val());
       } else {
         def.reject();
@@ -158,6 +194,17 @@ export default (routeName) => {
     }
     return $.util.weekday_ja[date.getDay()];
   };
+  // 時間
+  $.util.timeRange = (start, end) => {
+    if (start && end) {
+      return `${start} &sim; ${end}`;
+    } else if (start) {
+      return `${start} &sim;`;
+    } else if (end) {
+      return `&sim; ${end}`;
+    }
+    return '';
+  };
 
   // jQuery拡張
   $.fn.extend({
@@ -171,6 +218,27 @@ export default (routeName) => {
         res[$(v).attr('name')] = false;
       });
       return res;
+    },
+    // formのバリデーション(無効な値があるとfalse)
+    check() {
+      if (this[0].checkValidity === undefined) {
+        const check = (selector, cond) => {
+          const arr = this.find(selector);
+          for (let i = 0; i < arr.length; i++) {
+            if (!cond(arr[i])) return false;
+          }
+          return true;
+        };
+        if (!check('[required]', e => e.value !== '')) return false;
+        if (!check('[type="number"]', e => /^-?[0-9]*$/.test(e.value))) return false;
+        if (!check('[pattern]', e => (new RegExp(e.getAttribute('pattern'))).test(e.value))) return false;
+        return true;
+      }
+      if (!this[0].checkValidity()) {
+        this.addClass('was-validated');
+        return false;
+      }
+      return true;
     },
     // トグルbutton
     toggleBtnText(beforeText, afterText) {

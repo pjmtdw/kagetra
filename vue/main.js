@@ -58,8 +58,7 @@ $.notify = (type, message) => {
     .html(message)
     .append($('<button class="close p-0 type="button" data-dismiss="alert" aria-label="Close"></button>')
       .css({ top: 0, right: 0 })
-      .html('<span aria-hidden="true">&times;</span>'),
-    )
+      .html('<span aria-hidden="true">&times;</span>'))
     .prependTo('#app');
 
   alignNotify();
@@ -68,6 +67,17 @@ $.notify = (type, message) => {
   // 30秒後に消える
   setTimeout(() => { $notify.remove(); }, 30 * 1000);
 };
+
+// formの値をobject化
+$.fn.extend({
+  serializeObject() {
+    const res = {};
+    _.forEach(this.serializeArray(), (v) => {
+      res[v.name] = v.value;
+    });
+    return res;
+  },
+});
 
 const router = new VueRouter({
   routes: route,
@@ -84,4 +94,3 @@ axios.interceptors.response.use(null, (error) => {
 new Vue({
   router,
 }).$mount('#app');
-

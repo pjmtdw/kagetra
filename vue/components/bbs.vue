@@ -1,72 +1,89 @@
 <template>
-  <div id="container" class='mx-auto'>
+  <div id="container" class="mx-auto">
     <div class="d-flex flex-row">
       <button id="new-thread-toggle" class="btn btn-primary m-2" data-toggle="collapse" href="#new-thread-form" aria-expanded="false" aria-controls="new-thread-form">
         スレッド作成
       </button>
-      <form id="search-form" class="ml-auto">
+      <form id="search-form" class="ml-auto" @submit.prevent="search">
         <div class="form-group input-group my-2">
           <input class="form-control" name="query" type="text" placeholder="検索文字列">
-          <span class="input-group-btn">
-            <button class="btn btn-secondary" type="button" v-on:click="search">検索</button>
-          </span>
+          <div class="input-group-append">
+            <button class="btn btn-secondary" type="button" @click="search">検索</button>
+          </div>
         </div>
       </form>
     </div>
-    <form id="new-thread-form" class="collapse my-1">
+    <form id="new-thread-form" class="collapse my-1" @submit.prevent>
       <div class="card card-block">
         <div class="form-group m-2">
-          <input class="btn btn-outline-primary" type="button" value="送信" v-on:click="create_new_thread">
+          <button class="btn btn-outline-primary" type="button" @click="create_new_thread">送信</button>
         </div>
-        <div class="form-group form-inline mx-2">
-          <label>名前<input class="form-control mx-2" name="user_name" type="text" :value="name"></label>
+        <div class="form-group form-inline mx-3">
+          <label>
+            名前
+            <input class="form-control mx-2" type="text" name="user_name" placeholder="名前" :value="name">
+          </label>
           <div class="form-check ml-5">
             <label class="form-check-label">
-              <input class="form-check-input" name="public" type="checkbox">
+              <input class="form-check-input" type="checkbox" name="public">
               外部公開
             </label>
           </div>
         </div>
         <div class="form-group mx-3">
-          <label style="width:100%;">タイトル<input class="form-control" type="text" name="title"></label>
+          <label style="width:100%;">
+            タイトル
+            <input class="form-control" type="text" name="title" placeholder="タイトル">
+          </label>
         </div>
         <div class="form-group mx-3">
-          <label style="width:100%;">内容<textarea class="form-control" name="body" rows="30"></textarea></label>
+          <label style="width:100%;">
+            内容
+            <textarea class="form-control" name="body" rows="4" placeholder="内容"/>
+          </label>
         </div>
       </div>
     </form>
-    <ul class='pagination my-2'>
-      <li v-for='i in pages' class='page-item' :class="{ active: page === String(i) }">
-        <router-link class='page-link' :to='i.toString()'>{{i}}</router-link>
+    <ul class="pagination my-2">
+      <li v-for="i in pages" class="page-item" :class="{ active: page == i }" :key="i">
+        <router-link class="page-link" :to="i.toString()">{{ i }}</router-link>
       </li>
     </ul>
-    <div class='card thread' v-for='thread in threads'>
-      <div class='card-header h5'>
-        <span class="h6">{{thread.title}}</span>
+    <div class="card thread" :class="{'border-primary': thread.public, 'private': !thread.public}" v-for="thread in threads" :key="thread.id">
+      <div class="card-header h5">
+        <span class="h6">{{ thread.title }}</span>
         <span v-if="thread.public" class="float-right badge badge-primary mx-1">外部公開</span>
-        <span v-if="thread.has_new_comment" class="float-right badge badge-success mx-1">新着あり</span>
+        <span v-if="thread.has_new_comment" class="float-right badge badge-info mx-1">新着あり</span>
       </div>
       <ul class="list-group list-group-flush">
-        <li class='list-group-item' v-for='item in thread.items'>
-          <div class="thread-info">
-            <span class='name'>{{item.user_name}}</span>＠<span class='date'>{{item.date}}</span>
-            <button class="edit-item float-right btn btn-success" :href="item.id" aria-expanded="false">編集</button>
+        <li class="list-group-item" v-for="item in thread.items" :key="item.id">
+          <div class="thread-info d-flex">
+            <span class="name">{{ item.user_name }}</span>＠<span class="date mr-auto">{{ item.date }}</span>
+            <h6 class="align-self-center"><span v-if="item.is_new" class="badge badge-info mx-1">New</span></h6>
+            <button class="edit-item btn btn-success btn-sm" v-if="item.editable" :data-id="item.id" aria-expanded="false">
+              編集
+            </button>
           </div>
-          <div :id="'item' + item.id">
-            {{item.body}}
+          <div :id="'item' + item.id" class="thread-body">
+            {{ item.body }}
           </div>
-          <form :id="'editItem' + item.id" style="display: none;">
-            <input class="btn btn-outline-success" type="button" value="送信">
-            <input class="btn btn-outline-danger" type="button" value="削除">
+          <form :id="'editItem' + item.id" class="mt-3 d-none" v-if="item.editable" :data-id="item.id" @submit.prevent>
+            <button class="btn btn-outline-success" type="button" @click="edit_item">送信</button>
+            <button class="btn btn-outline-danger" type="button" @click="delete_item">削除</button>
+            <input class="form-control my-2" type="text" name="user_name" placeholder="名前" :value="item.user_name">
+            <textarea class="form-control" name="body" rows="4" placeholder="内容"/>
           </form>
         </li>
       </ul>
       <div>
-        <button class="new-item-toggle btn btn-success mt-3 mb-2 ml-3" data-toggle="collapse" :href="'#new-item-form' + thread.id" aria-expanded="false" :aria-controls="'new-item-form' + thread.id">書き込み</button>
-        <form :id="'new-item-form' + thread.id" class="collapse ml-3">
-          <div class="form-group m-2">
-            <input class="btn btn-outline-success" type="button" value="送信">
-          </div>
+        <button class="new-item-toggle btn btn-success mt-3 mb-2 ml-3" data-toggle="collapse" :href="'#new-item-form' + thread.id" aria-expanded="false" :aria-controls="'new-item-form' + thread.id">
+          書き込み
+        </button>
+        <form :id="'new-item-form' + thread.id" class="collapse ml-3 mb-3" @submit.prevent>
+          <input type="hidden" name="thread_id" :value="thread.id">
+          <button class="btn btn-outline-success" type="button" @click="create_new_item">送信</button>
+          <input class="form-control my-2" type="text" name="user_name" placeholder="名前" :value="name">
+          <textarea class="form-control" name="body" rows="4" placeholder="内容"/>
         </form>
       </div>
     </div>
@@ -75,44 +92,11 @@
 <script>
 /* global g_user_name */
 export default {
-  props: ['page'],
-  created() {
-    this.fetch(this.page);
-  },
-  mounted() {
-    const $toggle = $('#new-thread-toggle');
-    $toggle.click(() => {
-      $toggle.html($toggle.attr('aria-expanded') === 'true' ? 'スレッド作成' : 'キャンセル');
-    });
-    // まだDOMが生成されていない部分なのでdocumentに対して設定
-    $(document).on('click', '.new-item-toggle', (evt) => {
-      const $itemToggle = $(evt.target);
-      $itemToggle.html($itemToggle.attr('aria-expanded') === 'false' ? '書き込み' : 'キャンセル');
-    });
-    $(document).on('click', '.edit-item', (evt) => {
-      const $editToggle = $(evt.target);
-      const $item = $(`#item${$editToggle.attr('href')}`);
-      const $edit = $(`#editItem${$editToggle.attr('href')}`);
-      const expanded = $editToggle.attr('aria-expanded') === 'true';
-      $editToggle.html(expanded ? '編集' : 'キャンセル');
-      $editToggle.attr('aria-expanded', expanded ? 'false' : 'true');
-      if (expanded) {
-        $item.show();
-        $edit.hide();
-      } else {
-        $item.hide();
-        $edit.show();
-      }
-    });
-
-    $('input[name="user_name"]').val(this.name);
-    // Enterでsubmitされるかわりに検索を実行
-    $('input[name="query"]').on('keypress', (e) => {
-      if (e.keyCode === 13) {
-        this.search();
-        e.preventDefault();
-      }
-    });
+  props: {
+    page: {
+      type: String,
+      default: '1',
+    },
   },
   data() {
     return {
@@ -122,16 +106,56 @@ export default {
       query: '',
     };
   },
+  watch: {
+    page(val) {
+      this.fetch(val);
+    },
+  },
+  created() {
+    this.fetch(this.page);
+  },
+  mounted() {
+    const $toggle = $('#new-thread-toggle');
+    $toggle.click(() => {
+      $toggle.html($toggle.attr('aria-expanded') === 'true' ? 'スレッド作成' : 'キャンセル');
+    });
+    // まだDOMが生成されていない部分なので親要素に対して設定
+    $('#container').on('click', '.new-item-toggle', (evt) => {
+      const $itemToggle = $(evt.target);
+      const expanded = $itemToggle.attr('aria-expanded') === 'true';
+      $itemToggle.html(expanded ? '書き込み' : 'キャンセル');
+    });
+    $('#container').on('click', '.edit-item', (evt) => {
+      const $editToggle = $(evt.target);
+      const id = $editToggle.attr('data-id');
+      const $item = $(`#item${id}`);
+      const $edit = $(`#editItem${id}`);
+      const expanded = $editToggle.attr('aria-expanded') === 'true';
+      $editToggle.html(expanded ? '編集' : 'キャンセル');
+      $editToggle.attr('aria-expanded', expanded ? 'false' : 'true');
+      $item.toggleClass('d-none');
+      $edit.toggleClass('d-none');
+      if (!expanded) {
+        $('textarea', $edit).val($item.html().trim());
+        $('textarea', $edit).trigger('input');
+      }
+    });
+    // textareaの行数を内容に合わせて変更
+    $('#container').on('input', 'textarea', (evt) => {
+      const $tgt = $(evt.target);
+      $tgt.attr('rows', _.max([$tgt.val().split('\n').length, 4]));
+    });
+  },
   methods: {
     fetch(page) {
-      let url = `/api/bbs/threads?page=${page}`;
-      if (this.query) url += `&qs=${encodeURIComponent(this.query)}`;
-
-      axios.get(url).then((res) => {
+      const baseUrl = '/api/bbs/threads';
+      let queryUrl = `?page=${page}`;
+      if (this.query) queryUrl += `&qs=${encodeURIComponent(this.query)}`;
+      axios.get(`${baseUrl}${queryUrl}`).then((res) => {
+        const COUNT = res.data.count;
+        const THREADS_PER_PAGE = res.data.threads_per_page;
         const PAGINATE_LIMIT = 5;
-        const THREADS_PER_PAGE = res.data.pop().threads_per_page;
-        const COUNT = res.data.pop().count;
-        this.threads = _.filter(res.data, (v, key) => _.isInteger(key));
+        this.threads = res.data.threads;
 
         const max = Math.floor((COUNT - 1) / THREADS_PER_PAGE) + 1;
         const p = Number(page);
@@ -148,20 +172,16 @@ export default {
       });
     },
     create_new_thread() {
-      if ($('input[name="title"]').val() === '') {
+      if ($('input[name="title"]', '#new-thread-form').val() === '') {
         $.notify('warning', 'タイトルを入力してください');
         return;
       }
-      if ($('textarea[name="body"]').val() === '') {
+      if ($('textarea[name="body"]', '#new-thread-form').val() === '') {
         $.notify('warning', '内容がありません');
         return;
       }
-      const data = {
-        user_name: $('input[name="user_name"]').val() || this.name,
-        public: $('input[name="public"]')[0].checked,
-        title: $('input[name="title"]').val(),
-        body: $('textarea[name="body"]').val(),
-      };
+      const data = $('#new-thread-form').serializeObject();
+      data.public = $('input[name="public"]', '#new-thread-form')[0].checked;
       axios.post('/api/bbs/thread', data).then(() => {
         $('input[name="user_name"]').val(this.name);
         $('input[name="public"]')[0].checked = false;
@@ -169,23 +189,59 @@ export default {
         $('textarea[name="body"]').val('');
         $.notify('clear');
         $.notify('success', '投稿しました');
+        $('#new-thread-toggle').click();
+        this.fetch(this.page);
       }).catch(() => {
         $.notify('danger', '投稿に失敗しました');
       });
     },
     search() {
-      this.query = $('input[name="query"]').val();
+      this.query = $('input[name="query"]', '#search-form').val();
       this.fetch(this.page);
     },
-  },
-  watch: {
-    page(val) {
-      this.fetch(val);
+    edit_item(evt) {
+      const $form = $(evt.target).parent();
+      const id = Number($form.attr('data-id'));
+      const $toggle = $(`button[data-id="${id}"]`);
+      const data = $form.serializeObject();
+      axios.put(`/api/bbs/item/${id}`, data).then(() => {
+        $toggle.trigger('click');
+        $.notify('clear');
+        $.notify('success', '更新しました');
+        this.fetch(this.page);
+      }).catch(() => {
+        $.notify('danger', '更新に失敗しました');
+      });
+    },
+    delete_item(evt) {
+      const $form = $(evt.target).parent();
+      const id = Number($form.attr('data-id'));
+      // const $toggle = $(`button[data-id="${id}"]`);
+      axios.delete(`/api/bbs/item/${id}`).then(() => {
+        $.notify('clear');
+        $.notify('success', '削除しました');
+        this.fetch(this.page);
+      }).catch(() => {
+        $.notify('danger', '削除に失敗しました');
+      });
+    },
+    create_new_item(evt) {
+      const $form = $(evt.target).parent();
+      const data = $form.serializeObject();
+      const $toggle = $(`button[href="#new-item-form${data.thread_id}"]`);
+      axios.post('/api/bbs/item', data).then(() => {
+        $toggle.trigger('click');
+        $.notify('clear');
+        $.notify('success', '投稿しました');
+        this.fetch(this.page);
+      }).catch(() => {
+        $.notify('danger', '投稿に失敗しました');
+      });
     },
   },
 };
 </script>
-<style scoped>
+<style lang="scss" scoped>
 #container {
   width: 85%;
   max-width: 680px;
@@ -194,14 +250,25 @@ export default {
 .thread {
   white-space: pre-line;
   margin-bottom: 1.5em;
-}
-.thread .thread-info {
-  width: 100%;
-}
-.thread .name {
-  color: #040;
-}
-.thread .date {
-  color: brown;
+
+  &.private {
+    border: 1px solid green;
+    background-color: #FFD;
+    li {
+      background-color: #FFD;
+    }
+  }
+
+  .thread-info {
+    width: 100%;
+  }
+
+  .name {
+    color: #040;
+  }
+
+  .date {
+    color: brown;
+  }
 }
 </style>

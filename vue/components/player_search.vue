@@ -7,10 +7,10 @@
       <input class="search form-control" :class="{'appended': clear_when_set}" name="query" type="search" autocomplete="off" :placeholder="placeholder" @input="fetch_candidate">
       <div class="autocomplete dropdown-menu mt-0">
         <span v-if="complete">
-          <a v-for="c in candidates" class="dropdown-item" href="#" @click="click_name">{{ c }}</a>
+          <a v-for="(c, i) in candidates" :key="i" class="dropdown-item" href="#" @click="click_name">{{ c }}</a>
         </span>
         <span v-else>
-          <a v-for="c in candidates" class="dropdown-item" href="#">{{ c }}</a>
+          <a v-for="(c, i) in candidates" :key="i" class="dropdown-item" href="#">{{ c }}</a>
         </span>
         <span v-if="searching">Searching...</span>
         <span v-else-if="input !== '' && candidates.length === 0">No matches found</span>

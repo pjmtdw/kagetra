@@ -19,7 +19,14 @@
         "allowForLoopAfterthoughts": true
       }
     ],
-    "max-len": 1,
+    "max-len": [
+      "warn",
+      {
+        "code": 120,
+        "ignoreTemplateLiterals": true,
+        "ignorePattern": "^\\s+<|>$"
+      }
+    ],
     "vue/max-attributes-per-line": [1, {
       "singleline": 10,
       "multiline": {

@@ -28,17 +28,9 @@
           </router-link>
         </nav>
         <div class="col-12 col-md-4 mb-1">
-          <div v-if="event_group_id" class="btn-group mb-1">
-            <button type="button" class="btn btn-info" data-toggle="modal" data-target="#past_result" @click="fetch_past_info">過去の結果</button>
-            <button type="button" class="btn btn-info dropdown-toggle dropdown-toggle-split" data-toggle="dropdown"
-                    aria-haspopup="true" aria-expanded="false"/>
-            <div class="dropdown-menu dropdown-menu-right">
-              <router-link v-for="g in group" :key="g.id" :to="`/${g.id}`" class="dropdown-item">{{ g.date }} {{ g.name }}</router-link>
-            </div>
-          </div>
           <div class="btn-group mb-1" role="group">
-            <!-- <button v-if="editable" type="button" class="btn btn-success" data-toggle="modal" data-target="#add_event_dialog">追加</button> -->
-            <button v-if="editable" type="button" class="btn btn-success" data-toggle="modal" data-target="#edit_event_dialog">大会編集</button>
+            <button v-if="editable" type="button" class="btn btn-success" data-toggle="modal" data-target="#add_event_dialog">追加</button>
+            <button v-if="editable" type="button" class="btn btn-success" data-toggle="modal" data-target="#edit_event_dialog">編集</button>
             <a :href="`result/excel/${id}/${date}_${encodeURI(name)}.xls`" class="btn btn-secondary">保存</a>
           </div>
           <div id="past_result" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
@@ -68,7 +60,7 @@
                         </li>
                       </ul>
                     </nav>
-                    <div v-for="result in past_list" class="comment py-1">
+                    <div v-for="(result, i) in past_list" :key="i" class="comment py-1">
                       {{ result }}
                     </div>
                   </div>
@@ -87,6 +79,14 @@
       <span class="h5 mx-1" :class="{'unofficial': !official}">{{ official ? '&spades;' : '&clubs;' }}</span>
       <span class="h5"><strong>{{ name }}</strong></span>
       <span class="h6 date">@{{ date }}</span>
+      <div v-if="event_group_id" class="btn-group mb-1">
+        <button type="button" class="btn btn-info py-1" data-toggle="modal" data-target="#past_result" @click="fetch_past_info">過去の結果</button>
+        <button type="button" class="btn btn-info py-1 dropdown-toggle dropdown-toggle-split" data-toggle="dropdown"
+                aria-haspopup="true" aria-expanded="false"/>
+        <div class="dropdown-menu dropdown-menu-right">
+          <router-link v-for="g in group" :key="g.id" :to="`/${g.id}`" class="dropdown-item">{{ g.date }} {{ g.name }}</router-link>
+        </div>
+      </div>
     </div>
     <!-- タブ -->
     <nav v-show="loaded" class="mt-2">
@@ -152,7 +152,7 @@
               <table class="table-result">
                 <thead>
                   <tr :class="is_team_game ? `row-team-${res.team_id}` : `row-cls-${res.class_id}`">
-                    <th v-for="(round, i) in res.rounds" scope="col" class="text-center">
+                    <th v-for="(round, i) in res.rounds" :key="i" scope="col" class="text-center">
                       <div v-if="!is_team_game">{{ round.name === null ? `${i+1}回戦` : round.name }}</div>
                       <div v-else>{{ round.op_team_name }}</div>
                     </th>
@@ -160,7 +160,7 @@
                 </thead>
                 <tbody>
                   <tr v-for="user in res.user_results" :key="user.cuid" :class="`row-${user.cuid}`">
-                    <td v-for="game in user.game_results" class="text-center" :class="`result-${game.result}`">
+                    <td v-for="(game, i) in user.game_results" :key="i" class="text-center" :class="`result-${game.result}`">
                       <div v-if="game.result === 'break'"/>
                       <div v-else-if="game.result === 'default_win'">不戦</div>
                       <template v-else>
@@ -277,7 +277,7 @@
       </div>
     </div>
     <!-- 大会追加dialog -->
-    <!-- <contest-dialog id="add_event_dialog" @done="update"/> -->
+    <contest-dialog id="add_event_dialog" @done="update"/>
     <!-- 大会編集dialog -->
     <contest-dialog id="edit_event_dialog" :contest_id="id" @done="fetch"/>
     <!-- 人数編集dialog -->
@@ -292,7 +292,7 @@
           </div>
           <div class="modal-body">
             <form @change="changed_num_person = true">
-              <div v-for="(c, i) in contest_classes" class="form-group row">
+              <div v-for="(c, i) in contest_classes" :key="i" class="form-group row">
                 <label :for="`num_person_input${i}`" class="col-3 col-form-label">{{ c.class_name }}</label>
                 <div class="col-9">
                   <input :id="`num_person_input${i}`" type="number" class="form-control" :name="i" :value="c.num_person">
@@ -760,6 +760,9 @@ export default {
         });
         $(`.${v}`).css('height', maxH);
       });
+    },
+    update() {
+
     },
   },
 };

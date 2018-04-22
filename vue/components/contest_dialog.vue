@@ -19,26 +19,37 @@
                 </label>
                 <div class="form-check d-inline-block">
                   <label>
-                    <input type="checkbox" name="public" :checked="is_public">
-                    <span>
+                    <input type="checkbox" name="public" v-model="is_public">
+                    <span data-toggle="tooltip" data-placement="bottom" title="外部公開版の予定表や大会行事案内に表示されます．ただし登録者一覧およびコメントは公開されません．">
                       公開
                     </span>
                   </label>
-                  <span class="font-weight-bold ml-1" data-toggle="tooltip" data-placement="bottom" title="外部公開版の予定表や大会行事案内に表示されます．ただし登録者一覧およびコメントは公開されません．" >[?]</span>
                 </div>
               </div>
             </div>
             <div class="form-row">
               <div class="form-group col-lg-4 col-sm-6">
-                <label class="mb-1">
+                <label>
                   恒例大会
-                  <select name="event_group_id" class="form-control">
-                    <option value>---</option>
-                    <option v-for="e in all_event_groups" :value="e.id" :selected="event_group_id === e.id">{{ e.name }}</option>
+                  <select name="event_group_id" class="form-control" @change="fetchPastList" v-model="event_group_id">
+                    <option value="-1">---</option>
+                    <option v-for="e in all_event_groups" :key="e.id" :value="e.id">
+                      {{ e.name }}
+                    </option>
                   </select>
                 </label>
-                <button class="btn btn-outline-success mb-1" type="button" @click="add_event_group">追加</button>
+                <button class="btn btn-outline-success" type="button" @click="add_event_group">追加</button>
               </div>
+              <div v-if="add" class="form-group col-sm-4">
+                <label class="mb-1 w-100">
+                  情報コピー
+                  <select name="copy_from" class="form-control" @change="fetchPastDetail" v-model="copyFrom">
+                    <option v-if="pastContests.length" selected>---</option>
+                    <option v-for="c in pastContests" :key="c.id" :value="c.id">{{ c.date }} {{ c.name }}</option>
+                  </select>
+                </label>
+              </div>
+              <div v-if="add" class="w-100 d-none d-lg-block"/>
               <div class="form-group col-lg-4 col-sm-6">
                 <label>
                   大会/行事名
@@ -46,27 +57,28 @@
                 </label>
               </div>
               <div class="form-group col-lg-4 col-sm-6">
-                <label>
+                <label class="w-100">
                   正式名称
-                  <input type="text" name="formal_name" class="form-control" placeholder="正式名称" :value="formal_name">
+                  <input type="text" name="formal_name" class="form-control" placeholder="正式名称" v-model="formal_name">
                 </label>
               </div>
+              <div v-if="add" class="w-100 d-none d-lg-block"/>
               <div class="form-group col-lg-4 col-sm-3 col-6">
                 <label>
                   公認/非公認
-                  <select name="official" class="form-control">
-                    <option value="true" :selected="official">公認</option>
-                    <option value="false" :selected="!official">非公認</option>
+                  <select name="official" class="form-control" v-model="official">
+                    <option value="true">公認</option>
+                    <option value="false">非公認</option>
                   </select>
                 </label>
               </div>
               <div class="form-group col-lg-4 col-sm-3 col-6">
                 <label>
                   個人戦/団体戦
-                  <select name="team_size" class="form-control">
-                    <option value="1" :selected="team_size === 1">個人戦</option>
-                    <option value="3" :selected="team_size === 3">三人団体戦</option>
-                    <option value="5" :selected="team_size === 5">五人団体戦</option>
+                  <select name="team_size" class="form-control" v-model="team_size">
+                    <option value="1">個人戦</option>
+                    <option value="3">三人団体戦</option>
+                    <option value="5">五人団体戦</option>
                   </select>
                 </label>
               </div>
@@ -75,33 +87,32 @@
               <div class="form-group col-lg-4 col-12">
                 <label class="w-100">
                   場所
-                  <input type="text" class="form-control w-100" name="place" placeholder="場所" :value="place">
+                  <input type="text" class="form-control w-100" name="place" placeholder="場所" v-model="place">
                 </label>
               </div>
               <div class="form-group col-lg-3 col-sm-4 col-12">
                 <label>
                   開催日
-                  <input type="date" class="form-control" name="date" placeholder="YYYY-MM-DD" :value="date">
+                  <input type="date" class="form-control" name="date" placeholder="YYYY-MM-DD" v-model="date">
                 </label>
               </div>
               <div class="form-group col-sm-2 col-6">
                 <label>
                   開始時刻
-                  <input type="time" class="form-control" name="start_at" placeholder="hh:mm" :value="start_at">
+                  <input type="time" class="form-control" name="start_at" placeholder="hh:mm" v-model="start_at">
                 </label>
               </div>
               <div class="form-group col-sm-2 col-6">
                 <label>
                   終了時刻
-                  <input type="time" class="form-control" name="end_at" placeholder="hh:mm" :value="end_at">
+                  <input type="time" class="form-control" name="end_at" placeholder="hh:mm" v-model="end_at">
                 </label>
               </div>
             </div>
             <div class="form-group">
               <label class="w-100">
                 備考
-                <textarea name="description" class="form-control" :rows="rows"
-                          v-model="description" placeholder="備考"/>
+                <textarea name="description" class="form-control" :rows="rows" v-model="description" placeholder="備考"/>
               </label>
             </div>
           </form>
@@ -149,6 +160,9 @@ export default {
       user_name: g_user_name,
       changed: false,
       submitting: {},
+      // info copy
+      pastContests: [],
+      copyFrom: null,
       // edit
       attached: [],
       name: '',
@@ -216,6 +230,29 @@ export default {
       }).catch(() => {
         $.notify('danger', '情報の取得に失敗しました');
       });
+    },
+    fetchPastList() {
+      if (!this.add) return;
+      axios.get(`/api/event/group_list/${this.event_group_id}`).then((res) => {
+        this.pastContests = res.data;
+      });
+    },
+    fetchPastDetail() {
+      axios.get(`/api/event/item/${this.copyFrom}?detail=true&edit=true`).then((res) => {
+        const d = res.data;
+        this.is_public = d.public;
+        this.formal_name = d.formal_name;
+        this.official = d.official;
+        this.team_size = d.team_size;
+        this.date = d.date;
+        this.start_at = d.start_at;
+        this.end_at = d.end_at;
+        this.place = d.place;
+        this.description = d.description;
+      });
+    },
+    fetch_info() {
+
     },
     edit_event() {
       let data = $('form.form-contest', this.$el).serializeObject();

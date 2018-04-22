@@ -1,4 +1,4 @@
-import top from '../components/top.vue';
+import top from '../components/Top.vue';
 
 export default [{
   name: 'top',

@@ -1,9 +1,9 @@
 <template>
   <form :id="id" class="collapse" @submit.prevent>
-    <input type="hidden" name="thread_id" :value="thread_id">
-    <button class="btn btn-success" type="button" @click="post_comment">投稿</button>
-    <input class="form-control w-auto my-2" type="text" name="user_name" placeholder="名前" v-model="name" required>
-    <textarea class="form-control" name="body" :rows="rows" placeholder="内容" v-model="body" required/>
+    <input :value="threadId" type="hidden" name="thread_id">
+    <button class="btn btn-success" type="button" @click="postComment">投稿</button>
+    <input v-model="name" class="form-control w-auto my-2" type="text" name="user_name" placeholder="名前" required>
+    <textarea v-model="body" class="form-control" name="body" :rows="rows" placeholder="内容" required/>
   </form>
 </template>
 <script>
@@ -18,7 +18,7 @@ export default {
       type: String,
       default: null,
     },
-    thread_id: {
+    threadId: {
       type: Number,
       default: null,
     },
@@ -41,8 +41,8 @@ export default {
     });
   },
   methods: {
-    post_comment() {
-      if (this.thread_id === null) {
+    postComment() {
+      if (this.threadId === null) {
         $.notify('danger', '投稿できませんでした');
         return;
       }
@@ -59,7 +59,7 @@ export default {
         this.body = '';
         $form.removeClass('was-validated');
         $.notify('success', '投稿しました');
-        this.$emit('done', this.thread_id);
+        this.$emit('done', this.threadId);
       }).catch(() => {
         $.notify('danger', '投稿に失敗しました');
       });
@@ -68,5 +68,5 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-@import '../sass/common.scss';
+@import '../../sass/common.scss';
 </style>

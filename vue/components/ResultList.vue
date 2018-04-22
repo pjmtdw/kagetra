@@ -14,7 +14,7 @@
       </div>
     </div>
     <nav class="nav nav-pills flex-row flex-wrap" role="tablist">
-      <router-link v-for="y in years" :to="`/list/${y}`" :key="y" class="nav-link" :class="{active: (y == year)}" role="tab">
+      <router-link v-for="y in years" :key="y" :to="`/list/${y}`" class="nav-link" :class="{active: (y == year)}" role="tab">
         {{ y }}
       </router-link>
     </nav>

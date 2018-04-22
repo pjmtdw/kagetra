@@ -1,4 +1,4 @@
-import album from '../components/album.vue';
+import album from '../components/Album.vue';
 
 export default [{
   name: 'album',

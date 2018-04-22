@@ -1,5 +1,5 @@
-import result from '../components/result.vue';
-import resultList from '../components/result_list.vue';
+import result from '../components/Result.vue';
+import resultList from '../components/ResultList.vue';
 
 export default [{
   name: 'list',
@@ -14,7 +14,7 @@ export default [{
   },
 }, {
   name: 'result',
-  path: '/:contest_id(\\d+)',
+  path: '/:contestId(\\d+)',
   component: result,
   props: true,
 }, {

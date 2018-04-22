@@ -1,4 +1,4 @@
-import schedule from '../components/schedule.vue';
+import schedule from '../components/Schedule.vue';
 
 export default [{
   name: 'schedule',

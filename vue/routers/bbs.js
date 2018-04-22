@@ -1,4 +1,4 @@
-import bbs from '../components/bbs.vue';
+import bbs from '../components/Bbs.vue';
 
 export default [{
   name: 'bbs',

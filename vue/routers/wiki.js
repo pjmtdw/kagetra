@@ -1,4 +1,4 @@
-import wiki from '../components/wiki.vue';
+import wiki from '../components/Wiki.vue';
 
 export default [{
   name: 'wiki',

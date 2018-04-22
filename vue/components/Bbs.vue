@@ -3,7 +3,7 @@
     <!-- スレッド作成, 検索 -->
     <div class="d-flex flex-row">
       <button id="new-thread-toggle" class="btn btn-success m-2" data-toggle="collapse" href="#new-thread-form"
-              aria-expanded="false" aria-controls="new-thread-form" @click="toggle_new_thread">
+              aria-expanded="false" aria-controls="new-thread-form" @click="toggleNewThread">
         スレッド作成
       </button>
       <form id="search-form" class="ml-auto" @submit.prevent="search">
@@ -18,12 +18,12 @@
     <form id="new-thread-form" class="collapse my-1" @submit.prevent>
       <div class="card">
         <div class="form-group m-2">
-          <button class="btn btn-success" type="button" @click="post_thread">投稿</button>
+          <button class="btn btn-success" type="button" @click="postThread">投稿</button>
         </div>
         <div class="form-group form-inline mx-3">
           <label>
             名前
-            <input class="form-control ml-md-2" type="text" name="user_name" placeholder="名前" v-model="name" required>
+            <input v-model="name" class="form-control ml-md-2" type="text" name="user_name" placeholder="名前" required>
           </label>
           <div class="form-check w-auto ml-5">
             <label class="form-check-label">
@@ -41,7 +41,7 @@
         <div class="form-group mx-3">
           <label class="w-100">
             内容
-            <textarea class="form-control" name="body" :rows="rows" placeholder="内容" v-model="body" required/>
+            <textarea v-model="body" class="form-control" name="body" :rows="rows" placeholder="内容" required/>
           </label>
         </div>
       </div>
@@ -53,19 +53,19 @@
       </li>
     </ul>
     <!-- スレッド -->
-    <div class="card mb-4" :class="{'border-primary': thread.public, 'private': !thread.public}" v-for="thread in threads" :key="thread.id">
+    <div v-for="thread in threads" :key="thread.id" class="card mb-4" :class="{'border-primary': thread.public, 'private': !thread.public}">
       <div class="card-header h5">
         <span class="h6">{{ thread.title }}</span>
         <span v-if="thread.public" class="float-right badge badge-primary mx-1">外部公開</span>
         <span v-if="thread.has_new_comment" class="float-right badge badge-info mx-1">新着あり</span>
       </div>
-      <comment-list :comments="thread.items" url="/api/bbs/item" item_class="px-3" @done="fetch(page)"/>
+      <comment-list :comments="thread.items" url="/api/bbs/item" item-class="px-3" @done="fetch(page)"/>
       <div>
         <button class="new-item-toggle btn btn-success my-2 ml-3" data-toggle="collapse" :href="`#new-item-form${thread.id}`"
-                aria-expanded="false" :aria-controls="`new-item-form${thread.id}`" @click="toggle_new_item">
+                aria-expanded="false" :aria-controls="`new-item-form${thread.id}`" @click="toggleNewItem">
           書き込む
         </button>
-        <new-comment-form :id="`new-item-form${thread.id}`" class="mx-3 mb-3 mt-2" url="/api/bbs/item" :thread_id="thread.id" @done="post_done"/>
+        <new-comment-form :id="`new-item-form${thread.id}`" class="mx-3 mb-3 mt-2" url="/api/bbs/item" :thread-id="thread.id" @done="postDone"/>
       </div>
     </div>
   </div>
@@ -127,14 +127,14 @@ export default {
         $.notify('danger', '投稿の取得に失敗しました');
       });
     },
-    toggle_new_thread(e) {
+    toggleNewThread(e) {
       const $toggle = $(e.target);
       $toggle.toggleBtnText('スレッド作成', 'キャンセル');
       $toggle.toggleClass('btn-success');
       $toggle.toggleClass('btn-outline-success');
       this.$nextTick(() => $('#new-thread-form input[name="title"]').focus());
     },
-    post_thread() {
+    postThread() {
       const $form = $('#new-thread-form');
       if (!$form.check()) {
         if (!$('textarea[name="body"]', $form).val()) $.notify('warning', '内容がありません');
@@ -161,13 +161,13 @@ export default {
       this.query = $('#search-form input[name="query"]').val();
       this.fetch(this.page);
     },
-    toggle_new_item(e) {
+    toggleNewItem(e) {
       const $toggle = $(e.target);
       $toggle.toggleBtnText('書き込む', 'キャンセル');
       $toggle.toggleClass('btn-success');
       $toggle.toggleClass('btn-outline-success');
     },
-    post_done(id) {
+    postDone(id) {
       $(`button[href="#new-item-form${id}"]`).click();
       this.fetch(this.page);
     },

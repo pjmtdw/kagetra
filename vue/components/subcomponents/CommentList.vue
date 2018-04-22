@@ -1,20 +1,20 @@
 <template>
   <div class="list-group list-group-flush">
-    <div v-for="item in comments" :key="item.id" class="list-group-item bg-transparent" :class="item_class">
+    <div v-for="item in comments" :key="item.id" class="list-group-item bg-transparent" :class="itemClass">
       <div class="d-flex">
         <span class="name">{{ item.user_name }}</span>
         <span class="date">@{{ item.date }}</span>
         <h6 v-if="item.is_new" class="align-self-center"><span class="badge badge-info mx-1">New</span></h6>
-        <button class="edit-item btn btn-outline-success btn-sm ml-auto" v-if="item.editable" :data-id="item.id" @click="toggle_edit_item">
+        <button v-if="item.editable" class="edit-item btn btn-outline-success btn-sm ml-auto" :data-id="item.id" @click="toggleEditItem">
           編集
         </button>
       </div>
       <div :id="`item${item.id}`" class="pre mt-1 pl-2">{{ item.body }}</div>
-      <form :id="'editItem' + item.id" class="mt-3 d-none" v-if="item.editable" :data-id="item.id" @submit.prevent>
-        <button class="btn btn-success" type="button" @click="edit_item">保存</button>
-        <button class="btn btn-danger" type="button" @click="delete_item">削除</button>
-        <input class="form-control w-auto my-2" type="text" name="user_name" placeholder="名前" :value="item.user_name" required>
-        <textarea class="form-control" name="body" rows="4" placeholder="内容" @input="autosize_textarea(this.$($event.target))" required/>
+      <form v-if="item.editable" :id="'editItem' + item.id" class="mt-3 d-none" :data-id="item.id" @submit.prevent>
+        <button class="btn btn-success" type="button" @click="editItem">保存</button>
+        <button class="btn btn-danger" type="button" @click="deleteItem">削除</button>
+        <input :value="item.user_name" class="form-control w-auto my-2" type="text" name="user_name" placeholder="名前" required>
+        <textarea class="form-control" name="body" rows="4" placeholder="内容" required @input="autosizeTextarea(this.$($event.target))"/>
       </form>
     </div>
   </div>
@@ -32,13 +32,13 @@ export default {
       type: String,
       default: null,
     },
-    item_class: {
+    itemClass: {
       type: String,
       default: null,
     },
   },
   methods: {
-    toggle_edit_item(e) {
+    toggleEditItem(e) {
       const $editToggle = $(e.target);
       const id = $editToggle.attr('data-id');
       const $item = $(`#item${id}`);
@@ -50,10 +50,10 @@ export default {
         const $ta = $('textarea', $edit);
         $ta.val($item.html().trim());
         $ta.focus();
-        this.autosize_textarea($ta);
+        this.autosizeTextarea($ta);
       }
     },
-    edit_item(e) {
+    editItem(e) {
       const $form = $(e.target).parents('form');
       const id = Number($form.attr('data-id'));
       const $toggle = $(`button[data-id="${id}"]`);
@@ -72,15 +72,17 @@ export default {
         $.notify('danger', '保存に失敗しました');
       });
     },
-    delete_item(e) {
+    deleteItem(e) {
       const $form = $(e.target).parents('form');
       const id = Number($form.attr('data-id'));
-      axios.delete(`${this.url}/${id}`).always(() => {
+      axios.delete(`${this.url}/${id}`).then(() => {
         $.notify('success', '削除しました');
         this.$emit('done');
+      }).catch(() => {
+        $.notify('success', '削除に失敗しました');
       });
     },
-    autosize_textarea($ta) {
+    autosizeTextarea($ta) {
       // textareaの行数を内容に合わせて変更
       $ta.attr('rows', _.max([$ta.val().split('\n').length, 4]));
     },
@@ -88,7 +90,7 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-@import '../sass/common.scss';
+@import '../../sass/common.scss';
 .name {
   color: #040;
 }

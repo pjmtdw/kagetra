@@ -10,18 +10,21 @@ import top from './routers/top';
 import wiki from './routers/wiki';
 
 import util from './util';
-import newCommentForm from './components/new_comment_form.vue';
-import commentList from './components/comment_list.vue';
-import playerSearch from './components/player_search.vue';
-import contestDialog from './components/contest_dialog.vue';
-import filePost from './components/file_post.vue';
+
+import NewCommentForm from './components/subcomponents/NewCommentForm.vue';
+import CommentList from './components/subcomponents/CommentList.vue';
+import PlayerSearch from './components/subcomponents/PlayerSearch.vue';
+import ContestDialog from './components/subcomponents/ContestDialog.vue';
+import FilePost from './components/subcomponents/FilePost.vue';
 
 Vue.use(VueRouter);
-Vue.component('new-comment-form', newCommentForm);
-Vue.component('comment-list', commentList);
-Vue.component('player-search', playerSearch);
-Vue.component('contest-dialog', contestDialog);
-Vue.component('file-post', filePost);
+
+// コンポーネント
+Vue.component('new-comment-form', NewCommentForm);
+Vue.component('comment-list', CommentList);
+Vue.component('player-search', PlayerSearch);
+Vue.component('contest-dialog', ContestDialog);
+Vue.component('file-post', FilePost);
 
 const routes = {
   addrbook,

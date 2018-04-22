@@ -2,16 +2,16 @@
   <form class="container mb-3" @submit.prevent>
     <div class="row">
       <div class="custom-file col-sm-6 col-12">
-        <input type="file" name="file" :id="`file_input${index}`" class="custom-file-input text-truncate" @change="set_filename" multiple>
+        <input :id="`file_input${index}`" type="file" name="file" class="custom-file-input text-truncate" @change="setFileName" multiple>
         <label :for="`file_input${index}`" class="custom-file-label">ファイルを選択</label>
       </div>
       <div class="col-sm-6 col-12 d-flex align-items-center p-0 mt-1 mt-sm-0">
         <label class="nowrap ml-sm-2 mr-1 mb-0" :for="`desc_input${index}`">
           説明
         </label>
-        <input :id="`desc_input${index}`" type="text" name="description" class="form-control d-inline-block" v-model="description">
+        <input :id="`desc_input${index}`" v-model="description" type="text" name="description" class="form-control d-inline-block">
         <button type="button" class="btn btn-success ml-2 mr-1" @click="upload">送信</button>
-        <button v-if="removable" type="button" class="close" aria-label="Close" @click="delete_form">
+        <button v-if="removable" type="button" class="close" aria-label="Close" @click="deleteForm">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
@@ -44,11 +44,11 @@ export default {
     };
   },
   methods: {
-    get_files() {
+    getFiles() {
       return $('input[type="file"]', this.$el)[0].files;
     },
-    get_filename() {
-      const files = this.get_files();
+    getFilename() {
+      const files = this.getFiles();
       const n = files.length;
       if (n > 1) {
         return `${n}ファイル`;
@@ -57,20 +57,20 @@ export default {
       }
       return null;
     },
-    set_filename() {
-      $('input[type="file"]').next().html(this.get_filename() || 'ファイルを選択');
+    setFileName() {
+      $('input[type="file"]').next().html(this.getFilename() || 'ファイルを選択');
     },
-    delete_form() {
+    deleteForm() {
       if (this.removable) {
         $(this.$el).hide();
       } else {
         $('input', this.$el).val(null);
-        this.set_filename();
+        this.setFileName();
       }
     },
     upload() {
       const url = `/${this.namespace}/attached/${this.id}`;
-      const files = this.get_files();
+      const files = this.getFiles();
       if (!files.length) {
         $.notify('warning', 'ファイルが選択されていません');
         return;
@@ -94,18 +94,18 @@ export default {
           return axios.post(url, data, config);
         });
       }, Promise.resolve()).then(() => {
-        $.notify('success', `${this.get_filename()}を送信しました.`);
-        this.delete_form();
+        $.notify('success', `${this.getFilename()}を送信しました.`);
+        this.deleteForm();
         this.$emit('done');
       }).catch(() => {
-        $.notify('danger', `${this.get_filename()}の送信に失敗しました.`);
+        $.notify('danger', `${this.getFilename()}の送信に失敗しました.`);
       });
     },
   },
 };
 </script>
 <style lang="scss" scoped>
-@import '../sass/common.scss';
+@import '../../sass/common.scss';
 
 .nowrap {
   white-space: nowrap;

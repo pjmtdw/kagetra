@@ -1,4 +1,4 @@
-import addrbook from '../components/addrbook.vue';
+import addrbook from '../components/Addrbook.vue';
 
 export default [{
   name: 'addrbook',

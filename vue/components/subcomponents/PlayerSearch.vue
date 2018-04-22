@@ -4,13 +4,13 @@
       <span class="input-group-text">検索</span>
     </div>
     <div class="dropdown" :class="{'input-group-sm': inline}">
-      <input class="search form-control" :class="{'appended': clear_when_set}" name="query" type="search" autocomplete="off" :placeholder="placeholder" @input="fetch_candidate">
+      <input class="search form-control" :class="{'appended': clearWhenSet}" name="query" type="search" autocomplete="off" :placeholder="placeholder" @input="fetchCandidate">
       <div class="autocomplete dropdown-menu mt-0">
         <span v-if="complete">
-          <a v-for="(c, i) in candidates" :key="i" class="dropdown-item" href="#" @click="click_name">{{ c }}</a>
+          <a v-for="c in candidates" class="dropdown-item" href="#" @click="clickName">{{ c }}</a>
         </span>
         <span v-else>
-          <a v-for="(c, i) in candidates" :key="i" class="dropdown-item" href="#">{{ c }}</a>
+          <a v-for="c in candidates" class="dropdown-item" href="#">{{ c }}</a>
         </span>
         <span v-if="searching">Searching...</span>
         <span v-else-if="input !== '' && candidates.length === 0">No matches found</span>
@@ -35,7 +35,7 @@ export default {
       type: Boolean,
       default: false,
     },
-    clear_when_set: {
+    clearWhenSet: {
       type: Boolean,
       default: false,
     },
@@ -57,7 +57,7 @@ export default {
     });
   },
   methods: {
-    fetch_candidate() {
+    fetchCandidate() {
       const url = '/api/result_misc/search_name';
       const q = $('.search', this.$el).val();
       if (q === this.input) return;
@@ -75,15 +75,15 @@ export default {
         $.notify('danger', '候補の取得に失敗しました。');
       });
     },
-    click_name(e) {
+    clickName(e) {
       const name = $(e.target).html();
-      if (this.clear_when_set) {
+      if (this.clearWhenSet) {
         $('.search', this.$el).val('');
         this.input = '';
         this.candidates = [];
       } else {
         $('.search', this.$el).val(name);
-        this.fetch_candidate();
+        this.fetchCandidate();
       }
       this.$emit('complete', name, this.$el);
     },

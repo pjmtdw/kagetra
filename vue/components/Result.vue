@@ -22,8 +22,8 @@
       <div class="row">
         <nav v-if="recent_list" id="recent_list"
              class="col-12 col-md-8 nav nav-pills flex-row flex-wrap justify-content-center justify-content-md-start mb-1" role="tablist">
-          <router-link v-for="ct in recent_list" :to="ct.id.toString()" :key="ct.id"
-                       class="nav-link p-1 p-sm-2" :class="{active: (ct.id == contest_id) || (contest_id === null && ct.most_recent)}" role="tab">
+          <router-link v-for="ct in recent_list" :key="ct.id" :to="ct.id.toString()"
+                       class="nav-link p-1 p-sm-2" :class="{active: (ct.id == contestId) || (contestId === null && ct.most_recent)}" role="tab">
             {{ ct.name }}
           </router-link>
         </nav>
@@ -43,7 +43,7 @@
                   </button>
                 </div>
                 <div class="modal-body">
-                  <div class="card" v-if="past_description != null">
+                  <div v-if="past_description != null" class="card">
                     <h6 class="card-header d-flex justify-content-between align-items-center">
                       大会情報<button class="btn btn-success">編集</button>
                     </h6>
@@ -54,13 +54,13 @@
                     <nav v-if="past_pages > 1" class="pl-2">
                       <ul class="pagination">
                         <li v-for="p in past_pages" :key="p" class="page-item" :class="{'active': p == past_cur_page}">
-                          <a class="page-link" href="#" @click.prevent="load_past_list">
+                          <a class="page-link" href="#" @click.prevent="loadPastList">
                             {{ p }}
                           </a>
                         </li>
                       </ul>
                     </nav>
-                    <div v-for="(result, i) in past_list" :key="i" class="comment py-1">
+                    <div v-for="result in past_list" class="comment py-1">
                       {{ result }}
                     </div>
                   </div>
@@ -80,7 +80,7 @@
       <span class="h5"><strong>{{ name }}</strong></span>
       <span class="h6 date">@{{ date }}</span>
       <div v-if="event_group_id" class="btn-group mb-1">
-        <button type="button" class="btn btn-info py-1" data-toggle="modal" data-target="#past_result" @click="fetch_past_info">過去の結果</button>
+        <button type="button" class="btn btn-info py-1" data-toggle="modal" data-target="#past_result" @click="fetchPastInfo">過去の結果</button>
         <button type="button" class="btn btn-info py-1 dropdown-toggle dropdown-toggle-split" data-toggle="dropdown"
                 aria-haspopup="true" aria-expanded="false"/>
         <div class="dropdown-menu dropdown-menu-right">
@@ -110,14 +110,14 @@
         <div class="d-flex justify-content-between">
           <div class="ml-2 my-2">
             <button class="btn btn-success mx-1" data-toggle="button" aria-pressed="false">結果編集</button>
-            <button v-if="!is_team_game" class="btn btn-success mx-1" data-toggle="modal" data-target="#edit_num_person_dialog">人数編集</button>
+            <button v-if="!isTeamGame" class="btn btn-success mx-1" data-toggle="modal" data-target="#edit_num_person_dialog">人数編集</button>
             <button class="btn btn-success mx-1" data-toggle="modal" data-target="#edit_players_dialog">出場者編集</button>
           </div>
           <div>
             <button class="btn btn-info m-2" @click="fetch">更新</button>
           </div>
         </div>
-        <div v-for="(res, i) in contest_results" :key="is_team_game ? res.team_id : res.class_id" class="mb-5">
+        <div v-for="(res, i) in contest_results" :key="isTeamGame ? res.team_id : res.class_id" class="mb-5">
           <!-- 団体戦でclass_name(東大, お茶大など)を表示するか -->
           <template v-if="!(i > 0 && res.class_id === contest_results[i-1].class_id && contest_results[i-1].rounds.length)">
             <span class="badge badge-pill badge-class-name">{{ contest_classes[res.class_id].class_name }}</span>
@@ -126,8 +126,8 @@
           <div class="d-flex flex-row mt-1">
             <table class="table-name">
               <thead>
-                <tr :class="is_team_game ? `row-team-${res.team_id}` : `row-cls-${res.class_id}`">
-                  <th v-if="!is_team_game" scope="col" class="text-center">名前</th>
+                <tr :class="isTeamGame ? `row-team-${res.team_id}` : `row-cls-${res.class_id}`">
+                  <th v-if="!isTeamGame" scope="col" class="text-center">名前</th>
                   <th v-else scope="col" class="text-center">
                     <div>{{ res.header_left.team_name }}</div>
                     <div class="team-prize">{{ res.header_left.team_prize }}</div>
@@ -151,16 +151,16 @@
             <div class="table-responsive">
               <table class="table-result">
                 <thead>
-                  <tr :class="is_team_game ? `row-team-${res.team_id}` : `row-cls-${res.class_id}`">
-                    <th v-for="(round, i) in res.rounds" :key="i" scope="col" class="text-center">
-                      <div v-if="!is_team_game">{{ round.name === null ? `${i+1}回戦` : round.name }}</div>
+                  <tr :class="isTeamGame ? `row-team-${res.team_id}` : `row-cls-${res.class_id}`">
+                    <th v-for="round in res.rounds" scope="col" class="text-center">
+                      <div v-if="!isTeamGame">{{ round.name === null ? `${i+1}回戦` : round.name }}</div>
                       <div v-else>{{ round.op_team_name }}</div>
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="user in res.user_results" :key="user.cuid" :class="`row-${user.cuid}`">
-                    <td v-for="(game, i) in user.game_results" :key="i" class="text-center" :class="`result-${game.result}`">
+                    <td v-for="game in user.game_results" class="text-center" :class="`result-${game.result}`">
                       <div v-if="game.result === 'break'"/>
                       <div v-else-if="game.result === 'default_win'">不戦</div>
                       <template v-else>
@@ -259,29 +259,29 @@
             <strong>{{ thread_name }}</strong>
           </h5>
           <button id="new-comment-toggle" class="btn btn-success m-2" data-toggle="collapse" href="#new-comment-form"
-                  aria-expanded="false" aria-controls="new-comment-form" @click="toggle_new_comment">
+                  aria-expanded="false" aria-controls="new-comment-form" @click="toggleNewComment">
             書き込む
           </button>
         </div>
-        <new-comment-form id="new-comment-form" class="mx-3 mb-3 mt-2" url="/api/event/comment/item" :thread_id="id" @done="post_done"/>
+        <new-comment-form id="new-comment-form" class="mx-3 mb-3 mt-2" url="/api/event/comment/item" :thread-id="id" @done="postDone"/>
         <nav v-if="pages > 1" class="pl-2">
           <ul class="pagination">
             <li v-for="p in pages" :key="p" class="page-item" :class="{'active': p == cur_page}">
-              <a class="page-link" href="#" @click.prevent="load_comment">
+              <a class="page-link" href="#" @click.prevent="loadComment">
                 {{ p }}
               </a>
             </li>
           </ul>
         </nav>
-        <comment-list :comments="list" url="/api/event/comment/item" item_class="px-2 py-1" @done="fetch_comment"/>
+        <comment-list :comments="list" url="/api/event/comment/item" item_class="px-2 py-1" @done="fetchComment"/>
       </div>
     </div>
     <!-- 大会追加dialog -->
     <contest-dialog id="add_event_dialog" @done="update"/>
     <!-- 大会編集dialog -->
-    <contest-dialog id="edit_event_dialog" :contest_id="id" @done="fetch"/>
+    <contest-dialog id="edit_event_dialog" :contest-id="id" @done="fetch"/>
     <!-- 人数編集dialog -->
-    <div v-if="!is_team_game" id="edit_num_person_dialog" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" @keyup.enter="save_num_person">
+    <div v-if="!isTeamGame" id="edit_num_person_dialog" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" @keyup.enter="saveNumPerson">
       <div class="modal-dialog modal-sm" role="document">
         <div class="modal-content">
           <div class="modal-header">
@@ -291,17 +291,17 @@
             </button>
           </div>
           <div class="modal-body">
-            <form @change="changed_num_person = true">
-              <div v-for="(c, i) in contest_classes" :key="i" class="form-group row">
+            <form @change="changed_num_person = true" @submit.prevent>
+              <div v-for="(c, i) in contest_classes" class="form-group row">
                 <label :for="`num_person_input${i}`" class="col-3 col-form-label">{{ c.class_name }}</label>
                 <div class="col-9">
-                  <input :id="`num_person_input${i}`" type="number" class="form-control" :name="i" :value="c.num_person">
+                  <input :id="`num_person_input${i}`" :value="c.num_person" type="number" class="form-control" :name="i">
                 </div>
               </div>
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-success" @click="save_num_person">保存</button>
+            <button type="button" class="btn btn-success" @click="saveNumPerson">保存</button>
           </div>
         </div>
       </div>
@@ -317,7 +317,7 @@
             </button>
           </div>
           <div v-if="players !== null" class="modal-body">
-            <template v-if="!is_team_game">
+            <template v-if="!isTeamGame">
               <span>チェックした選手を操作</span>
               <div class="d-flex flex-row align-items-center">
                 <div class="input-group d-inline-flex w-auto">
@@ -327,20 +327,20 @@
                   </select>
                   <div class="input-group-append">
                     <span class="input-group-text">に</span>
-                    <button class="btn btn-outline-success" type="button" @click="move_players">移動</button>
+                    <button class="btn btn-outline-success" type="button" @click="movePlayers">移動</button>
                   </div>
                 </div>
-                <button class="btn btn-outline-danger ml-2" @click="delete_players">削除</button>
+                <button class="btn btn-outline-danger ml-2" @click="deletePlayers">削除</button>
               </div>
               <div v-for="(c, i) in players.classes" :key="c[0]" class="card mt-4" :data-index="i">
                 <div class="card-border-title d-flex">
                   <span class="badge badge-pill badge-class-name">
                     {{ c[1] }}
                   </span>
-                  <button type="button" class="btn btn-secondary btn-sm py-0 ml-auto" @click="move_up_class">&uarr;</button>
-                  <button type="button" class="btn btn-secondary btn-sm py-0 ml-2" @click="move_down_class">&darr;</button>
-                  <button type="button" class="btn btn-success btn-sm py-0 ml-2" @click="add_class">+</button>
-                  <button type="button" class="btn btn-danger btn-sm py-0 mx-2" @click="delete_class">&times;</button>
+                  <button type="button" class="btn btn-secondary btn-sm py-0 ml-auto" @click="moveUpClass">&uarr;</button>
+                  <button type="button" class="btn btn-secondary btn-sm py-0 ml-2" @click="moveDownClass">&darr;</button>
+                  <button type="button" class="btn btn-success btn-sm py-0 ml-2" @click="addClass">+</button>
+                  <button type="button" class="btn btn-danger btn-sm py-0 mx-2" @click="deleteClass">&times;</button>
                 </div>
                 <div class="card-body d-flex flex-wrap pt-1 pb-2">
                   <div v-for="u in players.user_classes[c[0]]" :key="u" class="form-check my-1 mr-3">
@@ -350,13 +350,13 @@
                     </label>
                   </div>
                   <span class="d-inline-flex align-items-center">
-                    <button class="btn btn-outline-success btn-sm py-0" @click="show_add_player">+</button>
+                    <button class="btn btn-outline-success btn-sm py-0" @click="showAddPlayer">+</button>
                   </span>
                   <span style="display: none;">
-                    <player-search :inline="true" :clear_when_set="true" @complete="add_player"/>
+                    <player-search :inline="true" :clear-when-set="true" @complete="addPlayer"/>
                   </span>
                   <span class="input-group-append pb-1px" style="display: none;">
-                    <button class="add btn btn-success btn-sm py-0" @click="add_player">追加</button>
+                    <button class="add btn btn-success btn-sm py-0" @click="addPlayer">追加</button>
                   </span>
                 </div>
               </div>
@@ -367,8 +367,8 @@
             </template>
           </div>
           <div class="modal-footer justify-content-between">
-            <button type="button" class="btn btn-outline-danger" @click="reset_players">リセット</button>
-            <button type="button" class="btn btn-success" @click="save_players">保存</button>
+            <button type="button" class="btn btn-outline-danger" @click="resetPlayers">リセット</button>
+            <button type="button" class="btn btn-success" @click="savePlayers">保存</button>
           </div>
         </div>
       </div>
@@ -378,7 +378,7 @@
 <script>
 export default {
   props: {
-    contest_id: {
+    contestId: {
       type: String,
       default: null,
     },
@@ -433,7 +433,7 @@ export default {
     };
   },
   computed: {
-    is_team_game() {
+    isTeamGame() {
       return this.team_size > 1;
     },
     rows() {
@@ -447,7 +447,7 @@ export default {
     },
   },
   watch: {
-    contest_id() {
+    contestId() {
       this.fetch();
       $('#nav-result-tab').tab('show');
     },
@@ -469,7 +469,7 @@ export default {
     });
     const $editPlayersDialog = $('#edit_players_dialog');
     $editPlayersDialog.on('show.bs.modal', () => {
-      this.reset_players();
+      this.resetPlayers();
     });
     $editPlayersDialog.on('hide.bs.modal', (e) => {
       if (!this.changed_players) return;
@@ -483,26 +483,26 @@ export default {
     });
   },
   updated() {
-    this.set_cell_height();
+    this.setCellHeight();
     $('[data-toggle="tooltip"]').tooltip();
   },
   methods: {
     fetch() {
       const baseUrl = '/api/result/contest';
-      const url = this.contest_id === null ? `${baseUrl}/latest` : `${baseUrl}/${this.contest_id}`;
+      const url = this.contestId === null ? `${baseUrl}/latest` : `${baseUrl}/${this.contestId}`;
       this.players = null;
       axios.get(url).then((res) => {
         _.forEach(res.data, (v, key) => {
           this[key] = v;
         });
-        this.fetch_detail();
-        this.fetch_comment();
+        this.fetchDetail();
+        this.fetchComment();
         this.loaded = true;
       }).catch(() => {
         $.notify('danger', '大会結果の取得に失敗しました');
       });
     },
-    fetch_detail() {
+    fetchDetail() {
       const url = `/api/event/item/${this.id}?detail=true&no_participant=true`;
       axios.get(url).then((res) => {
         _.forEach(['formal_name', 'start_at', 'end_at', 'place', 'description', 'attached', 'editable'], (v) => {
@@ -512,7 +512,7 @@ export default {
         $.notify('danger', '大会情報の取得に失敗しました');
       });
     },
-    fetch_comment() {
+    fetchComment() {
       const contestId = this.id;
       const page = this.cur_page;
       const baseUrl = `/api/event/comment/list/${contestId}`;
@@ -523,7 +523,7 @@ export default {
         });
       });
     },
-    fetch_players() {
+    fetchPlayers() {
       axios.get(`/api/result/players/${this.id}`).then((res) => {
         this.players = res.data;
         this.players.deleted_classes = [];
@@ -533,21 +533,21 @@ export default {
         $.notify('danger', '出場者情報の取得に失敗しました');
       });
     },
-    load_comment(e) {
+    loadComment(e) {
       this.cur_page = Number($(e.target).html());
-      this.fetch_comment();
+      this.fetchComment();
     },
-    toggle_new_comment(e) {
+    toggleNewComment(e) {
       const $toggle = $(e.target);
       $toggle.toggleBtnText('書き込む', 'キャンセル');
       $toggle.toggleClass('btn-success');
       $toggle.toggleClass('btn-outline-success');
     },
-    post_done() {
+    postDone() {
       $('#new-comment-toggle').click();
-      this.fetch_comment();
+      this.fetchComment();
     },
-    fetch_past_info() {
+    fetchPastInfo() {
       const page = this.past_cur_page;
       const baseUrl = `/api/result/group/${this.event_group_id}`;
       const url = page === 1 ? baseUrl : `${baseUrl}?page=${page}`;
@@ -559,11 +559,11 @@ export default {
         $.notify('danger', '過去の結果の取得に失敗しました');
       });
     },
-    load_past_list(e) {
+    loadPastList(e) {
       this.past_cur_page = Number($(e.target).html());
-      this.fetch_past_info();
+      this.fetchPastInfo();
     },
-    save_num_person() {
+    saveNumPerson() {
       const $dialog = $('#edit_num_person_dialog');
       const $form = $dialog.find('form');
       const onSave = () => {
@@ -593,7 +593,7 @@ export default {
         $.notify('danger', '保存に失敗しました');
       });
     },
-    add_class(e) {
+    addClass(e) {
       $.inputDialog('級名を入力してください').then((res) => {
         const index = Number($(e.target).parents('.card').attr('data-index'));
         this.players.classes.splice(index + 1, 0, [`new_${this.new_class_count}`, res]);
@@ -603,7 +603,7 @@ export default {
         $('body').addClass('modal-open');
       });
     },
-    move_up_class(e) {
+    moveUpClass(e) {
       const index = Number($(e.target).parents('.card').attr('data-index'));
       if (index === 0) {
         $.notify('warning', '移動できません');
@@ -613,7 +613,7 @@ export default {
       this.players.classes.splice(index - 1, 0, target);
       this.changed_players = true;
     },
-    move_down_class(e) {
+    moveDownClass(e) {
       const index = Number($(e.target).parents('.card').attr('data-index'));
       if (index === this.players.classes.length - 1) {
         $.notify('warning', '移動できません');
@@ -623,7 +623,7 @@ export default {
       this.players.classes.splice(index + 1, 0, target);
       this.changed_players = true;
     },
-    delete_class(e) {
+    deleteClass(e) {
       const index = Number($(e.target).parents('.card').attr('data-index'));
       const classId = this.players.classes[index][0];
       if (this.players.user_classes[classId] && this.players.user_classes[classId].length > 0) {
@@ -636,14 +636,14 @@ export default {
       this.players.classes.splice(index, 1);
       this.changed_players = true;
     },
-    show_add_player(e) {
+    showAddPlayer(e) {
       const $tgt = $(e.target).parent();
       $tgt.nextAll().show();
       $tgt.next().find('.search').focus();
       $tgt.toggleClass('d-inline-flex')
           .toggleClass('d-none');
     },
-    add_player(e, _e) {
+    addPlayer(e, _e) {
       let $tgt = null;
       let input = '';
       if (e.target !== undefined) {
@@ -676,7 +676,7 @@ export default {
       this.players.users[tempId] = input;
       this.changed_players = true;
     },
-    move_players() {
+    movePlayers() {
       const to = $('#edit_players_dialog select').val();
       if (to === null) {
         $.notify('warning', '移動先を選択してください');
@@ -701,7 +701,7 @@ export default {
         return true;
       });
     },
-    delete_players() {
+    deletePlayers() {
       $('#edit_players_dialog input:checked').each((i, e) => {
         const $tgt = $(e);
         const id = $tgt.attr('data-id');
@@ -720,8 +720,8 @@ export default {
         return true;
       });
     },
-    reset_players() {
-      this.fetch_players();
+    resetPlayers() {
+      this.fetchPlayers();
       const $editPlayersDialog = $('#edit_players_dialog');
       $editPlayersDialog.find('input:checked').prop('checked', false);
       $editPlayersDialog.find('select').val('-1');
@@ -732,7 +732,7 @@ export default {
         }
       });
     },
-    save_players() {
+    savePlayers() {
       const onSave = () => {
         $.notify('success', '保存しました');
         this.changed_players = false;
@@ -747,7 +747,7 @@ export default {
         $.notify('danger', '保存に失敗しました');
       });
     },
-    set_cell_height() {
+    setCellHeight() {
       // セルの高さを揃える
       const rows = new Set();
       $('.table-result tbody tr, .table-result thead tr').each((index, elem) => {

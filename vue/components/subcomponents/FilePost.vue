@@ -72,7 +72,7 @@ export default {
       const url = `/${this.namespace}/attached/${this.id}`;
       const files = this.getFiles();
       if (!files.length) {
-        $.notify('warning', 'ファイルが選択されていません');
+        this.$_notify('warning', 'ファイルが選択されていません');
         return;
       }
       // 同時に送るとデータベースのロックでエラーになるので順番に送る
@@ -94,11 +94,11 @@ export default {
           return axios.post(url, data, config);
         });
       }, Promise.resolve()).then(() => {
-        $.notify('success', `${this.getFilename()}を送信しました.`);
+        this.$_notify(`${this.getFilename()}を送信しました.`);
         this.deleteForm();
         this.$emit('done');
       }).catch(() => {
-        $.notify('danger', `${this.getFilename()}の送信に失敗しました.`);
+        this.$_notify('danger', `${this.getFilename()}の送信に失敗しました.`);
       });
     },
   },

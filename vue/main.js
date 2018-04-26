@@ -1,6 +1,8 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
 
+import init from './init';
+
 import addrbook from './routers/addrbook';
 import album from './routers/album';
 import bbs from './routers/bbs';
@@ -9,23 +11,7 @@ import schedule from './routers/schedule';
 import top from './routers/top';
 import wiki from './routers/wiki';
 
-import util from './util';
-
-import NewCommentForm from './components/subcomponents/NewCommentForm.vue';
-import CommentList from './components/subcomponents/CommentList.vue';
-import PlayerSearch from './components/subcomponents/PlayerSearch.vue';
-import ContestDialog from './components/subcomponents/ContestDialog.vue';
-import FilePost from './components/subcomponents/FilePost.vue';
-
-Vue.use(VueRouter);
-
-// コンポーネント
-Vue.component('new-comment-form', NewCommentForm);
-Vue.component('comment-list', CommentList);
-Vue.component('player-search', PlayerSearch);
-Vue.component('contest-dialog', ContestDialog);
-Vue.component('file-post', FilePost);
-
+/* global location */
 const routes = {
   addrbook,
   album,
@@ -36,18 +22,30 @@ const routes = {
   wiki,
 };
 
-/* global location */
-const routeName = location.pathname.split('/')[1];
+const path = location.pathname.split('/');
+const isPublic = path[1] === 'public';
+const routeName = isPublic ? path[2] : path[1];
 const route = routes[routeName];
-
-util(routeName);
 
 const router = new VueRouter({
   routes: route,
   base: location.pathname,
 });
 
+// Plugin
+Vue.use(VueRouter);
+
+// Mixin
+Vue.mixin({
+  data: () => ({ routeName, isPublic }),
+});
+
+// init
+init();
+
+// インスタンスを生成
 /* eslint-disable no-new */
-new Vue({
+$.vm = new Vue({
   router,
-}).$mount('#app');
+  template: '<router-view/>',
+}).$mount('#container');

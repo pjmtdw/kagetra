@@ -1,5 +1,5 @@
 <template>
-  <div id="container" class="mx-auto">
+  <main id="container" class="mx-auto">
     <div class="container my-2">
       <div class="row">
         <nav id="nav-result-pages" class="col-12 col-md-8">
@@ -25,7 +25,7 @@
         <div class="col-6 col-lg-4">{{ ct.prizes }}</div>
       </div>
     </div>
-  </div>
+  </main>
 </template>
 <script>
 export default {
@@ -60,7 +60,7 @@ export default {
         this.list = res.data.list;
         this.years = _.rangeRight(res.data.minyear, res.data.maxyear + 1);
       }).catch(() => {
-        $.notify('danger', '大会一覧の取得に失敗しました');
+        this.$_notify('danger', '大会一覧の取得に失敗しました');
       });
     },
   },

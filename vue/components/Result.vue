@@ -1,5 +1,5 @@
 <template>
-  <div id="container" class="mx-auto">
+  <main id="container" class="mx-auto">
     <!-- nav, 選手名検索 -->
     <div class="container my-2">
       <div class="row">
@@ -13,11 +13,11 @@
           </ul>
         </nav>
         <div class="col-12 col-md-4 mt-2 mt-md-0">
-          <player-search class="justify-content-md-start" placeholder="選手名検索" :complete="false"/>
+          <PlayerSearch class="justify-content-md-start" placeholder="選手名検索" :complete="false"/>
         </div>
       </div>
     </div>
-    <!-- 前後の大会, 過去の結果等 -->
+    <!-- 前後の大会, 編集ボタン等 -->
     <div v-show="loaded" class="container">
       <div class="row">
         <nav v-if="recent_list" id="recent_list"
@@ -27,54 +27,16 @@
             {{ ct.name }}
           </router-link>
         </nav>
-        <div class="col-12 col-md-4 mb-1">
+        <div v-show="editable !== null" class="col-12 col-md-4 mb-1">
           <div class="btn-group mb-1" role="group">
             <button v-if="editable" type="button" class="btn btn-success" data-toggle="modal" data-target="#add_event_dialog">追加</button>
             <button v-if="editable" type="button" class="btn btn-success" data-toggle="modal" data-target="#edit_event_dialog">編集</button>
             <a :href="`result/excel/${id}/${date}_${encodeURI(name)}.xls`" class="btn btn-secondary">保存</a>
           </div>
-          <div id="past_result" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-            <div class="modal-dialog modal-lg" role="document">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h5 class="modal-title">{{ past_name }}</h5>
-                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                  </button>
-                </div>
-                <div class="modal-body">
-                  <div v-if="past_description != null" class="card">
-                    <h6 class="card-header d-flex justify-content-between align-items-center">
-                      大会情報<button class="btn btn-success">編集</button>
-                    </h6>
-                    <div class="card-body pre bg-light">{{ past_description }}</div>
-                  </div>
-                  <hr v-if="past_description != null">
-                  <div>
-                    <nav v-if="past_pages > 1" class="pl-2">
-                      <ul class="pagination">
-                        <li v-for="p in past_pages" :key="p" class="page-item" :class="{'active': p == past_cur_page}">
-                          <a class="page-link" href="#" @click.prevent="loadPastList">
-                            {{ p }}
-                          </a>
-                        </li>
-                      </ul>
-                    </nav>
-                    <div v-for="result in past_list" class="comment py-1">
-                      {{ result }}
-                    </div>
-                  </div>
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-dismiss="modal">閉じる</button>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
-    <!-- 大会名, 日時 -->
+    <!-- 大会名, 日時, 過去の結果 -->
     <div v-show="loaded" class="mt-4 mb-3">
       <span class="h5 mx-1" :class="{'unofficial': !official}">{{ official ? '&spades;' : '&clubs;' }}</span>
       <span class="h5"><strong>{{ name }}</strong></span>
@@ -85,6 +47,44 @@
                 aria-haspopup="true" aria-expanded="false"/>
         <div class="dropdown-menu dropdown-menu-right">
           <router-link v-for="g in group" :key="g.id" :to="`/${g.id}`" class="dropdown-item">{{ g.date }} {{ g.name }}</router-link>
+        </div>
+      </div>
+      <div v-if="event_group_id" id="past_result" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">{{ past_name }}</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <div v-if="past_description != null" class="card">
+                <h6 class="card-header d-flex justify-content-between align-items-center">
+                  大会情報<button class="btn btn-success">編集</button>
+                </h6>
+                <div class="card-body pre bg-light">{{ past_description }}</div>
+              </div>
+              <hr v-if="past_description != null">
+              <div>
+                <nav v-if="past_pages > 1" class="pl-2">
+                  <ul class="pagination">
+                    <li v-for="p in past_pages" :key="p" class="page-item" :class="{'active': p == past_cur_page}">
+                      <a class="page-link" href="#" @click.prevent="loadPastList">
+                        {{ p }}
+                      </a>
+                    </li>
+                  </ul>
+                </nav>
+                <div v-for="result in past_list" class="comment py-1">
+                  {{ result }}
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">閉じる</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -152,7 +152,7 @@
               <table class="table-result">
                 <thead>
                   <tr :class="isTeamGame ? `row-team-${res.team_id}` : `row-cls-${res.class_id}`">
-                    <th v-for="round in res.rounds" scope="col" class="text-center">
+                    <th v-for="(round, i) in res.rounds" scope="col" class="text-center">
                       <div v-if="!isTeamGame">{{ round.name === null ? `${i+1}回戦` : round.name }}</div>
                       <div v-else>{{ round.op_team_name }}</div>
                     </th>
@@ -263,7 +263,7 @@
             書き込む
           </button>
         </div>
-        <new-comment-form id="new-comment-form" class="mx-3 mb-3 mt-2" url="/api/event/comment/item" :thread-id="id" @done="postDone"/>
+        <NewCommentForm id="new-comment-form" class="mx-3 mb-3 mt-2" url="/api/event/comment/item" :thread-id="id" @done="postDone"/>
         <nav v-if="pages > 1" class="pl-2">
           <ul class="pagination">
             <li v-for="p in pages" :key="p" class="page-item" :class="{'active': p == cur_page}">
@@ -273,15 +273,15 @@
             </li>
           </ul>
         </nav>
-        <comment-list :comments="list" url="/api/event/comment/item" item_class="px-2 py-1" @done="fetchComment"/>
+        <CommentList :comments="list" url="/api/event/comment/item" item-class="px-2 py-1" @done="fetchComment"/>
       </div>
     </div>
     <!-- 大会追加dialog -->
-    <contest-dialog id="add_event_dialog" @done="update"/>
+    <ContestDialog id="add_event_dialog" @done="update"/>
     <!-- 大会編集dialog -->
-    <contest-dialog id="edit_event_dialog" :contest-id="id" @done="fetch"/>
+    <ContestDialog id="edit_event_dialog" :contest-id="id" @done="fetch"/>
     <!-- 人数編集dialog -->
-    <div v-if="!isTeamGame" id="edit_num_person_dialog" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" @keyup.enter="saveNumPerson">
+    <div v-if="!isTeamGame" id="edit_num_person_dialog" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" @keydown.enter="saveNumPerson">
       <div class="modal-dialog modal-sm" role="document">
         <div class="modal-content">
           <div class="modal-header">
@@ -307,7 +307,7 @@
       </div>
     </div>
     <!-- 出場者編集dialog -->
-    <div id="edit_players_dialog" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div id="edit_players_dialog" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" @keydown.shift.enter="savePlayers">
       <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
           <div class="modal-header">
@@ -353,14 +353,13 @@
                     <button class="btn btn-outline-success btn-sm py-0" @click="showAddPlayer">+</button>
                   </span>
                   <span style="display: none;">
-                    <player-search :inline="true" :clear-when-set="true" @complete="addPlayer"/>
+                    <PlayerSearch :inline="true" :clear-when-set="true" @complete="addPlayer"/>
                   </span>
                   <span class="input-group-append pb-1px" style="display: none;">
                     <button class="add btn btn-success btn-sm py-0" @click="addPlayer">追加</button>
                   </span>
                 </div>
               </div>
-              <!-- <button class="btn btn-outline-success mt-3">追加</button> -->
             </template>
             <template v-else>
               <div/>
@@ -373,10 +372,17 @@
         </div>
       </div>
     </div>
-  </div>
+  </main>
 </template>
 <script>
+import PlayerSearch from './subcomponents/PlayerSearch.vue';
+import ContestDialog from './subcomponents/ContestDialog.vue';
+
 export default {
+  components: {
+    PlayerSearch,
+    ContestDialog,
+  },
   props: {
     contestId: {
       type: String,
@@ -385,7 +391,7 @@ export default {
   },
   data() {
     return {
-      loaded: false,
+      loaded: false,  // 表示タイミング調整
       result_str: $.util.result_str,
       order_str: $.util.order_str,
       comment_body: '',
@@ -409,7 +415,7 @@ export default {
       place: '',
       description: '',
       attached: [],
-      editable: false,
+      editable: null, // 表示タイミング調整のためfalseではなくnull
       // comment
       comment_count: null,
       cur_page: 1,
@@ -460,7 +466,7 @@ export default {
     $editNumPersonDialog.on('hide.bs.modal', (e) => {
       if (!this.changed_num_person) return;
       e.preventDefault();
-      $.confirm('本当に変更を破棄して閉じますか？').then(() => {
+      this.$_confirm('本当に変更を破棄して閉じますか？').then(() => {
         this.changed_num_person = false;
         $editNumPersonDialog.modal('hide');
       }).catch(() => {
@@ -474,7 +480,7 @@ export default {
     $editPlayersDialog.on('hide.bs.modal', (e) => {
       if (!this.changed_players) return;
       e.preventDefault();
-      $.confirm('本当に変更を破棄して閉じますか？').then(() => {
+      this.$_confirm('本当に変更を破棄して閉じますか？').then(() => {
         this.changed_players = false;
         $editPlayersDialog.modal('hide');
       }).catch(() => {
@@ -495,11 +501,13 @@ export default {
         _.forEach(res.data, (v, key) => {
           this[key] = v;
         });
+        // 自身を削除
+        this.group = this.group.filter(v => v.id !== this.id);
         this.fetchDetail();
         this.fetchComment();
         this.loaded = true;
       }).catch(() => {
-        $.notify('danger', '大会結果の取得に失敗しました');
+        this.$_notify('danger', '大会結果の取得に失敗しました');
       });
     },
     fetchDetail() {
@@ -509,7 +517,7 @@ export default {
           this[v] = res.data[v];
         });
       }).catch(() => {
-        $.notify('danger', '大会情報の取得に失敗しました');
+        this.$_notify('danger', '大会情報の取得に失敗しました');
       });
     },
     fetchComment() {
@@ -530,7 +538,7 @@ export default {
         this.players.deleted_teams = [];
         this.players.deleted_users = [];
       }).catch(() => {
-        $.notify('danger', '出場者情報の取得に失敗しました');
+        this.$_notify('danger', '出場者情報の取得に失敗しました');
       });
     },
     loadComment(e) {
@@ -556,7 +564,7 @@ export default {
           this[`past_${key}`] = v;
         });
       }).catch(() => {
-        $.notify('danger', '過去の結果の取得に失敗しました');
+        this.$_notify('danger', '過去の結果の取得に失敗しました');
       });
     },
     loadPastList(e) {
@@ -568,13 +576,13 @@ export default {
       const $form = $dialog.find('form');
       const onSave = () => {
         $form.removeClass('was-validated');
-        $.notify('success', '保存しました');
+        this.$_notify('保存しました');
         this.changed_num_person = false;
         $dialog.modal('hide');
         this.fetch();
       };
       if (!$form.check()) {
-        $.notify('warning', '不正な値です');
+        this.$_notify('warning', '不正な値です');
         return;
       }
       let data = {};
@@ -590,11 +598,11 @@ export default {
         return;
       }
       axios.post('/api/result/num_person', { data }).then(onSave).catch(() => {
-        $.notify('danger', '保存に失敗しました');
+        this.$_notify('danger', '保存に失敗しました');
       });
     },
     addClass(e) {
-      $.inputDialog('級名を入力してください').then((res) => {
+      this.$_inputDialog('級名を入力してください').then((res) => {
         const index = Number($(e.target).parents('.card').attr('data-index'));
         this.players.classes.splice(index + 1, 0, [`new_${this.new_class_count}`, res]);
         this.new_class_count += 1;
@@ -606,7 +614,7 @@ export default {
     moveUpClass(e) {
       const index = Number($(e.target).parents('.card').attr('data-index'));
       if (index === 0) {
-        $.notify('warning', '移動できません');
+        this.$_notify('warning', '移動できません');
         return;
       }
       const target = this.players.classes.splice(index, 1)[0];
@@ -616,7 +624,7 @@ export default {
     moveDownClass(e) {
       const index = Number($(e.target).parents('.card').attr('data-index'));
       if (index === this.players.classes.length - 1) {
-        $.notify('warning', '移動できません');
+        this.$_notify('warning', '移動できません');
         return;
       }
       const target = this.players.classes.splice(index, 1)[0];
@@ -627,7 +635,7 @@ export default {
       const index = Number($(e.target).parents('.card').attr('data-index'));
       const classId = this.players.classes[index][0];
       if (this.players.user_classes[classId] && this.players.user_classes[classId].length > 0) {
-        $.notify('warning', '空でない級は削除できません');
+        this.$_notify('warning', '空でない級は削除できません');
         return;
       }
       if (!_.startsWith(classId, 'new_')) {
@@ -679,7 +687,7 @@ export default {
     movePlayers() {
       const to = $('#edit_players_dialog select').val();
       if (to === null) {
-        $.notify('warning', '移動先を選択してください');
+        this.$_notify('warning', '移動先を選択してください');
       }
       $('#edit_players_dialog input:checked').each((i, e) => {
         const $tgt = $(e);
@@ -687,11 +695,11 @@ export default {
         const index = $tgt.parents('.card').attr('data-index');
         const from = this.players.classes[index][0].toString();
         if (from === to) {
-          $.notify('warning', `${this.players.users[id]}さんは${this.players.classes[index][1]}に移動できません`);
+          this.$_notify('warning', `${this.players.users[id]}さんは${this.players.classes[index][1]}に移動できません`);
           return true;
         }
         if (this.players.not_movable[id]) {
-          $.notify('warning', `${this.players.users[id]}さんは移動できません`);
+          this.$_notify('warning', `${this.players.users[id]}さんは移動できません`);
           return true;
         }
         this.players.user_classes[from] =
@@ -708,7 +716,7 @@ export default {
         const index = $tgt.parents('.card').attr('data-index');
         const from = this.players.classes[index][0].toString();
         if (this.players.not_movable[id]) {
-          $.notify('warning', `${this.players.users[id]}さんは削除できません`);
+          this.$_notify('warning', `${this.players.users[id]}さんは削除できません`);
           $tgt.prop('checked', false);
           return true;
         }
@@ -734,7 +742,7 @@ export default {
     },
     savePlayers() {
       const onSave = () => {
-        $.notify('success', '保存しました');
+        this.$_notify('保存しました');
         this.changed_players = false;
         $('#edit_players_dialog').modal('hide');
         this.fetch();
@@ -744,7 +752,7 @@ export default {
         return;
       }
       axios.put(`/api/result/players/${this.id}`, this.players).then(onSave).catch(() => {
-        $.notify('danger', '保存に失敗しました');
+        this.$_notify('danger', '保存に失敗しました');
       });
     },
     setCellHeight() {

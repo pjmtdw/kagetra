@@ -1,20 +1,30 @@
 <template>
   <div class="list-group list-group-flush">
-    <div v-for="item in comments" :key="item.id" class="list-group-item bg-transparent" :class="itemClass">
-      <div class="d-flex">
+    <div v-for="(item, i) in comments" :key="item.id" class="list-group-item bg-transparent" :class="itemClass">
+      <div v-if="!item.editing" class="d-flex">
         <span class="name">{{ item.user_name }}</span>
         <span class="date">@{{ item.date }}</span>
         <h6 v-if="item.is_new" class="align-self-center"><span class="badge badge-info mx-1">New</span></h6>
-        <button v-if="item.editable" class="edit-item btn btn-outline-success btn-sm ml-auto" :data-id="item.id" @click="toggleEditItem">
+        <button v-if="item.editable" class="btn btn-outline-success btn-sm ml-auto" @click="toggleEditItem(i, item.id)">
           編集
         </button>
       </div>
-      <div :id="`item${item.id}`" class="pre mt-1 pl-2">{{ item.body }}</div>
-      <form v-if="item.editable" :id="'editItem' + item.id" class="mt-3 d-none" :data-id="item.id" @submit.prevent>
-        <button class="btn btn-success" type="button" @click="editItem">保存</button>
-        <button class="btn btn-danger" type="button" @click="deleteItem">削除</button>
-        <input :value="item.user_name" class="form-control w-auto my-2" type="text" name="user_name" placeholder="名前" required>
-        <textarea class="form-control" name="body" rows="4" placeholder="内容" required @input="autosizeTextarea(this.$($event.target))"/>
+      <div v-show="!item.editing" class="pre mt-1 pl-2">{{ item.body }}</div>
+      <form v-if="item.editable" v-show="item.editing" :ref="'editForm' + item.id" @submit.prevent @keydown.shift.enter="editItem(i, item.id)">
+        <div class="form-group d-flex align-items-center">
+          <input :value="item.user_name" class="form-control d-inline w-auto" type="text" name="user_name" placeholder="名前" required>
+          <span class="date ml-1 d-none d-sm-inline">@{{ item.date }}</span>
+          <div class="invalid-feedback">名前を入力してください</div>
+          <button class="btn btn-outline-success btn-sm ml-auto" @click="toggleEditItem(i, item.id)">
+            キャンセル
+          </button>
+        </div>
+        <div class="form-group">
+          <textarea class="form-control" name="body" rows="4" placeholder="内容" required @input="autosizeTextarea(this.$($event.target))"/>
+          <div class="invalid-feedback">内容を入力してください</div>
+        </div>
+        <button class="btn btn-success" type="button" @click="editItem(i, item.id)">保存</button>
+        <button class="btn btn-danger" type="button" @click="deleteItem(item.id)">削除</button>
       </form>
     </div>
   </div>
@@ -38,48 +48,40 @@ export default {
     },
   },
   methods: {
-    toggleEditItem(e) {
-      const $editToggle = $(e.target);
-      const id = $editToggle.attr('data-id');
-      const $item = $(`#item${id}`);
-      const $edit = $(`#editItem${id}`);
-      $editToggle.toggleBtnText('編集', 'キャンセル');
-      $item.toggleClass('d-none');
-      $edit.toggleClass('d-none');
-      if ($editToggle.data('toggled')) {
-        const $ta = $('textarea', $edit);
-        $ta.val($item.html().trim());
-        $ta.focus();
+    toggleEditItem(i, id) {
+      const $form = $(this.$refs[`editForm${id}`]);
+      this.editing = this.comments[i].editing;
+      if (this.editing) {
+        $form.removeClass('was-validated');
+        this.$set(this.comments[i], 'editing', false);
+      } else {
+        this.$set(this.comments[i], 'editing', true);
+      }
+      if (!this.editing) {
+        const $ta = $('textarea', $form);
+        $ta.val(this.comments[i].body.trim());
+        this.$nextTick(() => $ta.focus());
         this.autosizeTextarea($ta);
       }
     },
-    editItem(e) {
-      const $form = $(e.target).parents('form');
-      const id = Number($form.attr('data-id'));
-      const $toggle = $(`button[data-id="${id}"]`);
+    editItem(i, id) {
+      const $form = $(this.$refs[`editForm${id}`]);
       const data = $form.serializeObject();
-      if (!$form.check()) {
-        if (!data.body) $.notify('warning', '内容がありません');
-        if (!data.user_name) $.notify('warning', '名前を入力してください');
-        return;
-      }
+      if (!$form.check()) return;
       axios.put(`${this.url}/${id}`, data).then(() => {
-        $form.removeClass('was-validated');
-        $toggle.click();
-        $.notify('success', '変更を保存しました');
+        this.toggleEditItem(i, id);
+        this.$_notify('変更を保存しました');
         this.$emit('done');
       }).catch(() => {
-        $.notify('danger', '保存に失敗しました');
+        this.$_notify('danger', '保存に失敗しました');
       });
     },
-    deleteItem(e) {
-      const $form = $(e.target).parents('form');
-      const id = Number($form.attr('data-id'));
+    deleteItem(id) {
       axios.delete(`${this.url}/${id}`).then(() => {
-        $.notify('success', '削除しました');
+        this.$_notify('削除しました');
         this.$emit('done');
       }).catch(() => {
-        $.notify('success', '削除に失敗しました');
+        this.$_notify('削除に失敗しました');
       });
     },
     autosizeTextarea($ta) {

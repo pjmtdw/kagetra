@@ -10,7 +10,7 @@
           </button>
         </div>
         <div v-show="loaded" class="modal-body">
-          <form class="form-contest" @change="changed = true" @submit.prevent>
+          <form ref="form" class="form-contest" @input="changed = true" @submit.prevent @keydown.shift.enter="editEvent">
             <div class="form-row">
               <div class="form-group col-lg-4 col-sm-6">
                 <label>
@@ -29,22 +29,12 @@
             </div>
             <div class="form-row">
               <div class="form-group col-lg-4 col-sm-6">
-                <!-- <label class="mb-2">
-                  恒例大会
-                  <select v-model="event_group_id" name="event_group_id" class="form-control" @change="fetchPastList">
-                    <option value="-1">---</option>
-                    <option v-for="e in all_event_groups" :key="e.id" :value="e.id">
-                      {{ e.name }}
-                    </option>
-                  </select>
-                </label>
-                <button class="btn btn-outline-success mb-2" type="button" @click="addEventGroup">追加</button> -->
                 <label for="event_group_id_select" class="mb-0">恒例大会</label>
                 <div class="input-group">
                   <div class="input-group-prepend">
                     <button class="btn btn-outline-success" type="button" @click="addEventGroup">追加</button>
                   </div>
-                  <select id="event_group_id_select" name="event_group_id" class="custom-select">
+                  <select v-model="event_group_id" id="event_group_id_select" name="event_group_id" class="custom-select" @change="fetchPastList">
                     <option value="-1">---</option>
                     <option v-for="e in all_event_groups" :key="e.id" :value="e.id">
                       {{ e.name }}
@@ -56,7 +46,7 @@
                 <label class="mb-1 w-100">
                   情報コピー
                   <select v-model="copyFrom" name="copy_from" class="form-control" @change="copyPast">
-                    <option v-if="pastContests.length" selected>---</option>
+                    <option v-if="pastContests.length" value="-1">---</option>
                     <option v-for="c in pastContests" :key="c.id" :value="c.id">{{ c.date }} {{ c.name }}</option>
                   </select>
                 </label>
@@ -65,7 +55,8 @@
               <div class="form-group col-lg-4 col-sm-6">
                 <label class="w-100">
                   大会/行事名
-                  <input :value="name" type="text" name="name" class="form-control" placeholder="大会/行事名">
+                  <input v-model="name" type="text" name="name" class="form-control" placeholder="大会/行事名" required>
+                  <div class="invalid-feedback">この項目は必須です</div>
                 </label>
               </div>
               <div class="form-group col-lg-4 col-sm-6">
@@ -136,7 +127,7 @@
                 <p class="d-inline ml-2">{{ f.description }}</p>
               </div>
               <div class="mt-3"/>
-              <file-post :id="add ? 0 : contestId" namespace="event" @done="submitFileDone"/>
+              <FilePost :id="add ? 0 : contestId" namespace="event" @done="submitFileDone"/>
             </div>
           </div>
         </div>
@@ -150,8 +141,13 @@
   </div>
 </template>
 <script>
+import FilePost from './FilePost.vue';
+
 /* global g_user_name */
 export default {
+  components: {
+    FilePost,
+  },
   props: {
     id: {
       type: String,
@@ -197,11 +193,22 @@ export default {
       return this.contestId === null;
     },
     rows() {
-      return _.max([this.description.split('\n').length, 4]);
+      return _.max([this.description && this.description.split('\n').length, 4]);
     },
   },
   mounted() {
     $(this.$el).on('show.bs.modal', () => {
+      if (this.add) {
+        this.name = '';
+        this.formal_name = '';
+        this.event_group_id = -1;
+        this.copyFrom = null;
+        this.date = '';
+        this.place = '';
+        this.start_at = '';
+        this.end_at = '';
+        this.description = '';
+      }
       this.fetchEdit();
     }).on('hide.bs.modal', (e) => {
       if (!this.changed) {
@@ -209,7 +216,7 @@ export default {
         return;
       }
       e.preventDefault();
-      $.confirm('本当に変更を破棄して閉じますか？').then(() => {
+      this.$_confirm('本当に変更を破棄して閉じますか？').then(() => {
         this.changed = false;
         $(this.$el).modal('hide');
       }).catch(() => {
@@ -232,7 +239,7 @@ export default {
         });
         this.loaded = true;
       }).catch(() => {
-        $.notify('danger', '情報の取得に失敗しました');
+        this.$_notify('danger', '情報の取得に失敗しました');
       });
     },
     fetchEditAttached() {
@@ -240,13 +247,14 @@ export default {
       axios.get(url).then((res) => {
         this.attached = res.data.attached;
       }).catch(() => {
-        $.notify('danger', '情報の取得に失敗しました');
+        this.$_notify('danger', '情報の取得に失敗しました');
       });
     },
     fetchPastList() {
       if (!this.add) return;
       axios.get(`/api/event/group_list/${this.event_group_id}`).then((res) => {
         this.pastContests = res.data;
+        this.copyFrom = -1;
       });
     },
     copyPast() {
@@ -264,12 +272,42 @@ export default {
         this.description = d.description || '';
       });
     },
-    editEvent() {
-      let data = $('form.form-contest', this.$el).serializeObject();
+    addEvent() {
+      const $form = $(this.$refs.form);
+      if (!$form.check()) return;
+      let data = $form.serializeObject();
+      data = _.omit(data, 'copy_from');
       data = _.mapValues(data, v => (v.trim() === '' ? null : v));
+      if (data.event_group_id === '-1') data.event_group_id = null;
+      data.kind = 'contest';
+      data.aggregate_attr_id = this.aggregate_attr_id;
+      const onSave = () => {
+        if (this.changed) this.$_notify('保存しました');
+        this.changed = false;
+        $(this.$el).modal('hide');
+        this.$emit('done');
+      };
+      if (!this.changed) {
+        onSave();
+        return;
+      }
+      axios.post('/api/event/item', data).then(onSave).catch(() => {
+        this.$_notify('danger', '追加に失敗しました');
+      });
+    },
+    editEvent() {
+      if (this.add) {
+        this.addEvent();
+        return;
+      }
+      const $form = $(this.$refs.form);
+      if (!$form.check()) return;
+      let data = $form.serializeObject();
+      data = _.mapValues(data, v => (v.trim() === '' ? null : v));
+      if (data.event_group_id === '-1') data.event_group_id = null;
       const url = `/api/event/item/${this.contestId}`;
       const onSave = () => {
-        $.notify('success', '保存しました');
+        this.$_notify('保存しました');
         this.changed = false;
         $(this.$el).modal('hide');
         this.$emit('done');
@@ -279,29 +317,29 @@ export default {
         return;
       }
       axios.put(url, data).then(onSave).catch(() => {
-        $.notify('danger', '保存に失敗しました');
+        this.$_notify('danger', '保存に失敗しました');
       });
     },
     deleteEvent() {
-      $.confirm('本当に削除していいですか？').then(() => {
+      this.$_confirm('本当に削除していいですか？').then(() => {
         axios.delete(`/api/event/item/${this.contestId}`).then(() => {
-          $.notify('success', '削除しました');
+          this.$_notify('削除しました');
           $(this.$el).modal('hide');
           location.href = '/result#/';
         }).catch(() => {
-          $.notify('danger', '削除に失敗しました');
+          this.$_notify('danger', '削除に失敗しました');
         });
       }).catch(() => {
         $('body').addClass('modal-open');
       });
     },
     addEventGroup() {
-      $.inputDialog('追加する恒例大会名').then((name) => {
+      this.$_inputDialog('追加する恒例大会名').then((name) => {
         axios.post('/api/event/group/new', { name }).then(() => {
-          $.notify('success', '追加しました');
+          this.$_notify('追加しました');
           this.fetchEdit();
         }).catch(() => {
-          $.notify('danger', '追加に失敗しました');
+          this.$_notify('danger', '追加に失敗しました');
         });
       }).always(() => {
         $('body').addClass('modal-open');

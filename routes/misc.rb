@@ -129,4 +129,10 @@ class MainApp < Sinatra::Base
   get '/etc' do
     redirect '/top'
   end
+  get '/img/bg.jpg' do
+    redirect '/img/bg/' + "%02d"%Date.today.month + '.jpg'
+  end
+  get '/img/bg_rev.jpg' do
+    redirect '/img/bg/' + "%02d"%Date.today.month + '_rev.jpg'
+  end
 end

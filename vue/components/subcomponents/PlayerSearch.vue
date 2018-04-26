@@ -72,7 +72,7 @@ export default {
         this.searching = false;
         this.candidates = res.data.results;
       }).catch(() => {
-        $.notify('danger', '候補の取得に失敗しました。');
+        this.$_notify('danger', '候補の取得に失敗しました。');
       });
     },
     clickName(e) {

@@ -75,6 +75,12 @@
         <NewCommentForm :id="`new-item-form${thread.id}`" class="mx-3 mb-3 mt-2" url="/api/bbs/item" :thread-id="thread.id" @done="postDone"/>
       </div>
     </div>
+    <!-- pagination -->
+    <ul class="pagination my-2 justify-content-center">
+      <li v-for="i in pages" class="page-item" :class="{ active: page == i }" :key="i">
+        <router-link class="page-link" :to="i.toString()">{{ i }}</router-link>
+      </li>
+    </ul>
   </main>
 </template>
 <script>

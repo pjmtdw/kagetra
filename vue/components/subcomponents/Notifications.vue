@@ -1,5 +1,5 @@
 <template>
-  <div id="notifications" class="position-fixed fixed-top w-25">
+  <div v-if="notifications.length" id="notifications" class="position-fixed fixed-top w-25">
     <div v-for="n in notifications" :key="n.id" :ref="`alert${n.id}`" class="alert alert-dismissible fade show shadow mt-1 mb-3" :class="`alert-${n.type}`" role="alert">
       {{ n.message }}
       <button class="close p-0" type="button" data-dismiss="alert" aria-label="Close">

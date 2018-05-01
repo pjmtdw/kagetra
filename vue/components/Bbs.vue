@@ -94,13 +94,13 @@ export default {
   },
   data() {
     return {
-      threads: [],
-      pages: [],
-      query: '',
+      threads: null,
+      pages: null,
+      query: null,
       // new thread
       name: g_user_name,
-      title: '',
-      publicThread: '', // public is reserved
+      title: null,
+      publicThread: null, // public is reserved
       body: '',
       editing: false,
     };

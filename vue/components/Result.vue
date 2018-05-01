@@ -29,7 +29,7 @@
         </nav>
         <div v-show="editable !== null" class="col-12 col-md-4 mb-1">
           <div class="btn-group mb-1" role="group">
-            <button v-if="editable" type="button" class="btn btn-success" data-toggle="modal" data-target="#add_event_dialog">追加</button>
+            <!-- <button v-if="editable" type="button" class="btn btn-success" data-toggle="modal" data-target="#add_event_dialog">追加</button> -->
             <button v-if="editable" type="button" class="btn btn-success" data-toggle="modal" data-target="#edit_event_dialog">編集</button>
             <a :href="`result/excel/${id}/${date}_${encodeURI(name)}.xls`" class="btn btn-secondary">保存</a>
           </div>
@@ -114,7 +114,7 @@
             <button class="btn btn-success mx-1" data-toggle="modal" data-target="#edit_players_dialog">出場者編集</button>
           </div>
           <div>
-            <button class="btn btn-info m-2" @click="fetch">更新</button>
+            <button class="btn btn-info m-2" @click="update">更新</button>
           </div>
         </div>
         <div v-for="(res, i) in contest_results" :key="isTeamGame ? res.team_id : res.class_id" class="mb-5">
@@ -277,7 +277,7 @@
       </div>
     </div>
     <!-- 大会追加dialog -->
-    <ContestDialog id="add_event_dialog" @done="update"/>
+    <!-- <ContestDialog id="add_event_dialog"/> -->
     <!-- 大会編集dialog -->
     <ContestDialog id="edit_event_dialog" :contest-id="id" @done="fetch"/>
     <!-- 人数編集dialog -->
@@ -394,40 +394,40 @@ export default {
       loaded: false,  // 表示タイミング調整
       result_str: $.util.result_str,
       order_str: $.util.order_str,
-      comment_body: '',
+      comment_body: null,
       editing: false,
       // result
       id: null,
       official: null,
-      name: '',
-      date: '',
+      name: null,
+      date: null,
       team_size: 1,
-      recent_list: [],
-      contest_classes: [],
-      contest_results: [],
+      recent_list: null,
+      contest_classes: null,
+      contest_results: null,
       event_group_id: null,
-      group: [],
-      album_groups: [],
+      group: null,
+      album_groups: null,
       // detail
-      formal_name: '',
-      start_at: '',
-      end_at: '',
-      place: '',
-      description: '',
-      attached: [],
+      formal_name: null,
+      start_at: null,
+      end_at: null,
+      place: null,
+      description: null,
+      attached: null,
       editable: null, // 表示タイミング調整のためfalseではなくnull
       // comment
       comment_count: null,
       cur_page: 1,
       pages: 1,
-      thread_name: '',
-      list: [],
+      thread_name: null,
+      list: null,
       has_new_comment: false,
       // past info
       past_cur_page: 1,
-      past_description: '',
-      past_list: [],
-      past_name: '',
+      past_description: null,
+      past_list: null,
+      past_name: null,
       past_pages: 1,
       // edit
       changed_num_person: false,
@@ -496,7 +496,6 @@ export default {
     fetch() {
       const baseUrl = '/api/result/contest';
       const url = this.contestId === null ? `${baseUrl}/latest` : `${baseUrl}/${this.contestId}`;
-      this.players = null;
       axios.get(url).then((res) => {
         _.forEach(res.data, (v, key) => {
           this[key] = v;
@@ -768,9 +767,6 @@ export default {
         });
         $(`.${v}`).css('height', maxH);
       });
-    },
-    update() {
-
     },
   },
 };

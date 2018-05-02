@@ -21,7 +21,16 @@ export default () => {
     methods: {
       $_notify: n.notify,
       $_confirm: d.confirm,
-      $_inputDialog: d.inputDialog,
+      $_prompt: d.prompt,
+      $_setBeforeUnload(isChanged) {
+        window.addEventListener('beforeunload', (e) => {
+          if (isChanged()) {
+            e.returnValue = '';
+            return '';
+          }
+          return undefined;
+        });
+      },
     },
   });
 

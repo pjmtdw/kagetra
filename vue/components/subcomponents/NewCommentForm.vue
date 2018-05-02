@@ -1,5 +1,5 @@
 <template>
-  <form :id="id" class="collapse" @submit.prevent @keydown.shift.enter="postComment">
+  <form :id="id" class="collapse" @submit.prevent @keydown.shift.enter="postComment" @input="changed = true">
     <input :value="threadId" type="hidden" name="thread_id">
     <button class="btn btn-success" type="button" @click="postComment">投稿</button>
     <div class="form-group">
@@ -31,6 +31,7 @@ export default {
   },
   data() {
     return {
+      changed: false,
       name: g_user_name,
       body: '',
     };
@@ -45,6 +46,7 @@ export default {
     $this.on('shown.bs.collapse', () => {
       $this.find('textarea').focus();
     });
+    this.$_setBeforeUnload(() => this.changed);
   },
   methods: {
     postComment() {

@@ -19,7 +19,7 @@
         </div>
       </form>
     </div>
-    <form id="new-thread-form" class="collapse my-1" @submit.prevent @keydown.shift.enter="postThread">
+    <form id="new-thread-form" class="collapse my-1" @submit.prevent @keydown.shift.enter="postThread" @input="changed = true">
       <div class="card">
         <div class="form-group m-2">
           <button class="btn btn-success" type="button" @click="postThread">投稿</button>
@@ -98,6 +98,7 @@ export default {
       pages: null,
       query: null,
       // new thread
+      changed: false,
       name: g_user_name,
       title: null,
       publicThread: null, // public is reserved
@@ -117,6 +118,7 @@ export default {
   },
   created() {
     this.fetch(this.page);
+    this.$_setBeforeUnload(() => this.changed);
   },
   methods: {
     fetch(page) {

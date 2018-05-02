@@ -57,7 +57,7 @@ export default {
       this.message = message === undefined ? title : message;
       return this.init();
     },
-    inputDialog(title) {
+    prompt(title) {
       this.type = 'input';
       this.title = title;
       this.input = null;

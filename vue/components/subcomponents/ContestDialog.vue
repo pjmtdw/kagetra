@@ -211,10 +211,7 @@ export default {
       }
       this.fetchEdit();
     }).on('hide.bs.modal', (e) => {
-      if (!this.changed) {
-        this.$emit('done');
-        return;
-      }
+      if (!this.changed) return;
       e.preventDefault();
       this.$_confirm('本当に変更を破棄して閉じますか？').then(() => {
         this.changed = false;
@@ -223,11 +220,7 @@ export default {
         $('body').addClass('modal-open');
       });
     });
-    // 変更を保存せずに移動しようとした場合に確認する
-    $(window).on('beforeunload', () => {
-      if (this.changed) return '';
-      return undefined;
-    });
+    this.$_setBeforeUnload(() => this.changed);
   },
   methods: {
     fetchEdit() {
@@ -270,7 +263,6 @@ export default {
         this.formal_name = d.formal_name;
         this.official = d.official;
         this.team_size = d.team_size;
-        this.date = d.date;
         this.start_at = d.start_at;
         this.end_at = d.end_at;
         this.place = d.place;
@@ -286,11 +278,12 @@ export default {
       if (data.event_group_id === '-1') data.event_group_id = null;
       data.kind = 'contest';
       data.aggregate_attr_id = this.aggregate_attr_id;
-      const onSave = () => {
+      const onSave = (res) => {
         if (this.changed) this.$_notify('保存しました');
         this.changed = false;
         $(this.$el).modal('hide');
-        this.$emit('done');
+        if (res !== undefined) this.$emit('done', res.data);
+        else this.$emit('done');
       };
       if (!this.changed) {
         onSave();
@@ -339,7 +332,7 @@ export default {
       });
     },
     addEventGroup() {
-      this.$_inputDialog('追加する恒例大会名').then((name) => {
+      this.$_prompt('追加する恒例大会名').then((name) => {
         axios.post('/api/event/group/new', { name }).then(() => {
           this.$_notify('追加しました');
           this.fetchEdit();

@@ -12,9 +12,39 @@
   width: auto!important;
 }
 
-.tooltip-line {
-  border-bottom: 1px dashed rgba(black, 0.4);
+@mixin icon() {
+  position: relative;
+  color: white;
+  background-color: rgba(0, 0, 0, .4);
+  width: 1rem;
+  height: 1rem;
+  display: inline-block;
+  border-radius: 100%;
+  font-size: .8rem;
+  text-align: center;
 }
+.help-icon {
+  @include icon();
+  &::before {
+    content: "?";
+    position: relative;
+    left: .02rem;
+    top: -.05rem;
+  }
+}
+.info-icon {
+  @include icon();
+  &::before {
+    content: "i";
+    font-family: serif;
+    position: relative;
+    top: -.05rem;
+  }
+}
+
+// .tooltip-line {
+//   border-bottom: 1px dashed rgba(black, 0.4);
+// }
 
 .badge-light-shadow {
   background-color: #eee;

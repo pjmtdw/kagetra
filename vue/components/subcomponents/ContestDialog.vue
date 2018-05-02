@@ -20,9 +20,10 @@
                 <div class="form-check d-inline-block">
                   <label>
                     <input v-model="is_public" type="checkbox" name="public">
-                    <span class="tooltip-line" data-toggle="tooltip" data-placement="bottom" title="外部公開版の予定表や大会行事案内に表示されます．ただし登録者一覧およびコメントは公開されません．">
+                    <span>
                       公開
                     </span>
+                    <span class="help-icon" data-toggle="tooltip" data-placement="bottom" title="外部公開版の予定表や大会行事案内に表示されます．ただし登録者一覧およびコメントは公開されません．"/>
                   </label>
                 </div>
               </div>

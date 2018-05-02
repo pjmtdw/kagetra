@@ -8,7 +8,8 @@
         <div class="modal-body">
           <p v-if="type === 'confirm'">{{ message }}</p>
           <form v-else-if="type === 'input'" ref="form" novalidate @submit.prevent>
-            <input ref="input" v-model="input" type="text" class="form-control" required placeholder="(Shift+Enterで確定)">
+            <input v-model="input" type="text" class="form-control d-none d-lg-inline" required placeholder="Shift+Enterで確定">
+            <input v-model="input" type="text" class="form-control d-lg-none" required>
             <div class="invalid-feedback">入力してください</div>
           </form>
         </div>
@@ -63,7 +64,7 @@ export default {
       this.input = null;
       return this.init(() => {
         this.$dialog.on('shown.bs.modal', () => {
-          this.$refs.input.focus();
+          $('input', this.$el).focus();
         });
         this.$dialog.on('hide.bs.modal', (e) => {
           if (!this.result || $(this.$refs.form).check()) return;

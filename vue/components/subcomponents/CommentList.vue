@@ -92,7 +92,6 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-@import '../../sass/common.scss';
 .name {
   color: #040;
 }

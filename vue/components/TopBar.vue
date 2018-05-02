@@ -44,6 +44,7 @@ export default {
 </script>
 <style lang="scss">
 // 全体に適用するスタイル
+@import '../sass/common.scss';
 body {
   background-image: url(/img/bg.jpg), url(/img/bg_rev.jpg);
   background-repeat: repeat-y, repeat-y;

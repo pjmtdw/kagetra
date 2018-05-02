@@ -105,8 +105,6 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-@import '../../sass/common.scss';
-
 .nowrap {
   white-space: nowrap;
 }

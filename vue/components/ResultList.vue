@@ -67,7 +67,6 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-@import '../sass/common.scss';
 @import '../sass/result_common.scss';
 
 #container {

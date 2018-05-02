@@ -223,6 +223,11 @@ export default {
         $('body').addClass('modal-open');
       });
     });
+    // 変更を保存せずに移動しようとした場合に確認する
+    $(window).on('beforeunload', () => {
+      if (this.changed) return '';
+      return undefined;
+    });
   },
   methods: {
     fetchEdit() {
@@ -352,7 +357,6 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-@import '../../sass/common.scss';
 .card {
   box-shadow: 1px 2px 4px rgba(black, 0.1);
 }

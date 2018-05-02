@@ -91,7 +91,6 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-// @import '../sass/common.scss';
 .input-group-prepend + div .search {
   max-width: 150px;
   border-top-left-radius: 0;

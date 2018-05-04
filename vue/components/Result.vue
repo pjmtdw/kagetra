@@ -29,7 +29,7 @@
         </nav>
         <div v-show="editable !== null" class="col-12 col-md-4 mb-1">
           <div class="btn-group mb-1" role="group">
-            <!-- <button v-if="editable" type="button" class="btn btn-success" data-toggle="modal" data-target="#add_event_dialog">追加</button> -->
+            <button v-if="editable" type="button" class="btn btn-success" data-toggle="modal" data-target="#add_event_dialog">追加</button>
             <button v-if="editable" type="button" class="btn btn-success" data-toggle="modal" data-target="#edit_event_dialog">編集</button>
             <a :href="`result/excel/${id}/${date}_${encodeURI(name)}.xls`" class="btn btn-secondary">保存</a>
           </div>
@@ -107,28 +107,28 @@
     <div v-show="loaded" class="tab-content">
       <!-- 結果 -->
       <div class="tab-pane border border-top-0 bg-white rounded-bottom show active" id="nav-result" role="tabpanel" aria-labelledby="nav-result-tab">
-        <div class="d-flex justify-content-between">
-          <div class="ml-2 my-2">
-            <button class="btn btn-success mx-1" data-toggle="button" aria-pressed="false">結果編集</button>
+        <div class="d-flex justify-content-between p-2">
+          <div>
+            <button id="toggleEdit" class="btn btn-outline-success active mx-1" data-toggle="button" aria-pressed="true" @click="editing = !editing">
+              結果編集
+            </button>
+            <span v-show="editing" class="help-icon ml-1" data-toggle="tooltip" data-placement="top" title="〜回戦をクリックするとその回戦の結果を編集できます"/>
             <button v-if="!isTeamGame" class="btn btn-success mx-1" data-toggle="modal" data-target="#edit_num_person_dialog">人数編集</button>
             <button class="btn btn-success mx-1" data-toggle="modal" data-target="#edit_players_dialog">出場者編集</button>
           </div>
-          <div>
-            <button class="btn btn-info m-2" @click="update">更新</button>
-          </div>
+          <button id="toggleAutoUpdate" class="btn btn-info tooltip-button" data-toggle="button" aria-pressed="false" data-placement="top" title="30秒ごとに更新します" @click="toggleAutoUpdate">
+            自動更新
+          </button>
         </div>
-        <div v-for="(res, i) in contest_results" :key="isTeamGame ? res.team_id : res.class_id" class="mb-5">
-          <!-- 団体戦でclass_name(東大, お茶大など)を表示するか -->
-          <template v-if="!(i > 0 && res.class_id === contest_results[i-1].class_id && contest_results[i-1].rounds.length)">
-            <span class="badge badge-pill badge-class-name">{{ contest_classes[res.class_id].class_name }}</span>
-            <span v-if="contest_classes[res.class_id].num_person" class="badge badge-secondary">{{ contest_classes[res.class_id].num_person }}人</span>
-          </template>
-          <div class="d-flex flex-row mt-1">
+        <div v-for="(c, cid) in contest_classes" :key="cid" class="mb-2">
+          <span class="badge badge-pill badge-class-name">{{ c.class_name }}</span>
+          <span v-if="c.num_person" class="badge badge-secondary">{{ c.num_person }}人</span>
+          <div v-for="res in _contest_results[cid]" :key="isTeamGame ? res.class_id : res.team_id" class="d-flex flex-row mb-4">
             <table class="table-name">
               <thead>
                 <tr :class="isTeamGame ? `row-team-${res.team_id}` : `row-cls-${res.class_id}`">
-                  <th v-if="!isTeamGame" scope="col" class="text-center">名前</th>
-                  <th v-else scope="col" class="text-center">
+                  <th v-if="!isTeamGame" scope="col" class="text-center" :class="{'edit': editing}" @click="editPrize">{{ editing ? '入賞編集' : '名前' }}</th>
+                  <th v-else scope="col" class="text-center" :class="{'edit': editing}" @click="editPrize">
                     <div>{{ res.header_left.team_name }}</div>
                     <div class="team-prize">{{ res.header_left.team_prize }}</div>
                   </th>
@@ -152,9 +152,9 @@
               <table class="table-result">
                 <thead>
                   <tr :class="isTeamGame ? `row-team-${res.team_id}` : `row-cls-${res.class_id}`">
-                    <th v-for="(round, i) in res.rounds" scope="col" class="text-center">
-                      <div v-if="!isTeamGame">{{ round.name === null ? `${i+1}回戦` : round.name }}</div>
-                      <div v-else>{{ round.op_team_name }}</div>
+                    <th v-for="(round, i) in res.rounds" scope="col" class="text-center" :class="{'edit': editing}" @click="edit(isTeamGame ? res.team_id : res.class_id, i)">
+                      <div>{{ round.name === null ? `${i+1}回戦` : round.name }}</div>
+                      <div v-if="isTeamGame">{{ round.op_team_name }}</div>
                     </th>
                   </tr>
                 </thead>
@@ -167,11 +167,11 @@
                         <div>{{ result_str[game.result] }} {{ game.score_str }} {{ game.opponent_name }}</div>
                         <div v-if="game.opponent_belongs">
                           ({{ game.opponent_belongs }})
-                          <span v-if="game.comment" data-toggle="tooltip" data-placement="bottom" :title="game.comment">※</span>
+                          <span v-if="game.comment" class="info-icon" data-toggle="tooltip" data-placement="bottom" :title="game.comment"/>
                         </div>
                         <div v-else-if="game.opponent_order">
-                          ({{ order_str[game.opponent_order] }})
-                          <span v-if="game.comment" data-toggle="tooltip" data-placement="bottom" :title="game.comment">※</span>
+                          <span>({{ order_str[game.opponent_order] }})</span>
+                          <span v-if="game.comment" class="info-icon" data-toggle="tooltip" data-placement="bottom" :title="game.comment"/>
                         </div>
                       </template>
                     </td>
@@ -277,7 +277,7 @@
       </div>
     </div>
     <!-- 大会追加dialog -->
-    <!-- <ContestDialog id="add_event_dialog"/> -->
+    <ContestDialog id="add_event_dialog" @done="$event.id ? $router.push({path: `${$event.id}`, }) : undefined"/>
     <!-- 大会編集dialog -->
     <ContestDialog id="edit_event_dialog" :contest-id="id" @done="fetch"/>
     <!-- 人数編集dialog -->
@@ -317,35 +317,59 @@
             </button>
           </div>
           <div v-if="players !== null" class="modal-body">
-            <template v-if="!isTeamGame">
-              <span>チェックした選手を操作</span>
-              <div class="d-flex flex-row align-items-center">
-                <div class="input-group d-inline-flex w-auto">
-                  <select class="custom-select">
+            <div class="d-flex flex-row flex-wrap align-items-center mt-1">
+              <div v-if="isTeamGame" class="jumbotron d-flex flex-row flex-wrap w-100 py-3 mb-2">
+                <div class="w-100 text-muted">チェックしたチームを操作</div>
+                <div class="input-group w-auto col-12 col-sm-auto mb-3 mb-sm-0 mr-2 px-0">
+                  <select id="team_to" class="custom-select flex-grow-0 w-auto">
                     <option selected disabled value="-1">--級名--</option>
                     <option v-for="c in players.classes" :key="c[0]" :value="c[0]">{{ c[1] }}</option>
+                  </select>
+                  <div class="input-group-append">
+                    <span class="input-group-text">に</span>
+                    <button class="btn btn-outline-success" type="button" @click="moveTeams">移動</button>
+                  </div>
+                </div>
+                <div class="col-12 col-sm-auto px-0">
+                  <button class="btn btn-outline-danger" @click="deleteTeams">削除</button>
+                </div>
+              </div>
+              <div class="jumbotron d-flex flex-row flex-wrap w-100 py-3 mb-2">
+                <div class="w-100 text-muted">
+                  チェックした選手を操作
+                  <span v-if="isTeamGame" class="help-icon ml-1" data-toggle="tooltip" data-placement="top" title="将順変更は同チーム内で移動してください"/>
+                </div>
+                <div class="input-group w-auto col-12 col-sm-auto mb-3 mb-sm-0 mr-2 px-0">
+                  <select id="player_to" class="custom-select flex-grow-0 w-auto">
+                    <template v-if="!isTeamGame">
+                      <option selected disabled value="-1">--級名--</option>
+                      <option v-for="c in players.classes" :key="c[0]" :value="c[0]">{{ c[1] }}</option>
+                    </template>
+                    <template v-else>
+                      <option selected disabled value="-1">--チーム名--</option>
+                      <option v-for="(tname, tid) in players.teams" :key="tid" :value="tid">{{ tname }}</option>
+                    </template>
                   </select>
                   <div class="input-group-append">
                     <span class="input-group-text">に</span>
                     <button class="btn btn-outline-success" type="button" @click="movePlayers">移動</button>
                   </div>
                 </div>
-                <button class="btn btn-outline-danger ml-2" @click="deletePlayers">削除</button>
+                <div class="col-12 col-sm-auto px-0">
+                  <button class="btn btn-outline-danger" @click="deletePlayers">削除</button>
+                </div>
               </div>
+            </div>
+            <template v-if="!isTeamGame">
               <div v-for="(c, i) in players.classes" :key="c[0]" class="card mt-4" :data-index="i">
                 <div class="card-border-title d-flex">
-                  <span class="badge badge-pill badge-class-name">
-                    {{ c[1] }}
-                  </span>
-                  <button type="button" class="btn btn-secondary btn-sm py-0 ml-auto" @click="moveUpClass">&uarr;</button>
-                  <button type="button" class="btn btn-secondary btn-sm py-0 ml-2" @click="moveDownClass">&darr;</button>
-                  <button type="button" class="btn btn-success btn-sm py-0 ml-2" @click="addClass">+</button>
-                  <button type="button" class="btn btn-danger btn-sm py-0 mx-2" @click="deleteClass">&times;</button>
+                  <span class="badge badge-pill badge-class-name">{{ c[1] }}</span>
+                  <button type="button" class="btn btn-danger btn-sm py-0 ml-auto mr-2" @click="deleteClass(i)">&times;</button>
                 </div>
                 <div class="card-body d-flex flex-wrap pt-1 pb-2">
                   <div v-for="u in players.user_classes[c[0]]" :key="u" class="form-check my-1 mr-3">
                     <label class="form-check-label">
-                      <input type="checkbox" class="form-check-input mt-1" :data-id="u">
+                      <input type="checkbox" class="form-check-input player mt-1" :data-id="u">
                       {{ players.users[u] }}
                     </label>
                   </div>
@@ -356,18 +380,74 @@
                     <PlayerSearch :inline="true" :clear-when-set="true" @complete="addPlayer"/>
                   </span>
                   <span class="input-group-append pb-1px" style="display: none;">
-                    <button class="add btn btn-success btn-sm py-0" @click="addPlayer">追加</button>
+                    <button class="add-class btn btn-success btn-sm py-0" @click="addPlayer">追加</button>
                   </span>
                 </div>
               </div>
+            </template>
+            <template v-else>
+              <div v-for="(c, i) in players.classes" :key="c[0]" class="card mt-4" :data-index="i">
+                <div class="card-border-title d-flex">
+                  <span class="badge badge-pill badge-class-name">{{ c[1] }}</span>
+                  <button type="button" class="btn btn-success btn-sm py-0 ml-auto" @click="addTeam(i)">+</button>
+                  <button type="button" class="btn btn-danger btn-sm py-0 mx-2" @click="deleteClass(i)">&times;</button>
+                </div>
+                <div class="card-body pt-2 pb-0">
+                  <div v-for="t in players.team_classes[c[0]]" :key="t" class="card mb-4" :data-team="t">
+                    <div class="card-border-title d-flex">
+                      <label class="bg-white"><input type="checkbox" class="team mr-1 mb-0">{{ players.teams[t] }}</label>
+                    </div>
+                    <div class="card-body d-flex flex-wrap pt-1 pb-2">
+                      <div v-for="(u, i) in players.user_teams[t]" :key="u" class="form-check my-1 mr-3">
+                        <label class="form-check-label">
+                          <input type="checkbox" class="form-check-input player mt-1" :data-id="u">
+                          {{ players.users[u] }}({{ order_str[i+1] }})
+                        </label>
+                      </div>
+                      <span class="d-inline-flex align-items-center">
+                        <button class="btn btn-outline-success btn-sm py-0" @click="showAddPlayer">+</button>
+                      </span>
+                      <span style="display: none;">
+                        <PlayerSearch :inline="true" :clear-when-set="true" @complete="addPlayer"/>
+                      </span>
+                      <span class="input-group-append pb-1px" style="display: none;">
+                        <button class="add-player btn btn-success btn-sm py-0" @click="addPlayer">追加</button>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </template>
+            <button class="btn btn-outline-success mt-4" @click="addClass">追加</button>
+          </div>
+          <div class="modal-footer justify-content-between">
+            <button type="button" class="btn btn-outline-danger" @click="resetPlayers">リセット</button>
+            <button type="button" class="btn btn-success" @click="savePlayers">保存</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 結果編集dialog -->
+    <div id="edit_result_dialog" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" @keydown.shift.enter="saveResult">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">結果編集</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <template v-if="!isTeamGame">
+              <div/>
             </template>
             <template v-else>
               <div/>
             </template>
           </div>
           <div class="modal-footer justify-content-between">
-            <button type="button" class="btn btn-outline-danger" @click="resetPlayers">リセット</button>
-            <button type="button" class="btn btn-success" @click="savePlayers">保存</button>
+            <button type="button" class="btn btn-outline-danger" @click="resetResult">リセット</button>
+            <button type="button" class="btn btn-success" @click="saveResult">保存</button>
           </div>
         </div>
       </div>
@@ -394,8 +474,9 @@ export default {
       loaded: false,  // 表示タイミング調整
       result_str: $.util.result_str,
       order_str: $.util.order_str,
-      comment_body: null,
-      editing: false,
+      // auto update
+      updating: false,
+      updater: null,
       // result
       id: null,
       official: null,
@@ -429,21 +510,20 @@ export default {
       past_list: null,
       past_name: null,
       past_pages: 1,
-      // edit
+      // edit players
       changed_num_person: false,
       changed_players: false,
       players: null,
       new_class_count: 0,
       new_player_count: 0,
       new_team_count: 0,
+      // edit result
+      editing: false,
     };
   },
   computed: {
     isTeamGame() {
       return this.team_size > 1;
-    },
-    rows() {
-      return _.max([this.comment_body.split('\n').length, 4]);
     },
     weekday() {
       return $.util.getWeekDay(this.date);
@@ -451,9 +531,27 @@ export default {
     time() {
       return $.util.timeRange(this.start_at, this.end_at);
     },
+    _contest_results() {
+      const ret = [];
+      _.forEach(this.contest_results, (v) => {
+        const cid = v.class_id;
+        if (ret[cid] === undefined) ret[cid] = [];
+        ret[cid].push(v);
+      });
+      return ret;
+    },
   },
   watch: {
     contestId() {
+      this.players = null;  // これはfetchでは変更されず遷移してもそのままなのでnullにしないとエラーになる
+      if (this.editing) {
+        this.editing = false;
+        $('#toggleEdit').button('toggle');
+      }
+      if (this.updating) {
+        this.toggleAutoUpdate();
+        $('#toggleAutoUpdate').button('toggle');
+      }
       this.fetch();
       $('#nav-result-tab').tab('show');
     },
@@ -490,7 +588,7 @@ export default {
   },
   updated() {
     this.setCellHeight();
-    $('[data-toggle="tooltip"]').tooltip();
+    $('[data-toggle="tooltip"], .tooltip-button').tooltip();
   },
   methods: {
     fetch() {
@@ -509,6 +607,29 @@ export default {
         this.$_notify('danger', '大会結果の取得に失敗しました');
       });
     },
+    update() {
+      const baseUrl = '/api/result/contest';
+      const url = this.contestId === null ? `${baseUrl}/latest` : `${baseUrl}/${this.contestId}`;
+      axios.get(url).then((res) => {
+        _.forEach(res.data, (v, key) => {
+          this[key] = v;
+        });
+        // 自身を削除
+        this.group = this.group.filter(v => v.id !== this.id);
+      }).catch(() => {
+        this.$_notify('danger', '大会結果の取得に失敗しました');
+      });
+    },
+    toggleAutoUpdate() {
+      if (this.updating) {
+        this.updating = false;
+        clearInterval(this.updater);
+      } else {
+        this.updating = true;
+        this.update();
+        this.updater = setInterval(this.update, 30000);
+      }
+    },
     fetchDetail() {
       const url = `/api/event/item/${this.id}?detail=true&no_participant=true`;
       axios.get(url).then((res) => {
@@ -519,6 +640,7 @@ export default {
         this.$_notify('danger', '大会情報の取得に失敗しました');
       });
     },
+    // コメント
     fetchComment() {
       const contestId = this.id;
       const page = this.cur_page;
@@ -528,16 +650,6 @@ export default {
         _.forEach(res.data, (v, key) => {
           this[key] = v;
         });
-      });
-    },
-    fetchPlayers() {
-      axios.get(`/api/result/players/${this.id}`).then((res) => {
-        this.players = res.data;
-        this.players.deleted_classes = [];
-        this.players.deleted_teams = [];
-        this.players.deleted_users = [];
-      }).catch(() => {
-        this.$_notify('danger', '出場者情報の取得に失敗しました');
       });
     },
     loadComment(e) {
@@ -554,6 +666,7 @@ export default {
       $('#new-comment-toggle').click();
       this.fetchComment();
     },
+    // 過去の結果
     fetchPastInfo() {
       const page = this.past_cur_page;
       const baseUrl = `/api/result/group/${this.event_group_id}`;
@@ -570,6 +683,7 @@ export default {
       this.past_cur_page = Number($(e.target).html());
       this.fetchPastInfo();
     },
+    // 人数編集
     saveNumPerson() {
       const $dialog = $('#edit_num_person_dialog');
       const $form = $dialog.find('form');
@@ -600,40 +714,35 @@ export default {
         this.$_notify('danger', '保存に失敗しました');
       });
     },
+    // 出場者編集 (id系をstringで扱ってるのは追加したidを'new_[0-9]'という形にするから)
+    fetchPlayers() {
+      axios.get(`/api/result/players/${this.id}`).then((res) => {
+        this.players = res.data;
+        this.players.deleted_classes = [];
+        this.players.deleted_teams = [];
+        this.players.deleted_users = [];
+      }).catch(() => {
+        this.$_notify('danger', '出場者情報の取得に失敗しました');
+      });
+    },
     addClass(e) {
-      this.$_inputDialog('級名を入力してください').then((res) => {
-        const index = Number($(e.target).parents('.card').attr('data-index'));
-        this.players.classes.splice(index + 1, 0, [`new_${this.new_class_count}`, res]);
+      this.$_prompt('級名を入力してください').then((res) => {
+        const tempId = `new_${this.new_class_count}`;
+        if (this.isTeamGame) this.players.classes.push([tempId, res]);
+        else {
+          const index = Number($(e.target).closest('.card').attr('data-index'));
+          this.players.classes.splice(index + 1, 0, [tempId, res]);
+        }
         this.new_class_count += 1;
         this.changed_players = true;
       }).always(() => {
         $('body').addClass('modal-open');
       });
     },
-    moveUpClass(e) {
-      const index = Number($(e.target).parents('.card').attr('data-index'));
-      if (index === 0) {
-        this.$_notify('warning', '移動できません');
-        return;
-      }
-      const target = this.players.classes.splice(index, 1)[0];
-      this.players.classes.splice(index - 1, 0, target);
-      this.changed_players = true;
-    },
-    moveDownClass(e) {
-      const index = Number($(e.target).parents('.card').attr('data-index'));
-      if (index === this.players.classes.length - 1) {
-        this.$_notify('warning', '移動できません');
-        return;
-      }
-      const target = this.players.classes.splice(index, 1)[0];
-      this.players.classes.splice(index + 1, 0, target);
-      this.changed_players = true;
-    },
-    deleteClass(e) {
-      const index = Number($(e.target).parents('.card').attr('data-index'));
+    deleteClass(index) {
       const classId = this.players.classes[index][0];
-      if (this.players.user_classes[classId] && this.players.user_classes[classId].length > 0) {
+      const classes = this.isTeamGame ? this.players.team_classes : this.players.user_classes;
+      if (classes[classId] && classes[classId].length > 0) {
         this.$_notify('warning', '空でない級は削除できません');
         return;
       }
@@ -671,58 +780,85 @@ export default {
       if (input.trim() === '') {
         return;
       }
-      const index = Number($tgt.parents('.card').attr('data-index'));
-      const classId = this.players.classes[index][0];
-      const tempId = `new_${this.new_player_count}`;
-      this.new_player_count += 1;
-      if (this.players.user_classes[classId] === undefined) {
-        // this.players.user_classes[classId] = [];だと変更が検出されない
-        this.$set(this.players.user_classes, classId, []);
+      if (this.isTeamGame) {
+        const teamId = $tgt.closest('.card').attr('data-team');
+        const tempId = `new_${this.new_player_count}`;
+        this.new_player_count += 1;
+        this.players.user_teams[teamId].push(tempId);
+        this.players.users[tempId] = input;
+      } else {
+        const index = Number($tgt.closest('.card').attr('data-index'));
+        const classId = this.players.classes[index][0];
+        const tempId = `new_${this.new_player_count}`;
+        this.new_player_count += 1;
+        if (this.players.user_classes[classId] === undefined) {
+          this.$set(this.players.user_classes, classId, []);
+        }
+        this.players.user_classes[classId].push(tempId);
+        this.players.users[tempId] = input;
       }
-      this.players.user_classes[classId].push(tempId);
-      this.players.users[tempId] = input;
       this.changed_players = true;
     },
     movePlayers() {
-      const to = $('#edit_players_dialog select').val();
+      const selected = $('#edit_players_dialog input.player:checked');
+      if (selected.length === 0) this.$_notify('warning', '選手が選択されていません');
+      const to = $('#player_to').val();
       if (to === null) {
         this.$_notify('warning', '移動先を選択してください');
+        return;
       }
-      $('#edit_players_dialog input:checked').each((i, e) => {
+      selected.each((i, e) => {
         const $tgt = $(e);
-        const id = $tgt.attr('data-id');
-        const index = $tgt.parents('.card').attr('data-index');
-        const from = this.players.classes[index][0].toString();
-        if (from === to) {
-          this.$_notify('warning', `${this.players.users[id]}さんは${this.players.classes[index][1]}に移動できません`);
+        const playerId = $tgt.attr('data-id');
+        if (this.players.not_movable[playerId]) {
+          this.$_notify('warning', `${this.players.users[playerId]}さんは移動できません`);
           return true;
         }
-        if (this.players.not_movable[id]) {
-          this.$_notify('warning', `${this.players.users[id]}さんは移動できません`);
-          return true;
+        if (this.isTeamGame) {
+          const from = $tgt.closest('.card').attr('data-team');
+          this.players.user_teams[from] =
+            _.filter(this.players.user_teams[from], v => v.toString() !== playerId);
+          this.players.user_teams[to].push(playerId);
+        } else {
+          const index = Number($tgt.closest('.card').attr('data-index'));
+          const from = this.players.classes[index][0].toString();
+          if (from === to) {
+            this.$_notify('warning', `${this.players.users[playerId]}さんは${this.players.classes[index][1]}に移動できません`);
+            return true;
+          }
+          this.players.user_classes[from] =
+            _.filter(this.players.user_classes[from], v => v.toString() !== playerId);
+          this.players.user_classes[to].push(playerId);
         }
-        this.players.user_classes[from] =
-          _.filter(this.players.user_classes[from], v => v.toString() !== id);
-        this.players.user_classes[to].push(id);
         this.changed_players = true;
         return true;
       });
     },
     deletePlayers() {
-      $('#edit_players_dialog input:checked').each((i, e) => {
+      const selected = $('#edit_players_dialog input.player:checked');
+      if (selected.length === 0) this.$_notify('warning', '選手が選択されていません');
+      selected.each((i, e) => {
         const $tgt = $(e);
-        const id = $tgt.attr('data-id');
-        const index = $tgt.parents('.card').attr('data-index');
-        const from = this.players.classes[index][0].toString();
-        if (this.players.not_movable[id]) {
-          this.$_notify('warning', `${this.players.users[id]}さんは削除できません`);
+        const playerId = $tgt.attr('data-id');
+        if (this.players.not_movable[playerId]) {
+          this.$_notify('warning', `${this.players.users[playerId]}さんは削除できません`);
           $tgt.prop('checked', false);
           return true;
         }
-        this.players.user_classes[from] =
-          _.filter(this.players.user_classes[from], v => v.toString() !== id);
-        delete this.players.users[id];
-        this.players.deleted_users.push(id);
+        if (this.isTeamGame) {
+          const teamId = $tgt.closest('.card').attr('data-team');
+          this.players.user_teams[teamId] =
+            _.filter(this.players.user_teams[teamId], v => v.toString() !== playerId);
+        } else {
+          const index = $tgt.closest('.card').attr('data-index');
+          const from = this.players.classes[index][0].toString();
+          this.players.user_classes[from] =
+            _.filter(this.players.user_classes[from], v => v.toString() !== playerId);
+        }
+        delete this.players.users[playerId];
+        if (!_.startsWith(playerId, 'new_')) {
+          this.players.deleted_users.push(playerId);
+        }
         this.changed_players = true;
         return true;
       });
@@ -732,7 +868,7 @@ export default {
       const $editPlayersDialog = $('#edit_players_dialog');
       $editPlayersDialog.find('input:checked').prop('checked', false);
       $editPlayersDialog.find('select').val('-1');
-      $editPlayersDialog.find('.add').each((i, e) => {
+      $editPlayersDialog.find('.add-player').each((i, e) => {
         const $e = $(e);
         if ($e.parent().css('display') !== 'none') {
           $e.click();
@@ -754,6 +890,62 @@ export default {
         this.$_notify('danger', '保存に失敗しました');
       });
     },
+    addTeam(index) {
+      this.$_prompt('チーム名を入力してください').then((res) => {
+        const classId = this.players.classes[index][0];
+        const tempId = `new_${this.new_team_count}`;
+        this.players.team_classes[classId].push(tempId);
+        this.$set(this.players.teams, tempId, res);
+        this.$set(this.players.user_teams, tempId, []);
+        this.new_team_count += 1;
+        this.changed_players = true;
+      }).always(() => {
+        $('body').addClass('modal-open');
+      });
+    },
+    moveTeams() {
+      const selected = $('#edit_players_dialog input.team:checked');
+      if (selected.length === 0) this.$_notify('warning', 'チームが選択されていません');
+      const to = $('#team_to').val();
+      if (to === null) {
+        this.$_notify('warning', '移動先を選択してください');
+        return;
+      }
+      selected.each((i, e) => {
+        const $tgt = $(e);
+        const teamId = $tgt.closest('.card').attr('data-team');
+        const index = Number($tgt.closest('.card').parent().closest('.card').attr('data-index'));
+        const from = this.players.classes[index][0].toString();
+        if (from === to) {
+          this.$_notify('warning', `${this.players.teams[teamId]}は${this.players.classes[index][1]}に移動できません`);
+          return true;
+        }
+        this.players.team_classes[from] =
+          _.filter(this.players.team_classes[from], v => v.toString() !== teamId);
+        this.players.team_classes[to].push(teamId);
+        this.changed_players = true;
+        return true;
+      });
+    },
+    deleteTeams() {
+      const selected = $('#edit_players_dialog input.team:checked');
+      if (selected.length === 0) this.$_notify('warning', 'チームが選択されていません');
+      selected.each((i, e) => {
+        const $tgt = $(e);
+        const teamId = $tgt.closest('.card').attr('data-team');
+        const index = Number($tgt.closest('.card').parent().closest('.card').attr('data-index'));
+        const from = this.players.classes[index][0].toString();
+        this.players.team_classes[from] =
+            _.filter(this.players.team_classes[from], v => v.toString() !== teamId);
+        delete this.players.teams[teamId];
+        if (!_.startsWith(teamId, 'new_')) {
+          this.players.deleted_teams.push(teamId);
+        }
+        this.changed_players = true;
+        return true;
+      });
+    },
+    // 結果
     setCellHeight() {
       // セルの高さを揃える
       const rows = new Set();
@@ -768,11 +960,21 @@ export default {
         $(`.${v}`).css('height', maxH);
       });
     },
+    // 結果編集
+    edit(classId, round) {
+      if (!this.editing) return;
+      console.log(classId, round);
+    },
+    editPrize() {
+    },
+    resetResult() {
+    },
+    saveResult() {
+    },
   },
 };
 </script>
 <style lang="scss" scoped>
-@import '../sass/common.scss';
 @import '../sass/result_common.scss';
 
 #container {
@@ -785,6 +987,13 @@ export default {
   overflow-y: auto;
 }
 
+.unofficial {
+  color: green;
+}
+.date {
+  color: brown;
+}
+
 #nav-result-tab, #nav-info-tab, #nav-comment-tab {
   &:not(.active) {
     background-color: #f8f9fa;
@@ -794,26 +1003,33 @@ export default {
   }
 }
 
-.unofficial {
-  color: green;
-}
-.date {
-  color: brown;
-}
-
 .badge-class-name {
   color: white;
   background-color: maroon;
 }
-.team-prize {
-  color: #039;
+
+#nav-result {
+  .team-prize {
+    color: #039;
+  }
+
+  .edit {
+    cursor: pointer;
+    background: linear-gradient(#ffd3bc, #f7bd8e);
+    &:hover {
+      background: linear-gradient(#ffcda5, #f5b17a);
+    }
+  }
 }
 
-.add {
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
+#edit_players_dialog {
+  .add-player {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+  .pb-1px {
+    padding-bottom: 1px;
+  }
 }
-.pb-1px {
-  padding-bottom: 1px;
-}
+
 </style>

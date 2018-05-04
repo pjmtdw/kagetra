@@ -1,3 +1,9 @@
+body {
+  background-image: url(/img/bg.jpg), url(/img/bg_rev.jpg);
+  background-repeat: repeat-y, repeat-y;
+  background-position: left top, right top;
+}
+
 .modal {
   max-width: 90%;
   margin-left: auto;
@@ -6,10 +12,6 @@
 
 .pre {
   white-space: pre-line;
-}
-
-.w-auto {
-  width: auto!important;
 }
 
 @mixin icon() {

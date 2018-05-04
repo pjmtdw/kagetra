@@ -1,5 +1,5 @@
 <template>
-  <nav v-once class="navbar navbar-expand-md navbar-light bg-light" :class="{public: isPublic}">
+  <nav v-once id="topbar" class="navbar navbar-expand-md navbar-light bg-light" :class="{public: isPublic}">
     <button class="navbar-toggler ml-auto" type="button" data-toggle="collapse" data-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"/>
     </button>
@@ -45,17 +45,14 @@ export default {
 <style lang="scss">
 // 全体に適用するスタイル
 @import '../sass/common.scss';
-body {
-  background-image: url(/img/bg.jpg), url(/img/bg_rev.jpg);
-  background-repeat: repeat-y, repeat-y;
-  background-position: left top, right top;
-}
-nav.public {
-  $public_top_bar_color: green;
-  // background: $public_top_bar_color !important;
-  // #navbarContent li a {background: $public_top_bar_color !important;}
-  // #navbarContent {background: $public_top_bar_color !important;}
-  // #navbarContent ul {background: $public_top_bar_color !important;}
+nav#topbar {
+  .public {
+    $public_top_bar_color: green;
+    // background: $public_top_bar_color !important;
+    // #navbarContent li a {background: $public_top_bar_color !important;}
+    // #navbarContent {background: $public_top_bar_color !important;}
+    // #navbarContent ul {background: $public_top_bar_color !important;}
+  }
 }
 </style>
 

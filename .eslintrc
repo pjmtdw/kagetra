@@ -11,7 +11,10 @@
   "rules": {
     "indent": [
       "error",
-      2
+      2,
+      {
+        "MemberExpression": "off"
+      }
     ],
     "no-plusplus": [
       "error",
@@ -27,6 +30,17 @@
         "ignorePattern": "^\\s+<|>$"
       }
     ],
+    "no-multi-spaces": ["error", {
+      "ignoreEOLComments": true
+    }],
+    "no-else-return": ["error", {
+      "allowElseIf": true
+    }],
+    "operator-linebreak": ["error", "after"],
+    "no-restricted-globals": 0,
+    "object-curly-newline": ["error", {
+      "consistent": true
+    }],
     "vue/max-attributes-per-line": [1, {
       "singleline": 10,
       "multiline": {
@@ -35,7 +49,8 @@
       }
     }],
     "vue/require-default-prop": 1,
-    "vue/require-v-for-key": 1
+    "vue/require-v-for-key": 1,
+    "vue/attributes-order": 0
   },
   "env": {
     "browser": true,

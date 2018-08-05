@@ -1,15 +1,19 @@
+const path = require('path');
+const { VueLoaderPlugin } = require('vue-loader');
+
 module.exports = {
   entry: './vue/main',
   output: {
-    filename: './public/js/bundle.js',
+    path: path.resolve(__dirname, 'public/js/'),
+    filename: 'bundle.js',
   },
   module: {
     rules: [
       {
         enforce: 'pre',
         test: /\.(js|vue)$/,
-        exclude: /node_modules/,
         loader: 'eslint-loader',
+        exclude: /node_modules/,
       },
       {
         test: /\.js$/,
@@ -19,18 +23,23 @@ module.exports = {
       {
         test: /\.vue$/,
         loader: 'vue-loader',
-        options: {
-          loaders: {
-            scss: 'vue-style-loader!css-loader!sass-loader', // <style lang="scss">
-          },
-        },
+      },
+      {
+        test: /\.scss$/,
+        use: [
+          'vue-style-loader',
+          'css-loader',
+          'sass-loader',
+        ],
       },
     ],
   },
   resolve: {
-    extensions: ['.js', '.vue'],
     alias: {
       vue$: 'vue/dist/vue.esm.js',
     },
   },
+  plugins: [
+    new VueLoaderPlugin(),
+  ],
 };

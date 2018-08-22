@@ -26,6 +26,10 @@ module MiscHelpers
     {error_message: message}
   end
 
+  def halt_wrap(status_code, message)
+    halt status_code, { error_message: message }
+  end
+
   def with_update
     begin
       DB.transaction{
@@ -85,6 +89,7 @@ module MiscHelpers
       set_permanent_all(data)
     end
   end
+
   # 今日の一枚を選択
   def choose_daily_album_photo
     # sqrtの重み付け
@@ -219,7 +224,7 @@ module MiscHelpers
     x = nil
     str1.each_char.with_index do |char1,i|
       e = i+1
-   
+
       str2.each_char.with_index do |char2,j|
         cost = (char1 == char2) ? 0 : 1
         x = [ d[j+1] + 1, # insertion
@@ -229,14 +234,13 @@ module MiscHelpers
         d[j] = e
         e = x
       end
-   
+
       d[m] = x
     end
     x
   end
 
   def haml_wrap(title='', top_bar=true, **args)
-    haml :layout, :locals => args.merge(title:title,top_bar:top_bar)
+    haml '', :locals => args.merge(title:title,top_bar:top_bar)
   end
-
 end

@@ -15,7 +15,7 @@ class MainApp < Sinatra::Base
     namespace '/auth' do
       post '/shared' do
         shared = MyConf.first(name: "shared_password")
-        res = Kagetra::Utils.check_password(params,shared.value["hash"])
+        res = Kagetra::Utils.check_password(@json['msg'], @json['hash'], shared.value["hash"])
         res["updated_at"] = shared.updated_at
         res
       end
@@ -25,7 +25,7 @@ class MainApp < Sinatra::Base
         if params[:all] != "true" then
           query = query.where(loginable: true)
         end
-        {list: query.map{|x|[x.id,x.name]}}
+        { list: query.map{|x| {id: x.id, name: x.name}} }
       end
       # この認証方法はDBのpassword_hashが分かればパスワードを知らなくても誰でもログインできてしまう．
       # しかしそもそも攻撃者がDBを見られる時点であんまし認証とか意味ないので許容する
@@ -37,13 +37,13 @@ class MainApp < Sinatra::Base
           # このAPIが呼ばれた時点で既にセッションは存在していてCookieとして送られてくるはず．
           # 既にセッションが存在している時にブラウザの設定変更で「これ以降のCookieの受付をブロック」みたいなことをされるとお手上げだが，
           # そのようなケースは稀で，セッションのCookieはブラウザを閉じると消えるので妥協する．
-          return {result: "COOKIE_BLOCKED"} 
+          return {result: "COOKIE_BLOCKED"}
         end
 
-        user = User[params[:user_id].to_i]
+        user = User[@json['user_id'].to_i]
         if user.loginable then
           hash = user.password_hash
-          Kagetra::Utils.check_password(params,hash).tap{|res|
+          Kagetra::Utils.check_password(@json['msg'], @json['hash'], hash).tap{|res|
             if res[:result] == "OK" then
               login_jobs(user)
             end

@@ -10,9 +10,9 @@ import result from './routers/result';
 import schedule from './routers/schedule';
 import top from './routers/top';
 import wiki from './routers/wiki';
+import misc from './routers/misc';
 
-/* global location */
-const routes = {
+const routes = _.assign({
   addrbook,
   album,
   bbs,
@@ -20,7 +20,7 @@ const routes = {
   schedule,
   top,
   wiki,
-};
+}, misc);
 
 const path = location.pathname.split('/');
 const isPublic = path[1] === 'public';

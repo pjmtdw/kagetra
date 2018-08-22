@@ -4,7 +4,7 @@ class MainApp < Sinatra::Base
     path = "/" + splat
     # TODO: G_TOP_BAR_PUBLIC の wiki のページが増えるとここが非効率的になる
     # board_message は /public/api/board_message/ からもアクセスされるのでこっちにも入れておく
-    halt(403,"this page is not public") unless G_TOP_BAR_PUBLIC.any?{|x|
+    halt_wrap 403, "this page is not public" unless G_TOP_BAR_PUBLIC.any?{|x|
       r = x[:route].sub(/#.*/,"")
       rs = ["/"+r,"/api/"+r]
       if r == "schedule" then
@@ -19,7 +19,7 @@ class MainApp < Sinatra::Base
   set(:private){|value|
     condition{
       if value and @public_mode
-        halt 403,"this page is private"
+        halt_wrap 403, "this page is private"
       end
     }
   }
@@ -37,18 +37,20 @@ class MainApp < Sinatra::Base
   before do
     return if @public_mode
     # pathの末尾の/は無視
-    request.path_info.chop! if request.path_info[-1] == '/'
     path = request.path_info
+    path.chop! if path[-1] == '/'
     # 以下のURLはログインしなくてもアクセスできる
-    return if ["/public/","/api/user/auth/","/api/board_message/","/js/","/img/","/css/"].any?{|s|path.start_with?(s)} or ["/","/robots.txt","/select_other_uid","/mobile/"].include?(path)
+    allowed_prefix = ["/public/", "/api/user/auth/", "/api/board_message/", "/js/", "/img/", "/css/"]
+    allowed = ["", "/robots.txt", "/select_other_uid", "/mobile", "/api/initials"]
+    return if allowed_prefix.any?{ |s| path.start_with?(s) } or allowed.include?(path)
 
     @user = if settings.development? and ENV.has_key?("KAGETRA_USER_ID")
-              then User.first(id: ENV["KAGETRA_USER_ID"])
-              else get_user
-              end
+            then User.first(id: ENV["KAGETRA_USER_ID"])
+            else get_user
+            end
     if @user.nil? then
       if path.start_with?("/api/") then
-        halt 403, "login required"
+        halt_wrap 403, "login required"
       elsif path.start_with?("/mobile/") then
         redirect '/mobile/'
       else
@@ -94,6 +96,9 @@ class MainApp < Sinatra::Base
         MyConf.update_or_create({name: name},{value: {message:@json['message']}})
       }
     end
+    get '/initials' do
+      Kagetra::Utils.gojuon_row_names
+    end
   end
   get '/' do
     shared = MyConf.first(name: "shared_password")
@@ -108,6 +113,7 @@ class MainApp < Sinatra::Base
         [uid,user.name]
       end
     haml :login, locals: {
+      title: 'ログイン',
       shared_salt: shared_salt,
       login_uid: login_uid,
       login_uname: login_uname,

@@ -77,17 +77,15 @@ module Kagetra
       cryptArr = Base64.strict_decode64(encrypted)
       magic = cryptArr[0..7] # must be "Salted__" but will ignore here
       salt  = cryptArr[8..15]
-      data  = cryptArr[16..-1] 
+      data  = cryptArr[16..-1]
       aes = OpenSSL::Cipher::Cipher.new('AES-256-CBC').decrypt
       aes.pkcs5_keyivgen(passphrase, salt, 1)
       aes.update(data) + aes.final
     end
 
-    def self.check_password(params,hash)
+    def self.check_password(msg, trial_hash, hash)
       # TODO: msg must be something hard to be counterfeited
       #   e.g. random string generated and stored to server, ip address
-      msg = params[:msg]
-      trial_hash = params[:hash]
       correct_hash = Kagetra::Utils.hmac_password(hash,msg)
       res = if trial_hash == correct_hash then "OK" else "WRONG_PASSWORD" end
       {result: res}
@@ -202,7 +200,7 @@ module Kagetra
 
     # Copied From: PEAR::Mail_RFC822::isValidInetAddress()
     EMAIL_ADDRESS_REGEX = %r(([*+!.&#\$|\'\\%\/0-9a-z^_`{}=?~:-]+)@(([0-9a-z-]+\.)+[0-9a-z]{2,}))i
-    
+
     TELEPHONE_NUMBER_REGEX = %r([0０]([0-9０-９]{9,10}|[0-9０-９]{1,3}([ー\−\-][0-9０-９]{2,4}){2}))
 
     def self.inc_month(year,month,inc)

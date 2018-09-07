@@ -70,7 +70,6 @@ export default {
       if (!$form.check()) return;
       axios.put(`${this.url}/${id}`, data).then(() => {
         this.toggleEditItem(i, id);
-        this.$_notify('変更を保存しました');
         this.$emit('done');
       }).catch(() => {
         this.$_notify('danger', '保存に失敗しました');
@@ -78,10 +77,9 @@ export default {
     },
     deleteItem(id) {
       axios.delete(`${this.url}/${id}`).then(() => {
-        this.$_notify('削除しました');
         this.$emit('done');
       }).catch(() => {
-        this.$_notify('削除に失敗しました');
+        this.$_notify('danger', '削除に失敗しました');
       });
     },
     autosizeTextarea($ta) {

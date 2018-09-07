@@ -160,7 +160,6 @@ export default {
         this.title = '';
         this.body = '';
         $('#new-thread-toggle').click();
-        this.$_notify('投稿しました');
         this.fetch(this.page);
       }).catch(() => {
         this.$_notify('danger', '投稿に失敗しました');

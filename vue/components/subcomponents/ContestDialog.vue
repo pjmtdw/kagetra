@@ -280,7 +280,7 @@ export default {
       data.kind = 'contest';
       data.aggregate_attr_id = this.aggregate_attr_id;
       const onSave = (res) => {
-        if (this.changed) this.$_notify('保存しました');
+        // if (this.changed) this.$_notify('保存しました');
         this.changed = false;
         $(this.$el).modal('hide');
         if (res !== undefined) this.$emit('done', res.data);
@@ -306,7 +306,6 @@ export default {
       if (data.event_group_id === '-1') data.event_group_id = null;
       const url = `/api/event/item/${this.contestId}`;
       const onSave = () => {
-        this.$_notify('保存しました');
         this.changed = false;
         $(this.$el).modal('hide');
         this.$emit('done');
@@ -322,7 +321,6 @@ export default {
     deleteEvent() {
       this.$_confirm('本当に削除していいですか？').then(() => {
         axios.delete(`/api/event/item/${this.contestId}`).then(() => {
-          this.$_notify('削除しました');
           $(this.$el).modal('hide');
           location.href = '/result#/';
         }).catch(() => {
@@ -335,7 +333,6 @@ export default {
     addEventGroup() {
       this.$_prompt('追加する恒例大会名').then((name) => {
         axios.post('/api/event/group/new', { name }).then(() => {
-          this.$_notify('追加しました');
           this.fetchEdit();
         }).catch(() => {
           this.$_notify('danger', '追加に失敗しました');

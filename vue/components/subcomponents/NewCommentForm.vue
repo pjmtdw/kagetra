@@ -61,7 +61,6 @@ export default {
         /* eslint-disable camelcase */
         this.name = g_user_name;
         this.body = '';
-        this.$_notify('投稿しました');
         this.$emit('done', this.threadId);
       }).catch(() => {
         this.$_notify('danger', '投稿に失敗しました');

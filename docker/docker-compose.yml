@@ -1,0 +1,14 @@
+kagetra:
+  image: kgtr-img
+  ports:
+    - "7777:7777"
+  volumes:
+    - "../vue:/home/kagetra/kagetra/vue:cached"
+    - "../views:/home/kagetra/kagetra/views:cached"
+    - "../routes:/home/kagetra/kagetra/routes:cached"
+    - "../public:/home/kagetra/kagetra/public:cached"
+    - "../inits:/home/kagetra/kagetra/inits:cached"
+    - "../models:/home/kagetra/kagetra/models:cached"
+    - "../libs:/home/kagetra/kagetra/libs:cached"
+    - "../migrate:/home/kagetra/kagetra/migrate:cached"
+    - "../mobile:/home/kagetra/kagetra/mobile:cached"

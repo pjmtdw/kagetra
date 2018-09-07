@@ -20,9 +20,31 @@
     </nav>
     <div class="container border">
       <div v-for="(ct, i) in list" :key="ct.id" class="row justify-content-center" :class="[i % 2 === 1 ? 'bg-light' : 'bg-white']">
-        <div class="col-3 col-lg-2">{{ ct.date }}</div>
-        <div class="col-3 col-lg-2">{{ ct.name }}</div>
-        <div class="col-6 col-lg-4">{{ ct.prizes }}</div>
+        <div class="col-3 col-lg-2 d-flex align-items-center">{{ ct.date }}</div>
+        <div class="col-3 col-lg-2 d-flex align-items-center">
+          <div>
+            <router-link :to="`/${ct.id}`" class="card-link">{{ ct.name }}</router-link>
+            <div>{{ ct.win }}勝{{ ct.lose }}敗({{ ct.user_count }}人)</div>
+          </div>
+        </div>
+        <div class="col-6 col-lg-4 d-flex align-items-center">
+          <div>
+            <template v-for="p in ct.prizes">
+              <div v-if="p.type === 'team'" class="font-weight-bold">
+                {{ p.class_name }} {{ p.prize }} {{ p.name }}
+              </div>
+              <div v-else-if="p.point > 0" :class="{ 'text-success': p.promotion === 'rank_up' }">
+                {{ p.class_name }} {{ p.prize }} {{ p.name }} [{{ p.point }}pt, {{ p.point_local }}kpt]
+              </div>
+              <div v-else-if="p.point_local > 0" :class="{ 'text-success': p.promotion === 'rank_up' }">
+                {{ p.class_name }} {{ p.prize }} {{ p.name }} [{{ p.point_local }}kpt]
+              </div>
+              <div v-else :class="{ 'text-success': p.promotion === 'rank_up' }">
+                {{ p.class_name }} {{ p.prize }} {{ p.name }}
+              </div>
+            </template>
+          </div>
+        </div>
       </div>
     </div>
   </main>

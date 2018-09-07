@@ -3,14 +3,14 @@
   max-width: 90px;
   table-layout: fixed;
   thead {
-    background-color: #FDC;
+    background-color: #fdc;
   }
   td, th {
     border: 1px dotted gray;
     font-size: 0.875em;
   }
   td {
-    background-color: #FFD;
+    background-color: #ffd;
     .prize{
       margin-top: 5px;
       color: purple;
@@ -20,7 +20,7 @@
 }
 .table-result {
   thead {
-    background-color: #ffddcc;
+    background-color: #fdc;
   }
   td, th {
     min-width: 108px;
@@ -31,19 +31,19 @@
   }
   td {
     &.result-default_win {
-    background-color: #DDD;
+    background-color: #ddd;
     }
     &.result-win {
-      background-color: #FFF;
+      background-color: white;
     }
     &.result-lose {
-      background-color: #CFF;
+      background-color: #cff;
     }
     &.result-break {
-      background-color: #FFD;
+      background-color: #ffd;
     }
     &.result-now {
-      background-color: #FDD;
+      background-color: #fdd;
     }
   }
 }

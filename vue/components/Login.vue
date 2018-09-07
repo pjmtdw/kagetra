@@ -40,12 +40,12 @@
         <div class="form-group">
           <label>ユーザー名</label>
           <div class="form-inline">
-            <select v-model="initial" class="form-control mr-2" @change="load_usernames">
+            <select v-model="initial" class="form-control w-auto mr-2" @change="load_usernames">
               <option v-for="(initial, index) in initials" :key="initial" :value="index">
                 {{ initial }}
               </option>
             </select>
-            <select v-model="userid" class="form-control">
+            <select v-model="userid" class="form-control w-auto">
               <option v-for="u in usernames" :key="u.id" :value="u.id">
                 {{ u.name }}
               </option>
@@ -150,8 +150,6 @@ export default {
         data.user_id = userId;
         axios.post('/api/user/auth/user', data).then((resp) => {
           if (resp.data.result === 'OK') {
-            // this.$router.push('/top');
-            console.log('ok');
             location.href = '/top';
           } else {
             this.result_user = false;

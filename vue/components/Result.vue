@@ -13,7 +13,12 @@
           </ul>
         </nav>
         <div class="col-12 col-md-4 mt-2 mt-md-0">
-          <PlayerSearch class="justify-content-md-start" placeholder="選手名検索" :complete="false"/>
+          <div class="input-group justify-content-center">
+            <div class="input-group-prepend">
+              <span class="input-group-text">検索</span>
+            </div>
+            <PlayerSearch :append="true" placeholder="選手名検索"/>
+          </div>
         </div>
       </div>
     </div>
@@ -27,7 +32,7 @@
             {{ ct.name }}
           </router-link>
         </nav>
-        <div v-show="editable !== null" class="col-12 col-md-4 mb-1">
+        <div class="col-12 col-md-4 mb-1" :class="{'invisible': editable === null}">
           <div class="btn-group mb-1" role="group">
             <button v-if="editable" type="button" class="btn btn-success" data-toggle="modal" data-target="#add_event_dialog">追加</button>
             <button v-if="editable" type="button" class="btn btn-success" data-toggle="modal" data-target="#edit_event_dialog">編集</button>
@@ -107,7 +112,7 @@
     <div v-show="loaded" class="tab-content">
       <!-- 結果 -->
       <div class="tab-pane border border-top-0 bg-white rounded-bottom show active" id="nav-result" role="tabpanel" aria-labelledby="nav-result-tab">
-        <div class="d-flex justify-content-between p-2">
+        <div id="result-tab-button-wrapper" class="d-flex justify-content-between p-2">
           <div>
             <button id="toggleEdit" class="btn btn-outline-success active mx-1" data-toggle="button" aria-pressed="true" @click="editing = !editing">
               結果編集
@@ -123,12 +128,12 @@
         <div v-for="(c, cid) in contest_classes" :key="cid" class="mb-2">
           <span class="badge badge-pill badge-class-name">{{ c.class_name }}</span>
           <span v-if="c.num_person" class="badge badge-secondary">{{ c.num_person }}人</span>
-          <div v-for="res in _contest_results[cid]" :key="isTeamGame ? res.class_id : res.team_id" class="d-flex flex-row mb-4">
+          <div v-for="res in contest_results_conv[cid]" :key="isTeamGame ? res.team_id : res.class_id" class="d-flex flex-row mb-4">
             <table class="table-name">
               <thead>
                 <tr :class="isTeamGame ? `row-team-${res.team_id}` : `row-cls-${res.class_id}`">
-                  <th v-if="!isTeamGame" scope="col" class="text-center" :class="{'edit': editing}" @click="editPrize">{{ editing ? '入賞編集' : '名前' }}</th>
-                  <th v-else scope="col" class="text-center" :class="{'edit': editing}" @click="editPrize">
+                  <th v-if="!isTeamGame" scope="col" class="text-center py-1" :class="{'edit': editing}" @click="editPrize(res.class_id)">{{ editing ? '入賞編集' : '名前' }}</th>
+                  <th v-else scope="col" class="text-center py-1" :class="{'edit': editing}" @click="editPrize(res.team_id)">
                     <div>{{ res.header_left.team_name }}</div>
                     <div class="team-prize">{{ res.header_left.team_prize }}</div>
                   </th>
@@ -152,9 +157,12 @@
               <table class="table-result">
                 <thead>
                   <tr :class="isTeamGame ? `row-team-${res.team_id}` : `row-cls-${res.class_id}`">
-                    <th v-for="(round, i) in res.rounds" scope="col" class="text-center" :class="{'edit': editing}" @click="edit(isTeamGame ? res.team_id : res.class_id, i)">
+                    <th v-for="(round, i) in res.rounds" scope="col" class="text-center py-1" :class="{'edit': editing}" @click="edit(isTeamGame ? res.team_id : res.class_id, i)">
                       <div>{{ round.name === null ? `${i+1}回戦` : round.name }}</div>
                       <div v-if="isTeamGame">{{ round.op_team_name }}</div>
+                    </th>
+                    <th v-if="editing" scope="col" class="text-center py-1 edit" @click="edit(isTeamGame ? res.team_id : res.class_id, res.rounds.length)">
+                      <div>{{ res.rounds.length+1 }}回戦</div>
                     </th>
                   </tr>
                 </thead>
@@ -284,7 +292,7 @@
     <div v-if="!isTeamGame" id="edit_num_person_dialog" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" @keydown.enter="saveNumPerson">
       <div class="modal-dialog modal-sm" role="document">
         <div class="modal-content">
-          <div class="modal-header">
+          <div class="modal-header sticky-top bg-white">
             <h5 class="modal-title">各級の出場人数</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
@@ -310,7 +318,7 @@
     <div id="edit_players_dialog" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" @keydown.shift.enter="savePlayers">
       <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-          <div class="modal-header">
+          <div class="modal-header sticky-top bg-white">
             <h5 class="modal-title">出場者編集</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
@@ -361,7 +369,7 @@
               </div>
             </div>
             <template v-if="!isTeamGame">
-              <div v-for="(c, i) in players.classes" :key="c[0]" class="card mt-4" :data-index="i">
+              <div v-for="(c, i) in players.classes" :key="c[0]" class="card mt-4" :data-cindex="i">
                 <div class="card-border-title d-flex">
                   <span class="badge badge-pill badge-class-name">{{ c[1] }}</span>
                   <button type="button" class="btn btn-danger btn-sm py-0 ml-auto mr-2" @click="deleteClass(i)">&times;</button>
@@ -369,28 +377,28 @@
                 <div class="card-body d-flex flex-wrap pt-1 pb-2">
                   <div v-for="u in players.user_classes[c[0]]" :key="u" class="form-check my-1 mr-3">
                     <label class="form-check-label">
-                      <input type="checkbox" class="form-check-input player mt-1" :data-id="u">
+                      <input type="checkbox" class="form-check-input player mt-1" :data-uid="u">
                       {{ players.users[u] }}
                     </label>
                   </div>
                   <span class="d-inline-flex align-items-center">
                     <button class="btn btn-outline-success btn-sm py-0" @click="showAddPlayer">+</button>
                   </span>
-                  <span style="display: none;">
-                    <PlayerSearch :inline="true" :clear-when-set="true" @complete="addPlayer"/>
-                  </span>
-                  <span class="input-group-append pb-1px" style="display: none;">
-                    <button class="add-class btn btn-success btn-sm py-0" @click="addPlayer">追加</button>
-                  </span>
+                  <div class="input-group input-group-sm d-none w-auto">
+                    <PlayerSearch :clear="true" class-input="form-control-sm" :prepend="true" @done="addPlayer" @enter="addPlayer"/>
+                    <span class="input-group-append pb-1px">
+                      <button class="btn btn-success btn-sm py-0" @click="addPlayer">追加</button>
+                    </span>
+                  </div>
                 </div>
               </div>
             </template>
             <template v-else>
-              <div v-for="(c, i) in players.classes" :key="c[0]" class="card mt-4" :data-index="i">
+              <div v-for="(c, i) in players.classes" :key="c[0]" class="card mt-4" :data-cindex="i">
                 <div class="card-border-title d-flex">
                   <span class="badge badge-pill badge-class-name">{{ c[1] }}</span>
-                  <button type="button" class="btn btn-success btn-sm py-0 ml-auto" @click="addTeam(i)">+</button>
-                  <button type="button" class="btn btn-danger btn-sm py-0 mx-2" @click="deleteClass(i)">&times;</button>
+                  <button type="button" class="btn btn-success btn-sm py-0 ml-auto" data-toggle="tooltip" :title="`${c[1]}にチームを追加`" @click="addTeam(i)">+</button>
+                  <button type="button" class="btn btn-danger btn-sm py-0 mx-2" data-toggle="tooltip" :title="`${c[1]}を削除`" @click="deleteClass(i)">&times;</button>
                 </div>
                 <div class="card-body pt-2 pb-0">
                   <div v-for="t in players.team_classes[c[0]]" :key="t" class="card mb-4" :data-team="t">
@@ -400,25 +408,25 @@
                     <div class="card-body d-flex flex-wrap pt-1 pb-2">
                       <div v-for="(u, i) in players.user_teams[t]" :key="u" class="form-check my-1 mr-3">
                         <label class="form-check-label">
-                          <input type="checkbox" class="form-check-input player mt-1" :data-id="u">
+                          <input type="checkbox" class="form-check-input player mt-1" :data-uid="u">
                           {{ players.users[u] }}({{ order_str[i+1] }})
                         </label>
                       </div>
                       <span class="d-inline-flex align-items-center">
                         <button class="btn btn-outline-success btn-sm py-0" @click="showAddPlayer">+</button>
                       </span>
-                      <span style="display: none;">
-                        <PlayerSearch :inline="true" :clear-when-set="true" @complete="addPlayer"/>
-                      </span>
-                      <span class="input-group-append pb-1px" style="display: none;">
-                        <button class="add-player btn btn-success btn-sm py-0" @click="addPlayer">追加</button>
-                      </span>
+                      <div class="input-group input-group-sm d-none w-auto">
+                        <PlayerSearch :clear="true" class-input="form-control-sm" :prepend="true" @done="addPlayer" @enter="addPlayer"/>
+                        <span class="input-group-append pb-1px">
+                          <button class="btn btn-success btn-sm py-0" @click="addPlayer">追加</button>
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </template>
-            <button class="btn btn-outline-success mt-4" @click="addClass">追加</button>
+            <button class="btn btn-outline-success mt-4" data-toggle="tooltip" title="級を追加" @click="addClass">追加</button>
           </div>
           <div class="modal-footer justify-content-between">
             <button type="button" class="btn btn-outline-danger" @click="resetPlayers">リセット</button>
@@ -431,23 +439,132 @@
     <div id="edit_result_dialog" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" @keydown.shift.enter="saveResult">
       <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">結果編集</h5>
+          <div class="modal-header sticky-top bg-white">
+            <h5 class="modal-title">
+              結果編集
+              ({{ `${edit_results.name} ${edit_results.round_name === null ? `${edit_results.round + 1}回戦` : edit_results.round_name}` }})
+            </h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
           <div class="modal-body">
             <template v-if="!isTeamGame">
-              <div/>
+              <div class="form-inline mb-3">
+                <label>
+                  回戦名
+                  <input v-model="edit_results.round_name" class="form-control ml-1" type="text" placeholder="決勝 or 準決勝">
+                </label>
+                <button v-show="edit_results.exists_loser" class="btn ml-2" :class="show_loser ? 'btn-secondary' : 'btn-outline-secondary'" @click="show_loser = !show_loser">負けた人も表示</button>
+              </div>
+              <div v-for="u in show_loser ? edit_results.all : edit_results.remaining" :key="`${u.cuid}-${edit_results.round}`" class="jumbotron form-row d-flex flex-row flex-wrap align-items-center w-100 py-2 px-1 mb-3">
+                <span class="col-5 col-sm-3 col-lg-2 text-right">{{ u.user_name }}</span>
+                <select v-model="u.result.result" class="custom-select col-4 col-sm-3 col-lg-1">
+                  <option value="-1">--</option>
+                  <option v-for="(r, k) in results_jp" :key="k" :value="k">{{ r }}</option>
+                </select>
+                <input v-model="u.result.score_str" type="text" class="form-control col-3 col-sm-3 col-lg-1" placeholder="枚数">
+                <div class="w-100 d-none d-sm-block d-lg-none"/>
+                <PlayerSearch v-model="u.result.opponent_name" class="col-5 col-sm-3 col-lg-2 px-0" :bind="true" placeholder="対戦相手"/>
+                <input v-model="u.result.opponent_belongs" type="text" class="form-control col-7 col-sm-4 col-lg-2" placeholder="所属会">
+                <input v-model="u.result.comment" type="text" class="form-control col-12 col-sm-5 col-lg-3" placeholder="コメント">
+              </div>
             </template>
             <template v-else>
-              <div/>
+              <div class="form-inline mb-3">
+                <label>
+                  回戦名
+                  <input v-model="edit_results.round_name" class="form-control ml-sm-1" type="text" placeholder="決勝/順位決定戦など">
+                </label>
+                <label class="ml-sm-2">
+                  相手チーム
+                  <input v-model="edit_results.op_team_name" class="form-control ml-sm-1" type="text" placeholder="決勝/順位決定戦など">
+                </label>
+              </div>
+              <div v-for="u in edit_results.players" :key="`${u.cuid}-${edit_results.round}`" class="jumbotron form-row d-flex flex-row flex-wrap align-items-center w-100 py-2 px-1 mb-3">
+                <span class="col-5 col-sm-3 col-lg-2 text-right">{{ u.user_name }}</span>
+                <select v-model="u.result.result" class="custom-select col-4 col-sm-3 col-lg-1">
+                  <option value="break">--</option>
+                  <option v-for="(r, k) in results_jp" :key="k" :value="k">{{ r }}</option>
+                </select>
+                <input v-model="u.result.score_str" type="text" class="form-control col-3 col-sm-3 col-lg-1" placeholder="枚数">
+                <div class="w-100 d-none d-sm-block d-lg-none"/>
+                <PlayerSearch v-model="u.result.opponent_name" class="col-5 col-sm-3 col-lg-2 px-0" :bind="true" placeholder="対戦相手"/>
+                <select v-model="u.result.opponent_order" class="custom-select col-7 col-sm-4 col-lg-2">
+                  <option v-for="(o, i) in order_str" :key="i" :value="i">{{ o === null ? '--' : o }}</option>
+                </select>
+                <input v-model="u.result.comment" type="text" class="form-control col-12 col-sm-5 col-lg-3" placeholder="コメント">
+              </div>
             </template>
           </div>
-          <div class="modal-footer justify-content-between">
-            <button type="button" class="btn btn-outline-danger" @click="resetResult">リセット</button>
-            <button type="button" class="btn btn-success" @click="saveResult">保存</button>
+          <div class="modal-footer d-flex">
+            <!-- <button type="button" class="btn btn-outline-danger" @click="resetResult">リセット</button> -->
+            <button type="button" class="btn btn-success ml-auto" @click="saveResult">保存</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 入賞編集dialog -->
+    <div id="edit_prize_dialog" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" @keydown.shift.enter="savePrize">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header sticky-top bg-white">
+            <h5 class="modal-title">
+              入賞編集
+              ({{ edit_prizes.name }})
+            </h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <template v-if="!isTeamGame">
+              <small class="text-muted mb-1">'優勝(昇級)'のように昇級やダッシュなどは()で囲って下さい</small>
+              <div v-for="u in edit_prizes.players" :key="u.cuid" class="jumbotron form-row d-flex flex-row flex-wrap align-items-center w-100 py-2 px-1 mb-3">
+                <span class="ml-2 mr-1">{{ u.user_name }}</span>
+                <input v-model="u.prize.prize" type="text" class="form-control w-auto" placeholder="入賞">
+                <div class="w-100 d-block d-sm-none"/>
+                <div class="form-inline ml-auto ml-md-2 mr-1">
+                  <span>ポイント</span>
+                  <select v-model="u.prize.point" class="custom-select">
+                    <option v-for="p in points" :key="p" :value="p">{{ p }}</option>
+                  </select>
+                </div>
+                <div class="form-inline ml-auto ml-md-2 mr-1">
+                  <span>会内ポイント</span>
+                  <select v-model="u.prize.point_local" class="custom-select">
+                    <option v-for="p in local_points" :key="p" :value="p">{{ p }}</option>
+                  </select>
+                </div>
+              </div>
+            </template>
+            <template v-else>
+              <div class="form-inline">
+                <span>チーム成績</span>
+                <input v-model="edit_prizes.team_prize" class="form-control ml-1" type="text">
+              </div>
+              <small class="form-text text-muted mb-3">'優勝(昇級)'のように昇級や陥落などは()で囲って下さい</small>
+              <div v-for="u in edit_prizes.players" :key="u.cuid" class="jumbotron form-row d-flex flex-row flex-wrap align-items-center w-100 py-2 px-1 mb-3">
+                <span class="ml-2 mr-1">{{ u.user_name }}</span>
+                <input v-model="u.prize.prize" type="text" class="form-control w-auto" placeholder="入賞">
+                <div class="w-100 d-block d-sm-none"/>
+                <div class="form-inline ml-auto ml-md-2 mr-1">
+                  <span>ポイント</span>
+                  <select v-model="u.prize.point" class="custom-select">
+                    <option v-for="p in points" :key="p" :value="p">{{ p }}</option>
+                  </select>
+                </div>
+                <div class="form-inline ml-auto ml-md-2 mr-1">
+                  <span>会内ポイント</span>
+                  <select v-model="u.prize.point_local" class="custom-select">
+                    <option v-for="p in local_points" :key="p" :value="p">{{ p }}</option>
+                  </select>
+                </div>
+              </div>
+            </template>
+          </div>
+          <div class="modal-footer d-flex">
+            <button type="button" class="btn btn-success ml-auto" @click="savePrize">保存</button>
           </div>
         </div>
       </div>
@@ -458,6 +575,7 @@
 import PlayerSearch from './subcomponents/PlayerSearch.vue';
 import ContestDialog from './subcomponents/ContestDialog.vue';
 
+// TOOO: 結果編集残り(入賞, 団体戦)
 export default {
   components: {
     PlayerSearch,
@@ -472,8 +590,11 @@ export default {
   data() {
     return {
       loaded: false,  // 表示タイミング調整
+      results_jp: $.util.results_jp,
       result_str: $.util.result_str,
       order_str: $.util.order_str,
+      points: $.util.points,
+      local_points: $.util.local_points,
       // auto update
       updating: false,
       updater: null,
@@ -519,6 +640,9 @@ export default {
       new_team_count: 0,
       // edit result
       editing: false,
+      edit_results: {},
+      show_loser: false,
+      edit_prizes: {},
     };
   },
   computed: {
@@ -531,8 +655,8 @@ export default {
     time() {
       return $.util.timeRange(this.start_at, this.end_at);
     },
-    _contest_results() {
-      const ret = [];
+    contest_results_conv() {
+      const ret = {};
       _.forEach(this.contest_results, (v) => {
         const cid = v.class_id;
         if (ret[cid] === undefined) ret[cid] = [];
@@ -584,6 +708,9 @@ export default {
       }).catch(() => {
         $('body').addClass('modal-open');
       });
+    });
+    $(document).on('show.bs.modal', () => {
+      $('[data-toggle="tooltip"]').tooltip('hide');
     });
   },
   updated() {
@@ -640,6 +767,38 @@ export default {
         this.$_notify('danger', '大会情報の取得に失敗しました');
       });
     },
+    // 過去の結果
+    fetchPastInfo() {
+      const page = this.past_cur_page;
+      const baseUrl = `/api/result/group/${this.event_group_id}`;
+      const url = page === 1 ? baseUrl : `${baseUrl}?page=${page}`;
+      axios.get(url).then((res) => {
+        _.forEach(res.data, (v, key) => {
+          this[`past_${key}`] = v;
+        });
+      }).catch(() => {
+        this.$_notify('danger', '過去の結果の取得に失敗しました');
+      });
+    },
+    loadPastList(e) {
+      this.past_cur_page = Number($(e.target).html());
+      this.fetchPastInfo();
+    },
+    // 結果
+    setCellHeight() {
+      // セルの高さを揃える
+      const rows = new Set();
+      $('.table-result tbody tr, .table-result thead tr').each((index, elem) => {
+        rows.add($(elem).attr('class'));
+      });
+      rows.forEach((v) => {
+        let maxH = 0;
+        $(`.${v}`).each((index, elem) => {
+          maxH = _.max([maxH, $(elem).height()]);
+        });
+        $(`.${v}`).css('height', maxH);
+      });
+    },
     // コメント
     fetchComment() {
       const contestId = this.id;
@@ -666,30 +825,13 @@ export default {
       $('#new-comment-toggle').click();
       this.fetchComment();
     },
-    // 過去の結果
-    fetchPastInfo() {
-      const page = this.past_cur_page;
-      const baseUrl = `/api/result/group/${this.event_group_id}`;
-      const url = page === 1 ? baseUrl : `${baseUrl}?page=${page}`;
-      axios.get(url).then((res) => {
-        _.forEach(res.data, (v, key) => {
-          this[`past_${key}`] = v;
-        });
-      }).catch(() => {
-        this.$_notify('danger', '過去の結果の取得に失敗しました');
-      });
-    },
-    loadPastList(e) {
-      this.past_cur_page = Number($(e.target).html());
-      this.fetchPastInfo();
-    },
+
     // 人数編集
     saveNumPerson() {
       const $dialog = $('#edit_num_person_dialog');
       const $form = $dialog.find('form');
       const onSave = () => {
         $form.removeClass('was-validated');
-        this.$_notify('保存しました');
         this.changed_num_person = false;
         $dialog.modal('hide');
         this.fetch();
@@ -714,6 +856,7 @@ export default {
         this.$_notify('danger', '保存に失敗しました');
       });
     },
+
     // 出場者編集 (id系をstringで扱ってるのは追加したidを'new_[0-9]'という形にするから)
     fetchPlayers() {
       axios.get(`/api/result/players/${this.id}`).then((res) => {
@@ -730,7 +873,7 @@ export default {
         const tempId = `new_${this.new_class_count}`;
         if (this.isTeamGame) this.players.classes.push([tempId, res]);
         else {
-          const index = Number($(e.target).closest('.card').attr('data-index'));
+          const index = Number($(e.target).closest('.card').attr('data-cindex'));
           this.players.classes.splice(index + 1, 0, [tempId, res]);
         }
         this.new_class_count += 1;
@@ -754,27 +897,34 @@ export default {
     },
     showAddPlayer(e) {
       const $tgt = $(e.target).parent();
-      $tgt.nextAll().show();
-      $tgt.next().find('.search').focus();
       $tgt.toggleClass('d-inline-flex')
+          .toggleClass('d-none')
+          .next()
+          .toggleClass('d-inline-flex')
           .toggleClass('d-none');
+      $tgt.next().find('input[type="search"]').focus();
     },
     addPlayer(e, _e) {
       let $tgt = null;
       let input = '';
       if (e.target !== undefined) {
         $tgt = $(e.target).parent();
-        const $input = $tgt.prev().find('.search');
+        const $input = $tgt.prev().find('input[type="search"]');
         input = $input.val();
-        $tgt.hide().prev().hide().prev()
+        $input.val('');
+        $tgt.parent()
+            .toggleClass('d-inline-flex')
+            .toggleClass('d-none')
+            .prev()
             .toggleClass('d-inline-flex')
             .toggleClass('d-none');
       } else {
         $tgt = $(_e).parent();
-        $tgt.hide().prev()
+        $tgt.toggleClass('d-inline-flex')
+            .toggleClass('d-none')
+            .prev()
             .toggleClass('d-inline-flex')
             .toggleClass('d-none');
-        $tgt.next().hide();
         input = e;
       }
       if (input.trim() === '') {
@@ -787,7 +937,7 @@ export default {
         this.players.user_teams[teamId].push(tempId);
         this.players.users[tempId] = input;
       } else {
-        const index = Number($tgt.closest('.card').attr('data-index'));
+        const index = Number($tgt.closest('.card').attr('data-cindex'));
         const classId = this.players.classes[index][0];
         const tempId = `new_${this.new_player_count}`;
         this.new_player_count += 1;
@@ -809,7 +959,7 @@ export default {
       }
       selected.each((i, e) => {
         const $tgt = $(e);
-        const playerId = $tgt.attr('data-id');
+        const playerId = $tgt.attr('data-uid');
         if (this.players.not_movable[playerId]) {
           this.$_notify('warning', `${this.players.users[playerId]}さんは移動できません`);
           return true;
@@ -820,7 +970,7 @@ export default {
             _.filter(this.players.user_teams[from], v => v.toString() !== playerId);
           this.players.user_teams[to].push(playerId);
         } else {
-          const index = Number($tgt.closest('.card').attr('data-index'));
+          const index = Number($tgt.closest('.card').attr('data-cindex'));
           const from = this.players.classes[index][0].toString();
           if (from === to) {
             this.$_notify('warning', `${this.players.users[playerId]}さんは${this.players.classes[index][1]}に移動できません`);
@@ -839,7 +989,7 @@ export default {
       if (selected.length === 0) this.$_notify('warning', '選手が選択されていません');
       selected.each((i, e) => {
         const $tgt = $(e);
-        const playerId = $tgt.attr('data-id');
+        const playerId = $tgt.attr('data-uid');
         if (this.players.not_movable[playerId]) {
           this.$_notify('warning', `${this.players.users[playerId]}さんは削除できません`);
           $tgt.prop('checked', false);
@@ -850,7 +1000,7 @@ export default {
           this.players.user_teams[teamId] =
             _.filter(this.players.user_teams[teamId], v => v.toString() !== playerId);
         } else {
-          const index = $tgt.closest('.card').attr('data-index');
+          const index = $tgt.closest('.card').attr('data-cindex');
           const from = this.players.classes[index][0].toString();
           this.players.user_classes[from] =
             _.filter(this.players.user_classes[from], v => v.toString() !== playerId);
@@ -877,7 +1027,6 @@ export default {
     },
     savePlayers() {
       const onSave = () => {
-        this.$_notify('保存しました');
         this.changed_players = false;
         $('#edit_players_dialog').modal('hide');
         this.fetch();
@@ -914,7 +1063,7 @@ export default {
       selected.each((i, e) => {
         const $tgt = $(e);
         const teamId = $tgt.closest('.card').attr('data-team');
-        const index = Number($tgt.closest('.card').parent().closest('.card').attr('data-index'));
+        const index = Number($tgt.closest('.card').parent().closest('.card').attr('data-cindex'));
         const from = this.players.classes[index][0].toString();
         if (from === to) {
           this.$_notify('warning', `${this.players.teams[teamId]}は${this.players.classes[index][1]}に移動できません`);
@@ -933,7 +1082,7 @@ export default {
       selected.each((i, e) => {
         const $tgt = $(e);
         const teamId = $tgt.closest('.card').attr('data-team');
-        const index = Number($tgt.closest('.card').parent().closest('.card').attr('data-index'));
+        const index = Number($tgt.closest('.card').parent().closest('.card').attr('data-cindex'));
         const from = this.players.classes[index][0].toString();
         this.players.team_classes[from] =
             _.filter(this.players.team_classes[from], v => v.toString() !== teamId);
@@ -945,31 +1094,169 @@ export default {
         return true;
       });
     },
-    // 結果
-    setCellHeight() {
-      // セルの高さを揃える
-      const rows = new Set();
-      $('.table-result tbody tr, .table-result thead tr').each((index, elem) => {
-        rows.add($(elem).attr('class'));
-      });
-      rows.forEach((v) => {
-        let maxH = 0;
-        $(`.${v}`).each((index, elem) => {
-          maxH = _.max([maxH, $(elem).height()]);
-        });
-        $(`.${v}`).css('height', maxH);
-      });
-    },
+
     // 結果編集
-    edit(classId, round) {
+    edit(id, round) {
+      // round: from 0
       if (!this.editing) return;
-      console.log(classId, round);
-    },
-    editPrize() {
-    },
-    resetResult() {
+      const unselected = '-1';
+      const editResults = {};
+      if (!this.isTeamGame) {
+        editResults.class_id = id;
+        editResults.name = this.contest_classes[id].class_name;
+        const results = this.contest_results_conv[id][0];
+        editResults.round = round;
+        editResults.round_name = (results.rounds[round] && results.rounds[round].name)
+          ? results.rounds[round].name : null;
+        const isLoser = (user) => {
+          if (round === 0) return false;
+          if (user.game_results[round] !== undefined) return false;
+          if (user.game_results[round - 1] && user.game_results[round - 1].result !== 'lose') return false;
+          return true;
+        };
+        editResults.remaining = _.filter(results.user_results, v => !isLoser(v));
+        editResults.remaining = _.map(editResults.remaining, v => ({
+          cuid: v.cuid,
+          user_name: v.user_name,
+          result: _.clone(v.game_results[round]) || { result: unselected },
+        }));
+        const losers = _.map(_.filter(results.user_results, isLoser), v => ({
+          cuid: v.cuid,
+          user_name: v.user_name,
+          result: _.clone(v.game_results[round]) || { result: unselected },
+        }));
+        editResults.all = _.concat(editResults.remaining, losers);
+        editResults.exists_loser = losers.length > 0;
+      } else {
+        editResults.team_id = id;
+        const results = _.find(this.contest_results, { team_id: id });
+        editResults.class_id = results.class_id;
+        editResults.round = round;
+        editResults.name = results.header_left.team_name;
+        editResults.round_name = (results.rounds[round] && results.rounds[round].name)
+          ? results.rounds[round].name : null;
+        editResults.op_team_name = (results.rounds[round] && results.rounds[round].op_team_name)
+          ? results.rounds[round].op_team_name : null;
+        editResults.players = _.map(results.user_results, (v) => {
+          const result = _.clone(v.game_results[round]);
+          if (!result.opponent_order) result.opponent_order = '0';
+          return {
+            cuid: v.cuid,
+            user_name: v.user_name,
+            result,
+          };
+        });
+      }
+      this.edit_results = editResults;
+      $('#edit_result_dialog').modal('show');
     },
     saveResult() {
+      const e = this.edit_results;
+      const data = {};
+      if (!this.isTeamGame) {
+        const unselected = '-1';
+        const classId = e.class_id;
+        const { round } = e;
+        const userResults = this.contest_results_conv[classId][0].user_results;
+        data.class_id = classId;
+        data.round = round + 1;
+        data.round_name = e.round_name || null;
+        // 変更箇所のみを残す
+        this.$_assert(userResults.length === e.all.length);
+        data.results = _.map(e.all, (player) => {
+          const prevRes = _.find(userResults, { cuid: player.cuid }).game_results[round];
+          if (prevRes === undefined && player.result.result === unselected) return false;
+          if (player.result.result === unselected) player.result.result = null;
+          if (_.isEqual(player.result, prevRes)) return false;
+          const ret = player.result;
+          ret.cuid = player.cuid;
+          return ret;
+        });
+        data.results = _.filter(data.results);
+      } else {
+        const teamId = e.team_id;
+        const { round } = e;
+        const userResults = _.find(this.contest_results, { team_id: teamId }).user_results;
+        data.class_id = e.class_id;
+        data.team_id = teamId;
+        data.round = round + 1;
+        data.round_name = e.round_name || null;
+        data.round_kind = 'team';
+        data.op_team_name = e.op_team_name || null;
+        // 変更箇所のみを残す
+        this.$_assert(userResults.length === e.players.length);
+        data.results = _.map(e.players, (player) => {
+          const prevRes = _.find(userResults, { cuid: player.cuid }).game_results[round];
+          if (player.result.opponent_order === '0') delete player.result.opponent_order;
+          if (_.isEqual(player.result, prevRes)) return false;
+          if (player.result.result === 'break') player.result.result = null;
+          const ret = player.result;
+          ret.cuid = player.cuid;
+          return ret;
+        });
+        data.results = _.filter(data.results);
+      }
+      axios.post('/api/result/update_round', data).then(() => {
+        $('#edit_result_dialog').modal('hide');
+        this.fetch();
+      }).catch(() => {
+        this.$_notify('danger', '更新に失敗しました');
+      });
+    },
+
+    // 入賞編集
+    editPrize(id) {
+      const editPrizes = {};
+      if (!this.isTeamGame) {
+        editPrizes.class_id = id;
+        editPrizes.name = this.contest_classes[id].class_name;
+        editPrizes.players = _.cloneDeep(this.contest_results_conv[id][0].user_results);
+        _.each(editPrizes.players, (p) => {
+          if (p.prize === undefined) {
+            p.prize = {
+              prize: '',
+              point: 0,
+              point_local: 0,
+            };
+          }
+        });
+      } else {
+        editPrizes.team_id = id;
+        const results = _.find(this.contest_results, { team_id: id });
+        editPrizes.class_id = results.class_id;
+        editPrizes.name = results.header_left.team_name;
+        editPrizes.team_prize = results.header_left.team_prize || null;
+        editPrizes.players = _.cloneDeep(results.user_results);
+        _.each(editPrizes.players, (p) => {
+          if (p.prize === undefined) {
+            p.prize = {
+              prize: '',
+              point_local: 0,
+            };
+          }
+        });
+      }
+      this.edit_prizes = editPrizes;
+      $('#edit_prize_dialog').modal('show');
+    },
+    savePrize() {
+      const e = this.edit_prizes;
+      const data = {};
+      if (!this.isTeamGame) {
+        data.class_id = e.class_id;
+        data.prizes = _.map(e.players, p => _.assign(p.prize, { cuid: p.cuid }));
+      } else {
+        data.class_id = e.class_id;
+        data.team_id = e.team_id;
+        data.team_prize = e.team_prize;
+        data.prizes = _.map(e.players, p => _.assign(p.prize, { cuid: p.cuid }));
+      }
+      axios.post('/api/result/update_prize', data).then(() => {
+        $('#edit_prize_dialog').modal('hide');
+        this.fetch();
+      }).catch(() => {
+        this.$_notify('danger', '更新に失敗しました');
+      });
     },
   },
 };
@@ -1003,6 +1290,13 @@ export default {
   }
 }
 
+#result-tab-button-wrapper button {
+  // @include media-breakpoint-down(sm)
+  @media screen and (max-width: 575px) {
+    padding: .25rem .5rem;
+  }
+}
+
 .badge-class-name {
   color: white;
   background-color: maroon;
@@ -1015,20 +1309,10 @@ export default {
 
   .edit {
     cursor: pointer;
-    background: linear-gradient(#ffd3bc, #f7bd8e);
+    background: linear-gradient(#ffddcc, #f7bd8e);
     &:hover {
-      background: linear-gradient(#ffcda5, #f5b17a);
+      background: linear-gradient(#f5cfb0, #f5b17a);
     }
-  }
-}
-
-#edit_players_dialog {
-  .add-player {
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-  }
-  .pb-1px {
-    padding-bottom: 1px;
   }
 }
 

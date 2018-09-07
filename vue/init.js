@@ -19,9 +19,19 @@ export default () => {
   // Mixin
   Vue.mixin({
     methods: {
+      // template内で使えるようにするためのラッパー
+      /* eslint-disable-next-line no-console */
+      $_log: console.log,
+
+      // ダイアログなど
       $_notify: n.notify,
       $_confirm: d.confirm,
       $_prompt: d.prompt,
+
+      // util
+      $_assert(v) {
+        if (!v) throw Error('Assertion Error');
+      },
       $_setBeforeUnload(isChanged) {
         window.addEventListener('beforeunload', (e) => {
           if (isChanged()) {
@@ -44,7 +54,11 @@ export default () => {
   $.util = {
     weekday_ja: '日月火水木金土日',
     result_str: { win: '○', lose: '●', now: '対戦中' },
+    results_jp: { win: '勝ち', lose: '負け', now: '途中', default_win: '不戦' },
     order_str: [null, '主将', '副将', '三将', '四将', '五将', '六将', '七将', '八将'],
+    /* eslint-disable no-restricted-properties */
+    points: _.map(_.range(8), x => (x > 0 ? Math.pow(2, x - 1) : 0)),
+    local_points: _.map(_.range(10), x => (x > 0 ? Math.pow(2, x - 1) : 0)),
   };
   // 日付(String)->Date. YYYY-MM-DD形式.
   $.util.parseDate = (str) => {

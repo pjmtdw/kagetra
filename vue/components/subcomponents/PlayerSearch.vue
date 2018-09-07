@@ -1,17 +1,12 @@
 <template>
-  <div class="input-group justify-content-center" :class="inline ? ['input-group-sm', 'd-inline-flex'] : null">
-    <div v-if="!complete" class="input-group-prepend">
-      <span class="input-group-text">検索</span>
-    </div>
-    <div class="dropdown" :class="{'input-group-sm': inline}">
-      <input class="search form-control" :class="{'appended': clearWhenSet}" name="query" type="search" autocomplete="off" :placeholder="placeholder" @input="fetchCandidate">
-      <div class="autocomplete dropdown-menu mt-0">
-        <span v-if="complete">
-          <a v-for="c in candidates" class="dropdown-item" href="#" @click="clickName">{{ c }}</a>
-        </span>
-        <span v-else>
-          <a v-for="c in candidates" class="dropdown-item" href="#">{{ c }}</a>
-        </span>
+  <div>
+    <input v-if="bind" class="form-control" :class="[classInput, { append }, { prepend }]" type="search" autocomplete="off" :placeholder="placeholder" :value="value"
+           @input="fetchCandidate($event.target.value)" @focus="onFocus" @blur="onBlur" @keypress.enter="onEnter">
+    <input v-else ref="input" class="form-control" :class="[classInput, { append }, { prepend }]" type="search" autocomplete="off" :placeholder="placeholder"
+           @input="fetchCandidate($event.target.value)" @focus="onFocus" @blur="onBlur" @keypress.enter="onEnter">
+    <div class="dropdown" :class="{ show: focused }">
+      <div class="dropdown-menu mt-0" :class="{ show: focused }">
+        <a v-for="c in candidates" :key="c" class="dropdown-item" href="#" @click.prevent="clickName(c)">{{ c }}</a>
         <span v-if="searching">Searching...</span>
         <span v-else-if="input !== '' && candidates.length === 0">No matches found</span>
         <span v-else-if="input === ''">Please enter 1 or more character</span>
@@ -23,80 +18,103 @@
 // inputにv-modelを使うと入力確定前には値が取得できない
 export default {
   props: {
+    bind: {
+      type: Boolean,
+      default: false,
+    },
+    value: {
+      type: String,
+      default: '',
+    },
     placeholder: {
       type: String,
       default: null,
     },
-    complete: { // 補完 or リンク
-      type: Boolean,
-      default: true,
-    },
-    inline: {
+    clear: {
       type: Boolean,
       default: false,
     },
-    clearWhenSet: {
+    append: {
       type: Boolean,
       default: false,
+    },
+    prepend: {
+      type: Boolean,
+      default: false,
+    },
+    classInput: {
+      type: [String, Array, Object],
+      default: null,
     },
   },
   data() {
     return {
       input: '',
+      focused: false,
       searching: false,
       candidates: [],
     };
   },
-  mounted() {
-    const e = this.$el;
-    $('.search', e).focus(() => {
-      $('.autocomplete', e).addClass('show');
-    }).blur(() => {
-      // すぐに消すとclickイベントが発生しない
-      setTimeout(() => $('.autocomplete', e).removeClass('show'), 50);
-    });
-  },
   methods: {
-    fetchCandidate() {
-      const url = '/api/result_misc/search_name';
-      const q = $('.search', this.$el).val();
-      if (q === this.input) return;
-      else if (q === '') {
+    fetchCandidate(q) {
+      if (this.bind) {
+        this.$emit('input', q);
+      }
+      if (q === '') {
         this.candidates = [];
-        this.input = '';
         return;
       }
       this.input = q;
       this.searching = true;
-      axios.post(url, { q }).then((res) => {
+      axios.post('/api/result_misc/search_name', { q }).then((res) => {
         this.searching = false;
         this.candidates = res.data.results;
       }).catch(() => {
         this.$_notify('danger', '候補の取得に失敗しました。');
       });
     },
-    clickName(e) {
-      const name = $(e.target).html();
-      if (this.clearWhenSet) {
-        $('.search', this.$el).val('');
-        this.input = '';
+    clickName(name) {
+      if (this.bind) {
+        this.$emit('input', name);
+        return;
+      }
+      if (this.clear) {
+        this.$refs.input.value = '';
         this.candidates = [];
       } else {
-        $('.search', this.$el).val(name);
-        this.fetchCandidate();
+        this.$refs.input.value = name;
       }
-      this.$emit('complete', name, this.$el);
+      this.$emit('done', name, this.$el);
+    },
+    onFocus() {
+      this.focused = true;
+      if (this.bind) return;
+      if (this.$refs.input.value === '') {
+        this.input = '';
+        this.candidates = [];
+      }
+    },
+    onBlur() {
+      // すぐに消すとclickイベントが発生しない
+      setTimeout(() => { this.focused = false; }, 50);
+    },
+    onEnter() {
+      if (this.bind) return;
+      this.$emit('enter', this.$refs.input.value, this.$el);
+      if (this.clear) {
+        this.$refs.input.value = '';
+        this.candidates = [];
+      }
     },
   },
 };
 </script>
 <style lang="scss" scoped>
-.input-group-prepend + div .search {
-  max-width: 150px;
+.append {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
 }
-.appended {
+.prepend {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }

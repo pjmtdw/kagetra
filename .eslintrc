@@ -44,13 +44,31 @@
     ],
     "operator-linebreak": [
       "error",
-      "after"
+      "after",
+      {
+        "overrides": {
+          "?": "before"
+        }
+      }
     ],
     "no-restricted-globals": 0,
     "object-curly-newline": [
       "error",
       {
         "consistent": true
+      }
+    ],
+    "prefer-destructuring": [
+      "error",
+      {
+        "array": false,
+        "object": true
+      }
+    ],
+    "no-param-reassign": [
+      "error",
+      {
+        "props": false
       }
     ],
     "vue/max-attributes-per-line": [

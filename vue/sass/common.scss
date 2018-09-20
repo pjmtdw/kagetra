@@ -44,10 +44,6 @@ body {
   }
 }
 
-// .tooltip-line {
-//   border-bottom: 1px dashed rgba(black, 0.4);
-// }
-
 .badge-light-shadow {
   background-color: #eee;
   box-shadow: 1px 1px 1px 1px rgba(black, 0.2);
@@ -61,6 +57,14 @@ body {
   position: relative;
   padding-left: 10px;
   top: -.75em;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.border-top-dotted {
+  border-top: 1px dotted #dee2e6!important;
 }
 
 .pb-1px {

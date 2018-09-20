@@ -1,11 +1,11 @@
 import bbs from '../components/Bbs.vue';
 
 export default [{
-  name: 'bbs',
   path: '/:page(\\d+)',
   component: bbs,
   props: true,
 }, {
   path: '*',
-  redirect: '/1',
+  component: bbs,
+  props: { page: '1' },
 }];

@@ -6,7 +6,13 @@
            @input="fetchCandidate($event.target.value)" @focus="onFocus" @blur="onBlur" @keypress.enter="onEnter">
     <div class="dropdown" :class="{ show: focused }">
       <div class="dropdown-menu mt-0" :class="{ show: focused }">
-        <a v-for="c in candidates" :key="c" class="dropdown-item" href="#" @click.prevent="clickName(c)">{{ c }}</a>
+        <template v-if="link">
+          <router-link v-for="c in candidates" :key="c" class="dropdown-item" :to="`/record/${c}`" @click.native="clickName(c)">{{ c }}</router-link>
+        </template>
+        <template v-else>
+          <a v-for="c in candidates" :key="c" class="dropdown-item" href="#" @click.prevent="clickName(c)">{{ c }}</a>
+        </template>
+        <!-- <a v-for="c in candidates" :key="c" class="dropdown-item" href="#" @click.prevent="clickName(c)">{{ c }}</a> -->
         <span v-if="searching">Searching...</span>
         <span v-else-if="input !== '' && candidates.length === 0">No matches found</span>
         <span v-else-if="input === ''">Please enter 1 or more character</span>
@@ -18,6 +24,7 @@
 // inputにv-modelを使うと入力確定前には値が取得できない
 export default {
   props: {
+    // v-modelを使用
     bind: {
       type: Boolean,
       default: false,
@@ -26,14 +33,27 @@ export default {
       type: String,
       default: '',
     },
+    // inputタグに適用するクラス
+    classInput: {
+      type: [String, Array, Object],
+      default: null,
+    },
+    // inputタグのplaceholder
     placeholder: {
       type: String,
       default: null,
     },
+    // 選択した人の個人記録を表示
+    link: {
+      type: Boolean,
+      default: false,
+    },
+    // 選択後にinputをクリア
     clear: {
       type: Boolean,
       default: false,
     },
+    // styling
     append: {
       type: Boolean,
       default: false,
@@ -41,10 +61,6 @@ export default {
     prepend: {
       type: Boolean,
       default: false,
-    },
-    classInput: {
-      type: [String, Array, Object],
-      default: null,
     },
   },
   data() {

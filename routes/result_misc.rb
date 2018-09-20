@@ -179,10 +179,15 @@ class MainApp < Sinatra::Base
            res[:result] = x.result
            res[:opponent_name] = x.opponent_name
         end
-        res.merge(x.select_attr(:event_id,:score_str))
+        res.merge(x.select_attr(:event_id, :score_str, :comment))
       }
       res_games = Hash[games.group_by{|x|x[:event_id]}.map{|eid,arr|
         r = Hash[arr.map{|x|[x[:round],x]}]
+        (1..r.keys.max).each{|i|
+          if not r.key?(i)
+            r[i] = {result: 'break'}
+          end
+        }
         [eid,r]
       }]
 

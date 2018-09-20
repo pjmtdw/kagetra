@@ -12,7 +12,28 @@
   td {
     background-color: #ffd;
     .prize{
-      margin-top: 5px;
+      margin-top: .25rem;
+      color: purple;
+      font-weight: bold;
+    }
+  }
+}
+.table-contest {
+  table-layout: fixed;
+  thead {
+    background-color: #fdc;
+  }
+  td, th {
+    border: 1px dotted gray;
+    font-size: 0.875em;
+    &.opponent {
+      background-color: #e2ffdd;
+    }
+  }
+  td {
+    background-color: #ffd;
+    .prize{
+      margin-top: .25rem;
       color: purple;
       font-weight: bold;
     }

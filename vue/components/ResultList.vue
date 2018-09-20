@@ -1,28 +1,33 @@
 <template>
   <main id="container" class="mx-auto">
+    <!-- nav -->
     <div class="container my-2">
       <div class="row">
         <nav id="nav-result-pages" class="col-12 col-md-8">
           <ul class="pagination justify-content-center justify-content-md-start">
             <li class="page-item"><router-link class="page-link p-1 p-sm-2" to="/">大会結果</router-link></li>
             <li class="page-item active"><span class="page-link p-1 p-sm-2">大会一覧</span></li>
-            <li class="page-item"><router-link class="page-link p-1 p-sm-2" to="/list">個人記録</router-link></li>
+            <li class="page-item"><router-link class="page-link p-1 p-sm-2" to="/record">個人記録</router-link></li>
             <li class="page-item"><router-link class="page-link p-1 p-sm-2" to="/list">昇級履歴</router-link></li>
             <li class="page-item"><router-link class="page-link p-1 p-sm-2" to="/list">ランキング</router-link></li>
           </ul>
         </nav>
       </div>
     </div>
+    <!-- 年 -->
     <nav class="nav nav-pills flex-row flex-wrap" role="tablist">
       <router-link v-for="y in years" :key="y" :to="`/list/${y}`" class="nav-link" :class="{active: (y == year)}" role="tab">
         {{ y }}
       </router-link>
     </nav>
+    <!-- 大会一覧 -->
     <div class="container border">
       <div v-for="(ct, i) in list" :key="ct.id" class="row justify-content-center" :class="[i % 2 === 1 ? 'bg-light' : 'bg-white']">
-        <div class="col-3 col-lg-2 d-flex align-items-center">{{ ct.date }}</div>
-        <div class="col-3 col-lg-2 d-flex align-items-center">
+        <div class="col-2 d-flex align-items-center">{{ ct.date }}</div>
+        <div class="col-4 col-lg-2 d-flex align-items-center">
           <div>
+            <span v-if="ct.official">&spades;</span>
+            <span v-else class="text-success">&clubs;</span>
             <router-link :to="`/${ct.id}`" class="card-link">{{ ct.name }}</router-link>
             <div>{{ ct.win }}勝{{ ct.lose }}敗({{ ct.user_count }}人)</div>
           </div>

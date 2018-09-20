@@ -7,7 +7,7 @@
           <ul class="pagination justify-content-center justify-content-md-start">
             <li class="page-item active"><span class="page-link p-1 p-sm-2">大会結果</span></li>
             <li class="page-item"><router-link class="page-link p-1 p-sm-2" to="/list">大会一覧</router-link></li>
-            <li class="page-item"><router-link class="page-link p-1 p-sm-2" to="/list">個人記録</router-link></li>
+            <li class="page-item"><router-link class="page-link p-1 p-sm-2" to="/record">個人記録</router-link></li>
             <li class="page-item"><router-link class="page-link p-1 p-sm-2" to="/list">昇級履歴</router-link></li>
             <li class="page-item"><router-link class="page-link p-1 p-sm-2" to="/list">ランキング</router-link></li>
           </ul>
@@ -17,7 +17,7 @@
             <div class="input-group-prepend">
               <span class="input-group-text">検索</span>
             </div>
-            <PlayerSearch :append="true" placeholder="選手名検索"/>
+            <PlayerSearch :append="true" :link="true" placeholder="選手名検索"/>
           </div>
         </div>
       </div>
@@ -43,7 +43,8 @@
     </div>
     <!-- 大会名, 日時, 過去の結果 -->
     <div v-show="loaded" class="mt-4 mb-3">
-      <span class="h5 mx-1" :class="{'unofficial': !official}">{{ official ? '&spades;' : '&clubs;' }}</span>
+      <span v-if="official" class="h5 mx-1">&spades;</span>
+      <span v-else class="h5 mx-1 text-success">&clubs;</span>
       <span class="h5"><strong>{{ name }}</strong></span>
       <span class="h6 date">@{{ date }}</span>
       <div v-if="event_group_id" class="btn-group mb-1">
@@ -142,7 +143,7 @@
               <tbody>
                 <tr v-for="user in res.user_results" :key="user.cuid" :class="`row-${user.cuid}`">
                   <td class="text-center">
-                    <div>{{ user.user_name }}</div>
+                    <router-link tag="span" class="cursor-pointer" :to="`/record/${user.user_name}`">{{ user.user_name }}</router-link >
                     <div v-if="user.prize" class="prize">
                       <span v-if="user.prize.prize">{{ `${user.prize.prize}` }}</span>
                       <span v-if="user.prize.point > 0 && user.prize.point_local > 0"><br>{{ `[${user.prize.point}pt, ${user.prize.point_local}kpt]` }}</span>
@@ -172,7 +173,10 @@
                       <div v-if="game.result === 'break'"/>
                       <div v-else-if="game.result === 'default_win'">不戦</div>
                       <template v-else>
-                        <div>{{ result_str[game.result] }} {{ game.score_str }} {{ game.opponent_name }}</div>
+                        <div>
+                          {{ result_str[game.result] }} {{ game.score_str }}
+                          <router-link tag="span" class="cursor-pointer" :to="`/record/${game.opponent_name}`">{{ game.opponent_name }}</router-link>
+                        </div>
                         <div v-if="game.opponent_belongs">
                           ({{ game.opponent_belongs }})
                           <span v-if="game.comment" class="info-icon" data-toggle="tooltip" data-placement="bottom" :title="game.comment"/>
@@ -575,7 +579,6 @@
 import PlayerSearch from './subcomponents/PlayerSearch.vue';
 import ContestDialog from './subcomponents/ContestDialog.vue';
 
-// TOOO: 結果編集残り(入賞, 団体戦)
 export default {
   components: {
     PlayerSearch,
@@ -1274,9 +1277,6 @@ export default {
   overflow-y: auto;
 }
 
-.unofficial {
-  color: green;
-}
 .date {
   color: brown;
 }

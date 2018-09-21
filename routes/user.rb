@@ -155,6 +155,8 @@ class MainApp < Sinatra::Base
           }
         }
       }
+      # TODO: これがないとstatus codeがおかしくなる
+      200
     end
     post '/relogin' do
       login_jobs(@user)

@@ -5,15 +5,15 @@
     </button>
     <div v-if="!isPublic" id="navbarContent" class="collapse navbar-collapse">
       <ul class="navbar-nav mr-auto">
-        <li v-for="e in list" :key="e.alias" class="nav-item mx-2">
-          <a class="nav-link" :class="{active: routeName === e.alias}" :href="`/${e.alias}`">{{ e.name }}</a>
+        <li v-for="x in list" :key="x.alias" class="nav-item mx-2">
+          <a class="nav-link" :class="{active: routeName === x.alias}" :href="`/${x.alias}`">{{ x.name }}</a>
         </li>
       </ul>
     </div>
     <div v-else id="navbarContent" class="collapse navbar-collapse">
       <ul class="navbar-nav mr-auto">
-        <li v-for="e in publicList" :key="e.alias" class="nav-item mx-2">
-          <a class="nav-link" :class="{active: routeName === e.alias}" :href="`/public/${e.alias}`">{{ e.name }}</a>
+        <li v-for="x in publicList" :key="x.alias" class="nav-item mx-2">
+          <a class="nav-link" :class="{active: routeName === x.alias}" :href="`/public/${x.alias}`">{{ x.name }}</a>
         </li>
       </ul>
     </div>

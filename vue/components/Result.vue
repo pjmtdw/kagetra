@@ -8,8 +8,8 @@
             <li class="page-item active"><span class="page-link p-1 p-sm-2">大会結果</span></li>
             <li class="page-item"><router-link class="page-link p-1 p-sm-2" to="/list">大会一覧</router-link></li>
             <li class="page-item"><router-link class="page-link p-1 p-sm-2" to="/record">個人記録</router-link></li>
-            <li class="page-item"><router-link class="page-link p-1 p-sm-2" to="/list">昇級履歴</router-link></li>
-            <li class="page-item"><router-link class="page-link p-1 p-sm-2" to="/list">ランキング</router-link></li>
+            <li class="page-item"><router-link class="page-link p-1 p-sm-2" to="/promotion">昇級履歴</router-link></li>
+            <li class="page-item"><router-link class="page-link p-1 p-sm-2" to="/ranking">ランキング</router-link></li>
           </ul>
         </nav>
         <div class="col-12 col-md-4 mt-2 mt-md-0">

@@ -37,8 +37,8 @@
                   </div>
                   <select v-model="event_group_id" id="event_group_id_select" name="event_group_id" class="custom-select" @change="fetchPastList">
                     <option value="-1">---</option>
-                    <option v-for="e in all_event_groups" :key="e.id" :value="e.id">
-                      {{ e.name }}
+                    <option v-for="eg in all_event_groups" :key="eg.id" :value="eg.id">
+                      {{ eg.name }}
                     </option>
                   </select>
                 </div>

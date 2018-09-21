@@ -1,6 +1,6 @@
 <template>
   <main id="container" class="mx-auto">
-    <!-- nav -->
+    <!-- nav, 選手名検索 -->
     <div class="container my-2">
       <div class="row">
         <nav id="nav-result-pages" class="col-12 col-md-8">
@@ -8,10 +8,18 @@
             <li class="page-item"><router-link class="page-link p-1 p-sm-2" to="/">大会結果</router-link></li>
             <li class="page-item active"><span class="page-link p-1 p-sm-2">大会一覧</span></li>
             <li class="page-item"><router-link class="page-link p-1 p-sm-2" to="/record">個人記録</router-link></li>
-            <li class="page-item"><router-link class="page-link p-1 p-sm-2" to="/list">昇級履歴</router-link></li>
-            <li class="page-item"><router-link class="page-link p-1 p-sm-2" to="/list">ランキング</router-link></li>
+            <li class="page-item"><router-link class="page-link p-1 p-sm-2" to="/promotion">昇級履歴</router-link></li>
+            <li class="page-item"><router-link class="page-link p-1 p-sm-2" to="/ranking">ランキング</router-link></li>
           </ul>
         </nav>
+        <div class="col-12 col-md-4 mt-2 mt-md-0">
+          <div class="input-group justify-content-center">
+            <div class="input-group-prepend">
+              <span class="input-group-text">検索</span>
+            </div>
+            <PlayerSearch :append="true" :link="true" :clear="true" placeholder="選手名検索"/>
+          </div>
+        </div>
       </div>
     </div>
     <!-- 年 -->
@@ -55,7 +63,12 @@
   </main>
 </template>
 <script>
+import PlayerSearch from './subcomponents/PlayerSearch.vue';
+
 export default {
+  components: {
+    PlayerSearch,
+  },
   props: {
     year: {
       type: String,

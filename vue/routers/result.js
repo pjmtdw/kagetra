@@ -28,13 +28,13 @@ export default [
     path: '/promotion/ranking',
     component: resultPromotion,
     props: {
-      ranking: true,
+      recent: false,
     },
   }, {
     path: '/promotion',
     component: resultPromotion,
     props: {
-      ranking: false,
+      recent: true,
     },
   }, {
     path: '/:contestId(\\d+)',

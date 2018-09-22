@@ -2,6 +2,7 @@ import result from '../components/Result.vue';
 import resultList from '../components/ResultList.vue';
 import resultRecord from '../components/ResultRecord.vue';
 import resultPromotion from '../components/ResultPromotion.vue';
+import resultRanking from '../components/ResultRanking.vue';
 
 export default [
   {
@@ -36,6 +37,10 @@ export default [
     props: {
       recent: true,
     },
+  }, {
+    path: '/ranking',
+    component: resultRanking,
+    props: route => _.mapKeys(route.query, (v, k) => `_${k}`),
   }, {
     path: '/:contestId(\\d+)',
     component: result,

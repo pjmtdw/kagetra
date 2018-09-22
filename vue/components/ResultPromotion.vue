@@ -142,8 +142,6 @@ export default {
       median: null,
     };
   },
-  computed: {
-  },
   watch: {
     recent() {
       this.$nextTick(this.fetch);
@@ -195,16 +193,5 @@ export default {
 #container {
   width: 100%;
   max-width: 860px;
-}
-
-table.summary {
-  border-collapse: separate;
-  border-spacing: 0px;
-  @media screen and (max-width: 575px) {
-    font-size: 10px;
-  }
-  td {
-    padding: .1rem .3rem;
-  }
 }
 </style>

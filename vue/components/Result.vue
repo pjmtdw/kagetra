@@ -234,7 +234,7 @@
                 <div class="card-body">
                   <span>{{ date }}</span>
                   <span>({{ weekday }})</span>
-                  <span v-html="time"/>
+                  <span v-html="$_timeRange(start_at, end_at)"/>
                 </div>
               </div>
             </div>
@@ -275,7 +275,7 @@
             書き込む
           </button>
         </div>
-        <NewCommentForm id="new-comment-form" class="mx-3 mb-3 mt-2" url="/api/event/comment/item" :thread-id="id" @done="postDone"/>
+        <NewCommentForm id="new-comment-form" class="mx-3 mb-3 mt-2" url="/event/comment/item" :thread-id="id" @done="postDone"/>
         <nav v-if="pages > 1" class="pl-2">
           <ul class="pagination">
             <li v-for="p in pages" :key="p" class="page-item" :class="{'active': p == cur_page}">
@@ -285,7 +285,7 @@
             </li>
           </ul>
         </nav>
-        <CommentList :comments="list" url="/api/event/comment/item" item-class="px-2 py-1" @done="fetchComment"/>
+        <CommentList :comments="list" url="/event/comment/item" item-class="px-2 py-1" @done="fetchComment"/>
       </div>
     </div>
     <!-- 大会追加dialog -->
@@ -722,7 +722,7 @@ export default {
   },
   methods: {
     fetch() {
-      const baseUrl = '/api/result/contest';
+      const baseUrl = '/result/contest';
       const url = this.contestId === null ? `${baseUrl}/latest` : `${baseUrl}/${this.contestId}`;
       axios.get(url).then((res) => {
         _.forEach(res.data, (v, key) => {
@@ -738,7 +738,7 @@ export default {
       });
     },
     update() {
-      const baseUrl = '/api/result/contest';
+      const baseUrl = '/result/contest';
       const url = this.contestId === null ? `${baseUrl}/latest` : `${baseUrl}/${this.contestId}`;
       axios.get(url).then((res) => {
         _.forEach(res.data, (v, key) => {
@@ -761,7 +761,7 @@ export default {
       }
     },
     fetchDetail() {
-      const url = `/api/event/item/${this.id}?detail=true&no_participant=true`;
+      const url = `/event/item/${this.id}?detail=true&no_participant=true`;
       axios.get(url).then((res) => {
         _.forEach(['formal_name', 'start_at', 'end_at', 'place', 'description', 'attached', 'editable'], (v) => {
           this[v] = res.data[v];
@@ -773,7 +773,7 @@ export default {
     // 過去の結果
     fetchPastInfo() {
       const page = this.past_cur_page;
-      const baseUrl = `/api/result/group/${this.event_group_id}`;
+      const baseUrl = `/result/group/${this.event_group_id}`;
       const url = page === 1 ? baseUrl : `${baseUrl}?page=${page}`;
       axios.get(url).then((res) => {
         _.forEach(res.data, (v, key) => {
@@ -806,7 +806,7 @@ export default {
     fetchComment() {
       const contestId = this.id;
       const page = this.cur_page;
-      const baseUrl = `/api/event/comment/list/${contestId}`;
+      const baseUrl = `/event/comment/list/${contestId}`;
       const url = page === 1 ? baseUrl : `${baseUrl}?page=${page}`;
       axios.get(url).then((res) => {
         _.forEach(res.data, (v, key) => {
@@ -855,14 +855,14 @@ export default {
         onSave();
         return;
       }
-      axios.post('/api/result/num_person', { data }).then(onSave).catch(() => {
+      axios.post('/result/num_person', { data }).then(onSave).catch(() => {
         this.$_notify('danger', '保存に失敗しました');
       });
     },
 
     // 出場者編集 (id系をstringで扱ってるのは追加したidを'new_[0-9]'という形にするから)
     fetchPlayers() {
-      axios.get(`/api/result/players/${this.id}`).then((res) => {
+      axios.get(`/result/players/${this.id}`).then((res) => {
         this.players = res.data;
         this.players.deleted_classes = [];
         this.players.deleted_teams = [];
@@ -1038,7 +1038,7 @@ export default {
         onSave();
         return;
       }
-      axios.put(`/api/result/players/${this.id}`, this.players).then(onSave).catch(() => {
+      axios.put(`/result/players/${this.id}`, this.players).then(onSave).catch(() => {
         this.$_notify('danger', '保存に失敗しました');
       });
     },
@@ -1199,7 +1199,7 @@ export default {
         });
         data.results = _.filter(data.results);
       }
-      axios.post('/api/result/update_round', data).then(() => {
+      axios.post('/result/update_round', data).then(() => {
         $('#edit_result_dialog').modal('hide');
         this.fetch();
       }).catch(() => {
@@ -1254,7 +1254,7 @@ export default {
         data.team_prize = e.team_prize;
         data.prizes = _.map(e.players, p => _.assign(p.prize, { cuid: p.cuid }));
       }
-      axios.post('/api/result/update_prize', data).then(() => {
+      axios.post('/result/update_prize', data).then(() => {
         $('#edit_prize_dialog').modal('hide');
         this.fetch();
       }).catch(() => {

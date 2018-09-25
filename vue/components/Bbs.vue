@@ -66,13 +66,13 @@
         <span v-if="thread.public" class="float-right badge badge-primary mx-1">外部公開</span>
         <span v-if="thread.has_new_comment" class="float-right badge badge-info mx-1">新着あり</span>
       </div>
-      <CommentList :comments="thread.items" url="/api/bbs/item" item-class="px-3" @done="fetch(page)"/>
+      <CommentList :comments="thread.items" url="/bbs/item" item-class="px-3" @done="fetch(page)"/>
       <div>
         <button class="new-item-toggle btn btn-success my-2 ml-3" data-toggle="collapse" :href="`#new-item-form${thread.id}`"
                 aria-expanded="false" :aria-controls="`new-item-form${thread.id}`" @click="toggleNewItem">
           書き込む
         </button>
-        <NewCommentForm :id="`new-item-form${thread.id}`" class="mx-3 mb-3 mt-2" url="/api/bbs/item" :thread-id="thread.id" @done="postDone"/>
+        <NewCommentForm :id="`new-item-form${thread.id}`" class="mx-3 mb-3 mt-2" url="/bbs/item" :thread-id="thread.id" @done="postDone"/>
       </div>
     </div>
     <!-- pagination -->
@@ -122,10 +122,9 @@ export default {
   },
   methods: {
     fetch(page) {
-      const baseUrl = '/api/bbs/threads';
       let queryUrl = `?page=${page}`;
       if (this.query) queryUrl += `&qs=${encodeURIComponent(this.query)}`;
-      axios.get(`${baseUrl}${queryUrl}`).then((res) => {
+      axios.get(`/bbs/threads${queryUrl}`).then((res) => {
         const COUNT = res.data.count;
         const THREADS_PER_PAGE = res.data.threads_per_page;
         const PAGINATE_LIMIT = 5;
@@ -153,7 +152,7 @@ export default {
       const $form = $('#new-thread-form');
       if (!$form.check()) return;
       const data = $form.serializeObject();
-      axios.post('/api/bbs/thread', data).then(() => {
+      axios.post('/bbs/thread', data).then(() => {
         /* eslint-disable camelcase */
         this.name = g_user_name;
         this.publicThread = false;

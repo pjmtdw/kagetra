@@ -58,10 +58,10 @@ export default {
       this.message = message === undefined ? title : message;
       return this.init();
     },
-    prompt(title) {
+    prompt(title, defaultVal = null) {
       this.type = 'input';
       this.title = title;
-      this.input = null;
+      this.input = defaultVal;
       return this.init(() => {
         this.$dialog.on('shown.bs.modal', () => {
           $('input', this.$el).focus();

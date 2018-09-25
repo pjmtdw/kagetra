@@ -207,7 +207,7 @@ export default {
   },
   updated() {
     this.setCellHeight();
-    $('[data-toggle="tooltip"], .tooltip-button').tooltip();
+    $('[data-toggle="tooltip"]').tooltip();
   },
   methods: {
     fetch() {
@@ -217,7 +217,7 @@ export default {
         page: this.page,
         span: 'full',
       };
-      axios.post('/api/result_misc/record', data).then((res) => {
+      axios.post('/result_misc/record', data).then((res) => {
         const keys = ['aggr', 'events', 'event_details', 'class_info', 'prizes', 'my_belongs', 'games', 'pages', 'page_infos'];
         _.each(keys, (key) => {
           this[key] = res.data[key];

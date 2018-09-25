@@ -197,7 +197,7 @@ export default {
     this.key1 = this._key1;
     this.key2 = this._key2;
     this.filter = this._filter;
-    axios.get('/api/result_ranking/year').then((res) => {
+    axios.get('/result_ranking/year').then((res) => {
       this.years = _.rangeRight(res.data.minyear, res.data.maxyear + 1);
       this.fetch();
     });
@@ -212,7 +212,7 @@ export default {
         key2: this.key2,
         filter: this.filter,
       };
-      axios.post('/api/result_ranking/search', data).then((res) => {
+      axios.post('/result_ranking/search', data).then((res) => {
         this.meta = res.data.meta;
         this.ranking = res.data.ranking;
       });

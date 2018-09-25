@@ -95,8 +95,7 @@ export default {
   },
   methods: {
     fetch(year) {
-      const url = `/api/result_list/year/${year}`;
-      axios.get(url).then((res) => {
+      axios.get(`/result_list/year/${year}`).then((res) => {
         this.list = res.data.list;
         this.years = _.rangeRight(res.data.minyear, res.data.maxyear + 1);
       }).catch(() => {

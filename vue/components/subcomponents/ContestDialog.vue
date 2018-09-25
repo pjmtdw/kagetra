@@ -225,7 +225,7 @@ export default {
   },
   methods: {
     fetchEdit() {
-      const url = `/api/event/item/${this.add ? 'contest' : this.contestId}?detail=true&edit=true`;
+      const url = `/event/item/${this.add ? 'contest' : this.contestId}?detail=true&edit=true`;
       axios.get(url).then((res) => {
         _.forEach(res.data, (v, key) => {
           if (key === 'id') {
@@ -242,7 +242,7 @@ export default {
       });
     },
     fetchEditAttached() {
-      const url = `/api/event/item/${this.add ? 'contest' : this.contestId}?detail=true&edit=true`;
+      const url = `/event/item/${this.add ? 'contest' : this.contestId}?detail=true&edit=true`;
       axios.get(url).then((res) => {
         this.attached = res.data.attached;
       }).catch(() => {
@@ -251,13 +251,13 @@ export default {
     },
     fetchPastList() {
       if (!this.add) return;
-      axios.get(`/api/event/group_list/${this.event_group_id}`).then((res) => {
+      axios.get(`/event/group_list/${this.event_group_id}`).then((res) => {
         this.pastContests = res.data;
         this.copyFrom = -1;
       });
     },
     copyPast() {
-      axios.get(`/api/event/item/${this.copyFrom}?detail=true&edit=true`).then((res) => {
+      axios.get(`/event/item/${this.copyFrom}?detail=true&edit=true`).then((res) => {
         const d = res.data;
         this.is_public = d.public;
         this.name = d.name;
@@ -290,7 +290,7 @@ export default {
         onSave();
         return;
       }
-      axios.post('/api/event/item', data).then(onSave).catch(() => {
+      axios.post('/event/item', data).then(onSave).catch(() => {
         this.$_notify('danger', '追加に失敗しました');
       });
     },
@@ -304,7 +304,6 @@ export default {
       let data = $form.serializeObject();
       data = _.mapValues(data, v => (v.trim() === '' ? null : v));
       if (data.event_group_id === '-1') data.event_group_id = null;
-      const url = `/api/event/item/${this.contestId}`;
       const onSave = () => {
         this.changed = false;
         $(this.$el).modal('hide');
@@ -314,13 +313,13 @@ export default {
         onSave();
         return;
       }
-      axios.put(url, data).then(onSave).catch(() => {
+      axios.put(`/event/item/${this.contestId}`, data).then(onSave).catch(() => {
         this.$_notify('danger', '保存に失敗しました');
       });
     },
     deleteEvent() {
       this.$_confirm('本当に削除していいですか？').then(() => {
-        axios.delete(`/api/event/item/${this.contestId}`).then(() => {
+        axios.delete(`/event/item/${this.contestId}`).then(() => {
           $(this.$el).modal('hide');
           location.href = '/result#/';
         }).catch(() => {
@@ -332,7 +331,7 @@ export default {
     },
     addEventGroup() {
       this.$_prompt('追加する恒例大会名').then((name) => {
-        axios.post('/api/event/group/new', { name }).then(() => {
+        axios.post('/event/group/new', { name }).then(() => {
           this.fetchEdit();
         }).catch(() => {
           this.$_notify('danger', '追加に失敗しました');

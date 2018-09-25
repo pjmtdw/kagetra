@@ -149,12 +149,12 @@ export default {
   },
   mounted() {
     this.fetch();
-    $('[data-toggle="tooltip"], .tooltip-button').tooltip();
+    $('[data-toggle="tooltip"]').tooltip();
   },
   methods: {
     fetch() {
       if (this.recent) {
-        axios.get('/api/result_promotion/recent').then((res) => {
+        axios.get('/result_promotion/recent').then((res) => {
           this.attrs = res.data.attrs;
           this.list = _.map(res.data.list, (x) => {
             x.attrs = [];
@@ -166,7 +166,7 @@ export default {
         });
       } else {
         const data = $('#promotion-ranking-form').serializeObject();
-        axios.get('/api/result_promotion/ranking', { params: data }).then((res) => {
+        axios.get('/result_promotion/ranking', { params: data }).then((res) => {
           this.ranking = res.data.list;
           this.display = res.data.display;
           this.median = res.data.median;
@@ -178,7 +178,7 @@ export default {
     },
     changeAttr(x) {
       const data = { values: _.map(x.attrs, v => v[1]) };
-      axios.post(`/api/user/change_attr/${x.event.id}/${x.user_id}`, data).then(() => {
+      axios.post(`/user/change_attr/${x.event.id}/${x.user_id}`, data).then(() => {
         this.$_notify('変更しました');
       }).catch(() => {
         this.$_notify('danger', '変更に失敗しました');

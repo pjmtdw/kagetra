@@ -92,11 +92,11 @@ export default {
     if (this.login_uid) {
       this.mode = 'user';
     } else {
-      axios.get('/api/board_message/shared').then((res) => {
+      axios.get('/board_message/shared').then((res) => {
         this.message_shared = res.data.message;
       });
     }
-    axios.get('/api/board_message/user').then((res) => {
+    axios.get('/board_message/user').then((res) => {
       this.message_user = res.data.message;
     });
   },
@@ -120,7 +120,7 @@ export default {
       return { hash, msg };
     },
     load_usernames() {
-      axios.get(`/api/user/auth/list/${this.initial}`).then((res) => {
+      axios.get(`/user/auth/list/${this.initial}`).then((res) => {
         this.usernames = res.data.list;
         if (!_.isEmpty(this.usernames)) {
           this.userid = this.usernames[0].id;
@@ -129,10 +129,10 @@ export default {
     },
     submit_shared_pass() {
       const data = this.hmac_password(this.shared_password, g_shared_salt);
-      axios.post('/api/user/auth/shared', data).then((res) => {
+      axios.post('/user/auth/shared', data).then((res) => {
         if (res.data.result === 'OK') {
           this.mode = 'user';
-          axios.get('/api/initials').then((resp) => {
+          axios.get('/initials').then((resp) => {
             this.initials = resp.data;
           });
           this.initial = 0;
@@ -145,10 +145,10 @@ export default {
     },
     submit_user_pass() {
       const userId = this.login_uid || this.userid;
-      axios.get(`/api/user/auth/salt/${userId}`).then((res) => {
+      axios.get(`/user/auth/salt/${userId}`).then((res) => {
         const data = this.hmac_password(this.user_password, res.data.salt);
         data.user_id = userId;
-        axios.post('/api/user/auth/user', data).then((resp) => {
+        axios.post('/user/auth/user', data).then((resp) => {
           if (resp.data.result === 'OK') {
             location.href = '/top';
           } else {

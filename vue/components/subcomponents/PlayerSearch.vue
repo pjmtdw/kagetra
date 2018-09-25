@@ -82,7 +82,7 @@ export default {
       }
       this.input = q;
       this.searching = true;
-      axios.post('/api/result_misc/search_name', { q }).then((res) => {
+      axios.post('/result_misc/search_name', { q }).then((res) => {
         this.searching = false;
         this.candidates = res.data.results;
       }).catch(() => {

@@ -1,8 +1,12 @@
 import schedule from '../components/Schedule.vue';
 
-export default [{
-  name: 'schedule',
-  path: '/',
-  component: schedule,
-  props: true,
-}];
+export default [
+  {
+    path: '/:year(\\d+)-:month(\\d+)',
+    component: schedule,
+    props: true,
+  }, {
+    path: '/',
+    component: schedule,
+  },
+];

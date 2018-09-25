@@ -23,7 +23,7 @@ const routes = _.assign({
 }, misc);
 
 const path = location.pathname.split('/');
-const isPublic = path[1] === 'public';
+const isPublic = path[1] === 'public' || location.pathname === '/';
 const routeName = isPublic ? path[2] : path[1];
 const route = routes[routeName];
 
@@ -39,6 +39,10 @@ Vue.use(VueRouter);
 Vue.mixin({
   data: () => ({ routeName, isPublic }),
 });
+
+// set baseurl
+if (isPublic) axios.defaults.baseURL = '/public/api';
+else axios.defaults.baseURL = '/api';
 
 // init
 init();

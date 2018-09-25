@@ -1,17 +1,22 @@
 class MainApp < Sinatra::Base
   namespace '/api/schedule' do
-    post '/copy/:id', private:true do
-      item = ScheduleItem[params[:id].to_i]
-      params[:list].each{|d|
+    post '/copy', private:true do
+      item_cache = {}
+      @json.each{|d, items|
         date = Date.parse(d)
-        ScheduleItem.create(item.select_attr
+        items.each{|id|
+          if not item_cache[id]
+            item_cache[id] = ScheduleItem[id]
+          end
+          ScheduleItem.create(item_cache[id].select_attr
           .merge(
             owner:@user,
             date:date)
           .delete_if{|x|[:id,:created_at,:updated_at].include?(x)})
+        }
       }
-
     end
+
     post '/update_holiday', private:true do
       with_update{
         @json.each{|day,obj|
@@ -68,7 +73,7 @@ class MainApp < Sinatra::Base
     def make_detail_item(x)
       r = x.select_attr(:id,:start_at,:end_at,:name,:place,:description,:public,:kind)
       x.emphasis.each{|e|
-        r["emph_#{e}".to_sym] = "on"
+        r["emph_#{e}".to_sym] = true
       }
       r[:editable] = @user && (@user.admin or @user.sub_admin or @user.id == x.owner_id)
       r
@@ -170,7 +175,7 @@ class MainApp < Sinatra::Base
       }
       arr
     end
-    
+
 
     get '/cal/:year-:mon' do
       year = params[:year].to_i

@@ -20,7 +20,7 @@
           </button>
         </div>
         <div class="form-group">
-          <textarea class="form-control" name="body" rows="4" placeholder="内容" required @input="autosizeTextarea(this.$($event.target))"/>
+          <textarea class="form-control" name="body" rows="4" placeholder="内容" required @input="autosizeTextarea($event.target)"/>
           <div class="invalid-feedback">内容を入力してください</div>
         </div>
         <button class="btn btn-success" type="button" @click="editItem(i, item.id)">保存</button>
@@ -82,8 +82,9 @@ export default {
         this.$_notify('danger', '削除に失敗しました');
       });
     },
-    autosizeTextarea($ta) {
+    autosizeTextarea(tgt) {
       // textareaの行数を内容に合わせて変更
+      const $ta = tgt instanceof $ ? tgt : $(tgt);
       $ta.attr('rows', _.max([$ta.val().split('\n').length, 4]));
     },
   },

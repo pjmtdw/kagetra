@@ -41,6 +41,20 @@ export default () => {
           return undefined;
         });
       },
+      $_timeRange(_start, _end, emphStart = false, emphEnd = false) {
+        let start = _start;
+        let end = _end;
+        if (start && emphStart) start = `<strong><u>${start}</u></strong>`;
+        if (end && emphEnd) end = `<strong><u>${end}</u></strong>`;
+        if (start && end) {
+          return `${start}&sim;${end}`;
+        } else if (start) {
+          return `${start}&sim;`;
+        } else if (end) {
+          return `&sim;${end}`;
+        }
+        return '';
+      },
     },
   });
 
@@ -52,6 +66,7 @@ export default () => {
 
   // 定数等
   $.util = {
+    breakpoints: { sm: 576, md: 768, lg: 992, xl: 1200 },
     weekday_ja: '日月火水木金土日',
     result_str: { win: '○', lose: '●', now: '対戦中' },
     results_jp: { win: '勝ち', lose: '負け', now: '途中', default_win: '不戦' },
@@ -76,17 +91,6 @@ export default () => {
       return null;
     }
     return $.util.weekday_ja[date.getDay()];
-  };
-  // 時間
-  $.util.timeRange = (start, end) => {
-    if (start && end) {
-      return `${start} &sim; ${end}`;
-    } else if (start) {
-      return `${start} &sim;`;
-    } else if (end) {
-      return `&sim; ${end}`;
-    }
-    return '';
   };
 
   // jQuery拡張

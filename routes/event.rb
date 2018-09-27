@@ -31,7 +31,7 @@ class MainApp < Sinatra::Base
     end
 
     def get_all_attrs
-      UserAttributeKey.order(Sequel.asc(:index)).map{|x|[[x.id,x.name],x.attr_values.map{|y|[y.id,y.value]}]}
+      UserAttributeKey.order(Sequel.asc(:index)).map{|x| {id: x.id, name: x.name, values: x.attr_values.map{|y| {id: y.id, value: y.value}}}}
     end
     def get_all_event_groups
       EventGroup.order(Sequel.asc(:name)).map{|x|x.select_attr(:id,:name)}
@@ -90,7 +90,7 @@ class MainApp < Sinatra::Base
       participant_names = {}
       attr_query = UserAttributeValue.where(attr_key:ev.aggregate_attr).where(Sequel.~(id:ev.forbidden_attrs)).all
       # TODO: all で実際に取得して二回も attr_query.map を呼んでるのは美しくない
-      participant_attrs = attr_query.map{|x|[x.id,x.value]}
+      participant_attrs = attr_query.map{|x| {id: x.id, name: x.value}}
       attr_value_index = attr_query.map{|x|[x.id,x.index]}.to_h
       sort_and_map = ->(h){
         h.sort_by{|k,v|attr_value_index[k] || 9999} # 後から参加不能属性が追加された場合参加不能属性の人でも参加している可能性はある
@@ -122,9 +122,9 @@ class MainApp < Sinatra::Base
               }
             end
       {
-        participant: res,
+        participant: res.map{|k, v| [k, v.to_h]}.to_h,
         participant_names: participant_names,
-        participant_attrs: participant_attrs
+        participant_attrs: participant_attrs,
       }
     end
     get '/item/:id' do

@@ -34,13 +34,11 @@ export default {
   props: {
     comments: {
       type: Array,
-      default() {
-        return [];
-      },
+      required: true,
     },
     url: {
       type: String,
-      default: null,
+      required: true,
     },
     itemClass: {
       type: String,
@@ -66,8 +64,8 @@ export default {
     },
     editItem(i, id) {
       const $form = $(this.$refs[`editForm${id}`]);
-      const data = $form.serializeObject();
       if (!$form.check()) return;
+      const data = $form.serializeObject();
       axios.put(`${this.url}/${id}`, data).then(() => {
         this.toggleEditItem(i, id);
         this.$emit('done');
@@ -84,7 +82,7 @@ export default {
     },
     autosizeTextarea(tgt) {
       // textareaの行数を内容に合わせて変更
-      const $ta = tgt instanceof $ ? tgt : $(tgt);
+      const $ta = _.isElement(tgt) ? $(tgt) : tgt;
       $ta.attr('rows', _.max([$ta.val().split('\n').length, 4]));
     },
   },

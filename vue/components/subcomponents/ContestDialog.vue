@@ -120,7 +120,7 @@
               </label>
             </div>
           </form>
-          <div v-if="!add" class="card border-0 bg-light">
+          <div v-if="!add" class="card border-0 bg-light shadow-sm">
             <div class="card-body">
               <h5 class="card-title">添付ファイル</h5>
               <div v-for="f in attached" :key="f.id">
@@ -157,10 +157,6 @@ export default {
     contestId: {
       type: Number,
       default: null,
-    },
-    editing: {
-      type: Boolean,
-      default: false,
     },
   },
   data() {
@@ -280,7 +276,6 @@ export default {
       data.kind = 'contest';
       data.aggregate_attr_id = this.aggregate_attr_id;
       const onSave = (res) => {
-        // if (this.changed) this.$_notify('保存しました');
         this.changed = false;
         $(this.$el).modal('hide');
         if (res !== undefined) this.$emit('done', res.data);
@@ -346,8 +341,3 @@ export default {
   },
 };
 </script>
-<style lang="scss" scoped>
-.card {
-  box-shadow: 1px 2px 4px rgba(black, 0.1);
-}
-</style>

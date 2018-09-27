@@ -626,7 +626,7 @@ export default {
       cur_page: 1,
       pages: 1,
       thread_name: null,
-      list: null,
+      list: [],
       has_new_comment: false,
       // past info
       past_cur_page: 1,

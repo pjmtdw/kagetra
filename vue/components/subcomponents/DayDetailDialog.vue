@@ -28,7 +28,7 @@
           <template v-for="x in detail.list">
             <template v-if="!isPublic || x.public">
               <div :key="x.id" class="d-flex flex-row justify-content-between">
-                <div :class="{ invisible: x.editing }">
+                <div v-show="!x.editing">
                   <h6 class="mb-1">
                     <span :class="{ emph: x.emph_name }">{{ x.name }}</span>
                     <span class="place" :class="{ emph: x.emph_place }">@{{ x.place }}</span>
@@ -38,11 +38,12 @@
                     {{ x.description }}
                   </div>
                 </div>
+                <div v-show="x.editing"/>
                 <div>
                   <button v-if="x.editable" class="btn btn-outline-success" @click="toggleEditItem(x)">{{ x.editing ? 'キャンセル' : '編集' }}</button>
                 </div>
               </div>
-              <form v-if="x.editable" v-show="x.editing" :id="`editForm${x.id}`" @submit.prevent>
+              <form v-if="x.editable" v-show="x.editing" :id="`editForm${x.id}`" class="mt-3" @submit.prevent>
                 <div class="form-row align-items-center">
                   <input type="text" name="name" class="form-control col-9 col-sm-6" placeholder="タイトル" :value="x.name" required>
                   <label class="col mb-0">
@@ -163,6 +164,7 @@ export default {
   data() {
     return {
       weekday_ja: $.util.weekday_ja,
+      $dialog: null,
       detail: null,
       // 予定追加
       editing: false,
@@ -173,6 +175,10 @@ export default {
     rows() {
       return _.max([this.description && this.description.split('\n').length, 4]);
     },
+  },
+  mounted() {
+    this.$dialog = $(this.$el);
+    this.$dialog.on('hide.bs.modal', () => this.$emit('close'));
   },
   methods: {
     open(year, month, day) {
@@ -185,9 +191,7 @@ export default {
         events: [],
         list: [],
       };
-      const $dialog = $(this.$el);
-      $dialog.modal('show');
-      $dialog.on('hide.bs.modal', () => this.$emit('close'));
+      this.$dialog.modal('show');
       this.fetch();
     },
     fetch() {
@@ -202,11 +206,11 @@ export default {
       });
     },
     openInfo(id) {
-      $(this.$el).modal('hide');
+      this.$dialog.modal('hide');
       this.$emit('openinfo', id);
     },
     openComment(id) {
-      $(this.$el).modal('hide');
+      this.$dialog.modal('hide');
       this.$emit('opencomment', id);
     },
     // 編集
@@ -222,7 +226,8 @@ export default {
     saveItem(x) {
       const $form = $(`#editForm${x.id}`);
       if (!$form.check()) return;
-      const data = $form.serializeObject();
+      let data = $form.serializeObject();
+      data = _.mapValues(data, v => (v.trim() === '' ? null : v));
       axios.put(`/schedule/detail/item/${x.id}`, data).then(() => {
         this.fetch();
       }).catch(() => {
@@ -240,7 +245,8 @@ export default {
     addSchedule() {
       const $form = $('#newScheduleForm');
       if (!$form.check()) return;
-      const data = $form.serializeObject();
+      let data = $form.serializeObject();
+      data = _.mapValues(data, v => (v.trim() === '' ? null : v));
       data.year = this.detail.year;
       data.mon = this.detail.month;
       data.day = this.detail.date;
@@ -254,7 +260,7 @@ export default {
 
     autosizeTextarea(tgt) {
       // textareaの行数を内容に合わせて変更
-      const $ta = tgt instanceof $ ? tgt : $(tgt);
+      const $ta = _.isElement(tgt) ? $(tgt) : tgt;
       $ta.attr('rows', _.max([$ta.val().split('\n').length, 4]));
     },
   },

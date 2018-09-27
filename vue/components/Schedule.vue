@@ -288,8 +288,8 @@ export default {
     openComment(eventId) {
       this.$refs.commentDialog.open(eventId);
     },
-    openEdit(eventId) {
-      this.$refs.editDialog.open(eventId);
+    openEdit(data) {
+      this.$refs.editDialog.open(data);
     },
   },
 };

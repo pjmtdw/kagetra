@@ -30,7 +30,7 @@
         <span class="mx-1">&#12316;</span>
         <input v-model.lazy="end" type="text" class="form-control" style="width: 7rem;">
         <div class="dropdown ml-2">
-          <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-boundary="window" data-flip="false">
+          <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" data-boundary="window" data-flip="false" aria-haspopup="true" aria-expanded="false">
             年
           </button>
           <div class="dropdown-menu">

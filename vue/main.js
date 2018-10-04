@@ -24,7 +24,7 @@ const routes = _.assign({
 
 const path = location.pathname.split('/');
 const isPublic = path[1] === 'public' || location.pathname === '/';
-const routeName = isPublic ? path[2] : path[1];
+const routeName = isPublic ? (path[2] || '') : path[1];
 const route = routes[routeName];
 
 const router = new VueRouter({
@@ -37,18 +37,17 @@ Vue.use(VueRouter);
 
 // Mixin
 Vue.mixin({
-  data: () => ({ routeName, isPublic }),
+  data: () => ({ gRouteName: routeName, gIsPublic: isPublic }),
 });
 
 // set baseurl
-if (isPublic) axios.defaults.baseURL = '/public/api';
+if (isPublic && routeName !== '') axios.defaults.baseURL = '/public/api';
 else axios.defaults.baseURL = '/api';
 
 // init
 init();
 
 // インスタンスを生成
-/* eslint-disable no-new */
 $.vm = new Vue({
   router,
   template: '<router-view/>',

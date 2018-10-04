@@ -1,19 +1,19 @@
 <template>
-  <nav v-once id="topbar" class="navbar navbar-expand-md navbar-light bg-light" :class="{public: isPublic}">
+  <nav v-once id="topbar" class="navbar navbar-expand-md navbar-light bg-light" :class="{public: gIsPublic}">
     <button class="navbar-toggler ml-auto" type="button" data-toggle="collapse" data-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"/>
     </button>
-    <div v-if="!isPublic" id="navbarContent" class="collapse navbar-collapse">
+    <div v-if="!gIsPublic" id="navbarContent" class="collapse navbar-collapse">
       <ul class="navbar-nav mr-auto">
         <li v-for="x in list" :key="x.alias" class="nav-item mx-2">
-          <a class="nav-link" :class="{active: routeName === x.alias}" :href="`/${x.alias}`">{{ x.name }}</a>
+          <a class="nav-link" :class="{active: gRouteName === x.alias}" :href="`/${x.alias}`">{{ x.name }}</a>
         </li>
       </ul>
     </div>
     <div v-else id="navbarContent" class="collapse navbar-collapse">
       <ul class="navbar-nav mr-auto">
         <li v-for="x in publicList" :key="x.alias" class="nav-item mx-2">
-          <a class="nav-link" :class="{active: routeName === x.alias}" :href="`/public/${x.alias}`">{{ x.name }}</a>
+          <a class="nav-link" :class="{active: gRouteName === x.alias}" :href="`/public/${x.alias}`">{{ x.name }}</a>
         </li>
       </ul>
     </div>

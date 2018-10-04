@@ -16,9 +16,9 @@
         </li>
       </ul>
       <div class="ml-auto">
-        <router-link v-show="!isPublic && !bulkEditing && !holidayEditing" class="btn btn-sm btn-info" to="/past_event">過去の行事</router-link>
+        <router-link v-show="!gIsPublic && !bulkEditing && !holidayEditing" class="btn btn-sm btn-info" to="/past_event">過去の行事</router-link>
       </div>
-      <div v-if="!isPublic" class="ml-2" :class="!bulkEditing && !holidayEditing ? ['btn-group', 'btn-group-sm'] : ''">
+      <div v-if="!gIsPublic" class="ml-2" :class="!bulkEditing && !holidayEditing ? ['btn-group', 'btn-group-sm'] : ''">
         <button v-show="!bulkEditing && !holidayEditing" class="btn btn-success" @click="bulkEditing = true">
           一括追加
         </button>
@@ -58,10 +58,10 @@
                       @click.native="openDetail(day)" @select="selected = $event" @remove="remove"/>
       </div>
     </div>
-    <!-- detail -->
+
+    <!-- dialog -->
     <DayDetailDialog ref="detailDialog" @close="fetch" @openinfo="openInfo" @opencomment="openComment"/>
     <EventInfoDialog ref="infoDialog" @close="fetch" @openedit="openEdit" @opencomment="openComment"/>
-    <ContestDialog ref="contestDialog" @close="fetch"/>
     <EventEditDialog ref="editDialog" @close="fetch"/>
     <EventCommentDialog ref="commentDialog" @close="fetch" @openinfo="openInfo"/>
   </main>
@@ -70,7 +70,6 @@
 import ScheduleItem from './subcomponents/ScheduleItem.vue';
 import DayDetailDialog from './subcomponents/DayDetailDialog.vue';
 import EventInfoDialog from './subcomponents/EventInfoDialog.vue';
-import ContestDialog from './subcomponents/ContestDialog.vue';
 import EventEditDialog from './subcomponents/EventEditDialog.vue';
 import EventCommentDialog from './subcomponents/EventCommentDialog.vue';
 
@@ -79,7 +78,6 @@ export default {
     ScheduleItem,
     DayDetailDialog,
     EventInfoDialog,
-    ContestDialog,
     EventEditDialog,
     EventCommentDialog,
   },

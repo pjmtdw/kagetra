@@ -29,6 +29,9 @@ export default () => {
       $_prompt: d.prompt,
 
       // util
+      $_makeOnFail(message) {
+        return () => this.$_notify('danger', message);
+      },
       $_assert(v) {
         if (!v) throw Error('Assertion Error');
       },

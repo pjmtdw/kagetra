@@ -84,7 +84,7 @@
                       <div class="invalid-feedback">この項目は必須です</div>
                     </label>
                   </div>
-                  <div class="form-group col-lg-4 col-sm-6">
+                  <div v-if="contest" class="form-group col-lg-4 col-sm-6">
                     <label class="w-100">
                       正式名称
                       <input v-model="formal_name" type="text" name="formal_name" class="form-control" placeholder="正式名称">
@@ -142,7 +142,7 @@
                   <div class="form-group col-lg-3 col-sm-4 col-12">
                     <label>
                       締切日
-                      <input v-model="deadline" type="date" class="form-control" name="date" placeholder="YYYY-MM-DD">
+                      <input v-model="deadline" type="date" class="form-control" name="deadline" placeholder="YYYY-MM-DD">
                     </label>
                   </div>
                   <div class="form-group col-lg-3 col-sm-4 col-12">
@@ -165,7 +165,7 @@
                         </div>
                       </div>
                       <div class="dropdown">
-                        <button class="btn btn-success btn-sm dropdown-toggle ml-1" data-toggle="dropdown" data-boundary="window" data-flip="false" aria-haspopup="true" aria-expanded="false">
+                        <button type="button" class="btn btn-success btn-sm dropdown-toggle ml-1" data-toggle="dropdown" data-boundary="window" data-flip="false" aria-haspopup="true" aria-expanded="false">
                           追加
                         </button>
                         <div class="dropdown-menu">
@@ -187,7 +187,7 @@
                           <span v-if="c.positive" class="close d-inline align-top" @click="removeChoice(c)">&times;</span>
                         </div>
                       </div>
-                      <button class="btn btn-success btn-sm ml-1" @click="addChoice">追加</button>
+                      <button type="button" class="btn btn-success btn-sm ml-1" @click="addChoice">追加</button>
                     </div>
                   </div>
                 </div>
@@ -315,7 +315,10 @@ export default {
     this.$dialog.on('hide.bs.modal', () => this.$emit('close'));
     this.$dialog.on('shown.bs.modal', () => $('body').addClass('modal-open'));
     this.$dialog.on('hide.bs.modal', (e) => {
-      if (!this.changed) return;
+      if (!this.changed) {
+        this.reset();
+        return;
+      }
       e.preventDefault();
       this.$_confirm('本当に変更を破棄して閉じますか？').then(() => {
         this.changed = false;
@@ -330,6 +333,7 @@ export default {
     open(data) {
       this.id = data.id;
       this.contest = data.contest;
+      if (this.add && !this.contest) this.kind = 'party';
       this.fetch();
     },
     fetch() {
@@ -361,6 +365,35 @@ export default {
         this.$_notify('danger', '情報の取得に失敗しました');
       });
     },
+    reset() {
+      this.contest = null;
+      this.id = null;
+      this.changed = false;
+      this.tab = 'info';
+      this.done = null;
+      this.pastContests = [];
+      this.copyFrom = null;
+      this.all_attrs = null;
+      this.name = null;
+      this.formal_name = null;
+      this.owners_str = null;
+      this.is_public = true;
+      this.event_group_id = -1;
+      this.all_event_groups = null;
+      this.official = true;
+      this.team_size = 1;
+      this.kind = null;
+      this.date = null;
+      this.start_at = null;
+      this.end_at = null;
+      this.place = null;
+      this.description = null;
+      this.deadline = null;
+      this.aggregate_attr_id = null;
+      this.choices = null;
+      this.forbidden_attrs = null;
+      this.attached = null;
+    },
 
     // 情報
     copyPast() {
@@ -387,12 +420,15 @@ export default {
       });
     },
     addForbiddenAttr(attrId) {
+      this.changed = true;
       this.forbidden_attrs.push(attrId);
     },
     removeForbiddenAttr(attrId) {
+      this.changed = true;
       this.$delete(this.forbidden_attrs, _.indexOf(this.forbidden_attrs, attrId));
     },
     addChoice() {
+      this.changed = true;
       this.$_prompt('選択肢名').then((name) => {
         this.choices.splice(-1, 0, {
           id: -1,
@@ -404,6 +440,7 @@ export default {
       });
     },
     editChoice(choice) {
+      this.changed = true;
       this.$_prompt('選択肢名', choice.name).then((name) => {
         choice.name = name;
       }).always(() => {
@@ -411,16 +448,21 @@ export default {
       });
     },
     removeChoice(choice) {
+      this.changed = true;
       this.$delete(this.choices, _.indexOf(this.choices, choice));
     },
     getData() {
       const $form = $(this.$refs.form);
       let data = $form.serializeObject();
       data = _.omit(data, 'copy_from');
-      data = _.mapValues(data, v => (v.trim() === '' ? null : v));
+      data = _.mapValues(data, v => ((_.isString(v) && v.trim() === '') ? null : v));
       if (data.event_group_id === '-1') data.event_group_id = null;
-      if (this.contest) data.kind = 'contest';
-      // data.aggregate_attr_id = this.aggregate_attr_id;
+      if (this.contest) {
+        data.kind = 'contest';
+        data.forbidden_attrs = this.forbidden_attrs;
+      }
+      data.choices = this.choices;
+      return data;
     },
     addEvent() {
       if (!$(this.$refs.form).check()) return;
@@ -435,9 +477,7 @@ export default {
         onSave();
         return;
       }
-      axios.post('/event/item', data).then(onSave).catch(() => {
-        this.$_notify('danger', '追加に失敗しました');
-      });
+      axios.post('/event/item', data).then(onSave).catch(this.$_makeOnFail('追加に失敗しました'));
     },
     editEvent() {
       if (this.add) {
@@ -455,15 +495,13 @@ export default {
         onSave();
         return;
       }
-      axios.put(`/event/item/${this.id}`, data).then(onSave).catch(() => {
-        this.$_notify('danger', '保存に失敗しました');
-      });
+      axios.put(`/event/item/${this.id}`, data).then(onSave).catch(this.$_makeOnFail('保存に失敗しました'));
     },
     deleteEvent() {
       this.$_confirm('本当に削除していいですか？').then(() => {
         axios.delete(`/event/item/${this.id}`).then(() => {
           this.$dialog.modal('hide');
-          location.href = '/result#/';
+          if (this.gRouteName === 'result') this.$router.push('/');
         }).catch(() => {
           this.$_notify('danger', '削除に失敗しました');
         });

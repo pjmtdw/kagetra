@@ -97,7 +97,7 @@ class MainApp < Sinatra::Base
       today_contests = Event.today_contests.map{|x|x.select_attr(:name,:id)}
       participants = Event.new_participants(@user)
       {
-        last_login: @user.last_login_str,
+        last_login: @user.last_login_data,
         log_mon: @user.log_mon_count,
         wiki: WikiItem.new_threads(@user).map{|x|x.select_attr(:title,:id)},
         event_comment: Event.new_threads(@user,{done:false}).map{|x|x.select_attr(:name,:id)},

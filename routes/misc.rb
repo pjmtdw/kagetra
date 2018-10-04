@@ -126,7 +126,9 @@ class MainApp < Sinatra::Base
   get '/top' do
     dph = MyConf.first(name:"daily_album_photo")
     @daily_photo = if dph then dph.value end
-    haml_wrap 'TOP'
+    haml :top, locals: {
+      title: 'TOP',
+    }
   end
   get '/select_other_uid' do
     delete_permanent("uid")

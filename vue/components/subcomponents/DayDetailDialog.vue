@@ -20,13 +20,13 @@
               </div>
               <div class="ml-auto">
                 <button class="btn btn-info" @click="openInfo(e.id)">情報</button>
-                <button v-if="!isPublic" class="btn btn-info" @click="openComment(e.id)">コメント({{ e.comment_count }})</button>
+                <button v-if="!gIsPublic" class="btn btn-info" @click="openComment(e.id)">コメント({{ e.comment_count }})</button>
               </div>
             </div>
             <hr>
           </template>
           <template v-for="x in detail.list">
-            <template v-if="!isPublic || x.public">
+            <template v-if="!gIsPublic || x.public">
               <div :key="x.id" class="d-flex flex-row justify-content-between">
                 <div v-show="!x.editing">
                   <h6 class="mb-1">
@@ -97,7 +97,7 @@
               <hr>
             </template>
           </template>
-          <template v-if="!isPublic">
+          <template v-if="!gIsPublic">
             <div class="d-flex">
               <button ref="toggleEdit" class="btn ml-auto" :class="editing ? 'btn-outline-success' : 'btn-success'" data-toggle="collapse" data-target="#newScheduleForm" aria-expanded="false" @click="editing = !editing">
                 {{ editing ? 'キャンセル' : '予定追加' }}

@@ -1,17 +1,19 @@
 <template>
-  <main class="hello">{{ message }}</main>
+  <main id="container">
+    addrbook
+  </main>
 </template>
 <script>
 export default {
   data() {
     return {
-      message: '名簿',
     };
   },
 };
 </script>
 <style lang="scss" scoped>
-.hello {
-  color: red;
+#container {
+  width: 100%;
+  max-width: 750px;
 }
 </style>

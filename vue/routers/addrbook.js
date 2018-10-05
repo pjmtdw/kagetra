@@ -1,8 +1,7 @@
-import addrbook from '../components/Addrbook.vue';
+import Addrbook from '../components/Addrbook.vue';
 
 export default [{
-  name: 'addrbook',
   path: '/',
-  component: addrbook,
+  component: Addrbook,
   props: true,
 }];

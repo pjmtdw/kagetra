@@ -1,8 +1,7 @@
-import wiki from '../components/Wiki.vue';
+import Wiki from '../components/Wiki.vue';
 
 export default [{
-  name: 'wiki',
   path: '/',
-  component: wiki,
+  component: Wiki,
   props: true,
 }];

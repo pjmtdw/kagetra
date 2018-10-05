@@ -1,11 +1,13 @@
-import bbs from '../components/Bbs.vue';
+import Bbs from '../components/Bbs.vue';
 
-export default [{
-  path: '/:page(\\d+)',
-  component: bbs,
-  props: true,
-}, {
-  path: '*',
-  component: bbs,
-  props: { page: '1' },
-}];
+export default [
+  {
+    path: '/:page(\\d+)',
+    component: Bbs,
+    props: true,
+  }, {
+    path: '*',
+    component: Bbs,
+    props: { page: '1' },
+  },
+];

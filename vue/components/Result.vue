@@ -60,13 +60,13 @@
     <!-- タブ -->
     <nav v-show="loaded" class="mt-2">
       <div class="nav nav-tabs" id="nav-tab" role="tablist">
-        <a class="nav-item nav-link border active" id="nav-result-tab" data-toggle="tab" href="#nav-result" role="tab" aria-controls="nav-result" aria-selected="true">
+        <a class="nav-item nav-link border active" data-toggle="tab" href="#nav-result">
           結果
         </a>
-        <a class="nav-item nav-link border" id="nav-info-tab" data-toggle="tab" href="#nav-info" role="tab" aria-controls="nav-info" aria-selected="false">
+        <a class="nav-item nav-link border" data-toggle="tab" href="#nav-info">
           情報
         </a>
-        <a class="nav-item nav-link border" id="nav-comment-tab" data-toggle="tab" href="#nav-comment" role="tab" aria-controls="nav-comment" aria-selected="false">
+        <a class="nav-item nav-link border" data-toggle="tab" href="#nav-comment">
           コメント
           <span v-if="comment_count">({{ `${comment_count}${has_new_comment ? ' new' : ''}` }})</span>
         </a>
@@ -75,7 +75,7 @@
     <!-- タブの中 -->
     <div v-show="loaded" class="tab-content">
       <!-- 結果 -->
-      <div class="tab-pane border border-top-0 bg-white rounded-bottom show active" id="nav-result" role="tabpanel" aria-labelledby="nav-result-tab">
+      <div class="tab-pane border border-top-0 bg-white rounded-bottom show active" id="nav-result">
         <div id="result-tab-button-wrapper" class="d-flex justify-content-between p-2">
           <div>
             <button id="toggleEdit" class="btn btn-outline-success active mx-1" data-toggle="button" aria-pressed="true" @click="editing = !editing">
@@ -158,7 +158,7 @@
         </div>
       </div>
       <!-- 情報 -->
-      <div class="tab-pane border border-top-0 bg-white rounded-bottom pb-3" id="nav-info" role="tabpanel" aria-labelledby="nav-info-tab">
+      <div class="tab-pane border border-top-0 bg-white rounded-bottom pb-3" id="nav-info">
         <div class="container">
           <div class="row">
             <div class="col-12 col-md-8">
@@ -228,7 +228,7 @@
         </div>
       </div>
       <!-- コメント -->
-      <div class="tab-pane border border-top-0 bg-white rounded-bottom pb-3" id="nav-comment" role="tabpanel" aria-labelledby="nav-comment-tab">
+      <div class="tab-pane border border-top-0 bg-white rounded-bottom pb-3" id="nav-comment">
         <div class="d-flex justify-content-between align-items-center">
           <h5 class="m-2">
             <strong>{{ thread_name }}</strong>
@@ -1230,7 +1230,7 @@ export default {
   color: brown;
 }
 
-#nav-result-tab, #nav-info-tab, #nav-comment-tab {
+.nav-tabs a {
   &:not(.active) {
     background-color: #f8f9fa;
   }

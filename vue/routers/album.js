@@ -1,8 +1,7 @@
-import album from '../components/Album.vue';
+import Album from '../components/Album.vue';
 
 export default [{
-  name: 'album',
   path: '/',
-  component: album,
+  component: Album,
   props: true,
 }];

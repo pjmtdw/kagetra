@@ -1,8 +1,7 @@
-import top from '../components/Top.vue';
+import Top from '../components/Top.vue';
 
 export default [{
-  name: 'top',
   path: '/',
-  component: top,
+  component: Top,
   props: true,
 }];

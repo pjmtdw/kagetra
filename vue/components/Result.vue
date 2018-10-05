@@ -34,8 +34,8 @@
         </nav>
         <div class="col-12 col-md-4 mb-1" :class="{'invisible': editable === null}">
           <div class="btn-group mb-1" role="group">
-            <button v-if="editable" type="button" class="btn btn-success" data-toggle="modal" data-target="#add_event_dialog">追加</button>
-            <button v-if="editable" type="button" class="btn btn-success" data-toggle="modal" data-target="#edit_event_dialog">編集</button>
+            <button v-if="editable" type="button" class="btn btn-success" @click="openAdd">追加</button>
+            <button v-if="editable" type="button" class="btn btn-success" @click="openEdit">編集</button>
             <a :href="`result/excel/${id}/${date}_${encodeURI(name)}.xls`" class="btn btn-secondary">保存</a>
           </div>
         </div>
@@ -288,10 +288,11 @@
         <CommentList :comments="list" url="/event/comment/item" item-class="px-2 py-1" @done="fetchComment"/>
       </div>
     </div>
+
     <!-- 大会追加dialog -->
-    <ContestDialog id="add_event_dialog" @done="$event.id ? $router.push({path: `${$event.id}`, }) : undefined"/>
+    <EventEditDialog ref="addDialog" @done="$event.id ? $router.push({path: `${$event.id}`, }) : undefined"/>
     <!-- 大会編集dialog -->
-    <ContestDialog id="edit_event_dialog" :contest-id="id" @done="fetch"/>
+    <EventEditDialog ref="editDialog" @done="fetch"/>
     <!-- 人数編集dialog -->
     <div v-if="!isTeamGame" id="edit_num_person_dialog" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" @keydown.enter="saveNumPerson">
       <div class="modal-dialog modal-sm" role="document">
@@ -577,12 +578,14 @@
 </template>
 <script>
 import PlayerSearch from './subcomponents/PlayerSearch.vue';
-import ContestDialog from './subcomponents/ContestDialog.vue';
+import EventEditDialog from './subcomponents/EventEditDialog.vue';
+import CommentList from './subcomponents/CommentList.vue';
 
 export default {
   components: {
     PlayerSearch,
-    ContestDialog,
+    EventEditDialog,
+    CommentList,
   },
   props: {
     contestId: {
@@ -1260,6 +1263,13 @@ export default {
       }).catch(() => {
         this.$_notify('danger', '更新に失敗しました');
       });
+    },
+
+    openAdd() {
+      this.$refs.addDialog.open({ contest: true });
+    },
+    openEdit() {
+      this.$refs.editDialog.open({ id: this.id, contest: true });
     },
   },
 };

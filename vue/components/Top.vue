@@ -117,7 +117,7 @@
     <div v-if="eventList" class="row mt-3">
       <div v-for="e in sortedEventList" :key="e.id" class="col-12 col-md-6">
         <div class="py-2">
-          <div class="card">
+          <div class="card" :class="{ 'bg-light': !e.public }">
             <h5 class="card-header">
               <template v-if="e.kind === 'contest'">
                 <span v-if="e.official">&spades;</span>

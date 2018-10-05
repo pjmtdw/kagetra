@@ -16,7 +16,7 @@
             <a class="nav-item nav-link" :class="{ active: tab === 'info' }" href="#" @click.prevent="tab = 'info'">
               情報
             </a>
-            <a class="nav-item nav-link" :class="{ active: tab === 'participant' }" href="#" @click.prevent="tab = 'participant'">
+            <a v-if="!done" class="nav-item nav-link" :class="{ active: tab === 'participant' }" href="#" @click.prevent="tab = 'participant'">
               登録者
             </a>
             <a class="nav-item nav-link" :class="{ active: tab === 'attach' }" href="#" @click.prevent="tab = 'attach'">
@@ -40,7 +40,7 @@
                         <span>
                           公開
                         </span>
-                        <span class="help-icon" data-toggle="tooltip" data-placement="bottom" title="外部公開版の予定表や大会行事案内に表示されます．ただし登録者一覧およびコメントは公開されません．"/>
+                        <TooltipIcon placement="bottom" title="外部公開版の予定表や大会行事案内に表示されます．ただし登録者一覧およびコメントは公開されません．"/>
                       </label>
                     </div>
                   </div>
@@ -189,6 +189,20 @@
                       </div>
                       <button type="button" class="btn btn-success btn-sm ml-1" @click="addChoice">追加</button>
                     </div>
+                  </div>
+                </div>
+                <div v-if="!done" class="form-row">
+                  <div v-if="contest" class="form-group col">
+                    <label class="mr-3">
+                      <input type="checkbox" name="hide_choice">
+                      選択結果を隠す
+                      <TooltipIcon title="誰がどの選択肢を選んだかを管理者以外には分からないようにします．Tシャツ注文のサイズなどのプライバシーの保護にお使い下さい．"/>
+                    </label>
+                    <label>
+                      <input type="checkbox" name="register_done">
+                      登録者確認済
+                      <TooltipIcon title="「締切を過ぎました」に表示されなくなります．"/>
+                    </label>
                   </div>
                 </div>
                 <div class="form-group">

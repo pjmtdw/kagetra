@@ -2,7 +2,7 @@ import Vue from 'vue';
 
 import TopBar from './components/TopBar.vue';
 import NewCommentForm from './components/subcomponents/NewCommentForm.vue';
-import CommentList from './components/subcomponents/CommentList.vue';
+import TooltipIcon from './components/subcomponents/TooltipIcon.vue';
 import Notifications from './components/subcomponents/Notifications.vue';
 import Dialog from './components/subcomponents/Dialog.vue';
 
@@ -14,7 +14,7 @@ export default () => {
 
   // Component
   Vue.component('NewCommentForm', NewCommentForm);
-  Vue.component('CommentList', CommentList);
+  Vue.component('TooltipIcon', TooltipIcon);
 
   // Mixin
   Vue.mixin({

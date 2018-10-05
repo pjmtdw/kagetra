@@ -127,7 +127,7 @@ class MainApp < Sinatra::Base
     dph = MyConf.first(name:"daily_album_photo")
     @daily_photo = if dph then dph.value end
     haml :top, locals: {
-      title: 'TOP',
+      title: 'トップ',
     }
   end
   get '/select_other_uid' do

@@ -84,8 +84,13 @@
   </main>
 </template>
 <script>
+import CommentList from './subcomponents/CommentList.vue';
+
 /* global g_user_name */
 export default {
+  components: {
+    CommentList,
+  },
   props: {
     page: {
       type: String,

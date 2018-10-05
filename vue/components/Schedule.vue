@@ -16,7 +16,7 @@
         </li>
       </ul>
       <div class="ml-auto">
-        <router-link v-show="!gIsPublic && !bulkEditing && !holidayEditing" class="btn btn-sm btn-info" to="/past_event">過去の行事</router-link>
+        <router-link v-show="!gIsPublic && !bulkEditing && !holidayEditing" class="btn btn-sm btn-info" to="/ev_done">過去の行事</router-link>
       </div>
       <div v-if="!gIsPublic" class="ml-2" :class="!bulkEditing && !holidayEditing ? ['btn-group', 'btn-group-sm'] : ''">
         <button v-show="!bulkEditing && !holidayEditing" class="btn btn-success" @click="bulkEditing = true">
@@ -68,19 +68,13 @@
 </template>
 <script>
 import ScheduleItem from './subcomponents/ScheduleItem.vue';
-import DayDetailDialog from './subcomponents/DayDetailDialog.vue';
-import EventInfoDialog from './subcomponents/EventInfoDialog.vue';
-import EventEditDialog from './subcomponents/EventEditDialog.vue';
-import EventCommentDialog from './subcomponents/EventCommentDialog.vue';
+import DialogMixin from './subcomponents/DialogMixin';
 
 export default {
   components: {
     ScheduleItem,
-    DayDetailDialog,
-    EventInfoDialog,
-    EventEditDialog,
-    EventCommentDialog,
   },
+  mixins: [DialogMixin],
   props: {
     year: {
       type: [String, Number],
@@ -271,7 +265,7 @@ export default {
         this.$_notify('danger', '更新に失敗しました');
       });
     },
-    // open modal
+    // override open DayDetailDialog
     openDetail(day) {
       if (this.bulkEditing) {
         this.paste(day);
@@ -279,15 +273,6 @@ export default {
       }
       if (this.holidayEditing) return;
       this.$refs.detailDialog.open(this.year, this.month, day);
-    },
-    openInfo(eventId) {
-      this.$refs.infoDialog.open(eventId);
-    },
-    openComment(eventId) {
-      this.$refs.commentDialog.open(eventId);
-    },
-    openEdit(data) {
-      this.$refs.editDialog.open(data);
     },
   },
 };

@@ -115,66 +115,65 @@
     </div>
     <!-- イベントリスト -->
     <div v-if="eventList" class="row mt-3">
-      <div v-for="e in sortedEventList" :key="e.id" class="col-12 col-md-6">
-        <div class="py-2">
-          <div class="card" :class="{ 'bg-light': !e.public }">
-            <h5 class="card-header">
-              <template v-if="e.kind === 'contest'">
-                <span v-if="e.official">&spades;</span>
-                <span v-else class="text-success">&clubs;</span>
-              </template>
-              <span v-else-if="e.kind === 'party'" class="text-danger">&hearts;</span>
-              <span v-else class="text-primary">&diams;</span>
-              <span>{{ e.name }}</span>
-            </h5>
-            <div class="card-body">
-              <div class="d-flex flex-row">
-                <div>
-                  <small class="text-muted">開催日</small>
-                  <span class="font-weigt-bold" v-html="formatDate(e.date)"/>
-                </div>
-                <div class="ml-auto">
-                  <template v-if="e.forbidden">
-                    <small class="text-black-50">締切</small>
-                    <span v-if="e.deadline === null">なし</span>
-                    <span v-else-if="e.deadline_day < 0" class="text-black-50">過ぎました</span>
-                    <span v-else-if="e.deadline_day === 0" class="text-muted">今日</span>
-                    <span v-else-if="e.deadline_day === 1" class="text-muted">明日</span>
-                    <span v-else class="text-muted">あと{{ e.deadline_day }}日</span>
-                  </template>
-                  <template v-else>
-                    <small class="text-muted">締切</small>
-                    <span v-if="e.deadline === null">なし</span>
-                    <span v-else-if="e.deadline_day < 0" class="text-muted">過ぎました</span>
-                    <span v-else-if="e.deadline_day === 0">今日</span>
-                    <span v-else-if="e.deadline_day === 1">明日</span>
-                    <span v-else>あと{{ e.deadline_day }}日</span>
-                  </template>
-                </div>
+      <div v-for="e in sortedEventList" :key="e.id" class="col-12 col-md-6 py-2">
+        <div class="card" :class="{ 'bg-light': !e.public }">
+          <h5 class="card-header">
+            <template v-if="e.kind === 'contest'">
+              <span v-if="e.official">&spades;</span>
+              <span v-else class="text-success">&clubs;</span>
+            </template>
+            <span v-else-if="e.kind === 'party'" class="text-danger">&hearts;</span>
+            <span v-else class="text-primary">&diams;</span>
+            <span>{{ e.name }}</span>
+          </h5>
+          <div class="card-body">
+            <div class="d-flex flex-row">
+              <div>
+                <small class="text-muted">開催日</small>
+                <span class="font-weigt-bold" v-html="formatDate(e.date)"/>
               </div>
-              <div v-if="e.deadline === null || e.deadline_day >= 0" class="mt-2">
-                <span v-if="e.forbidden" class="text-muted">
-                  貴方は登録不可です
-                </span>
-                <nav v-else class="nav nav-pills">
-                  <a v-for="c in e.choices" :key="c.id" href="#" class="nav-item nav-link px-1 py-0" :class="{ active: e.choice === c.id, 'bg-secondary': e.choice === c.id && !c.positive }" @click.prevent="select(e, c)">
-                    {{ c.name }}
-                  </a>
-                </nav>
+              <div class="ml-auto">
+                <template v-if="e.forbidden">
+                  <small class="text-black-50">締切</small>
+                  <span v-if="e.deadline === null">なし</span>
+                  <span v-else-if="e.deadline_day < 0" class="text-black-50">過ぎました</span>
+                  <span v-else-if="e.deadline_day === 0" class="text-muted">今日</span>
+                  <span v-else-if="e.deadline_day === 1" class="text-muted">明日</span>
+                  <span v-else class="text-muted">あと{{ e.deadline_day }}日</span>
+                </template>
+                <template v-else>
+                  <small class="text-muted">締切</small>
+                  <span v-if="e.deadline === null">なし</span>
+                  <span v-else-if="e.deadline_day < 0" class="text-muted">過ぎました</span>
+                  <span v-else-if="e.deadline_day === 0">今日</span>
+                  <span v-else-if="e.deadline_day === 1">明日</span>
+                  <span v-else>あと{{ e.deadline_day }}日</span>
+                </template>
               </div>
-              <div class="mt-2">
-                <span class="text-muted">登録数</span>
-                <span>{{ e.participant_count }}名</span>
-              </div>
-              <div class="d-flex flex-row mt-3">
-                <button v-if="e.editable" class="btn btn-success" @click="openEdit({ id: e.id, contest: e.kind === 'contest' })">編集</button>
-                <button v-if="e.event_group_id" class="btn btn-info ml-2">過去の結果</button>
-                <button class="btn btn-info ml-2" @click="openInfo(e.id)">情報</button>
-                <button class="btn btn-info ml-2" @click="openInfo(e.id)">コメント</button>
-              </div>
+            </div>
+            <div v-if="e.deadline === null || e.deadline_day >= 0" class="mt-2">
+              <span v-if="e.forbidden" class="text-muted">
+                貴方は登録不可です
+              </span>
+              <nav v-else class="nav nav-pills">
+                <a v-for="c in e.choices" :key="c.id" href="#" class="nav-item nav-link px-1 py-0" :class="{ active: e.choice === c.id, 'bg-secondary': e.choice === c.id && !c.positive }" @click.prevent="select(e, c)">
+                  {{ c.name }}
+                </a>
+              </nav>
+            </div>
+            <div class="mt-2">
+              <span class="text-muted">登録数</span>
+              <span>{{ e.participant_count }}名</span>
+            </div>
+            <div class="d-flex flex-row mt-3">
+              <button v-if="e.editable" class="btn btn-success" @click="openEdit({ id: e.id, contest: e.kind === 'contest' })">編集</button>
+              <button v-if="e.event_group_id" class="btn btn-info ml-2" @click="$refs[`past_result_${e.id}`][0].open()">過去の結果</button>
+              <button class="btn btn-info ml-2" @click="openInfo(e.id)">情報</button>
+              <button class="btn btn-info ml-2" @click="openInfo(e.id)">コメント</button>
             </div>
           </div>
         </div>
+        <PastResultDialog v-if="e.event_group_id" :ref="`past_result_${e.id}`" :id="e.event_group_id"/>
       </div>
     </div>
 
@@ -189,19 +188,15 @@
 /* global g_sub_admin, g_daily_photo */
 
 import ScheduleItem from './subcomponents/ScheduleItem.vue';
-import DayDetailDialog from './subcomponents/DayDetailDialog.vue';
-import EventInfoDialog from './subcomponents/EventInfoDialog.vue';
-import EventEditDialog from './subcomponents/EventEditDialog.vue';
-import EventCommentDialog from './subcomponents/EventCommentDialog.vue';
+import DialogMixin from './subcomponents/DialogMixin';
+import PastResultDialog from './subcomponents/PastResultDialog.vue';
 
 export default {
   components: {
     ScheduleItem,
-    DayDetailDialog,
-    EventInfoDialog,
-    EventEditDialog,
-    EventCommentDialog,
+    PastResultDialog,
   },
+  mixins: [DialogMixin],
   data() {
     return {
       sub_admin: g_sub_admin,
@@ -303,19 +298,7 @@ export default {
       axios.put(`/event/choose/${choice.id}`).catch(this.$_makeOnFail('更新に失敗しました'));
     },
 
-    // open modal
-    openDetail(day) {
-      this.$refs.detailDialog.open(day.year, day.month, day);
-    },
-    openInfo(eventId) {
-      this.$refs.infoDialog.open(eventId);
-    },
-    openComment(eventId) {
-      this.$refs.commentDialog.open(eventId);
-    },
-    openEdit(data) {
-      this.$refs.editDialog.open(data);
-    },
+
   },
 };
 </script>

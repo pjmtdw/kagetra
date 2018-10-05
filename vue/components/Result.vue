@@ -48,51 +48,14 @@
       <span class="h5"><strong>{{ name }}</strong></span>
       <span class="h6 date">@{{ date }}</span>
       <div v-if="event_group_id" class="btn-group mb-1">
-        <button type="button" class="btn btn-info py-1" data-toggle="modal" data-target="#past_result" @click="fetchPastInfo">過去の結果</button>
+        <button type="button" class="btn btn-info py-1" @click="$refs.past_result.open()">過去の結果</button>
         <button type="button" class="btn btn-info py-1 dropdown-toggle dropdown-toggle-split" data-toggle="dropdown"
                 aria-haspopup="true" aria-expanded="false"/>
         <div class="dropdown-menu dropdown-menu-right">
           <router-link v-for="g in group" :key="g.id" :to="`/${g.id}`" class="dropdown-item">{{ g.date }} {{ g.name }}</router-link>
         </div>
       </div>
-      <div v-if="event_group_id" id="past_result" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title">{{ past_name }}</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-            <div class="modal-body">
-              <div v-if="past_description != null" class="card">
-                <h6 class="card-header d-flex justify-content-between align-items-center">
-                  大会情報<button class="btn btn-success">編集</button>
-                </h6>
-                <div class="card-body pre bg-light">{{ past_description }}</div>
-              </div>
-              <hr v-if="past_description != null">
-              <div>
-                <nav v-if="past_pages > 1" class="pl-2">
-                  <ul class="pagination">
-                    <li v-for="p in past_pages" :key="p" class="page-item" :class="{'active': p == past_cur_page}">
-                      <a class="page-link" href="#" @click.prevent="loadPastList">
-                        {{ p }}
-                      </a>
-                    </li>
-                  </ul>
-                </nav>
-                <div v-for="result in past_list" class="comment py-1">
-                  {{ result }}
-                </div>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">閉じる</button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PastResultDialog v-if="event_group_id" ref="past_result" :id="event_group_id"/>
     </div>
     <!-- タブ -->
     <nav v-show="loaded" class="mt-2">
@@ -578,12 +541,14 @@
 </template>
 <script>
 import PlayerSearch from './subcomponents/PlayerSearch.vue';
+import PastResultDialog from './subcomponents/PastResultDialog.vue';
 import EventEditDialog from './subcomponents/EventEditDialog.vue';
 import CommentList from './subcomponents/CommentList.vue';
 
 export default {
   components: {
     PlayerSearch,
+    PastResultDialog,
     EventEditDialog,
     CommentList,
   },
@@ -631,12 +596,6 @@ export default {
       thread_name: null,
       list: [],
       has_new_comment: false,
-      // past info
-      past_cur_page: 1,
-      past_description: null,
-      past_list: null,
-      past_name: null,
-      past_pages: 1,
       // edit players
       changed_num_person: false,
       changed_players: false,
@@ -657,9 +616,6 @@ export default {
     },
     weekday() {
       return $.util.getWeekDay(this.date);
-    },
-    time() {
-      return $.util.timeRange(this.start_at, this.end_at);
     },
     contest_results_conv() {
       const ret = {};
@@ -772,23 +728,6 @@ export default {
       }).catch(() => {
         this.$_notify('danger', '大会情報の取得に失敗しました');
       });
-    },
-    // 過去の結果
-    fetchPastInfo() {
-      const page = this.past_cur_page;
-      const baseUrl = `/result/group/${this.event_group_id}`;
-      const url = page === 1 ? baseUrl : `${baseUrl}?page=${page}`;
-      axios.get(url).then((res) => {
-        _.forEach(res.data, (v, key) => {
-          this[`past_${key}`] = v;
-        });
-      }).catch(() => {
-        this.$_notify('danger', '過去の結果の取得に失敗しました');
-      });
-    },
-    loadPastList(e) {
-      this.past_cur_page = Number($(e.target).html());
-      this.fetchPastInfo();
     },
     // 結果
     setCellHeight() {

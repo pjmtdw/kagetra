@@ -188,7 +188,7 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-@import '../sass/result_common.scss';
+@import '../sass/result.scss';
 
 #container {
   width: 100%;

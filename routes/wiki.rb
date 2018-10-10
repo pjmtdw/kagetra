@@ -123,7 +123,7 @@ class MainApp < Sinatra::Base
       update_or_create_item(nil)
     end
     post '/preview', private:true do
-      {html: render_wiki(params[:body],false)}
+      { html: render_wiki(@json['body'], false) }
     end
 
     get '/log/:id', private:true do

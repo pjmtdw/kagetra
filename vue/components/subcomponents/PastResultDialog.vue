@@ -122,8 +122,8 @@ export default {
       else this.$dialog.modal('show');
     },
     fetch() {
-      const data = this.page === 1 ? null : { params: { page: this.page } };
-      axios.get(`/result/group/${this.id}`, data).then((res) => {
+      const data = this.page === 1 ? null : { page: this.page };
+      axios.get(`/result/group/${this.id}`, { params: data }).then((res) => {
         this.cached = true;
         _.forEach(res.data, (v, key) => {
           this[key] = v;

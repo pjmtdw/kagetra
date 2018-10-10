@@ -3,7 +3,7 @@
     <div class="row">
       <div class="custom-file col-sm-6 col-12">
         <input :id="`file_input${index}`" type="file" name="file" class="custom-file-input text-truncate" @change="setFileName" multiple>
-        <label :for="`file_input${index}`" class="custom-file-label">ファイルを選択</label>
+        <label :for="`file_input${index}`" class="custom-file-label">{{ filename }}</label>
       </div>
       <div class="col-sm-6 col-12 d-flex align-items-center p-0 mt-1 mt-sm-0">
         <label class="nowrap ml-sm-2 mr-1 mb-0" :for="`desc_input${index}`">
@@ -23,11 +23,11 @@ export default {
   props: {
     namespace: {
       type: String,
-      default: '',
+      required: true,
     },
     id: {
       type: Number,
-      default: 0,
+      required: true,
     },
     index: {
       type: Number,
@@ -40,7 +40,8 @@ export default {
   },
   data() {
     return {
-      description: '',
+      filename: null,
+      description: null,
     };
   },
   methods: {
@@ -58,7 +59,7 @@ export default {
       return null;
     },
     setFileName() {
-      $('input[type="file"]').next().html(this.getFilename() || 'ファイルを選択');
+      this.filename = this.getFilename() || 'ファイルを選択';
     },
     deleteForm() {
       if (this.removable) {
@@ -76,20 +77,16 @@ export default {
         return;
       }
       // 同時に送るとデータベースのロックでエラーになるので順番に送る
-      /* eslint-disable arrow-body-style */
+      /* eslint-disable-next-line arrow-body-style */
       _.reduce(files, (promise, file) => {
         return promise.then(() => {
           const data = new FormData();
           data.append('file', file);
-          data.append('description', this.description);
+          if (!_.isNil(this.description)) data.append('description', this.description);
           const config = {
             headers: {
               'content-type': 'multipart/form-data',
             },
-            // onUploadProgress(progressEvent) {
-            //   const percentCompleted =
-            //       Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            // },
           };
           return axios.post(url, data, config);
         });

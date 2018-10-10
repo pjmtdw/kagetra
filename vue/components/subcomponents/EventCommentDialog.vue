@@ -52,7 +52,6 @@ export default {
   },
   mounted() {
     this.$dialog = $(this.$el);
-    this.$dialog.on('hide.bs.modal', () => this.$emit('close'));
     this.$dialog.on('shown.bs.modal', () => $('body').addClass('modal-open'));
   },
   methods: {
@@ -79,6 +78,7 @@ export default {
     postDone() {
       this.$refs.new_comment_toggle.click();
       this.fetch();
+      this.$emit('done');
     },
 
     openInfo() {

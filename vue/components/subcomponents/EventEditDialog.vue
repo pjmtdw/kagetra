@@ -216,18 +216,32 @@
             <!-- 登録者 -->
             <div v-if="!add && !done" class="tab-pane" :class="{ 'show active': tab === 'participant' }">
               <div class="jumbotron bg-light shadow-sm p-3">
-                登録者
+                <div v-for="c in choices" :key="c.id" class="row">
+                  <div class="col">
+                    <div class="card mt-3">
+                      <h6 class="card-header"><strong>{{ c.name }}({{ countParticipant(participant[c.id]) }})</strong></h6>
+                      <div class="card-body">
+                        <div v-for="attr in participant_attrs" :key="attr.id" class="d-flex flex-row flex-wrap align-items-center mb-2">
+                          <span class="badge badge-pill badge-primary">{{ attr.name }}</span>
+                          <div v-for="pid in participant[c.id][attr.id]" :key="pid" class="ml-1 py-1">
+                            <div class="participant">
+                              <span class="align-middle">{{ participant_names[pid] }}</span>
+                              <span class="close d-inline align-top" @click="removeParticipant(pid, c.id, attr.id)">&times;</span>
+                            </div>
+                          </div>
+                          <button class="btn btn-sm btn-success ml-1" @click="addParticipant(c.id, attr.id)">追加</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             <!-- 添付ファイル -->
             <div v-if="!add" class="tab-pane" :class="{ 'show active': tab === 'attach' }">
               <div class="jumbotron bg-light shadow-sm p-3">
-                <div v-for="f in attached" :key="f.id">
-                  <a :href="`/static/event/attached/${f.id}/${encodeURI(f.orig_name)}`" class="badge badge-light-shadow">{{ f.orig_name }}</a>
-                  <p class="d-inline ml-2">{{ f.description }}</p>
-                </div>
-                <div class="mt-3"/>
-                <FilePost :id="id" namespace="event" @done="submitFileDone"/>
+                <FileList namespace="event" :id="id" :file-list="attached" @done="submitFileDone"/>
+                <FilePost :id="id" namespace="event" class="mt-3" @done="submitFileDone"/>
               </div>
             </div>
           </div>
@@ -238,7 +252,7 @@
           <button type="button" class="btn btn-success" @click="editEvent">保存</button>
         </div>
         <div v-else-if="tab === 'participant'" class="modal-footer">
-          <button type="button" class="btn btn-success ml-auto" @click="editParticipant">保存</button>
+          <button type="button" class="btn btn-success ml-auto" @click="saveParticipant">送信</button>
         </div>
       </div>
     </div>
@@ -246,10 +260,12 @@
 </template>
 <script>
 import FilePost from './FilePost.vue';
+import FileList from './FileList.vue';
 
 export default {
   components: {
     FilePost,
+    FileList,
   },
   props: {
     hideAttr: {
@@ -297,6 +313,13 @@ export default {
       choices: null,
       forbidden_attrs: null,
 
+      // participant
+      participant: null,
+      participant_attrs: null,
+      participant_names: null,
+      log: {},
+
+      // attached
       attached: null,
     };
   },
@@ -326,8 +349,6 @@ export default {
   },
   mounted() {
     this.$dialog = $(this.$el);
-    this.$dialog.on('hide.bs.modal', () => this.$emit('close'));
-    this.$dialog.on('shown.bs.modal', () => $('body').addClass('modal-open'));
     this.$dialog.on('hide.bs.modal', (e) => {
       if (!this.changed) {
         this.reset();
@@ -336,10 +357,14 @@ export default {
       e.preventDefault();
       this.$_confirm('本当に変更を破棄して閉じますか？').then(() => {
         this.changed = false;
-        $(this.$el).modal('hide');
+        this.$dialog.modal('hide');
       }).catch(() => {
         $('body').addClass('modal-open');
       });
+    });
+    this.$dialog.on('hidden.bs.modal', (e) => {
+      // FileListの編集ダイアログを閉じたとき
+      if (e.target !== this.$el) document.body.classList.add('modal-open');
     });
     this.$_setBeforeUnload(() => this.changed);
   },
@@ -525,13 +550,46 @@ export default {
     },
 
     // 登録者
-    editParticipant() {
-
+    countParticipant(participants) {
+      return _.sum(_.map(_.values(participants), v => v.length));
+    },
+    addParticipant(choiceId, attrId) {
+      this.$_prompt('名前').then((res) => {
+        if (!_.isUndefined(this.log[res])) return;
+        if (_.isUndefined(this.participant[choiceId][attrId])) {
+          this.$set(this.participant[choiceId], attrId, []);
+        }
+        this.log[res] = ['add', attrId, choiceId];
+        // dummyとして負のidを使用
+        // logは送信するまで単調に増えるので重複しない
+        const dummyId = -this.log.length;
+        this.participant[choiceId][attrId].push(dummyId);
+        this.participant_names[dummyId] = res;
+      }).always(() => {
+        document.body.classList.add('modal-open');
+      });
+    },
+    removeParticipant(participantId, choiceId, attrId) {
+      const name = this.participant_names[participantId];
+      if (!_.isUndefined(this.log[name])) return;
+      this.log[name] = ['delete', attrId, choiceId];
+      this.$delete(this.participant[choiceId][attrId], _.indexOf(this.participant[choiceId][attrId], participantId));
+    },
+    saveParticipant() {
+      if (_.isEmpty(this.log)) return;
+      const data = { log: this.log };
+      axios.put(`/event/participants/${this.id}`, data).then(() => {
+        this.$_notify('送信しました');
+        this.log = {};
+        this.fetch();
+        this.$emit('done');
+      }).catch(this.$_makeOnFail('保存に失敗しました'));
     },
 
     // 添付ファイル
     submitFileDone() {
       this.fetchEditAttached();
+      this.$emit('done');
     },
   },
 };
@@ -539,6 +597,7 @@ export default {
 <style lang="scss" scoped>
 .choice {
   border: 1px dotted rgba(0, 0, 0, .6);
+  padding: 0 2px;
   &.positive {
     background-color: #ffd;
   }
@@ -549,6 +608,7 @@ export default {
 .forbidden-attr {
   border: 1px dotted rgba(0, 0, 0, .6);
   background-color: rgba(0, 0, 0, .07);
+  padding: 0 2px;
 }
 .dropdown {
   .dropdown-divider:last-child {
@@ -558,5 +618,10 @@ export default {
     height: 200px;
     overflow-y: auto;
   }
+}
+.participant {
+  border: 1px dotted rgba(0, 0, 0, .3);
+  background-color: rgba(0, 0, 0, .03);
+  padding: 0 2px;
 }
 </style>

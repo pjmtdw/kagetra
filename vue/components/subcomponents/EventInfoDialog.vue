@@ -101,7 +101,7 @@
                       <div v-if="participant[c.id][attr.id]" :key="attr.id" class="d-flex flex-row flex-wrap align-items-center mb-2">
                         <span class="badge badge-pill badge-primary">{{ attr.name }}</span>
                         <div v-for="pid in participant[c.id][attr.id]" :key="pid" class="ml-1 py-1">
-                          <span class="member">{{ participant_names[pid] }}</span>
+                          <span class="participant">{{ participant_names[pid] }}</span>
                         </div>
                       </div>
                     </template>
@@ -152,7 +152,6 @@ export default {
   },
   mounted() {
     this.$dialog = $(this.$el);
-    this.$dialog.on('hide.bs.modal', () => this.$emit('close'));
     this.$dialog.on('shown.bs.modal', () => $('body').addClass('modal-open'));
   },
   methods: {
@@ -185,7 +184,9 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-.member {
-  border: 1px dotted #6c757d;
+.participant {
+  border: 1px dotted rgba(0, 0, 0, .3);
+  background-color: rgba(0, 0, 0, .03);
+  padding: 0 2px;
 }
 </style>

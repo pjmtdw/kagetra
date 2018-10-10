@@ -4,9 +4,9 @@ class MainApp < Sinatra::Base
   enable :sessions, :logging
   # ENV['RACK_SESSION_SECRET'] is set by unicorn.rb
   set :root, File.join(File.dirname(__FILE__),"..")
-  set :session_secret, 
-    ((if CONF_SESSION_SECRET.to_s.empty?.! then CONF_SESSION_SECRET end) or ENV["RACK_SESSION_SECRET"] or SecureRandom.base64(48)) 
-  
+  set :session_secret,
+    ((if CONF_SESSION_SECRET.to_s.empty?.! then CONF_SESSION_SECRET end) or ENV["RACK_SESSION_SECRET"] or SecureRandom.base64(48))
+
   set :sessions, key:G_SESSION_COOKIE_NAME
   # for Internet Explorer 8, 9 (and maybe also 10?) session_hijacking protection refuses the session.
   # https://github.com/rkh/rack-protection/issues/11
@@ -109,8 +109,9 @@ class MainApp < Sinatra::Base
       halt 404 if attached.nil?
       send_file(File.join(attached_base,attached.path),disposition:nil)
     end
+    # ajaxを使うように変更したので↓は不要
     # 返信を Content-Type: text/html で返す必要があるので /api/ の route には置かない
-    post "/#{namespace}/attached/:id", private:true do
+    post "/api/#{namespace}/attached/:id", private:true do
       item = klass[params[:id].to_i]
       attached =  if params[:attached_id] then
                     item.attacheds_dataset.first(id:params[:attached_id])
@@ -157,7 +158,7 @@ class MainApp < Sinatra::Base
         FileUtils.rm(target_file,force:true) unless attached
         error_response('送信失敗')
       end
-      "<div id='response'>#{res.to_json}</div>"
+      res
     end
   end
 end

@@ -77,8 +77,8 @@ export default {
   },
   methods: {
     fetch() {
-      const data = this.page === null ? null : { params: { page: this.page } };
-      axios.get('/schedule/ev_done', data).then((res) => {
+      const data = this.page === null ? null : { page: this.page };
+      axios.get('/schedule/ev_done', { params: data }).then((res) => {
         this.pages = res.data.pages;
         this.eventList = res.data.list;
       }).catch(this.$_makeOnFail('取得に失敗しました'));

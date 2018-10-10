@@ -22,11 +22,11 @@ export default {
     },
     url: {
       type: String,
-      default: null,
+      required: true,
     },
     threadId: {
-      type: Number,
-      default: null,
+      required: true,
+      validator: prop => _.isNumber(prop) || _.isNull(prop),
     },
   },
   data() {
@@ -50,10 +50,6 @@ export default {
   },
   methods: {
     postComment() {
-      if (this.threadId === null) {
-        this.$_notify('danger', '投稿できませんでした');
-        return;
-      }
       const $form = $(this.$el);
       if (!$form.check()) return;
       const data = $form.serializeObject();
@@ -61,10 +57,9 @@ export default {
         /* eslint-disable camelcase */
         this.name = g_user_name;
         this.body = '';
+        this.changed = false;
         this.$emit('done', this.threadId);
-      }).catch(() => {
-        this.$_notify('danger', '投稿に失敗しました');
-      });
+      }).catch(this.$_makeOnFail('投稿に失敗しました'));
     },
   },
 };

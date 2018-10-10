@@ -181,7 +181,7 @@
     <DayDetailDialog ref="detailDialog" @openinfo="openInfo" @opencomment="openComment"/>
     <EventInfoDialog ref="infoDialog" @openedit="openEdit" @opencomment="openComment"/>
     <EventEditDialog ref="editDialog" @done="fetch"/>
-    <EventCommentDialog ref="commentDialog" @openinfo="openInfo"/>
+    <EventCommentDialog ref="commentDialog" @openinfo="openInfo" @done="fetch"/>
   </main>
 </template>
 <script>

@@ -60,10 +60,10 @@
     </div>
 
     <!-- dialog -->
-    <DayDetailDialog ref="detailDialog" @close="fetch" @openinfo="openInfo" @opencomment="openComment"/>
-    <EventInfoDialog ref="infoDialog" @close="fetch" @openedit="openEdit" @opencomment="openComment"/>
-    <EventEditDialog ref="editDialog" @close="fetch"/>
-    <EventCommentDialog ref="commentDialog" @close="fetch" @openinfo="openInfo"/>
+    <DayDetailDialog ref="detailDialog" @done="fetch" @openinfo="openInfo" @opencomment="openComment"/>
+    <EventInfoDialog ref="infoDialog" @openedit="openEdit" @opencomment="openComment"/>
+    <EventEditDialog ref="editDialog" @done="fetch"/>
+    <EventCommentDialog ref="commentDialog" @openinfo="openInfo"/>
   </main>
 </template>
 <script>

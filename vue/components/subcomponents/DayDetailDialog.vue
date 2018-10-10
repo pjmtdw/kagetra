@@ -178,7 +178,6 @@ export default {
   },
   mounted() {
     this.$dialog = $(this.$el);
-    this.$dialog.on('hide.bs.modal', () => this.$emit('close'));
   },
   methods: {
     open(year, month, day) {
@@ -230,13 +229,15 @@ export default {
       data = _.mapValues(data, v => (v.trim() === '' ? null : v));
       axios.put(`/schedule/detail/item/${x.id}`, data).then(() => {
         this.fetch();
+        this.$emit('done');
       }).catch(() => {
-        this.$_notify('danger', '削除に失敗しました');
+        this.$_notify('danger', '保存に失敗しました');
       });
     },
     removeItem(x) {
       axios.delete(`/schedule/detail/item/${x.id}`).then(() => {
         this.fetch();
+        this.$emit('done');
       }).catch(() => {
         this.$_notify('danger', '削除に失敗しました');
       });
@@ -253,6 +254,7 @@ export default {
       axios.post('/schedule/detail/item', data).then(() => {
         this.$refs.toggleEdit.click();
         this.fetch();
+        this.$emit('done');
       }).catch(() => {
         this.$_notify('danger', '保存に失敗しました');
       });

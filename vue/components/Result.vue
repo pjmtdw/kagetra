@@ -68,14 +68,14 @@
         </a>
         <a class="nav-item nav-link border" data-toggle="tab" href="#nav-comment">
           コメント
-          <span v-if="comment_count">({{ `${comment_count}${has_new_comment ? ' new' : ''}` }})</span>
+          <span v-if="comment_count !== null">({{ comment_count }}{{ has_new_comment ? ' new' : '' }})</span>
         </a>
       </div>
     </nav>
     <!-- タブの中 -->
     <div v-show="loaded" class="tab-content">
       <!-- 結果 -->
-      <div class="tab-pane border border-top-0 bg-white rounded-bottom show active" id="nav-result">
+      <div id="nav-result" class="tab-pane border border-top-0 bg-white rounded-bottom show active">
         <div id="result-tab-button-wrapper" class="d-flex justify-content-between p-2">
           <div>
             <button id="toggleEdit" class="btn btn-outline-success active mx-1" data-toggle="button" aria-pressed="true" @click="editing = !editing">
@@ -158,7 +158,7 @@
         </div>
       </div>
       <!-- 情報 -->
-      <div class="tab-pane border border-top-0 bg-white rounded-bottom pb-3" id="nav-info">
+      <div id="nav-info" class="tab-pane border border-top-0 bg-white rounded-bottom pb-3">
         <div class="container">
           <div class="row">
             <div class="col-12 col-md-8">
@@ -228,7 +228,7 @@
         </div>
       </div>
       <!-- コメント -->
-      <div class="tab-pane border border-top-0 bg-white rounded-bottom pb-3" id="nav-comment">
+      <div id="nav-comment" class="tab-pane border border-top-0 bg-white rounded-bottom pb-3">
         <div class="d-flex justify-content-between align-items-center">
           <h5 class="m-2">
             <strong>{{ thread_name }}</strong>

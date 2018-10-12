@@ -1,5 +1,5 @@
 <template>
-  <main id="container">
+  <main id="container" class="mx-auto">
     addrbook
   </main>
 </template>

@@ -86,10 +86,12 @@ export default {
     this.$dialog = $(this.$refs.editFileDialog);
     const parents = this.$dialog.parents('div.modal');
     this.$dialog.on('show.bs.modal', () => {
+      // こうしないとEventEditDialogがうまく背面にならない
       parents.removeClass('modal');
       parents.addClass('modal-back');
     });
     this.$dialog.on('hide.bs.modal', (e) => {
+      // こうしないとEventEditDialogがうまく背面にならない
       parents.addClass('modal');
       parents.removeClass('modal-back');
       e.stopPropagation();
@@ -151,6 +153,6 @@ export default {
   bottom: 0;
   left: 0;
   right: 0;
-  z-index: 1049;
+  z-index: 1049;  // .modalが1050
 }
 </style>

@@ -31,7 +31,7 @@
           <h3 class="mb-0">{{ title }}</h3>
           <button v-if="pageId > 0" class="btn btn-sm btn-outline-success ml-auto" @click="editing = !editing">{{ editing ? 'キャンセル' : '編集' }}</button>
         </div>
-        <div v-if="!editing" class="wiki-content" v-html="html"/>
+        <div v-if="!editing" class="wiki-page" v-html="html"/>
         <div v-else>
           <div class="d-flex flex-row">
             <button v-if="deletable" class="btn btn-danger" @click="deletePage">削除</button>
@@ -63,7 +63,7 @@
                   ちなみに強制的に改行するには行末に空白2つ入れて下さい．
                   <hr>
                   このWikiでは任意のHTMLタグが使えます．また&lt;style&gt;を使うときは
-                  <code>.wiki-content</code>
+                  <code>.wiki-page</code>
                   がページ内を示すセレクタです．
                   <hr>
                   Wiki内リンクは [[ ]] で囲みます．末尾に/log,/attached,/commentを付けるとそれぞれ履歴，添付，コメントへのリンクになります．
@@ -104,7 +104,7 @@
                   </button>
                 </div>
                 <div class="modal-body p-2">
-                  <div class="wiki-content" v-html="previewHtml"/>
+                  <div class="wiki-page" v-html="previewHtml"/>
                 </div>
               </div>
             </div>
@@ -331,12 +331,24 @@ export default {
       return `/all?page=${elem.getAttribute('data-page-num')}`;
     },
     showPreview() {
+      if (_.isEmpty(this.edit.body)) {
+        this.$_notify('warning', '本文が空です');
+        return;
+      }
       axios.post('/wiki/preview', { body: this.edit.body }).then((res) => {
         this.previewHtml = res.data.html;
         $(this.$refs.previewDialog).modal('show');
       });
     },
     savePage() {
+      if (_.isEmpty(this.edit.title)) {
+        this.$_notify('warning', 'タイトルが空です');
+        return;
+      }
+      if (_.isEmpty(this.edit.body)) {
+        this.$_notify('warning', '本文が空です');
+        return;
+      }
       const data = {
         id: this.pageId,
         body: this.edit.body,

@@ -29,7 +29,7 @@
             ちなみに強制的に改行するには行末に空白2つ入れて下さい．
             <hr>
             このWikiでは任意のHTMLタグが使えます．また&lt;style&gt;を使うときは
-            <code>.wiki-content</code>
+            <code>.wiki-page</code>
             がページ内を示すセレクタです．
             <hr>
             Wiki内リンクは [[ ]] で囲みます．末尾に/log,/attached,/commentを付けるとそれぞれ履歴，添付，コメントへのリンクになります．
@@ -70,7 +70,7 @@
             </button>
           </div>
           <div class="modal-body p-2">
-            <div class="wiki-content" v-html="previewHtml"/>
+            <div class="wiki-page" v-html="previewHtml"/>
           </div>
         </div>
       </div>
@@ -95,6 +95,10 @@ export default {
   },
   methods: {
     showPreview() {
+      if (_.isEmpty(this.body)) {
+        this.$_notify('warning', '本文が空です');
+        return;
+      }
       axios.post('/wiki/preview', { body: this.body }).then((res) => {
         this.previewHtml = res.data.html;
         $(this.$refs.previewDialog).modal('show');

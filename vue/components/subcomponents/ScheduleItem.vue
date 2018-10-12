@@ -1,6 +1,6 @@
 <template>
   <div v-if="isInvalid" class="day bg-light border-dotted rounded"/>
-  <div v-else class="day rounded p-2"
+  <div v-else class="day small rounded p-2"
        :class="{ holiday: day.day === 0 || day.info.is_holiday, saturday: day.day === 6 && !day.info.is_holiday, bulkedit: bulkEditing, 'cursor-pointer': !bulkEditing && !holidayEditing,
                  today: day.today, 'border-dotted': !day.today }">
     <div>
@@ -132,7 +132,6 @@ export default {
 </script>
 <style lang="scss" scoped>
 .day {
-  font-size: 10px;
   line-height: 1;
   height: 10rem;
   background-color: #ffd;

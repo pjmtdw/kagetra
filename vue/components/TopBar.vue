@@ -6,8 +6,8 @@
     <div v-if="!gIsPublic" id="navbarContent" class="collapse navbar-collapse">
       <ul class="navbar-nav mr-auto">
         <li v-for="x in list" :key="x.alias" class="nav-item mx-2">
-          <a v-if="gRouteName !== x.alias" class="nav-link" :href="`/${x.alias}`">{{ x.name }}</a>
-          <a v-else class="nav-link active" :href="`/${x.alias}`" @click.prevent="location.hash = '/'">{{ x.name }}</a>
+          <a class="nav-link" :href="`/${x.alias}`">{{ x.name }}</a>
+          <!-- <a v-else class="nav-link active" :href="`/${x.alias}`" @click="toRouteTop">{{ x.name }}</a> -->
           <!-- <router-link v-else class="nav-link active" to="/">{{ x.name }}</router-link> -->
         </li>
       </ul>
@@ -16,8 +16,8 @@
     <div v-else id="navbarContent" class="collapse navbar-collapse">
       <ul class="navbar-nav mr-auto">
         <li v-for="x in publicList" :key="x.alias" class="nav-item mx-2">
-          <a v-if="gRouteName !== x.alias" class="nav-link" :href="`/public/${x.alias}`">{{ x.name }}</a>
-          <router-link v-else class="nav-link active" to="/">{{ x.name }}</router-link>
+          <a class="nav-link" :href="`/public/${x.alias}`">{{ x.name }}</a>
+          <!-- <router-link v-else class="nav-link active" to="/">{{ x.name }}</router-link> -->
         </li>
       </ul>
     </div>

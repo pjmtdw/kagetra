@@ -349,6 +349,7 @@ export default {
   },
   mounted() {
     this.$dialog = $(this.$el);
+    this.$dialog.on('shown.bs.modal', () => $('body').addClass('modal-open'));
     this.$dialog.on('hide.bs.modal', (e) => {
       if (!this.changed) {
         this.reset();
@@ -432,6 +433,7 @@ export default {
       this.choices = null;
       this.forbidden_attrs = null;
       this.attached = null;
+      this.log = {};
     },
 
     // 情報

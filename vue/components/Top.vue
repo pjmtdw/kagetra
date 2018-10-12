@@ -43,7 +43,7 @@
             <span>大会行事の新規登録者: </span>
             <template v-for="p in participants">
               <a href="#" @click.prevent="openInfo(p[0])">{{ p[1] }}</a>
-              <span>&rArr; {{ p[2].join(', ') }}</span>
+              <span class="mr-1">&rArr; {{ p[2].join(', ') }}</span>
             </template>
           </div>
         </div>
@@ -55,18 +55,21 @@
     <!-- 締切が迫る/過ぎた, 今日の一枚 -->
     <div v-if="eventList" class="row justify-content-center mt-3">
       <div class="col-12 col-md-6">
-        <div v-if="nearDeadlineEvents && nearDeadlineEvents.length > 0" class="card">
+        <div v-if="nearDeadlineEvents && nearDeadlineEvents.length > 0" class="card my-1">
           <div class="card-body">
             <h6 class="card-subtitle text-muted">締切が迫ってます</h6>
-            <div v-for="e in nearDeadlineEvents" :key="e.id">
-              <a href="#" class="col" @click.prevent="openInfo(e.id)">{{ e.name }}</a>
-              <div class="d-flex flex-row flex-wrap">
-                <span v-for="c in e.choices" :key="c.id">{{ c.name }}</span>
-              </div>
+            <div v-for="e in nearDeadlineEvents" :key="e.id" class="d-flex flex-row pl-1">
+              <a href="#" @click.prevent="openInfo(e.id)">{{ e.name }}</a>
+              <nav class="nav nav-pills ml-4">
+                <a v-for="c in e.choices" :key="c.id" href="#" class="nav-item nav-link px-1 py-0" :class="{ active: e.choice === c.id, 'bg-secondary': e.choice === c.id && !c.positive }"
+                   @click.prevent="select(e, c)">
+                  {{ c.name }}
+                </a>
+              </nav>
             </div>
           </div>
         </div>
-        <div v-if="afterDeadlineEvents && afterDeadlineEvents.length > 0" class="card">
+        <div v-if="afterDeadlineEvents && afterDeadlineEvents.length > 0" class="card my-1">
           <div class="card-body">
             <h6 class="card-subtitle text-muted mb-2">締切が過ぎました</h6>
             <table class="table table-sm table-borderless w-auto mb-0">
@@ -156,7 +159,8 @@
                 貴方は登録不可です
               </span>
               <nav v-else class="nav nav-pills">
-                <a v-for="c in e.choices" :key="c.id" href="#" class="nav-item nav-link px-1 py-0" :class="{ active: e.choice === c.id, 'bg-secondary': e.choice === c.id && !c.positive }" @click.prevent="select(e, c)">
+                <a v-for="c in e.choices" :key="c.id" href="#" class="nav-item nav-link px-1 py-0" :class="{ active: e.choice === c.id, 'bg-secondary': e.choice === c.id && !c.positive }"
+                   @click.prevent="select(e, c)">
                   {{ c.name }}
                 </a>
               </nav>
@@ -202,6 +206,8 @@ export default {
       sub_admin: g_sub_admin,
       daily_photo: g_daily_photo,
 
+      nearDeadlineEvents: null,
+
       last_login: null,
       log_man: null,
       has_ut_karuta_form: null,
@@ -239,9 +245,6 @@ export default {
         return null;
       });
     },
-    nearDeadlineEvents() {
-      return _.filter(this.eventList, e => !e.forbidden && e.choice === null && _.inRange(e.deadline_day, 0, 11));
-    },
     afterDeadlineEvents() {
       return _.filter(this.eventList, e => e.deadline_after);
     },
@@ -273,6 +276,9 @@ export default {
       }).catch(this.$_makeOnFail('情報の取得に失敗しました'));
       axios.get('/event/list').then((res) => {
         this.eventList = res.data;
+        // computedにすると選択した瞬間に消える
+        this.nearDeadlineEvents =
+          _.filter(this.eventList, e => !e.forbidden && e.choice === null && _.inRange(e.deadline_day, 0, 11));
       }).catch(this.$_makeOnFail('情報の取得に失敗しました'));
     },
     relogin() {
@@ -297,8 +303,6 @@ export default {
       event.choice = choice.id;
       axios.put(`/event/choose/${choice.id}`).catch(this.$_makeOnFail('更新に失敗しました'));
     },
-
-
   },
 };
 </script>

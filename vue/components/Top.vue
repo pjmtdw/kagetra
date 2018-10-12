@@ -6,7 +6,7 @@
         <div class="jumbotron bg-light shadow-sm p-3">
           <span>最終ログイン: {{ last_login.last }}</span>
           <a v-if="last_login.can_relogin" href="#" @click="relogin">(+{{ last_login.from_last }}分)</a>
-          <span v-else-if="last_login.from_last >= 5">(+{{ last_login.from_last }}分)</span>
+          <span v-else-if="last_login.from_last >= 5" class="text-muted">(+{{ last_login.from_last }}分)</span>
           <span>, 今月ログイン: {{ log_mon }}</span>
           <div v-if="today_contests && today_contests.length > 0">
             <span>本日の大会</span>
@@ -85,11 +85,11 @@
           </div>
         </div>
       </div>
-      <div class="col-10 col-md-6 mt-2 mt-md-0 d-flex flex-column justify-content-center border rounded bg-light">
-        <div class="text-center text-muted">
-          今日の一枚
-        </div>
-        <div class="text-center">
+      <div class="col-10 col-md-6 mt-2 mt-md-0 d-flex flex-row justify-content-center">
+        <div class="d-inline-block border rounded daily-photo p-2">
+          <div class="text-center text-muted">
+            今日の一枚
+          </div>
           <a :href="`/album#/${daily_photo.id}`">
             <img :src="`/static/album/thumb/${daily_photo.thumb.id}`" alt="今日の一枚" :width="daily_photo.thumb.width" :height="daily_photo.thumb.height">
           </a>
@@ -306,5 +306,9 @@ export default {
 #container {
   width: 100%;
   max-width: 860px;
+}
+
+.daily-photo {
+  background-color: #dcffd3;
 }
 </style>

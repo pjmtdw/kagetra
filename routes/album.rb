@@ -136,7 +136,7 @@ class MainApp < Sinatra::Base
         rr.merge({coord_x:cx,coord_y:cy})
       }
       r[:relations] = item.relations.map(&:id_with_thumb)
-      r[:deletable] = album_item_deletable(item) 
+      r[:deletable] = album_item_deletable(item)
       r
     end
     put '/item/:id' do
@@ -200,7 +200,7 @@ class MainApp < Sinatra::Base
         item.do_after_tag_updated
         (updates,updates_patch) = make_comment_log_patch(item,@json,"comment","comment_revision")
         if updates then @json.merge!(updates) end
-        if @json["group_id"].to_s.empty? then 
+        if @json["group_id"].to_s.empty? then
           # 今は JSON の group_id が空白のときは item の group_id を更新しない
           # TODO: group_id を null に設定できるようにする
           @json.delete("group_id")
@@ -273,7 +273,7 @@ class MainApp < Sinatra::Base
                   if group.start_at then
                     st = group.start_at - ALBUM_EVENT_COMPLEMENT_DAYS
                     ed = (group.end_at || group.start_at) + ALBUM_EVENT_COMPLEMENT_DAYS
-                    
+
                     Event.where{ (date >= st) & (date <= ed)}
                          .where(done:true,kind:Event.kind__contest)
                          .order(Sequel.desc(:date, nulls: :last))
@@ -296,7 +296,7 @@ class MainApp < Sinatra::Base
                      x.select_attr(:id,:date,:name).merge(text:"#{x.name}@#{x.date}")
                   }
                 end
-      
+
       if group.start_at then
         center_date = group.start_at + ((group.end_at || group.start_at) - group.start_at) / 2
         results = results.sort_by{|x| [if x[:date] then (center_date - x[:date]).to_i.abs else 999999 end, levenshtein_distance(x[:name],group.name)]}
@@ -418,7 +418,7 @@ class MainApp < Sinatra::Base
     end
     get '/stat' do
       uploaders = AlbumItem.group_and_count(:owner_id).where(Sequel.~(owner_id:nil)).order(Sequel.desc(:count))
-      uploader_stat = [] 
+      uploader_stat = []
       prev_count = nil
       rank = 1
       uploaders.to_enum.with_index(1){|x,index|
@@ -561,24 +561,25 @@ class MainApp < Sinatra::Base
     }
     "<div id='response'>#{res.to_json}</div>"
   end
-  def send_photo(p,rotate)
-    content_type "image/#{p.format.downcase}"
-    path = File.join(CONF_STORAGE_DIR,"album",p.path)
-    ext = case p.format.downcase
+  def send_photo(photo,rotate)
+    content_type "image/#{photo.format.downcase}"
+    path = File.join(CONF_STORAGE_DIR,"album",photo.path)
+    ext = case photo.format.downcase
           when "jpeg" then "jpg"
-          else p.format.downcase
+          else photo.format.downcase
           end
-    prefix =  if p.class == AlbumThumbnail then
-                p.album_item_id.to_s + "_thumb"
+    prefix =  if photo.class == AlbumThumbnail then
+                photo.album_item_id.to_s + "_thumb"
               else
-                p.album_item_id
+                photo.album_item_id
               end
     filename = "#{prefix}.#{ext}"
+    logger.puts(path, filename)
     if rotate == 0
       send_file(path,disposition:"inline",filename:filename)
     else
       attachment(filename,"inline")
-      last_modified p.updated_at
+      last_modified photo.updated_at
       img = Magick::Image::read(path).first
       img.rotate!(rotate)
       blob = img.to_blob
@@ -592,13 +593,13 @@ class MainApp < Sinatra::Base
     get '/thumb/:id.?:rotate?' do
       # サムネイルだけ24時間キャッシュする（概ね今日の一枚用）
       expires 86400, :public
-      p = AlbumThumbnail[params[:id].to_i]
+      photo = AlbumThumbnail[params[:id].to_i]
       # サムネイルは作成時にrotate済みなのでそのまま送る
-      send_photo(p,0)
+      send_photo(photo, 0)
     end
     get '/photo/:id.?:rotate?' do
-      p = AlbumPhoto[params[:id].to_i]
-      send_photo(p,params[:rotate].to_i)
+      photo = AlbumPhoto[params[:id].to_i]
+      send_photo(photo, params[:rotate].to_i)
     end
   end
 end

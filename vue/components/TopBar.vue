@@ -11,6 +11,7 @@
           <!-- <router-link v-else class="nav-link active" to="/">{{ x.name }}</router-link> -->
         </li>
       </ul>
+      <a href="/switch_beta" class="nav-link">通常版へ</a>
     </div>
     <div v-else id="navbarContent" class="collapse navbar-collapse">
       <ul class="navbar-nav mr-auto">

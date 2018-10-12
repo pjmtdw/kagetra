@@ -145,9 +145,13 @@ class MainApp < Sinatra::Base
     redirect '/top'
   end
   get '/img/bg.jpg' do
-    redirect '/img/bg/' + "%02d"%Date.today.month + '.jpg'
+    expires :today
+    filename = "%02d"%Date.today.month + '.jpg'
+    send_file("./public/img/bg/#{filename}")
   end
   get '/img/bg_rev.jpg' do
-    redirect '/img/bg/' + "%02d"%Date.today.month + '_rev.jpg'
+    expires :today
+    filename = "%02d"%Date.today.month + '_rev.jpg'
+    send_file("./public/img/bg/#{filename}")
   end
 end

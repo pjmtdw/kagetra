@@ -163,6 +163,7 @@ export default {
         this.publicThread = false;
         this.title = '';
         this.body = '';
+        this.changed = false;
         $('#new-thread-toggle').click();
         this.fetch(this.page);
       }).catch(() => {

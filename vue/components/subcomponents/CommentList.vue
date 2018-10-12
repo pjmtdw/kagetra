@@ -9,7 +9,7 @@
           編集
         </button>
       </div>
-      <div v-show="!item.editing" class="pre mt-1 pl-2">{{ item.body }}</div>
+      <div v-show="!item.editing" class="pre mt-1 pl-2" v-html="preProcess(item.body)"/>
       <form v-if="item.editable" v-show="item.editing" :ref="'editForm' + item.id" @submit.prevent @keydown.shift.enter="editItem(i, item.id)">
         <div class="form-group d-flex align-items-center">
           <input :value="item.user_name" class="form-control d-inline w-auto" type="text" name="user_name" placeholder="名前" required>
@@ -79,6 +79,14 @@ export default {
       }).catch(() => {
         this.$_notify('danger', '削除に失敗しました');
       });
+    },
+    preProcess(body) {
+      const regUrl = new RegExp('(https?://[a-zA-Z0-9/:%#$&?()~.=+_-]+)', 'gi');
+      /* eslint-disable-next-line no-useless-escape */
+      const regMail = new RegExp('(([*+!.&#\$|\'\\%\/0-9a-z^_`{}=?~:-]+)@(([0-9a-z-]+\.)+[0-9a-z]{2,}))', 'gi');
+      const replaceUrlToLink = text => _.replace(text, regUrl, '<a href="$1">$1</a>');
+      const replaceMailToLink = text => _.replace(text, regMail, '<a href="mailto:$1">$1</a>');
+      return replaceMailToLink(replaceUrlToLink(body));
     },
     autosizeTextarea(tgt) {
       // textareaの行数を内容に合わせて変更

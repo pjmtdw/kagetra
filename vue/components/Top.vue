@@ -37,7 +37,7 @@
           </div>
           <div v-if="wiki && wiki.length > 0">
             <span>Wikiコメントに新着{{ wiki.length }}件</span>
-            <a v-for="w in wiki" :href="`/wiki#/${w.id}/comment`" class="ml-1">{{ w.name }}</a>
+            <a v-for="w in wiki" :href="`/wiki#/${w.id}/comment`" class="ml-1">{{ w.title }}</a>
           </div>
           <div v-if="participants && participants.length > 0">
             <span>大会行事の新規登録者: </span>

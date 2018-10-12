@@ -1,5 +1,13 @@
 # -*- coding: utf-8 -*-
 module MiscHelpers
+  def time_for(value)
+    now = Time.now
+    case value
+    when :today then Time.local now.year, now.mon, now.day, 23, 59, 59
+    else super
+    end
+  end
+
   def get_user
     User.first(id: session[:user_id], token: session[:user_token])
   end
@@ -46,6 +54,7 @@ module MiscHelpers
     end
   end
 
+  # Cookie
   def get_permanent(key)
     data = get_permanent_all
     if data then data[key] end

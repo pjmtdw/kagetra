@@ -20,6 +20,7 @@
           <!-- <router-link v-else class="nav-link active" to="/">{{ x.name }}</router-link> -->
         </li>
       </ul>
+      <a href="/switch_beta" class="nav-link">通常版へ</a>
     </div>
   </nav>
 </template>

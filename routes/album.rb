@@ -226,8 +226,8 @@ class MainApp < Sinatra::Base
       {list: list,total: total,recent:{list:recent}, comment_updated:comment_updated}
     end
     post '/search' do
-      qs = params[:qs]
-      page = if params[:page] then params[:page].to_i else 1 end
+      qs = @json['qs']
+      page = if @json['page'] then @json['page'].to_i else 1 end
       dataset = AlbumItem.dataset
       if /(?:^|\s)([0-9\-]+)(?:$|\s)/ =~ qs then
         qs = $` + " " + $'

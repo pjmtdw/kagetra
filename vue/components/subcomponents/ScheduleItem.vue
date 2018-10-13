@@ -29,7 +29,7 @@
         <span v-if="it.emphasis.start_at && it.emphasis.end_at" class="hourmin">&isin;{{ it.start_at }} &sim; {{ it.end_at }}</span>
         <span v-else-if="it.emphasis.start_at" class="hourmin">&isin;{{ it.start_at }} &sim;</span>
         <span v-else-if="it.emphasis.end_at" class="hourmin">&isin;&sim; {{ it.end_at }}</span>
-        <span v-if="it.description" class="info-icon" data-toggle="tooltip" :title="it.description"/>
+        <span v-if="it.description" class="info-icon" data-toggle="tooltip" data-boundary="viewport" :title="it.description"/>
       </div>
     </template>
     <template v-if="bulkEditing">
@@ -39,7 +39,7 @@
         <span v-if="it.emphasis.start_at && it.emphasis.end_at" class="hourmin">&isin;{{ it.start_at }} &sim; {{ it.end_at }}</span>
         <span v-else-if="it.emphasis.start_at" class="hourmin">&isin;{{ it.start_at }} &sim;</span>
         <span v-else-if="it.emphasis.end_at" class="hourmin">&isin;&sim; {{ it.end_at }}</span>
-        <span v-if="it.description" class="info-icon" data-toggle="tooltip" :title="it.description"/>
+        <span v-if="it.description" class="info-icon" data-toggle="tooltip" data-boundary="viewport" :title="it.description"/>
       </div>
     </template>
     <textarea v-if="holidayEditing" v-model="editHoliday.names" class="form-control mt-1 p-0" rows="4"/>

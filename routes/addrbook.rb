@@ -79,6 +79,8 @@ class MainApp < Sinatra::Base
     end
   end
   get '/addrbook' do
-    haml_wrap '名簿'
+    haml :addrbook, locals: {
+      title: '名簿',
+    }
   end
 end

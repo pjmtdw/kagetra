@@ -69,7 +69,7 @@
             </ul>
             <div class="d-flex flex-row flex-wrap">
               <div v-for="p in photoList" :key="p.id" class="p-1">
-                <a href="#" @click.prevent="photo = p">
+                <a href="#" data-dismiss="modal" @click.prevent="photo = p">
                   <img :src="`/static/album/thumb/${p.thumb.id}`" :width="p.thumb.width" :height="p.thumb.height">
                 </a>
               </div>
@@ -125,6 +125,12 @@ export default {
     userData() {
       this.editing = false;
       this.photo = this.userData.album_item;
+      this.query = null;
+      this.page = 1;
+      this.count = null;
+      this.pages = null;
+      this.photo = null;
+      this.photoList = null;
     },
     editing(toVal) {
       if (toVal) {
@@ -155,7 +161,7 @@ export default {
       let isValid = true;
       _.each(validations, (v) => {
         if (!v.pattern.test(this.edit[v.key])) {
-          this.$_notify('warning', v.messgae);
+          this.$_notify('warning', v.message);
           isValid = false;
         }
       });

@@ -574,7 +574,6 @@ class MainApp < Sinatra::Base
                 photo.album_item_id
               end
     filename = "#{prefix}.#{ext}"
-    logger.puts(path, filename)
     if rotate == 0
       send_file(path,disposition:"inline",filename:filename)
     else

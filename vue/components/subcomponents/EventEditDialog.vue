@@ -619,6 +619,7 @@ export default {
   .dropdown-menu {
     height: 200px;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
 .participant {

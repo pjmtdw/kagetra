@@ -110,7 +110,7 @@
       <div class="col-12 col-md-6 d-flex flex-row align-items-center" :class="{ 'mt-2 mt-md-0': sub_admin }">
         <div class="text-muted mr-2">並び替え</div>
         <nav class="nav nav-pills">
-          <a v-for="o in orders" :key="o.value" href="#" class="nav-item nav-link p-1" :class="{ active: order === o.value }" @click="order = o.value">
+          <a v-for="o in orders" :key="o.value" href="#" class="nav-item nav-link p-1" :class="{ active: order === o.value }" @click.prevent="order = o.value">
             {{ o.name }}
           </a>
         </nav>
@@ -228,6 +228,7 @@ export default {
         { value: 'deadline_day', name: '締切日' },
         { value: 'created_at', name: '追加日' },
         { value: 'last_comment_date', name: '最終書込' },
+        { value: 'registerd', name: '登録した' },
       ],
       eventList: null,
     };
@@ -242,6 +243,7 @@ export default {
           return null;
         } else if (this.order === 'created_at') return -new Date(e.created_at).getTime();
         else if (this.order === 'last_comment_date') return -new Date(e.last_comment_date).getTime();
+        else if (this.order === 'registerd') return [!(_.find(e.choices, { id: e.choice }) || {}).positive === true, !_.isString(e.date), e.date];
         return null;
       });
     },

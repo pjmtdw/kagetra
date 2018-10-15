@@ -89,10 +89,10 @@
             自動更新
           </button>
         </div>
-        <div v-for="(c, cid) in contest_classes" :key="cid" class="mb-2">
+        <div v-for="c in orderedContestClasses" :key="c.id" class="mb-2">
           <span class="badge badge-pill badge-class-name">{{ c.class_name }}</span>
           <span v-if="c.num_person" class="badge badge-secondary">{{ c.num_person }}人</span>
-          <div v-for="res in contest_results_conv[cid]" :key="isTeamGame ? res.team_id : res.class_id" class="d-flex flex-row mb-4">
+          <div v-for="res in contest_results_conv[c.id]" :key="isTeamGame ? res.team_id : res.class_id" class="d-flex flex-row mb-4">
             <table class="table-name">
               <thead>
                 <tr :class="isTeamGame ? `row-team-${res.team_id}` : `row-cls-${res.class_id}`">
@@ -616,6 +616,14 @@ export default {
     },
     weekday() {
       return $.util.getWeekDay(this.date);
+    },
+    orderedContestClasses() {
+      if (_.isNull(this.contest_classes)) return null;
+      const ret = [];
+      _.each(this.contest_results, (r) => {
+        ret.push(_.assign(this.contest_classes[r.class_id], { id: r.class_id }));
+      });
+      return ret;
     },
     contest_results_conv() {
       const ret = {};
@@ -1224,6 +1232,7 @@ export default {
 .dropdown-menu {
   max-height: 50vh;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .date {

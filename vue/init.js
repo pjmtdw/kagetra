@@ -35,15 +35,17 @@ export default () => {
       $_assert(v) {
         if (!v) throw Error('Assertion Error');
       },
-      $_setBeforeUnload(isChanged) {
-        window.addEventListener('beforeunload', (e) => {
-          if (isChanged()) {
-            e.returnValue = '';
-            return '';
-          }
-          return undefined;
-        });
-      },
+      // TODO
+      $_setBeforeUnload() {},
+      // $_setBeforeUnload(isChanged) {
+      //   window.addEventListener('beforeunload', (e) => {
+      //     if (isChanged()) {
+      //       e.returnValue = '';
+      //       return '';
+      //     }
+      //     return undefined;
+      //   });
+      // },
       $_timeRange(_start, _end, emphStart = false, emphEnd = false) {
         let start = _start;
         let end = _end;

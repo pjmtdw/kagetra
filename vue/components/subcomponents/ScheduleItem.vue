@@ -136,6 +136,7 @@ export default {
   height: 10rem;
   background-color: #ffd;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 
   &:not(.bulkedit):hover {
     background-color: #ffff91;

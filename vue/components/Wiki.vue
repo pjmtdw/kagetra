@@ -439,10 +439,12 @@ export default {
 
 .log-content {
   overflow-x: scroll;
+  -webkit-overflow-scrolling: touch;
 }
 
 #nav-attached {
   overflow-x: scroll;
+  -webkit-overflow-scrolling: touch;
   @media screen and (min-width: 576px) {
     .date, .size {
       white-space: nowrap;

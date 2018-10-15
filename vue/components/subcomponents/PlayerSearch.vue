@@ -137,5 +137,6 @@ export default {
 .dropdown-menu {
   max-height: 50vh;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 </style>

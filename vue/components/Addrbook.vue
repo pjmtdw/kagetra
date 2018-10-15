@@ -136,5 +136,6 @@ export default {
   height: 70vh;
   min-width: 25%;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 </style>

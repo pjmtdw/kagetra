@@ -47,6 +47,7 @@
       <span v-else class="h5 mx-1 text-success">&clubs;</span>
       <span class="h5"><strong>{{ name }}</strong></span>
       <span class="h6 date">@{{ date }}</span>
+      <div v-if="album_groups && album_groups.length" class="w-100 d-sm-none"/>
       <div v-if="event_group_id" class="btn-group mb-1">
         <button type="button" class="btn btn-info py-1" @click="$refs.past_result.open()">過去の結果</button>
         <button type="button" class="btn btn-info py-1 dropdown-toggle dropdown-toggle-split" data-toggle="dropdown"
@@ -55,6 +56,7 @@
           <router-link v-for="g in group" :key="g.id" :to="`/${g.id}`" class="dropdown-item">{{ g.date }} {{ g.name }}</router-link>
         </div>
       </div>
+      <a v-if="album_groups && album_groups.length" :href="`album$/group/${album_groups[0]}`" class="btn btn-outline-info mb-1">アルバムへ</a>
       <PastResultDialog v-if="event_group_id" ref="past_result" :id="event_group_id"/>
     </div>
     <!-- タブ -->

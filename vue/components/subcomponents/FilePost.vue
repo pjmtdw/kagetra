@@ -6,7 +6,7 @@
         <label :for="`file_input${index}`" class="custom-file-label">{{ filename }}</label>
       </div>
       <div class="col-sm-6 col-12 d-flex align-items-center p-0 mt-1 mt-sm-0">
-        <label class="nowrap ml-sm-2 mr-1 mb-0" :for="`desc_input${index}`">
+        <label class="text-nowrap ml-sm-2 mr-1 mb-0" :for="`desc_input${index}`">
           説明
         </label>
         <input :id="`desc_input${index}`" v-model="description" type="text" name="description" class="form-control d-inline-block">
@@ -101,8 +101,3 @@ export default {
   },
 };
 </script>
-<style lang="scss" scoped>
-.nowrap {
-  white-space: nowrap;
-}
-</style>

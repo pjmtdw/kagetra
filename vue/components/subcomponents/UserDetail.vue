@@ -43,7 +43,7 @@
       </table>
     </div>
     <!-- 写真選択 -->
-    <div v-if="editing" id="album_search_dialog" ref="albumSearchDialog" class="modal fade">
+    <div id="album_search_dialog" class="modal fade">
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
@@ -150,7 +150,6 @@ export default {
         this.pages = res.data.pages;
         this.photoList = res.data.list;
         this.count = res.data.count;
-        this.prevQuery = this.query;
       }).catch(this.$_makeOnFail('検索結果を取得できませんでした'));
     },
     save() {

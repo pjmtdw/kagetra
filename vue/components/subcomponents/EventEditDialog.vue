@@ -444,10 +444,8 @@ export default {
           'place', 'description', 'forbidden_attrs', 'aggregate_attr_id'];
         _.each(keys, (k) => {
           this[k] = res.data[k];
-        }).catch(() => {
-          this.$_notify('danger', '情報の取得に失敗しました');
         });
-      });
+      }).catch(this.$_makeOnFail('情報の取得に失敗しました'));
     },
     addEventGroup() {
       this.$_prompt('追加する恒例大会名').then((name) => {

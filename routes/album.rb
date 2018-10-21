@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
-  ALBUM_SEARCH_PER_PAGE = 50
-  ALBUM_RECENT_GROUPS = 6
+  ALBUM_SEARCH_PER_PAGE = 20
+  ALBUM_RECENT_GROUPS = 20
   ALBUM_EVENT_COMPLEMENT_DAYS = 3
   ALBUM_EVENT_COMPLEMENT_LIMIT = 20
   def album_group_info(group)
@@ -72,6 +72,47 @@ class MainApp < Sinatra::Base
       r[:tags] = tags.sort_by{|k,v|v.size}.reverse
       r[:deletable] = @user.admin || @user.sub_admin || group.owner_id == @user.id
       r
+    end
+    post '/group' do
+      res = with_update {
+        data = {}
+        data['name'] = @json['name']
+        data['place'] = @json['place']
+        data["start_at"] = if @json["start_at"].to_s.empty? then nil else @json['start_at'] end
+        data["end_at"] = if @json["end_at"].to_s.empty? then nil else @json['end_at'] end
+        data["owner_id"] = @user.id
+        data['comment'] = 'hoge'
+        AlbumGroup.create(data)
+      }
+    end
+    post '/upload' do
+      group = AlbumGroup[params[:group_id]]
+      filename = params[:file][:filename]
+      tempfile = params[:file][:tempfile]
+      min_index = 1 + (group.items_dataset.max(:group_index) || -1)
+      date = Date.today
+      target_dir = File.join(CONF_STORAGE_DIR,"album",date.year.to_s,date.month.to_s)
+      FileUtils.mkdir_p(target_dir)
+      case filename.downcase
+      when /\.zip$/
+        tmp = Dir.mktmpdir(nil,target_dir)
+        Zip::File.open(tempfile).select{|x|x.file? and [".jpg",".jpeg",".png",".gif"].any?{|s|x.name.downcase.end_with?(s)}}
+          .to_enum.with_index(min_index){|entry,i|
+            fn = File.join(tmp,i.to_s)
+            File.open(fn,"w"){|f|
+              f.write(entry.get_input_stream.read)
+            }
+            process_image(group,i,entry.name,fn)
+          }
+        {result:"OK",group_id:group.id}
+      when /\.jpe?g$/, /\.png$/, /\.gif$/
+        tfile = Kagetra::Utils.unique_file(@user,["img-",".dat"],target_dir)
+        FileUtils.cp(tempfile.path,tfile)
+        process_image(group,min_index,filename,tfile)
+        {result:"OK",group_id:group.id}
+      else
+        error_response("ファイルの拡張子が間違いです: #{filename.downcase}")
+      end
     end
     delete '/group/:gid' do
       with_update{
@@ -222,8 +263,10 @@ class MainApp < Sinatra::Base
       recent = AlbumGroup.where(dummy:false).order(Sequel.desc(:created_at)).limit(ALBUM_RECENT_GROUPS).map{|x|
         album_group_info(x)
       }
-      list = aggr.map{|x|[x.year,x[:sum_item_count]]}
-      {list: list,total: total,recent:{list:recent}, comment_updated:comment_updated}
+      list = aggr.map{|x|
+        {year: x.year, item_count: x[:sum_item_count]}
+      }
+      {list: list, total: total, recent: recent, comment_updated:comment_updated}
     end
     post '/search' do
       qs = @json['qs']
@@ -267,8 +310,8 @@ class MainApp < Sinatra::Base
       }
     end
     post '/complement_event' do
-      group = AlbumGroup[params[:group_id]]
-      query = params[:q]
+      group = AlbumGroup[@json['group_id']]
+      query = @json['q']
       results = if query.empty? then
                   if group.start_at then
                     st = group.start_at - ALBUM_EVENT_COMPLEMENT_DAYS
@@ -302,7 +345,6 @@ class MainApp < Sinatra::Base
         results = results.sort_by{|x| [if x[:date] then (center_date - x[:date]).to_i.abs else 999999 end, levenshtein_distance(x[:name],group.name)]}
       end
       {results:results}
-
     end
     get '/thumb_info/:id' do
       item = AlbumItem[params[:id].to_i]

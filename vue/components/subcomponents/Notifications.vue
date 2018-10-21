@@ -51,10 +51,10 @@ export default {
         });
       });
 
-      // 10秒後に消える
+      // 5秒後に消える
       setTimeout(() => {
         $(this.$refs[`alert${id}`]).alert('close');
-      }, 10 * 1000);
+      }, 5 * 1000);
     },
   },
 };

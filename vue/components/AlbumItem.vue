@@ -79,8 +79,8 @@
       </div>
     </div>
     <!-- 写真 -->
-    <div v-if="loaded" class="position-relative text-center mt-2">
-      <img ref="photo" :src="`/static/album/photo/${data.photo.id}`" class="main-photo" :width="data.photo.width" :height="data.photo.height" @click="addTag">
+    <div v-if="loaded" class="position-relative mt-2">
+      <img ref="photo" :src="`/static/album/photo/${data.photo.id}`" :width="data.photo.width" :height="data.photo.height" @click="addTag">
       <img ref="marker" src="/img/album_marker/yellow.gif" class="d-none position-absolute">
     </div>
     <!-- 関連写真 -->
@@ -193,8 +193,8 @@ export default {
         // const w = $(this.$refs.photo).width();
         // const h = $(this.$refs.photo).height();
         this.setMarker([], {
-          top: `${t.coord_y}px`,
-          left: `${t.coord_x}px`,
+          top: `${t.coord_y - t.radius}px`,
+          left: `${t.coord_x - t.radius}px`,
         });
       }
     },
@@ -285,9 +285,5 @@ export default {
   &.active {
     background-color: #ddd;
   }
-}
-
-.main-photo {
-  max-width: 100%;
 }
 </style>

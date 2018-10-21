@@ -17,7 +17,7 @@
           </div>
           <div v-if="new_events && new_events.length > 0">
             <span>新規大会行事追加{{ new_events.length }}件</span>
-            <a v-for="e in new_events" :key="e.id" class="ml-1" @click="openInfo(e.id)">{{ e.name }}</a>
+            <a v-for="e in new_events" :key="e.id" class="ml-1" href="#" @click.prevent="openInfo(e.id)">{{ e.name }}</a>
           </div>
           <div v-if="bbs && bbs.length > 0">
             <span>掲示板に新着{{ bbs.length }}件</span>
@@ -25,7 +25,7 @@
           </div>
           <div v-if="event_comment && event_comment.ength > 0">
             <span>大会行事コメントに新着{{ event_comment.length }}件</span>
-            <a v-for="e in event_comment" :key="e.id" class="ml-1" @click="openComment(e.id)">{{ e.name }}</a>
+            <a v-for="e in event_comment" :key="e.id" class="ml-1" href="#" @click.prevent="openComment(e.id)">{{ e.name }}</a>
           </div>
           <div v-if="result_comment && result_comment.length > 0">
             <span>大会結果コメントに新着{{ result_comment.length }}件</span>

@@ -32,7 +32,8 @@
           <!-- <router-link v-else class="nav-link active" to="/">{{ x.name }}</router-link> -->
         </li>
       </ul>
-      <a href="/switch_beta" class="nav-link">通常版へ</a>
+      <a href="/" class="nav-link mx-2">ログイン</a>
+      <a href="/switch_beta" class="nav-link mx-2">通常版へ</a>
     </div>
   </nav>
 </template>
@@ -54,10 +55,10 @@ export default {
         { alias: 'addrbook', name: '名簿' },
       ],
       publicList: [
-        { alias: 'top', name: 'TOP' },
+        // { alias: 'top', name: 'TOP' },
         { alias: 'bbs', name: '掲示板' },
         { alias: 'schedule', name: '予定表' },
-        { alias: 'wiki', name: 'Wiki' },
+        // { alias: 'wiki', name: 'Wiki' },
       ],
     };
   },

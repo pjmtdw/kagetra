@@ -2,10 +2,11 @@
   <div class="modal fade" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
       <div v-if="id !== null" class="modal-content">
-        <div class="modal-header d-flex flex-row align-items-center">
+        <div class="modal-header d-flex align-items-center">
           <h5 class="font-weight-bold mb-0">{{ name }}</h5>
           <button v-if="editable" class="btn btn-success ml-auto" @click="openEdit">編集</button>
           <button class="btn btn-info ml-2" @click="openComment">コメント({{ comment_count }})</button>
+          <button type="button" class="close ml-1" data-dismiss="modal">&times;</button>
         </div>
         <div class="modal-body">
           <div class="container">

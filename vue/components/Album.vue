@@ -166,7 +166,7 @@ export default {
     loadYear(year) {
       axios.get(`/album/year/${year || '_else_'}`).then((res) => {
         this.selectedYear = year;
-        this.yearData = res.data.list;
+        this.yearData = _.reverse(res.data.list);
       });
     },
     create() {

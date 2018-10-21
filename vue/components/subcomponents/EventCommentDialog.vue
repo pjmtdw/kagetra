@@ -2,12 +2,13 @@
   <div class="modal fade" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
       <div v-if="id !== null" class="modal-content">
-        <div class="modal-header">
+        <div class="modal-header d-flex align-items-center">
           <h5 class="modal-title">{{ name }}</h5>
           <button ref="new_comment_toggle" class="btn btn-success ml-auto" data-toggle="collapse" data-target="#new-comment-form" @click="toggleNewComment">
             書き込む
           </button>
           <button class="btn btn-info ml-2" @click="openInfo">情報</button>
+          <button type="button" class="close ml-1" data-dismiss="modal">&times;</button>
         </div>
         <div class="modal-body">
           <NewCommentForm id="new-comment-form" class="" url="/event/comment/item" :thread-id="id" @done="postDone"/>

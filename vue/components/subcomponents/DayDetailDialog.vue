@@ -7,6 +7,7 @@
             {{ detail.year }}年{{ detail.month }}月{{ detail.date }}日 (<span class="font-weight-bold">{{ weekday_ja[detail.day] }}</span>)
             <span v-for="n in detail.info.names" :class="{ 'text-danger': detail.info.is_holiday }">{{ n }}</span>
           </h5>
+          <button type="button" class="close ml-1" data-dismiss="modal">&times;</button>
         </div>
         <div class="modal-body">
           <template v-for="e in detail.events">

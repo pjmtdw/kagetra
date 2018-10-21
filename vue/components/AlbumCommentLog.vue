@@ -23,7 +23,7 @@
       <div v-for="item in data.list" class="p-2">
         <div class="card shadow-sm">
           <router-link :to="`/${item.id}`">
-            <img :src="`/static/album/thumb/${item.thumb.id}`" class="card-img-top" :width="item.thumb.width" :height="item.thumb.height">
+            <img :src="`/static/album/thumb/${item.thumb.id}`" class="card-img-top" :width="item.thumb.width">
           </router-link>
           <div class="card-body p-3">
             <h6 class="card-title">

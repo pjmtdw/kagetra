@@ -20,6 +20,8 @@
         -if @user and @user.bbs_public_name
           var g_user_bbs_public_name = '#{@user.bbs_public_name}';
       - else
+        var g_admin = false;
+        var g_sub_admin = false;
         var g_user_name = '#{get_permanent("bbs_name")}';
     - if block_given?
       != yield

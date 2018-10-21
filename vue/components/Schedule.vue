@@ -267,6 +267,7 @@ export default {
     },
     // override open DayDetailDialog
     openDetail(day) {
+      if (day.day === undefined) return;
       if (this.bulkEditing) {
         this.paste(day);
         return;

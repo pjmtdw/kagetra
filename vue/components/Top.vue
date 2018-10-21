@@ -15,7 +15,7 @@
           <div v-if="has_ut_karuta_form">
             <a href="/ut_karuta_list_form">公式フォーム受け取り</a>に新着があります
           </div>
-          <div v-if="new_events && new_events.ength > 0">
+          <div v-if="new_events && new_events.length > 0">
             <span>新規大会行事追加{{ new_events.length }}件</span>
             <a v-for="e in new_events" :key="e.id" class="ml-1" @click="openInfo(e.id)">{{ e.name }}</a>
           </div>

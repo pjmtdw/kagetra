@@ -10,8 +10,20 @@
           <!-- <a v-else class="nav-link active" :href="`/${x.alias}`" @click="toRouteTop">{{ x.name }}</a> -->
           <!-- <router-link v-else class="nav-link active" to="/">{{ x.name }}</router-link> -->
         </li>
+        <li class="nav-item dropdown mx-2">
+          <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" @click.prevent>
+            その他
+          </a>
+          <div class="dropdown-menu">
+            <a v-if="admin" class="dropdown-item" href="/admin">管理画面</a>
+            <!-- <a v-if="sub_admin" class="dropdown-item" href="/ut_karuta_list_form">公式フォーム受け取り</a> -->
+            <a class="dropdown-item" href="/user_conf">ユーザ設定</a>
+            <a class="dropdown-item" href="/login_log">ログイン履歴</a>
+            <a class="dropdown-item" href="/switch_beta">通常版へ</a>
+            <a class="dropdown-item" href="/user/logout">ログアウト</a>
+          </div>
+        </li>
       </ul>
-      <a href="/switch_beta" class="nav-link">通常版へ</a>
     </div>
     <div v-else id="navbarContent" class="collapse navbar-collapse">
       <ul class="navbar-nav mr-auto">
@@ -25,10 +37,13 @@
   </nav>
 </template>
 <script>
+/* global g_admin, g_sub_admin */
 export default {
   data() {
     return {
       location,
+      admin: g_admin,
+      sub_admin: g_sub_admin,
       list: [
         { alias: 'top', name: 'TOP' },
         { alias: 'bbs', name: '掲示板' },

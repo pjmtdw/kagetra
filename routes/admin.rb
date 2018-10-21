@@ -10,7 +10,7 @@ class MainApp < Sinatra::Base
         .group_by(&:user_id).map{|xs|[xs[0],xs[1].map(&:value_id)]}]
       attr_values = Hash[UserAttributeValue.map{|x| [x.id, x.select_attr(:index,:value,:default).merge({key_id:x.attr_key_id})]}]
       key_names = UserAttributeKey.order(Sequel.asc(:index)).map{|x|[x.id,x.name]}
-      
+
       key_values = Hash[UserAttributeKey.map{|x|[x.id,x.attr_values_dataset.map(&:id)]}]
 
       values_indexes = UserAttributeValue.join(UserAttributeKey,id: :attr_key_id).select(:user_attribute_keys__index,:user_attribute_values__id).to_hash(:id,:index)
@@ -143,5 +143,8 @@ class MainApp < Sinatra::Base
       }
       {list:list}
     end
+  end
+  get '/admin' do
+    haml_wrap '管理画面'
   end
 end

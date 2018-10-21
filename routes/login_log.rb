@@ -108,4 +108,7 @@ class MainApp < Sinatra::Base
       {list:res.to_a.sort_by{|k,v|k}.reverse}
     end
   end
+  get '/login_log' do
+    haml_wrap 'ログイン履歴'
+  end
 end

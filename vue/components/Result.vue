@@ -95,18 +95,25 @@
           <span class="badge badge-pill badge-class-name">{{ c.class_name }}</span>
           <span v-if="c.num_person" class="badge badge-secondary">{{ c.num_person }}人</span>
           <div v-for="res in contest_results_conv[c.id]" :key="isTeamGame ? res.team_id : res.class_id" class="d-flex flex-row mb-4">
-            <table class="table-name">
+            <table class="table-result">
               <thead>
-                <tr :class="isTeamGame ? `row-team-${res.team_id}` : `row-cls-${res.class_id}`">
+                <tr>
                   <th v-if="!isTeamGame" scope="col" class="text-center py-1" :class="{'edit': editing}" @click="editPrize(res.class_id)">{{ editing ? '入賞編集' : '名前' }}</th>
                   <th v-else scope="col" class="text-center py-1" :class="{'edit': editing}" @click="editPrize(res.team_id)">
                     <div>{{ res.header_left.team_name }}</div>
                     <div class="team-prize">{{ res.header_left.team_prize }}</div>
                   </th>
+                  <th v-for="(round, i) in res.rounds" scope="col" class="text-center py-1" :class="{'edit': editing}" @click="edit(isTeamGame ? res.team_id : res.class_id, i)">
+                    <div>{{ round.name === null ? `${i+1}回戦` : round.name }}</div>
+                    <div v-if="isTeamGame">{{ round.op_team_name }}</div>
+                  </th>
+                  <th v-if="editing" scope="col" class="text-center py-1 edit" @click="edit(isTeamGame ? res.team_id : res.class_id, res.rounds.length)">
+                    <div>{{ res.rounds.length+1 }}回戦</div>
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="user in res.user_results" :key="user.cuid" :class="`row-${user.cuid}`">
+                <tr v-for="user in res.user_results" :key="user.cuid">
                   <td class="text-center">
                     <router-link tag="span" class="cursor-pointer" :to="`/record/${user.user_name}`">{{ user.user_name }}</router-link >
                     <div v-if="user.prize" class="prize">
@@ -116,10 +123,28 @@
                       <span v-else-if="user.prize.point_local > 0">{{ `[${user.prize.point_local}kpt]` }}</span>
                     </div>
                   </td>
+                  <td v-for="game in user.game_results" class="text-center" :class="`result-${game.result}`">
+                    <div v-if="game.result === 'break'"/>
+                    <div v-else-if="game.result === 'default_win'">不戦</div>
+                    <template v-else>
+                      <div>
+                        {{ result_str[game.result] }} {{ game.score_str }}
+                        <router-link tag="span" class="cursor-pointer" :to="`/record/${game.opponent_name}`">{{ game.opponent_name }}</router-link>
+                      </div>
+                      <div v-if="game.opponent_belongs">
+                        ({{ game.opponent_belongs }})
+                        <span v-if="game.comment" class="info-icon" data-toggle="tooltip" data-placement="bottom" :title="game.comment"/>
+                      </div>
+                      <div v-else-if="game.opponent_order">
+                        <span>({{ order_str[game.opponent_order] }})</span>
+                        <span v-if="game.comment" class="info-icon" data-toggle="tooltip" data-placement="bottom" :title="game.comment"/>
+                      </div>
+                    </template>
+                  </td>
                 </tr>
               </tbody>
             </table>
-            <div class="table-responsive">
+            <!-- <div class="table-responsive">
               <table class="table-result">
                 <thead>
                   <tr :class="isTeamGame ? `row-team-${res.team_id}` : `row-cls-${res.class_id}`">
@@ -155,7 +180,7 @@
                   </tr>
                 </tbody>
               </table>
-            </div>
+            </div> -->
           </div>
         </div>
       </div>
@@ -686,7 +711,6 @@ export default {
     });
   },
   updated() {
-    this.setCellHeight();
     $('[data-toggle="tooltip"], .tooltip-button').tooltip();
   },
   methods: {
@@ -737,21 +761,6 @@ export default {
         });
       }).catch(() => {
         this.$_notify('danger', '大会情報の取得に失敗しました');
-      });
-    },
-    // 結果
-    setCellHeight() {
-      // セルの高さを揃える
-      const rows = new Set();
-      $('.table-result tbody tr, .table-result thead tr').each((index, elem) => {
-        rows.add($(elem).attr('class'));
-      });
-      rows.forEach((v) => {
-        let maxH = 0;
-        $(`.${v}`).each((index, elem) => {
-          maxH = _.max([maxH, $(elem).height()]);
-        });
-        $(`.${v}`).css('height', maxH);
       });
     },
     // コメント

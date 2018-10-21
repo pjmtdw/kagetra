@@ -1,56 +1,33 @@
-.table-name {
-  min-width: 90px;
-  max-width: 90px;
-  table-layout: fixed;
-  thead {
-    background-color: #fdc;
-  }
-  td, th {
-    border: 1px dotted gray;
-    font-size: 0.875em;
-  }
-  td {
-    background-color: #ffd;
-    .prize{
-      margin-top: .25rem;
-      color: purple;
-      font-weight: bold;
-    }
-  }
-}
-.table-contest {
-  table-layout: fixed;
-  thead {
-    background-color: #fdc;
-  }
-  td, th {
-    border: 1px dotted gray;
-    font-size: 0.875em;
-    &.opponent {
-      background-color: #e2ffdd;
-    }
-  }
-  td {
-    background-color: #ffd;
-    .prize{
-      margin-top: .25rem;
-      color: purple;
-      font-weight: bold;
-    }
-  }
-}
 .table-result {
   thead {
     background-color: #fdc;
   }
   td, th {
-    min-width: 108px;
-    max-width: 128px;
-    border: 1px dotted gray;
-    border-left: 0;
     font-size: 0.875em;
+    &:first-child {
+      border: 1px dotted gray;
+      min-width: 90px;
+      max-width: 90px;
+      &.opponent {
+        background-color: #e2ffdd;
+      }
+    }
+    &:not(:first-child) {
+      border: 1px dotted gray;
+      border-left: 0;
+      min-width: 108px;
+      max-width: 128px;
+    }
   }
-  td {
+  td:first-child {
+    background-color: #ffd;
+    .prize{
+      margin-top: .25rem;
+      color: purple;
+      font-weight: bold;
+    }
+  }
+  td:not(:first-child) {
     &.result-default_win {
     background-color: #ddd;
     }

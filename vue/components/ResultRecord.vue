@@ -75,7 +75,7 @@
     </ul>
     <!-- 結果 -->
     <div class="d-flex flex-row">
-      <table class="table-contest">
+      <table class="table-result">
         <tbody>
           <tr v-for="eventid in event_details" :key="eventid" :class="`row-${eventid}`">
             <td class="text-center" :class="{ opponent: events[eventid].is_op }">
@@ -94,35 +94,27 @@
                 <span v-else-if="prizes[eventid].point_local > 0">{{ `[${prizes[eventid].point_local}kpt]` }}</span>
               </div>
             </td>
+            <td v-for="(game, i) in games[eventid]" class="text-center" :class="`result-${game.result}`">
+              <div v-if="game.result === 'break'"/>
+              <div v-else-if="game.result === 'default_win'">
+                <div class="text-muted">- {{ class_info[eventid].round_name[i] || `${i}回戦` }} -</div>
+                不戦
+              </div>
+              <template v-else>
+                <div class="text-muted">- {{ class_info[eventid].round_name[i] || `${i}回戦` }} -</div>
+                <div>
+                  {{ result_str[game.result] }} {{ game.score_str }}
+                  <router-link tag="span" class="cursor-pointer" :to="`/record/${game.opponent_name}`">{{ game.opponent_name }}</router-link>
+                </div>
+                <div>
+                  <span v-if="game.opponent_belongs">({{ game.opponent_belongs }})</span>
+                  <span v-if="game.comment" class="info-icon" data-toggle="tooltip" data-placement="bottom" :title="game.comment"/>
+                </div>
+              </template>
+            </td>
           </tr>
         </tbody>
       </table>
-      <div class="table-responsive">
-        <table class="table-result">
-          <tbody>
-            <tr v-for="eventid in event_details" :key="eventid" :class="`row-${eventid}`">
-              <td v-for="(game, i) in games[eventid]" class="text-center" :class="`result-${game.result}`">
-                <div v-if="game.result === 'break'"/>
-                <div v-else-if="game.result === 'default_win'">
-                  <div class="text-muted">- {{ class_info[eventid].round_name[i] || `${i}回戦` }} -</div>
-                  不戦
-                </div>
-                <template v-else>
-                  <div class="text-muted">- {{ class_info[eventid].round_name[i] || `${i}回戦` }} -</div>
-                  <div>
-                    {{ result_str[game.result] }} {{ game.score_str }}
-                    <router-link tag="span" class="cursor-pointer" :to="`/record/${game.opponent_name}`">{{ game.opponent_name }}</router-link>
-                  </div>
-                  <div>
-                    <span v-if="game.opponent_belongs">({{ game.opponent_belongs }})</span>
-                    <span v-if="game.comment" class="info-icon" data-toggle="tooltip" data-placement="bottom" :title="game.comment"/>
-                  </div>
-                </template>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
     </div>
     <!-- ページネーション -->
     <ul class="pagination my-2 justify-content-center">
@@ -228,20 +220,6 @@ export default {
     formatDate(date) {
       const d = new Date(date);
       return `${d.getMonth() + 1}月${d.getDate()}日`;
-    },
-    setCellHeight() {
-      // セルの高さを揃える
-      const rows = new Set();
-      $('.table-result tbody tr, .table-result thead tr').each((index, elem) => {
-        rows.add($(elem).attr('class'));
-      });
-      rows.forEach((v) => {
-        let maxH = 0;
-        $(`.${v}`).each((index, elem) => {
-          maxH = _.max([maxH, $(elem).height()]);
-        });
-        $(`.${v}`).css('height', maxH);
-      });
     },
   },
 };

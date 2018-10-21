@@ -84,7 +84,7 @@
       <img ref="marker" src="/img/album_marker/yellow.gif" class="d-none position-absolute">
     </div>
     <!-- 関連写真 -->
-    <div v-if="data.relations && dara.relations.length" class="mt-4">
+    <div v-if="data.relations && data.relations.length" class="mt-4">
       <div>
         <h6 class="text-black-50 ont-weight-bold border-bottom mt-2 mb-1">
           関連写真

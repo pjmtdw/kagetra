@@ -14,8 +14,8 @@
     %div#dialog
     %script
       - if not @public_mode
-        var g_admin = #{!!@user.admin};
-        var g_sub_admin = #{!!(@user.admin or @user.sub_admin)};
+        var g_admin = #{@user ? !!@user.admin : false};
+        var g_sub_admin = #{!!(@user ? (@user.admin or @user.sub_admin) : false)};
         var g_user_name = '#{@user and @user.name}';
         -if @user and @user.bbs_public_name
           var g_user_bbs_public_name = '#{@user.bbs_public_name}';

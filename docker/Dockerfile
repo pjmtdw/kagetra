@@ -1,7 +1,7 @@
 FROM centos:7
 
 # Basic Package Install
-RUN curl --silent --location https://rpm.nodesource.com/setup_6.x | bash -
+RUN curl --silent --location https://rpm.nodesource.com/setup_8.x | bash -
 RUN yum -y update && yum -y install \
       bzip2 gcc-c++ patch \
       epel-release \

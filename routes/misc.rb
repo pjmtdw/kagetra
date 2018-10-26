@@ -120,13 +120,6 @@ class MainApp < Sinatra::Base
     delete_permanent("uid")
     redirect '/'
   end
-  get '/switch_beta' do
-    response.set_cookie('kagetra_beta',
-                        value: 'true',
-                        path: "/",
-                        expires: (Date.today + 90).to_time)
-    redirect '/top'
-  end
   get '/etc' do
     redirect '/top'
   end

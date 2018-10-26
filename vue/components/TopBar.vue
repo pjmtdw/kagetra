@@ -19,7 +19,7 @@
             <!-- <a v-if="sub_admin" class="dropdown-item" href="/ut_karuta_list_form">公式フォーム受け取り</a> -->
             <a class="dropdown-item" href="/user_conf">ユーザ設定</a>
             <a class="dropdown-item" href="/login_log">ログイン履歴</a>
-            <a class="dropdown-item" href="/switch_beta">通常版へ</a>
+            <a class="dropdown-item" href="http://kagetora.bushidoo.com/top">通常版へ</a>
             <a class="dropdown-item" href="/user/logout">ログアウト</a>
           </div>
         </li>
@@ -33,7 +33,7 @@
         </li>
       </ul>
       <a href="/" class="nav-link mx-2">ログイン</a>
-      <a href="/switch_beta" class="nav-link mx-2">通常版へ</a>
+      <a href="http://kagetora.bushidoo.com" class="nav-link mx-2">通常版へ</a>
     </div>
   </nav>
 </template>

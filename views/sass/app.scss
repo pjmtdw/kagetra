@@ -2,57 +2,57 @@
 @import "settings";
 
 // Comment out this import if you don't want to use normalize
-@import "normalize";
+@import "../../public/js/libs/foundation/scss/normalize";
 
 // Comment out this import if you are customizing you imports below
-// @import "foundation";
+// @import "../../public/js/libs/foundation/scss/foundation";
 
 // Import specific parts of Foundation by commenting the import "foundation"
 // and uncommenting what you want below. You must uncomment the following if customizing
 
-@import "foundation/components/global"; // *always required
-@import "foundation/components/grid";
+@import "../../public/js/libs/foundation/scss/foundation/components/global"; // *always required
+@import "../../public/js/libs/foundation/scss/foundation/components/grid";
 
 //
 // Use this grid if you want to start using the new Foundation 5 grid early.
 // It will change breakpoints to min-width: 640px and 1024px.
 //
-// @import "foundation/components/grid-5";
+// @import "../../public/js/libs/foundation/scss/foundation/components/grid-5";
 //
 
-@import "foundation/components/visibility";
-@import "foundation/components/block-grid";
-@import "foundation/components/type";
-@import "foundation/components/buttons";
-@import "foundation/components/forms"; // *requires components/buttons
-// @import "foundation/components/custom-forms"; // *requires components/buttons, components/forms
-@import "foundation/components/button-groups"; // *requires components/buttons
-@import "foundation/components/dropdown-buttons"; // *requires components/buttons
-@import "foundation/components/split-buttons"; // *requires components/buttons
-// @import "foundation/components/flex-video";
-@import "foundation/components/section";
-@import "foundation/components/top-bar";  // *requires components/grid
-// @import "foundation/components/orbit";
-@import "foundation/components/reveal";
-// @import "foundation/components/joyride";
-@import "foundation/components/clearing";
-@import "foundation/components/alert-boxes";
-@import "foundation/components/breadcrumbs";
-// @import "foundation/components/keystrokes";
-@import "foundation/components/labels";
-// @import "foundation/components/inline-lists";
-@import "foundation/components/pagination";
-@import "foundation/components/panels";
-// @import "foundation/components/pricing-tables";
-// @import "foundation/components/progress-bars";
-// @import "foundation/components/side-nav";
-@import "foundation/components/sub-nav";
-// @import "foundation/components/switch";
-@import "foundation/components/magellan";
-@import "foundation/components/tables";
-// @import "foundation/components/thumbs";
-@import "foundation/components/tooltips";
-@import "foundation/components/dropdown";
+@import "../../public/js/libs/foundation/scss/foundation/components/visibility";
+@import "../../public/js/libs/foundation/scss/foundation/components/block-grid";
+@import "../../public/js/libs/foundation/scss/foundation/components/type";
+@import "../../public/js/libs/foundation/scss/foundation/components/buttons";
+@import "../../public/js/libs/foundation/scss/foundation/components/forms"; // *requires components/buttons
+// @import "../../public/js/libs/foundation/scss/foundation/components/custom-forms"; // *requires components/buttons, components/forms
+@import "../../public/js/libs/foundation/scss/foundation/components/button-groups"; // *requires components/buttons
+@import "../../public/js/libs/foundation/scss/foundation/components/dropdown-buttons"; // *requires components/buttons
+@import "../../public/js/libs/foundation/scss/foundation/components/split-buttons"; // *requires components/buttons
+// @import "../../public/js/libs/foundation/scss/foundation/components/flex-video";
+@import "../../public/js/libs/foundation/scss/foundation/components/section";
+@import "../../public/js/libs/foundation/scss/foundation/components/top-bar";  // *requires components/grid
+// @import "../../public/js/libs/foundation/scss/foundation/components/orbit";
+@import "../../public/js/libs/foundation/scss/foundation/components/reveal";
+// @import "../../public/js/libs/foundation/scss/foundation/components/joyride";
+@import "../../public/js/libs/foundation/scss/foundation/components/clearing";
+@import "../../public/js/libs/foundation/scss/foundation/components/alert-boxes";
+@import "../../public/js/libs/foundation/scss/foundation/components/breadcrumbs";
+// @import "../../public/js/libs/foundation/scss/foundation/components/keystrokes";
+@import "../../public/js/libs/foundation/scss/foundation/components/labels";
+// @import "../../public/js/libs/foundation/scss/foundation/components/inline-lists";
+@import "../../public/js/libs/foundation/scss/foundation/components/pagination";
+@import "../../public/js/libs/foundation/scss/foundation/components/panels";
+// @import "../../public/js/libs/foundation/scss/foundation/components/pricing-tables";
+// @import "../../public/js/libs/foundation/scss/foundation/components/progress-bars";
+// @import "../../public/js/libs/foundation/scss/foundation/components/side-nav";
+@import "../../public/js/libs/foundation/scss/foundation/components/sub-nav";
+// @import "../../public/js/libs/foundation/scss/foundation/components/switch";
+@import "../../public/js/libs/foundation/scss/foundation/components/magellan";
+@import "../../public/js/libs/foundation/scss/foundation/components/tables";
+// @import "../../public/js/libs/foundation/scss/foundation/components/thumbs";
+@import "../../public/js/libs/foundation/scss/foundation/components/tooltips";
+@import "../../public/js/libs/foundation/scss/foundation/components/dropdown";
 
 // as from foundation 4.2.3, you have to set height:auto to textarea since it mixns form-element in foundation/components/_forms.scss
 textarea{

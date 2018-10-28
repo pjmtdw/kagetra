@@ -17,11 +17,11 @@ requirejs.config
     json2: "libs/json2/json2"
     select2: "libs/select2/select2.min"
     require: "libs/requirejs/require"
-    "crypto-pbkdf2": "libs/crypto-js/rollups/pbkdf2"
-    "crypto-hmac": "libs/crypto-js/rollups/hmac-sha256"
-    "crypto-base64": "libs/crypto-js/components/enc-base64-min"
-    "crypto-aes": "libs/crypto-js/rollups/aes"
-    "crypto-core": "libs/crypto-js/components/core"
+    "crypto-pbkdf2": "libs/cryptojslib/rollups/pbkdf2"
+    "crypto-hmac": "libs/cryptojslib/rollups/hmac-sha256"
+    "crypto-base64": "libs/cryptojslib/components/enc-base64-min"
+    "crypto-aes": "libs/cryptojslib/rollups/aes"
+    "crypto-core": "libs/cryptojslib/components/core"
     leaflet: "libs/leaflet/dist/leaflet"
 
   shim:

@@ -55,6 +55,8 @@ CONF_STORAGE_DIR = "./storage" # Wikiの添付ファイルとアルバムの写�
 ## 地図
 CONF_MAP_TILE_URL = "http://tile.openstreetmap.org" # 地図サーバのURL．必ず変更すること: http://wiki.openstreetmap.org/wiki/Tile_usage_policy
 
+CONF_USE_SSL = true # SSLを使用するかどうか
+
 # これを設定しておけばサーバを再起動してもユーザのセッションが保持される．
 # 下記のコマンドで生成すること
 # $ ruby -e "require 'securerandom';puts SecureRandom.base64(48)"

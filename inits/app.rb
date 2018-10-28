@@ -7,7 +7,11 @@ class MainApp < Sinatra::Base
   set :session_secret, 
     ((if CONF_SESSION_SECRET.to_s.empty?.! then CONF_SESSION_SECRET end) or ENV["RACK_SESSION_SECRET"] or SecureRandom.base64(48)) 
   
-  set :sessions, key:G_SESSION_COOKIE_NAME
+  if CONF_USE_SSL
+    use Rack::Session::Cookie, key: G_SESSION_COOKIE_NAME, secure: true
+  else
+    set :sessions, key:G_SESSION_COOKIE_NAME
+  end
   # for Internet Explorer 8, 9 (and maybe also 10?) session_hijacking protection refuses the session.
   # https://github.com/rkh/rack-protection/issues/11
   # disable frame_options protection to allow <iframe>

@@ -51,6 +51,8 @@ G_TEAM_POINT_LOCAL = [10,20,30,40,50] # 団体戦でもらえる会内ポイン�
 
 CONF_STORAGE_DIR = "./storage" # Wikiの添付ファイルとアルバムの写真が置かれるディレクトリ
 
+CONF_USE_SSL = true # SSLを使用するかどうか
+
 # これを設定しておけばサーバを再起動してもユーザのセッションが保持される．
 # 下記のコマンドで生成すること
 # $ ruby -e "require 'securerandom';puts SecureRandom.base64(48)"

@@ -1,0 +1,49 @@
+upstream unicorn_server {
+  # change to Kagetra socket ( see listen parameter of unicorn.rb )
+  server unix:/path/to/kagetra/deploy/sock/unicorn.sock
+  fail_timeout=0;
+}
+
+server {
+  server_name _;
+  listen 80;
+  return 301 https://$host$request_uri;
+}
+
+server {
+  server_name _;
+  # change to Kagetora static path
+  root /path/to/kagetra/public;
+
+  listen 443 ssl;
+  ssl_certificate      /path/to/fullchain.pem;
+  ssl_certificate_key  /path/to/privkey.pem;
+  ssl_session_cache    shared:SSL:1m;
+  ssl_session_timeout  5m;
+
+  client_max_body_size 4G;
+  keepalive_timeout 5;
+
+  proxy_buffers 8 64k;
+  proxy_buffer_size 64k;
+
+  location / {
+    try_files $uri @app;
+    expires 17d;
+    add_header Cache-Control public;
+
+    location ~ ^/(js|css)/v\d+/ {
+      rewrite ^/(js|css)/v\d+/(.*) /$1/$2;
+    }
+  }
+
+  location @app {
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header Host $http_host;
+    proxy_redirect off;
+    proxy_pass http://unicorn_server;
+    proxy_send_timeout 180;
+    proxy_read_timeout 480;
+  }
+}

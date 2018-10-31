@@ -43,7 +43,7 @@ if not pass1
 end
 DB.transaction{
   hash = Kagetra::Utils.hash_password(pass1)
-  if MyConf.first(name: "shard_password").nil? then
+  if MyConf.first(name: "shared_password").nil? then
     MyConf.create(name: "shared_password",value: Kagetra::Utils.hash_password(pass1))
     puts "saved shared password to db"
   end

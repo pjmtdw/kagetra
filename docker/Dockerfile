@@ -38,7 +38,7 @@ RUN git clone --depth 1 https://github.com/pjmtdw/kagetra.git
 WORKDIR /home/kagetra/kagetra
 
 RUN rbenv local 2.4.0
-RUN bash -lc "gem install bundler &&bundle install --path .vendor/bundle"
+RUN bash -lc "gem install bundler && bundle install --path .vendor/bundle"
 RUN npm install coffee-script@1.6.3 requirejs bower && \
     ./node_modules/bower/bin/bower install
 

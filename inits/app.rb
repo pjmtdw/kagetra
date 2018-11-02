@@ -1,17 +1,22 @@
 class MainApp < Sinatra::Base
   register Sinatra::Namespace
   helpers Sinatra::ContentFor
-  enable :sessions, :logging
-  # ENV['RACK_SESSION_SECRET'] is set by unicorn.rb
+
+  enable :logging
   set :root, File.join(File.dirname(__FILE__),"..")
-  set :session_secret, 
-    ((if CONF_SESSION_SECRET.to_s.empty?.! then CONF_SESSION_SECRET end) or ENV["RACK_SESSION_SECRET"] or SecureRandom.base64(48)) 
-  
-  if CONF_USE_SSL
-    use Rack::Session::Cookie, key: G_SESSION_COOKIE_NAME, secure: true
-  else
-    set :sessions, key:G_SESSION_COOKIE_NAME
+
+  # session
+  enable :sessions
+  set :sessions,  key: G_SESSION_COOKIE_NAME,
+                  expire_after: 604800, # 一週間
+                  httponly: true
+  if CONF_USE_SSL then
+    set :sessions, secure: true
   end
+  # ENV['RACK_SESSION_SECRET'] is set by unicorn.rb
+  set :session_secret,
+    ((if CONF_SESSION_SECRET.to_s.empty?.! then CONF_SESSION_SECRET end) or ENV["RACK_SESSION_SECRET"] or SecureRandom.base64(48))
+
   # for Internet Explorer 8, 9 (and maybe also 10?) session_hijacking protection refuses the session.
   # https://github.com/rkh/rack-protection/issues/11
   # disable frame_options protection to allow <iframe>

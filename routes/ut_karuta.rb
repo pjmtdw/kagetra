@@ -21,13 +21,19 @@ class MainApp < Sinatra::Base
         {message:e.message}
       end
     end
+    get '/list' do
+      page = (params[:page] || 1).to_i
+      list = UtKarutaForm.order(Sequel.desc(:created_at)).paginate(page, 30)
+      {
+        page_count: list.page_count,
+        list: list.to_a.map{|v| v.values},
+      }
+    end
     post '/update_status/:id/:status' do
       UtKarutaForm.first(id:params[:id]).update_status(@user.name,params[:status].to_sym)
     end
   end
   get '/ut_karuta_list_form' do
-    page = (params[:page] || 1).to_i
-    @list = UtKarutaForm.order(Sequel.desc(:created_at)).paginate(page, 30)
-    haml :ut_karuta_list_form
+    haml_wrap '公式フォーム受け取り'
   end
 end

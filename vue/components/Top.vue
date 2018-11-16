@@ -12,6 +12,9 @@
             <span>本日の大会</span>
             <a v-for="c in today_contests" :key="c.id" class="ml-1" :href="`/result#/${c.id}`">{{ c.name }}</a>
           </div>
+          <div v-if="has_ut_karuta_form">
+            <a href="/ut_karuta_list_form">公式フォーム受け取り</a>に新着があります
+          </div>
           <div v-if="new_events && new_events.length > 0">
             <span>新規大会行事追加{{ new_events.length }}件</span>
             <a v-for="e in new_events" :key="e.id" class="ml-1" href="#" @click.prevent="openInfo(e.id)">{{ e.name }}</a>

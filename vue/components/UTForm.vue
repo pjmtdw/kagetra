@@ -24,7 +24,11 @@
             {{ item.created_at.slice(0, -6) }}
           </div>
           <div class="card-subtitle">
-            {{ statuses[item.status] }} (by {{ item.status_change_user }})
+            <span v-if="item.status >= 2">{{ statuses[item.status] }} (by {{ item.status_change_user }})</span>
+            <span v-else>
+              <button class="btn btn-primary" @click="updateStatus(item, 3)">{{ statuses[3] }}</button>
+              <button class="btn btn-secondary" @click="updateStatus(item, 2)">{{ statuses[2] }}</button>
+            </span>
           </div>
           <hr>
           <div class="pre">{{ item.body }}</div>
@@ -73,6 +77,11 @@ export default {
       axios.get('/ut_karuta/list', { params: { page: this.page } }).then((res) => {
         this.posts = res.data;
       });
+    },
+    updateStatus(item, status) {
+      axios.post(`/update_status/${item.id}/${status}`).then(() => {
+        this.fetch();
+      }).catch(this.$_makeOnFail('変更に失敗しました'));
     },
   },
 };

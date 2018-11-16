@@ -71,9 +71,7 @@ export default {
       };
       axios.post('/user_conf/etc', data).then(() => {
         this.$_notify('保存しました');
-      }).catch(() => {
-        this.$_notify('danger', '保存に失敗しました');
-      });
+      }).catch(this.$_makeOnFail('保存に失敗しました'));
     },
     savePassword() {
       if (_.isEmpty(this.new_password)) {
@@ -97,9 +95,7 @@ export default {
             } else {
               this.$_notify('danger', '保存に失敗しました');
             }
-          }).catch(() => {
-            this.$_notify('danger', '保存に失敗しました');
-          });
+          }).catch(this.$_makeOnFail('保存に失敗しました'));
         } else {
           this.$_notify('danger', '現在のパスワードが違います');
         }

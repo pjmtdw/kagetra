@@ -70,8 +70,8 @@
             <tr v-for="h in day[1]" :key="h.hour">
               <td>{{ h.hour }}時</td>
               <td>
-                <span class="bar mylog" :style="`width: ${h.mylog * 10}px;`">&nbsp;</span>
-                <span class="bar" :class="h.total === weekly.total_max ? 'total-max' : 'total'" :style="`width: ${(h.total - h.mylog) * 10}px;`">&nbsp;</span>
+                <span class="bar mylog" :style="`width: ${h.mylog * 10}px;`">&nbsp;</span><!-- 隙間を埋める
+             --><span class="bar" :class="h.total === weekly.total_max ? 'total-max' : 'total'" :style="`width: ${(h.total - h.mylog) * 10}px;`">&nbsp;</span>
                 <span v-if="h.total === weekly.total_max">{{ weekly.total_max }}</span>
               </td>
             </tr>
@@ -92,7 +92,7 @@
           <tr v-for="m in history.list" :key="m[0]">
             <td>{{ m[0] }}</td>
             <td>{{ m[1].count }}</td>
-            <td v-for="v in m[1].top" :class="{ 'font-weight-bold': m[1].user && v === m[1].user.count }">{{ v }}</td>
+            <td v-for="(v, i) in m[1].top" :class="{ 'font-weight-bold': m[1].user && i == m[1].user.rank }">{{ v }}</td>
             <td>{{ m[1].user ? m[1].user.count : 0 }}</td>
             <td>{{ m[1].user ? m[1].user.rank : -1 }}</td>
           </tr>

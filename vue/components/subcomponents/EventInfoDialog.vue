@@ -149,7 +149,7 @@ export default {
     },
     positiveChoices() {
       // hide choice
-      if (_.isEqual(_.keys(this.participant), [-1])) return [{ id: -1, name: '登録者' }];
+      if (_.isEqual(_.keys(this.participant), ['-1'])) return [{ id: -1, name: '登録者' }];
       return _.filter(this.choices, c => c.positive);
     },
   },

@@ -12,9 +12,6 @@
             <span>本日の大会</span>
             <a v-for="c in today_contests" :key="c.id" class="ml-1" :href="`/result#/${c.id}`">{{ c.name }}</a>
           </div>
-          <div v-if="has_ut_karuta_form">
-            <a href="/ut_karuta_list_form">公式フォーム受け取り</a>に新着があります
-          </div>
           <div v-if="new_events && new_events.length > 0">
             <span>新規大会行事追加{{ new_events.length }}件</span>
             <a v-for="e in new_events" :key="e.id" class="ml-1" href="#" @click.prevent="openInfo(e.id)">{{ e.name }}</a>
@@ -23,7 +20,7 @@
             <span>掲示板に新着{{ bbs.length }}件</span>
             <a v-for="v in bbs" :href="`/bbs#/${v.page}`">{{ v.title }}</a>
           </div>
-          <div v-if="event_comment && event_comment.ength > 0">
+          <div v-if="event_comment && event_comment.length > 0">
             <span>大会行事コメントに新着{{ event_comment.length }}件</span>
             <a v-for="e in event_comment" :key="e.id" class="ml-1" href="#" @click.prevent="openComment(e.id)">{{ e.name }}</a>
           </div>
@@ -173,7 +170,7 @@
               <button v-if="e.editable" class="btn btn-success" @click="openEdit({ id: e.id, contest: e.kind === 'contest' })">編集</button>
               <button v-if="e.event_group_id" class="btn btn-info ml-2" @click="$refs[`past_result_${e.id}`][0].open()">過去の結果</button>
               <button class="btn btn-info ml-2" @click="openInfo(e.id)">情報</button>
-              <button class="btn btn-info ml-2" @click="openInfo(e.id)">コメント</button>
+              <button class="btn btn-info ml-2" @click="openComment(e.id)">コメント({{ e.comment_count }})</button>
             </div>
           </div>
         </div>
@@ -210,7 +207,6 @@ export default {
 
       last_login: null,
       log_man: null,
-      has_ut_karuta_form: null,
       today_contests: null,
       new_events: null,
       bbs: null,

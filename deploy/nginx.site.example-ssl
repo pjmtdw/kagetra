@@ -15,7 +15,7 @@ server {
   # change to Kagetora static path
   root /path/to/kagetra/public;
 
-  listen 443 ssl;
+  listen 443 ssl http2;
   ssl_certificate      /path/to/fullchain.pem;
   ssl_certificate_key  /path/to/privkey.pem;
   ssl_session_cache    shared:SSL:1m;

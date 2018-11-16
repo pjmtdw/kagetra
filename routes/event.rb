@@ -91,11 +91,11 @@ class MainApp < Sinatra::Base
       attr_query = UserAttributeValue.where(attr_key:ev.aggregate_attr).where(Sequel.~(id:ev.forbidden_attrs)).all
       # TODO: all で実際に取得して二回も attr_query.map を呼んでるのは美しくない
       participant_attrs = attr_query.map{|x| {id: x.id, name: x.value}}
-      attr_value_index = attr_query.map{|x|[x.id,x.index]}.to_h
+      attr_value_index = attr_query.map{|x| [x.id,x.index]}.to_h
       sort_and_map = ->(h){
-        h.sort_by{|k,v|attr_value_index[k] || 9999} # 後から参加不能属性が追加された場合参加不能属性の人でも参加している可能性はある
-        .map{|k,v|
-          [k,v.map(&:id)]}}
+        h.sort_by{|k,v| attr_value_index[k] || 9999} # 後から参加不能属性が追加された場合参加不能属性の人でも参加している可能性はある
+        .map{|k,v| [k,v.map(&:id)]}
+      }
       add_participant_names = ->(ucs,hide_result){
         if hide_result and not edit_mode then return end
         participant_names.merge!(Hash[ucs.map{|u|[u.id,u.user_name]}])

@@ -31,7 +31,7 @@
           <h3 class="mb-0">{{ title }}</h3>
           <button v-if="pageId > 0" class="btn btn-sm btn-outline-success ml-auto" @click="editing = !editing">{{ editing ? 'キャンセル' : '編集' }}</button>
         </div>
-        <div v-if="!editing" class="wiki-page" v-html="html"/>
+        <div v-if="!editing" ref="content" class="wiki-page" v-html="html"/>
         <div v-else>
           <div class="d-flex flex-row">
             <button v-if="deletable" class="btn btn-danger" @click="deletePage">削除</button>
@@ -278,11 +278,24 @@ export default {
     },
     html() {
       this.$nextTick(() => {
-        _.each($('a.link-page', this.$el), (e) => {
+        const c = this.$refs.content;
+        // vueのbindingが動くと消える
+        _.each($('a.link-page', c), (e) => {
           e.setAttribute('href', `/wiki#${this.getLink(e)}`);
         });
-        _.each($('a.goto-page', this.$el), (e) => {
+        _.each($('a.goto-page', c), (e) => {
           e.setAttribute('href', `/wiki#${this.getLink(e)}`);
+        });
+
+        _.each($('script', c), (e) => {
+          e.parentNode.removeChild(e);
+          const script = document.createElement('script');
+          if (e.getAttribute('src')) {
+            script.setAttribute('src', e.getAttribute('src'));
+          } else {
+            script.innerHTML = e.innerHTML;
+          }
+          document.head.appendChild(script);
         });
       });
     },
@@ -354,7 +367,7 @@ export default {
         body: this.edit.body,
         revision: this.revision + 1,
       };
-      if (this.is_public !== this.edit.public) data.public = this.edit.public;
+      if (this.public !== this.edit.public) data.public = this.edit.public;
       if (this.title !== this.edit.title) data.title = this.edit.title;
       axios.put(`/wiki/item/${this.pageId}`, data).then(() => {
         this.editing = false;

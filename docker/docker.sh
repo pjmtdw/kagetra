@@ -7,6 +7,7 @@ USAGE:
 COMMANDS:
   build [-d]
   run [-d] [-p port]
+  exec
 EOF
   exit 1
 }

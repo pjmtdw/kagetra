@@ -198,7 +198,6 @@ export default {
     this.fetch();
   },
   updated() {
-    this.setCellHeight();
     $('[data-toggle="tooltip"]').tooltip();
   },
   methods: {

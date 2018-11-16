@@ -36,7 +36,28 @@ export default {
   login_log: [
     {
       path: '/',
+      redirect: '/ranking',
+    },
+    {
+      path: '/ranking',
       component: LoginLog,
+      props: {
+        page: 'ranking',
+      },
+    },
+    {
+      path: '/weekly',
+      component: LoginLog,
+      props: {
+        page: 'weekly',
+      },
+    },
+    {
+      path: '/history',
+      component: LoginLog,
+      props: {
+        page: 'history',
+      },
     },
   ],
 };

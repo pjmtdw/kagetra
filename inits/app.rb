@@ -116,7 +116,14 @@ class MainApp < Sinatra::Base
       attached_base = File.join(CONF_STORAGE_DIR,"attached",namespace)
       attached = klass_attached[params[:id].to_i]
       halt 404 if attached.nil?
-      send_file(File.join(attached_base,attached.path),disposition:nil)
+
+      # for Content-Type header
+      ext = attached.orig_name[/\.(\w+)$/, 1]
+      if ext == 'js'
+        send_file(File.join(attached_base,attached.path), disposition:nil, type: :js)
+      end
+
+      send_file(File.join(attached_base,attached.path), disposition:nil)
     end
     # ajaxを使うように変更したので↓は不要
     # 返信を Content-Type: text/html で返す必要があるので /api/ の route には置かない

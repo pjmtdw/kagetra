@@ -1,54 +1,35 @@
 !!! 5
-%html
+%html(lang="ja")
   %head
-    %base(href="#{if @public_mode then '/public/' else '/' end}")
     %meta(name="robots" content="noindex,nofollow,noarchive")
     %meta(name="viewport" content="width=device-width, initial-scale=1.0")
-    %title #{G_APP_NAME} - #{yield_content(:title)}
+    %title #{G_APP_NAME} - #{title}
     %link(rel="shortcut icon" href="/img/favicon.ico")
     %link(rel="apple-touch-icon" href="/img/apple-touch-icon.png")
-    %link(rel="stylesheet" href="/css/v#{G_RESOURCE_VERSION}/app.css")
-    %link(rel="stylesheet" href="/css/v#{G_RESOURCE_VERSION}/colorbox.css")
-    %link(rel="stylesheet" href="/js/v#{G_RESOURCE_VERSION}/libs/select2/select2.css")
-    - this_css = yield_content(:css)
-    - this_css.strip.split(/\s*,\s*/).each do |x|
-      - path = if x.start_with?("/") then "#{x.sub(%r(^/(css|js)/)){|x|x+"/v#{G_RESOURCE_VERSION}/"}}.css" else "/css/v#{G_RESOURCE_VERSION}/#{x}.css" end
-      %link(rel="stylesheet" href="#{path}")
-    %style(type="text/css")
-      - curmonth = "%02d"%Date.today.month
-      body{
-      background-image: url(/img/bg/#{curmonth}.jpg), url(/img/bg/#{curmonth}_rev.jpg);
-      background-repeat: repeat-y, repeat-y;
-      background-position: left top, right top;
-      }
-      - if @public_mode then
-        - public_top_bar_color = "green"
-        = ".top-bar { background: #{public_top_bar_color} !important;}";
-        = ".top-bar-section li a {background: #{public_top_bar_color} !important;}";
-        = ".top-bar-section {background: #{public_top_bar_color} !important;}";
-        = ".top-bar-section ul {background: #{public_top_bar_color} !important;}";
-  -# 注意: content_for :haml で読み込むhamlファイルはブラウザにキャッシュされるので
-  -#      @userなどの動的な情報は含まれないようにすること(routesの 'get /haml/:prefix' と views/js/main.coffee の .load() を呼んでる箇所参照)
-  %body(data-haml="#{yield_content(:haml)}")
-    = yield
-    #body-end.row
-      %a.right(href="javascript:window.scrollTo(0,0);") &uArr; 一番上へ
-    /[if IE 9]
-      %script
-        var g_is_ie9 = true
-    - if not @public_mode
-      %script
-        var g_user_name='#{@user and @user.name}'
+    %link(rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/css/bootstrap.min.css" integrity="sha384-Smlep5jCw/wG7hdkwQ/Z5nLIefveQRIY9nfy6xoR1uRYBtpZgI6339F5dgvm/e9B" crossorigin="anonymous")
+  %body
+    %nav#topbar
+    %main#container
+    %div#notifications
+    %div#dialog
+    %script
+      - if not @public_mode
+        var g_admin = #{@user ? !!@user.admin : false};
+        var g_sub_admin = #{!!(@user ? (@user.admin or @user.sub_admin) : false)};
+        var g_user_name = '#{@user and @user.name}';
         -if @user and @user.bbs_public_name
-          var g_user_bbs_public_name='#{@user.bbs_public_name}'
-    - else
-      %script
-        var g_user_name='#{get_permanent("bbs_name")}'
-    %script
-      var g_public_mode=#{!!@public_mode}
-    %script(src="/js/v#{G_RESOURCE_VERSION}/libs/requirejs/require.js" data-main="/js/main" data-start="#{yield_content(:js_start)}")
-    %script
-      var g_resource_version = '#{G_RESOURCE_VERSION}';
-      requirejs.config({
-      baseUrl: '/js/v#{G_RESOURCE_VERSION}'
-      })
+          var g_user_bbs_public_name = '#{@user.bbs_public_name}';
+      - else
+        var g_admin = false;
+        var g_sub_admin = false;
+        var g_user_name = '#{get_permanent("bbs_name")}';
+    - if block_given?
+      != yield
+    -# polyfill for IE
+    %script(src="https://www.promisejs.org/polyfills/promise-7.0.4.min.js")
+    %script(src="https://unpkg.com/axios/dist/axios.min.js")
+    %script(src="https://cdn.jsdelivr.net/npm/lodash@4.17.10/lodash.min.js" integrity="sha256-/GKyJ0BQJD8c8UYgf7ziBrs/QgcikS7Fv/SaArgBcEI=" crossorigin="anonymous")
+    %script(src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous")
+    %script(src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous")
+    %script(src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/js/bootstrap.min.js" integrity="sha384-o+RDsa0aLu++PJvFqy8fFScvbHFLtbvScb8AjopnFD+iEQ7wo/CG0xlczd+2O/em" crossorigin="anonymous")
+    %script(src="/js/bundle.js")

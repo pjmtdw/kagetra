@@ -80,7 +80,7 @@ class MainApp < Sinatra::Base
       end
       {list:dates.to_a,total_max:total_max}
     end
-    get '/total' do
+    get '/history' do
       (fromy,fromm) = Kagetra::Utils.inc_month(Date.today.year,Date.today.month,-48)
       cond = Sequel.expr{ year_month >= UserLoginMonthly.year_month(fromy,fromm) } & Sequel.expr{ year_month < UserLoginMonthly.year_month(Date.today.year,Date.today.month)}
       res = {}
@@ -109,6 +109,6 @@ class MainApp < Sinatra::Base
     end
   end
   get '/login_log' do
-    haml :login_log
+    haml_wrap 'ログイン履歴'
   end
 end

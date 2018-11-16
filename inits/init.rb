@@ -1,10 +1,6 @@
 # -*- coding: utf-8 -*-
 # License of this software is described in LICENSE file.
 
-# Change this number whenever you changed the .coffee/.js/.scss/.css/.haml file
-# TODO: automatically increase this version
-G_RESOURCE_VERSION = 28
-
 require_relative '../conf'
 require 'bundler'
 require 'sequel'
@@ -12,7 +8,6 @@ require 'sinatra'
 require 'sinatra/namespace'
 require 'sinatra/content_for'
 if development? then
-  require 'sass/plugin/rack'
   require 'sinatra/reloader'
 end
 require 'logger'
@@ -25,7 +20,7 @@ require 'nkf'
 require 'redcarpet'
 require_relative '../libs/diff_match_patch-ruby/diff_match_patch.rb'
 G_DIMAPA = DiffPatchMatch.new
-require 'RMagick'
+require 'rmagick'
 require 'zip'
 
 require 'nokogiri'

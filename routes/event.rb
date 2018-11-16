@@ -31,7 +31,7 @@ class MainApp < Sinatra::Base
     end
 
     def get_all_attrs
-      UserAttributeKey.order(Sequel.asc(:index)).map{|x|[[x.id,x.name],x.attr_values.map{|y|[y.id,y.value]}]}
+      UserAttributeKey.order(Sequel.asc(:index)).map{|x| {id: x.id, name: x.name, values: x.attr_values.map{|y| {id: y.id, value: y.value}}}}
     end
     def get_all_event_groups
       EventGroup.order(Sequel.asc(:name)).map{|x|x.select_attr(:id,:name)}
@@ -39,7 +39,7 @@ class MainApp < Sinatra::Base
 
     def event_info(ev,user,opts = {})
       today = Date.today
-      is_owner = user && ev.owners.map(&:id).include?(user.id) 
+      is_owner = user && ev.owners.map(&:id).include?(user.id)
       attrs = [:place,:name,:date,:kind,:official,:deadline,:created_at,:id,:team_size,:event_group_id,:public]
       if not @public_mode then
         attrs += [:participant_count,:comment_count,:last_comment_date]
@@ -90,12 +90,12 @@ class MainApp < Sinatra::Base
       participant_names = {}
       attr_query = UserAttributeValue.where(attr_key:ev.aggregate_attr).where(Sequel.~(id:ev.forbidden_attrs)).all
       # TODO: all で実際に取得して二回も attr_query.map を呼んでるのは美しくない
-      participant_attrs = attr_query.map{|x|[x.id,x.value]}
-      attr_value_index = attr_query.map{|x|[x.id,x.index]}.to_h
+      participant_attrs = attr_query.map{|x| {id: x.id, name: x.value}}
+      attr_value_index = attr_query.map{|x| [x.id,x.index]}.to_h
       sort_and_map = ->(h){
-        h.sort_by{|k,v|attr_value_index[k] || 9999} # 後から参加不能属性が追加された場合参加不能属性の人でも参加している可能性はある
-        .map{|k,v|
-          [k,v.map(&:id)]}}
+        h.sort_by{|k,v| attr_value_index[k] || 9999} # 後から参加不能属性が追加された場合参加不能属性の人でも参加している可能性はある
+        .map{|k,v| [k,v.map(&:id)]}
+      }
       add_participant_names = ->(ucs,hide_result){
         if hide_result and not edit_mode then return end
         participant_names.merge!(Hash[ucs.map{|u|[u.id,u.user_name]}])
@@ -122,9 +122,9 @@ class MainApp < Sinatra::Base
               }
             end
       {
-        participant: res,
+        participant: res.map{|k, v| [k, v.to_h]}.to_h,
         participant_names: participant_names,
-        participant_attrs: participant_attrs
+        participant_attrs: participant_attrs,
       }
     end
     get '/item/:id' do
@@ -265,7 +265,7 @@ class MainApp < Sinatra::Base
     end
     post '/group/new' do
       with_update{
-        name = params[:name]
+        name = @json['name']
         EventGroup.create(name:name).select_attr(:id,:name)
       }
     end
@@ -285,9 +285,6 @@ class MainApp < Sinatra::Base
   end
   comment_routes("/api/event",Event,EventComment,true)
   attached_routes("event",Event,EventAttachedFile)
-  get '/event_catalog' do
-    haml :event_catalog
-  end
   get '/api/event_catalog/list' do
     query = Event.where(done:false).order(Sequel.asc(:date),Sequel.asc(:id))
     if @public_mode then

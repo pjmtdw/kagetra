@@ -1,0 +1,85 @@
+body {
+  background-image: url(/img/bg.jpg), url(/img/bg_rev.jpg);
+  background-repeat: repeat-y, repeat-y;
+  background-position: left top, right top;
+}
+
+.modal {
+  max-width: 90%;
+  margin-left: auto;
+  margin-right: auto;
+  .modal-open & {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+.pre {
+  white-space: pre-line;
+}
+
+@mixin icon() {
+  position: relative;
+  color: white;
+  background-color: rgba(0, 0, 0, .4);
+  width: 1rem;
+  height: 1rem;
+  display: inline-block;
+  border-radius: 100%;
+  font-size: .8rem;
+  text-align: center;
+}
+.help-icon {
+  @include icon();
+  &::before {
+    content: "?";
+    position: relative;
+    left: .02rem;
+    top: -.05rem;
+  }
+}
+.info-icon {
+  @include icon();
+  &::before {
+    content: "i";
+    font-family: serif;
+    position: relative;
+    top: -.05rem;
+  }
+}
+
+.badge-light-shadow {
+  background-color: #eee;
+  box-shadow: 1px 1px 1px 1px rgba(black, 0.2);
+  &:hover {
+    background-color: #ddd;
+    text-decoration: none;
+  }
+}
+
+.card-border-title {
+  position: relative;
+  padding-left: 10px;
+  top: -.75em;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.border-dotted {
+  border: 1px dotted #dee2e6!important;
+}
+
+.border-top-dotted {
+  border-top: 1px dotted #dee2e6!important;
+}
+
+.pb-1px {
+  padding-bottom: 1px;
+}
+
+.w-sm-25 {
+  @media screen and (min-width: 576px) {
+    width: 25%;
+  }
+}

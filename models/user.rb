@@ -8,7 +8,7 @@ class User < Sequel::Model(:users)
   one_to_one :login_latest, class:'UserLoginLatest'
   one_to_many :login_monthlies, class:'UserLoginMonthly'
   one_to_many :login_logs, class:'UserLoginLog'
-  
+
   one_to_many :event_user_choices
   one_to_one :addr_book, class:'AddrBook'
 
@@ -75,7 +75,7 @@ class User < Sequel::Model(:users)
     self.permission.include?(:sub_admin)
   end
 
-  def last_login_str
+  def last_login_data
     pre = self.show_new_from
     last_count = self.login_latest.updated_at
     r1 = if pre.nil? then
@@ -92,7 +92,7 @@ class User < Sequel::Model(:users)
     end
     r2 = ((Time.now-last_count).to_f/60.0).to_i
     r3 = (r2 >= MIN_LOGIN_SPAN)
-    [r1,r2,r3]
+    { last: r1, from_last: r2, can_relogin: r3 }
   end
 end
 

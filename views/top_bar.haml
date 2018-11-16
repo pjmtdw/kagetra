@@ -1,39 +1,22 @@
-%nav.top-bar(data-options="custom_back_text:false")
-  - user_name = if @public_mode then "公開版" else @user.name end
-  %section.top-bar-section
-    %ul.title-area
-      %li.name
-        %h1.show-for-small
-          %a(href)
-            = user_name
-        %li.toggle-topbar.menu-icon
-          %a(href)
-            %span Menu
-    - TOP_BAR = if @public_mode then ::G_TOP_BAR_PUBLIC else ::G_TOP_BAR_PRIVATE end
-    - TOP_BAR.each do |x|
-      %ul.left
-        %li
-          %a(href="#{x[:route]}") #{x[:name]}
-    - if not @public_mode then
-      %ul.left
-        %li.has-dropdown
-          %a(href="#{env['PATH_INFO']}#") その他
-          %ul.dropdown
-            - if @user.admin then
-              %li
-                %a(href="admin") 管理画面
-            - if @user.admin or @user.sub_admin then
-              %li
-                %a(href="ut_karuta_list_form") 公式フォーム受取
-            %li
-            %li
-              %a(href="user_conf") ユーザ設定
-            %li
-              %a(href="login_log") ログイン履歴
-            %li
-              %a(href="https://github.com/pjmtdw/kagetra/issues") 要望・バグ報告
-            %li
-              %a(href="user/logout") ログアウト
-    %ul.right.hide-for-small
-      %li
-        %a(href) #{user_name}
+%nav.navbar.navbar-expand-md.navbar-light.bg-light
+    -# %span.navbar-brand.mb-0 景虎
+
+    %button.navbar-toggler.ml-auto(type="button" data-toggle="collapse" data-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation")
+        %span.navbar-toggler-icon
+
+    %div#navbarContent.collapse.navbar-collapse
+        %ul.navbar-nav.mr-auto
+            %li.nav-item.mx-2
+                %a#top.nav-link(href="/top") TOP
+            %li.nav-item.mx-2
+                %a#bbs.nav-link(href="/bbs") 掲示板
+            %li.nav-item.mx-2
+                %a#result.nav-link(href="/result") 大会結果
+            %li.nav-item.mx-2
+                %a#schedule.nav-link(href="/schedule") 予定表
+            %li.nav-item.mx-2
+                %a#wiki.nav-link(href="/wiki") Wiki
+            %li.nav-item.mx-2
+                %a#album.nav-link(href="/album") Album
+            %li.nav-item.mx-2
+                %a#addrbook.nav-link(href="/addrbook") 名簿

@@ -2,22 +2,26 @@
 class MainApp < Sinatra::Base
   namespace '/api/result_ranking' do
     def parse_month_date(s,is_end)
-      if /^(\d+)$/ =~ s then
-        d = Date.parse(s+"-1-1")
-        if is_end then
-          d.next_year - 1
+      begin
+        if /^(\d+)$/ =~ s then
+          d = Date.parse(s+"-1-1")
+          if is_end then
+            d.next_year - 1
+          else
+            d
+          end
+        elsif /^(\d+)-(\d+)$/ =~ s then
+          d = Date.parse(s+"-1")
+          if is_end then
+            d.next_month - 1
+          else
+            d
+          end
         else
-          d
+          Date.parse(s)
         end
-      elsif /^(\d+)-(\d+)$/ =~ s then
-        d = Date.parse(s+"-1")
-        if is_end then
-          d.next_month - 1
-        else
-          d
-        end
-      else
-        Date.parse(s)
+      rescue ArgumentError
+        halt 400, { error_message: "日付の形式が不正です" }
       end
     end
     post '/search' do
@@ -75,14 +79,32 @@ class MainApp < Sinatra::Base
       }
       ranking = data["key1"].merge(data["key2"]){|key,oldval,newval|
         oldval.merge(newval)
-      }.to_a.sort_by{|name,d|
-        [d["key1"] || 0, d["key2"] || 0]
+      }.to_a.map{|v|
+        { name: v[0], key1: v[1]["key1"], key2: v[1]["key2"] }
+      }.sort_by{|v|
+        [v[:key1] || 0, v[:key2] || 0]
       }.reverse
-      {meta:meta,ranking:ranking}
+      # ランク付け
+      rank = 0
+      count = 1
+      value = nil
+      ranking.map! do |v|
+        if v[:key1] == value
+          count += 1
+          v[:rank] = rank
+        else
+          rank += count
+          count = 1
+          value = v[:key1]
+          v[:rank] = rank
+        end
+        v
+      end
+      { meta: meta, ranking: ranking }
     end
-  end
-  get '/result_ranking' do
-    @minyear = Event.where(kind:Event.kind__contest).min(:date).year
-    haml :result_ranking
+    get '/year' do
+      minyear = Event.where(kind:Event.kind__contest).min(:date).year
+      { minyear: minyear, maxyear: Date.today.year }
+    end
   end
 end

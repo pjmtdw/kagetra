@@ -31,7 +31,6 @@ G_TOP_BAR_PRIVATE = [
   {route:"schedule", name:"予定表"},
   {route:"wiki",     name:"Wiki"},
   {route:"album",    name:"アルバム"},
-  {route:"map",    name:"地図"},
   {route:"addrbook", name:"名簿"},
 ]
 
@@ -52,8 +51,7 @@ G_TEAM_POINT_LOCAL = [10,20,30,40,50] # 団体戦でもらえる会内ポイン�
 
 CONF_STORAGE_DIR = "./storage" # Wikiの添付ファイルとアルバムの写真が置かれるディレクトリ
 
-## 地図
-CONF_MAP_TILE_URL = "http://tile.openstreetmap.org" # 地図サーバのURL．必ず変更すること: http://wiki.openstreetmap.org/wiki/Tile_usage_policy
+CONF_USE_SSL = true # SSLを使用するかどうか
 
 # これを設定しておけばサーバを再起動してもユーザのセッションが保持される．
 # 下記のコマンドで生成すること
@@ -67,7 +65,6 @@ CONF_DB_PASSWORD = "<pass>"
 CONF_DB_HOST = "<host>"
 CONF_DB_PORT = port
 CONF_DB_DATABASE = "<db>"
-CONF_DB_OSM_DATABASE = "<osm_db>" # osm2pgsql で変換した OpenStreetMap のデータが入っている DB． nil に設定すると地図検索機能が働かなくなるが他の機能は使える
 
 CONF_DB_DEBUG = true # stdout に DEBUG 情報を出力するかどうか
 

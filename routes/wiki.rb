@@ -123,7 +123,7 @@ class MainApp < Sinatra::Base
       update_or_create_item(nil)
     end
     post '/preview', private:true do
-      {html: render_wiki(params[:body],false)}
+      { html: render_wiki(@json['body'], false) }
     end
 
     get '/log/:id', private:true do
@@ -133,7 +133,7 @@ class MainApp < Sinatra::Base
         log = x[:log]
         # TODO: これだと <ins> や </ins> のある行しか表示されないので
         # 複数行編集されてる場合途中が表示されない
-        html = x[:html].lines.select{|x| /<\/?(ins|del)/ =~ x}.join("")
+        html = x[:html].lines.select{|y| /<\/?(ins|del)/ =~ y}.join("")
         {
           html:html,
           user_name: if log.user.nil?.! then log.user.name else "" end,
@@ -151,6 +151,6 @@ class MainApp < Sinatra::Base
   comment_routes("/api/wiki",WikiItem,WikiComment,true)
   attached_routes("wiki",WikiItem,WikiAttachedFile)
   get '/wiki' do
-    haml :wiki
+    haml_wrap 'Wiki'
   end
 end

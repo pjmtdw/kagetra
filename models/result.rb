@@ -76,9 +76,17 @@ class ContestResultCache < Sequel::Model(:contest_result_caches)
   end
   def update_winlose
     x = self.event.result_users_dataset.select(
-      Sequel.function(:sum,:win).as("sum_win"),Sequel.function(:sum,:lose).as("sum_lose")
+      Sequel.function(:coalesce,Sequel.function(:sum,:win),0).as("sum_win"),Sequel.function(:coalesce,Sequel.function(:sum,:lose),0).as("sum_lose")
     ).first
     self.update(win:x[:sum_win],lose:x[:sum_lose])
+  end
+  def self.refresh_all
+   DB.transaction{
+     self.all.each{|res|
+       res.update_prizes
+       res.update_winlose
+     }
+   }
   end
 end
 
@@ -133,6 +141,13 @@ class ContestPrize < Sequel::Model(:contest_prizes)
       self.save_promotion_cache
     end
   end
+
+  def after_destroy
+    self.contest_user.update(point:0,point_local:0)
+    self.contest_class.event.update_cache_prizes
+    super
+  end
+
   def save_promotion_cache
     event = self.contest_class.event
     user_name = self.contest_user.name

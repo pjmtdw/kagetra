@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
-  ALBUM_SEARCH_PER_PAGE = 50
-  ALBUM_RECENT_GROUPS = 6
+  ALBUM_SEARCH_PER_PAGE = 20
+  ALBUM_RECENT_GROUPS = 20
   ALBUM_EVENT_COMPLEMENT_DAYS = 3
   ALBUM_EVENT_COMPLEMENT_LIMIT = 20
   def album_group_info(group)
@@ -73,6 +73,47 @@ class MainApp < Sinatra::Base
       r[:deletable] = @user.admin || @user.sub_admin || group.owner_id == @user.id
       r
     end
+    post '/group' do
+      res = with_update {
+        data = {}
+        data['name'] = @json['name']
+        data['place'] = @json['place']
+        data["start_at"] = if @json["start_at"].to_s.empty? then nil else @json['start_at'] end
+        data["end_at"] = if @json["end_at"].to_s.empty? then nil else @json['end_at'] end
+        data["owner_id"] = @user.id
+        data['comment'] = 'hoge'
+        AlbumGroup.create(data)
+      }
+    end
+    post '/upload' do
+      group = AlbumGroup[params[:group_id]]
+      filename = params[:file][:filename]
+      tempfile = params[:file][:tempfile]
+      min_index = 1 + (group.items_dataset.max(:group_index) || -1)
+      date = Date.today
+      target_dir = File.join(CONF_STORAGE_DIR,"album",date.year.to_s,date.month.to_s)
+      FileUtils.mkdir_p(target_dir)
+      case filename.downcase
+      when /\.zip$/
+        tmp = Dir.mktmpdir(nil,target_dir)
+        Zip::File.open(tempfile).select{|x|x.file? and [".jpg",".jpeg",".png",".gif"].any?{|s|x.name.downcase.end_with?(s)}}
+          .to_enum.with_index(min_index){|entry,i|
+            fn = File.join(tmp,i.to_s)
+            File.open(fn,"w"){|f|
+              f.write(entry.get_input_stream.read)
+            }
+            process_image(group,i,entry.name,fn)
+          }
+        {result:"OK",group_id:group.id}
+      when /\.jpe?g$/, /\.png$/, /\.gif$/
+        tfile = Kagetra::Utils.unique_file(@user,["img-",".dat"],target_dir)
+        FileUtils.cp(tempfile.path,tfile)
+        process_image(group,min_index,filename,tfile)
+        {result:"OK",group_id:group.id}
+      else
+        error_response("ファイルの拡張子が間違いです: #{filename.downcase}")
+      end
+    end
     delete '/group/:gid' do
       with_update{
         group = AlbumGroup[params[:gid].to_i]
@@ -80,7 +121,7 @@ class MainApp < Sinatra::Base
           group.destroy
           {}
         else
-          {_error_:"空でないフォルダは削除できません"}
+          error_response("空でないフォルダは削除できません")
         end
       }
     end
@@ -136,7 +177,7 @@ class MainApp < Sinatra::Base
         rr.merge({coord_x:cx,coord_y:cy})
       }
       r[:relations] = item.relations.map(&:id_with_thumb)
-      r[:deletable] = album_item_deletable(item) 
+      r[:deletable] = album_item_deletable(item)
       r
     end
     put '/item/:id' do
@@ -200,7 +241,7 @@ class MainApp < Sinatra::Base
         item.do_after_tag_updated
         (updates,updates_patch) = make_comment_log_patch(item,@json,"comment","comment_revision")
         if updates then @json.merge!(updates) end
-        if @json["group_id"].to_s.empty? then 
+        if @json["group_id"].to_s.empty? then
           # 今は JSON の group_id が空白のときは item の group_id を更新しない
           # TODO: group_id を null に設定できるようにする
           @json.delete("group_id")
@@ -222,12 +263,14 @@ class MainApp < Sinatra::Base
       recent = AlbumGroup.where(dummy:false).order(Sequel.desc(:created_at)).limit(ALBUM_RECENT_GROUPS).map{|x|
         album_group_info(x)
       }
-      list = aggr.map{|x|[x.year,x[:sum_item_count]]}
-      {list: list,total: total,recent:{list:recent}, comment_updated:comment_updated}
+      list = aggr.map{|x|
+        {year: x.year, item_count: x[:sum_item_count]}
+      }
+      {list: list, total: total, recent: recent, comment_updated:comment_updated}
     end
     post '/search' do
-      qs = params[:qs]
-      page = if params[:page] then params[:page].to_i else 1 end
+      qs = @json['qs']
+      page = if @json['page'] then @json['page'].to_i else 1 end
       dataset = AlbumItem.dataset
       if /(?:^|\s)([0-9\-]+)(?:$|\s)/ =~ qs then
         qs = $` + " " + $'
@@ -267,13 +310,13 @@ class MainApp < Sinatra::Base
       }
     end
     post '/complement_event' do
-      group = AlbumGroup[params[:group_id]]
-      query = params[:q]
+      group = AlbumGroup[@json['group_id']]
+      query = @json['q']
       results = if query.empty? then
                   if group.start_at then
                     st = group.start_at - ALBUM_EVENT_COMPLEMENT_DAYS
                     ed = (group.end_at || group.start_at) + ALBUM_EVENT_COMPLEMENT_DAYS
-                    
+
                     Event.where{ (date >= st) & (date <= ed)}
                          .where(done:true,kind:Event.kind__contest)
                          .order(Sequel.desc(:date, nulls: :last))
@@ -296,13 +339,12 @@ class MainApp < Sinatra::Base
                      x.select_attr(:id,:date,:name).merge(text:"#{x.name}@#{x.date}")
                   }
                 end
-      
+
       if group.start_at then
         center_date = group.start_at + ((group.end_at || group.start_at) - group.start_at) / 2
         results = results.sort_by{|x| [if x[:date] then (center_date - x[:date]).to_i.abs else 999999 end, levenshtein_distance(x[:name],group.name)]}
       end
       {results:results}
-
     end
     get '/thumb_info/:id' do
       item = AlbumItem[params[:id].to_i]
@@ -418,7 +460,7 @@ class MainApp < Sinatra::Base
     end
     get '/stat' do
       uploaders = AlbumItem.group_and_count(:owner_id).where(Sequel.~(owner_id:nil)).order(Sequel.desc(:count))
-      uploader_stat = [] 
+      uploader_stat = []
       prev_count = nil
       rank = 1
       uploaders.to_enum.with_index(1){|x,index|
@@ -459,7 +501,7 @@ class MainApp < Sinatra::Base
     end
   end
   get '/album' do
-    haml :album
+    haml_wrap 'アルバム'
   end
 
   # 縦横比は保持したまま画素数を増減する
@@ -555,30 +597,30 @@ class MainApp < Sinatra::Base
           process_image(group,min_index,filename,tfile)
           {result:"OK",group_id:group.id}
         else
-          {_error_:"ファイルの拡張子が間違いです: #{filename.downcase}"}
+          error_response("ファイルの拡張子が間違いです: #{filename.downcase}")
         end
       end
     }
     "<div id='response'>#{res.to_json}</div>"
   end
-  def send_photo(p,rotate)
-    content_type "image/#{p.format.downcase}"
-    path = File.join(CONF_STORAGE_DIR,"album",p.path)
-    ext = case p.format.downcase
+  def send_photo(photo,rotate)
+    content_type "image/#{photo.format.downcase}"
+    path = File.join(CONF_STORAGE_DIR,"album",photo.path)
+    ext = case photo.format.downcase
           when "jpeg" then "jpg"
-          else p.format.downcase
+          else photo.format.downcase
           end
-    prefix =  if p.class == AlbumThumbnail then
-                p.album_item_id.to_s + "_thumb"
+    prefix =  if photo.class == AlbumThumbnail then
+                photo.album_item_id.to_s + "_thumb"
               else
-                p.album_item_id
+                photo.album_item_id
               end
     filename = "#{prefix}.#{ext}"
     if rotate == 0
       send_file(path,disposition:"inline",filename:filename)
     else
       attachment(filename,"inline")
-      last_modified p.updated_at
+      last_modified photo.updated_at
       img = Magick::Image::read(path).first
       img.rotate!(rotate)
       blob = img.to_blob
@@ -592,13 +634,13 @@ class MainApp < Sinatra::Base
     get '/thumb/:id.?:rotate?' do
       # サムネイルだけ24時間キャッシュする（概ね今日の一枚用）
       expires 86400, :public
-      p = AlbumThumbnail[params[:id].to_i]
+      photo = AlbumThumbnail[params[:id].to_i]
       # サムネイルは作成時にrotate済みなのでそのまま送る
-      send_photo(p,0)
+      send_photo(photo, 0)
     end
     get '/photo/:id.?:rotate?' do
-      p = AlbumPhoto[params[:id].to_i]
-      send_photo(p,params[:rotate].to_i)
+      photo = AlbumPhoto[params[:id].to_i]
+      send_photo(photo, params[:rotate].to_i)
     end
   end
 end

@@ -4,14 +4,13 @@ class MainApp < Sinatra::Base
   RESULT_SEARCH_NAME_LIMIT = 100
   namespace '/api/result_misc' do
     post '/search_name' do
-      query = "%#{params[:q]}%"
+      query = "%#{@json["q"]}%"
       list1 = ContestUser.where(Sequel.like(:name,query)).limit(RESULT_SEARCH_NAME_LIMIT/2)
         .group_and_count(:name).order(Sequel.desc(:count)).map(&:name)
       list2 = ContestGame.where(Sequel.like(:opponent_name,query)).limit(RESULT_SEARCH_NAME_LIMIT/2)
         .group_and_count(:opponent_name).order(Sequel.desc(:count)).map(&:opponent_name)
       results = (list1+list2).uniq
       {results:results}
-
     end
 
     post '/record' do
@@ -70,7 +69,7 @@ class MainApp < Sinatra::Base
             Sequel.function(:sum,:point).coalesce_0.as("point"),
             Sequel.function(:sum,:point_local).coalesce_0.as("point_local")).first
           res = res.to_hash.merge(year:y)
-          
+
 
           if not games_op.empty? then
             # 勝ち数負け数(敵として出場した場合)
@@ -118,7 +117,7 @@ class MainApp < Sinatra::Base
 
       # 級の名前と回戦の名前を取得(味方として出場した大会のみ)
 
-      clids = if eid_required.empty? or cusers.empty? then [] else ContestUser.where(event_id:eid_required,id:cusers).map(&:contest_class_id) end 
+      clids = if eid_required.empty? or cusers.empty? then [] else ContestUser.where(event_id:eid_required,id:cusers).map(&:contest_class_id) end
       class_info = Hash[ContestClass.where(id:clids).map{|c|
         r = c.select_attr(:class_name)
         # 空のとき c.round_name をそのまま返してしまうと後で更新するときに Immutable resources cannot be modified エラーが出る
@@ -180,10 +179,15 @@ class MainApp < Sinatra::Base
            res[:result] = x.result
            res[:opponent_name] = x.opponent_name
         end
-        res.merge(x.select_attr(:event_id,:score_str))
+        res.merge(x.select_attr(:event_id, :score_str, :comment))
       }
       res_games = Hash[games.group_by{|x|x[:event_id]}.map{|eid,arr|
         r = Hash[arr.map{|x|[x[:round],x]}]
+        (1..r.keys.max).each{|i|
+          if not r.key?(i)
+            r[i] = {result: 'break'}
+          end
+        }
         [eid,r]
       }]
 
@@ -223,14 +227,5 @@ class MainApp < Sinatra::Base
                   end
                 }.compact
     {list:list,minyear:minyear,maxyear:Date.today.year,curyear:year}
-  end
-  get '/result_list' do
-    haml :result_list
-  end
-  get '/result_promotion' do
-    haml :result_promotion
-  end
-  get '/result_record' do
-    haml :result_record
   end
 end

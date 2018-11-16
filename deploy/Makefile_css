@@ -1,4 +1,0 @@
-all:
-	cd .. && bundle exec compass compile -c deploy/compass_conf.rb
-clean:
-	rm -f ../public/css/*.css

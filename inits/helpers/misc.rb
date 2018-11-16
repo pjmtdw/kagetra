@@ -1,5 +1,13 @@
 # -*- coding: utf-8 -*-
 module MiscHelpers
+  def time_for(value)
+    now = Time.now
+    case value
+    when :today then Time.local now.year, now.mon, now.day, 23, 59, 59
+    else super
+    end
+  end
+
   def get_user
     User.first(id: session[:user_id], token: session[:user_token])
   end
@@ -21,6 +29,15 @@ module MiscHelpers
     str == Kagetra::Utils.openssl_dec(enc,pass)
   end
 
+  def error_response(message)
+    status 400
+    {error_message: message}
+  end
+
+  def halt_wrap(status_code, message)
+    halt status_code, { error_message: message }
+  end
+
   def with_update
     begin
       DB.transaction{
@@ -33,10 +50,11 @@ module MiscHelpers
       bt = e.backtrace.join("\n")
       logger.puts bt
       $stderr.puts bt
-      {_error_: e.message }
+      error_response(e.message)
     end
   end
 
+  # Cookie
   def get_permanent(key)
     data = get_permanent_all
     if data then data[key] end
@@ -80,14 +98,15 @@ module MiscHelpers
       set_permanent_all(data)
     end
   end
+
   # 今日の一枚を選択
   def choose_daily_album_photo
     # sqrtの重み付け
     # 以下の方法はメモリを多少多めに利用するが
     # AlbumGroupの数は多くても数千，重みの最大は精々10程度で平均3ぐらいなので多分大丈夫
-    ag = AlbumGroup.where{ daily_choose_count > 0}.map{|ag|
-      w = Math.sqrt(ag.daily_choose_count).to_i
-      [ag] * w
+    ag = AlbumGroup.where{ daily_choose_count > 0}.map{|x|
+      w = Math.sqrt(x.daily_choose_count).to_i
+      [x] * w
     }.flatten.sample
     return if ag.nil?
     item = ag.items.to_a.sample
@@ -214,7 +233,7 @@ module MiscHelpers
     x = nil
     str1.each_char.with_index do |char1,i|
       e = i+1
-   
+
       str2.each_char.with_index do |char2,j|
         cost = (char1 == char2) ? 0 : 1
         x = [ d[j+1] + 1, # insertion
@@ -224,10 +243,13 @@ module MiscHelpers
         d[j] = e
         e = x
       end
-   
+
       d[m] = x
     end
     x
   end
 
+  def haml_wrap(title='', top_bar=true, **args)
+    haml '', locals: args.merge(title:title,top_bar:top_bar)
+  end
 end

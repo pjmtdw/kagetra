@@ -6,8 +6,8 @@ class MainApp < Sinatra::Base
       mobile_haml :bbs
     end
     def mobile_bbs_response(res)
-      if res.is_a?(Hash) and res["_error_"]
-        res["_error_"]
+      if res.is_a?(Hash) and res["error_message"]
+        res["error_message"]
       else
         mobile_haml <<-HEREDOC
 書き込みました

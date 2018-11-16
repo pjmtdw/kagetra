@@ -1,13 +1,2 @@
-- content_for :title do
-  トップ
-- content_for :js_start do
-  top
-- content_for :css do
-  top, schedule_item, event_detail, comment, attached
-- content_for :haml do
-  top_body,schedule_item,event_detail
-= haml :top_bar
-
 %script
-  var g_daily_photo_str='#{@daily_photo and @daily_photo.to_json}';
-  var g_sub_admin = #{!!(@user.admin or @user.sub_admin)};
+  var g_daily_photo = #{@daily_photo and @daily_photo.to_json};

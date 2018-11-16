@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
-  BBS_THREADS_PER_PAGE = 5
   namespace '/api/bbs' do
+    BBS_THREADS_PER_PAGE = 5
     get '/threads' do
       page = params["page"].to_i
       qs = params["qs"]
@@ -21,9 +21,14 @@ class MainApp < Sinatra::Base
           query = query.where(qb)
         }
       end
-      query.paginate(page,BBS_THREADS_PER_PAGE).order(Sequel.desc(:last_comment_date),Sequel.desc(:bbs_threads__id)).map{|t|
+      threads = query.paginate(page,BBS_THREADS_PER_PAGE).order(Sequel.desc(:last_comment_date),Sequel.desc(:bbs_threads__id)).map{|t|
         items = t.comments_dataset.order(Sequel.asc(:created_at)).map{|c|c.show(@user,@public_mode)}
         t.select_attr(:id,:title,:public).merge(items:items,has_new_comment:t.has_new_comment(@user))
+      }
+      return {
+        count: query.count,
+        threads_per_page: BBS_THREADS_PER_PAGE,
+        threads: threads
       }
     end
     def create_item(thread,is_first)
@@ -62,7 +67,7 @@ class MainApp < Sinatra::Base
       with_update{
         item = BbsItem[params[:id].to_i]
         halt(403,"you cannot edit this item") unless item.editable(@user)
-        item.update(body:@json["body"])
+        item.update(body:@json["body"], user_name:@json["user_name"])
       }
     end
     delete '/item/:id' do
@@ -79,6 +84,6 @@ class MainApp < Sinatra::Base
     end
   end
   get '/bbs' do
-    haml :bbs
+    haml_wrap '掲示板'
   end
 end

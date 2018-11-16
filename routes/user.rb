@@ -70,11 +70,11 @@ class MainApp < Sinatra::Base
     end
     post '/confirm_password' do
       hash = @user.password_hash
-      Kagetra::Utils.check_password(params,hash)
+      Kagetra::Utils.check_password(@json['msg'], @json['hash'], hash)
     end
     post '/change_password' do
       with_update{
-        up = {password_hash: params[:hash], password_salt: params[:salt]}
+        up = {password_hash: @json['hash'], password_salt: @json['salt']}
         if params[:uids]
           # TODO: 本当はユーザごとに salt を変えないといけない
           User.where(id:params[:uids].map(&:to_i)).each{|x|x.update(up)}

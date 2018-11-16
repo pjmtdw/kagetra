@@ -16,8 +16,7 @@
           </a>
           <div class="dropdown-menu">
             <a v-if="admin" class="dropdown-item" href="/admin">管理画面</a>
-            <!-- <a v-if="sub_admin" class="dropdown-item" href="/ut_karuta_list_form">公式フォーム受け取り</a> -->
-            <a class="dropdown-item" href="/user_conf">ユーザ設定</a>
+            <a class="dropdown-item" href="/user_conf">ユーザー設定</a>
             <a class="dropdown-item" href="/login_log">ログイン履歴</a>
             <a class="dropdown-item" href="http://kagetora.bushidoo.com/top">通常版へ</a>
             <a class="dropdown-item" href="/user/logout">ログアウト</a>

@@ -124,6 +124,12 @@ export default {
   created() {
     this.fetch(this.page);
     this.$_setBeforeUnload(() => this.changed);
+
+    /* eslint-disable */
+    if (typeof g_user_bbs_public_name !== 'undefined' && this.gIsPublic) {
+      this.name = g_user_bbs_public_name;
+    }
+    /* eslint-enable */
   },
   methods: {
     fetch(page) {

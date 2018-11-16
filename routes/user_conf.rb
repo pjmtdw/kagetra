@@ -9,6 +9,8 @@ class MainApp < Sinatra::Base
     end
   end
   get '/user_conf' do
-    haml_wrap 'ユーザー設定'
+    haml :user_conf, locals: {
+      title: 'ユーザー設定',
+    }
   end
 end

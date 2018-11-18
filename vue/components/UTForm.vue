@@ -12,7 +12,7 @@
       </ul>
     </nav>
     <div v-if="posts" class="mt-3">
-      <div v-for="item in posts.list" :key="item.id" class="card mt-1">
+      <div v-for="item in posts.list" :key="item.id" class="card mt-2">
         <div class="card-body">
           <div class="card-title mb-2">
             <span>{{ item.name }}</span>
@@ -24,10 +24,13 @@
             {{ item.created_at.slice(0, -6) }}
           </div>
           <div class="card-subtitle">
-            <span v-if="item.status >= 2">{{ statuses[item.status] }} (by {{ item.status_change_user }})</span>
+            <span v-if="item.status >= 2">
+              <span>{{ statuses[item.status].text }} (by {{ item.status_change_user }})</span>
+              <button v-if="in2hours(item.status_change_at)" class="btn btn-outline-secondary" @click="updateStatus(item, 1)">取消</button>
+            </span>
             <span v-else>
-              <button class="btn btn-primary" @click="updateStatus(item, 3)">{{ statuses[3] }}</button>
-              <button class="btn btn-secondary" @click="updateStatus(item, 2)">{{ statuses[2] }}</button>
+              <button class="btn btn-primary" @click="updateStatus(item, 2)">{{ statuses[2].text }}</button>
+              <button class="btn btn-secondary" @click="updateStatus(item, 3)">{{ statuses[3].text }}</button>
             </span>
           </div>
           <hr>
@@ -54,7 +57,12 @@ export default {
   },
   data() {
     return {
-      statuses: [null, '未完了', '返信不要', '返信済み'],
+      statuses: [
+        null,
+        { name: 'notyet', text: '未完了' },
+        { name: 'done', text: '返信済み' },
+        { name: 'ignore', text: '返信不要' },
+      ],
       posts: null,
     };
   },
@@ -78,8 +86,14 @@ export default {
         this.posts = res.data;
       });
     },
+    in2hours(dateString) {
+      if (!dateString) return false;
+      const d = Date.parse(dateString);
+      console.log(d, _.now());
+      return _.now() - d < 1000 * 60 * 60 * 2;
+    },
     updateStatus(item, status) {
-      axios.post(`/update_status/${item.id}/${status}`).then(() => {
+      axios.post(`/ut_karuta/update_status/${item.id}/${this.statuses[status].name}`).then(() => {
         this.fetch();
       }).catch(this.$_makeOnFail('変更に失敗しました'));
     },

@@ -101,6 +101,7 @@ export default {
     PlayerSearch,
   },
   props: {
+    /* eslint-disable vue/prop-name-casing */
     _start: {
       type: String,
       default() {
@@ -127,6 +128,7 @@ export default {
       type: String,
       default: 'official',
     },
+    /* eslint-enable vue/prop-name-casing */
   },
   data() {
     return {

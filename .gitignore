@@ -5,16 +5,12 @@
 .ruby-version
 db/
 node_modules/
-public/css/
-public/js/
-views/js/*.js
 deploy/log/
 deploy/sock/
 deploy/pid/
 scripts/wikipedia_name/tmp/
+static/
 backups/
 storage/
-views/js/libs/
 
 conf.rb
-

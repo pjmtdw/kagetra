@@ -7,7 +7,7 @@ upstream unicorn_server {
 server {
   server_name _;
   # change to Kagetora static path
-  root /path/to/kagetra/public;
+  root /path/to/kagetra/static;
   listen 80;
   client_max_body_size 4G;
   keepalive_timeout 5;

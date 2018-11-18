@@ -13,7 +13,7 @@ server {
 server {
   server_name _;
   # change to Kagetora static path
-  root /path/to/kagetra/public;
+  root /path/to/kagetra/static;
 
   listen 443 ssl http2;
   ssl_certificate      /path/to/fullchain.pem;

@@ -4,6 +4,7 @@ class MainApp < Sinatra::Base
 
   enable :logging
   set :root, File.join(File.dirname(__FILE__),"..")
+  set :public_folder, File.dirname(__FILE__) + '/static'
 
   # session
   enable :sessions

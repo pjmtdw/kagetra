@@ -30,7 +30,7 @@ class MainApp < Sinatra::Base
       }
     end
     post '/update_status/:id/:status' do
-      UtKarutaForm.first(id:params[:id]).update_status(@user.name,params[:status].to_sym)
+      UtKarutaForm.first(id:params[:id]).update_status(@user.name, params[:status].to_sym)
     end
   end
   get '/ut_karuta_list_form' do

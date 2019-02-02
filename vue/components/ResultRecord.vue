@@ -185,6 +185,12 @@ export default {
         point_local: kpt,
       };
     },
+    displayPages() {
+      if (this.pages >= 10) {
+        return _.range(_.max(1, this.page - 4), _.min(this.pages, this.page + 4));
+      }
+      return _.range(1, this.pages + 1);
+    },
   },
   watch: {
     name() {

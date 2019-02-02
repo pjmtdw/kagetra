@@ -365,7 +365,7 @@ export default {
       const data = {
         id: this.pageId,
         body: this.edit.body,
-        revision: this.revision + 1,
+        revision: this.revision,
       };
       if (this.public !== this.edit.public) data.public = this.edit.public;
       if (this.title !== this.edit.title) data.title = this.edit.title;

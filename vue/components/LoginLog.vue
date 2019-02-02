@@ -21,7 +21,7 @@
                 <td class="font-weight-bold">{{ ranking.cur.myinfo.rank }}</td>
                 <td class="font-weight-bold">{{ ranking.cur.myinfo.count }}</td>
                 <td class="font-weight-bold">{{ ranking.names[ranking.cur.myinfo.user_id] }}</td>
-                <td class="font-weight-bold">[{{ ranking.one_day[ranking.cur.myinfo.user_id] }}]</td>
+                <td class="font-weight-bold">[{{ ranking.one_day[ranking.cur.myinfo.user_id] || 0 }}]</td>
               </tr>
             </tbody>
           </table>

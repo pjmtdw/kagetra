@@ -57,7 +57,7 @@
       <div class="col-12 col-md-6">
         <div v-if="nearDeadlineEvents && nearDeadlineEvents.length > 0" class="card my-1">
           <div class="card-body">
-            <h6 class="card-subtitle text-muted">締切が迫ってます</h6>
+            <h6 class="card-subtitle text-muted">締切が迫っています</h6>
             <div v-for="e in nearDeadlineEvents" :key="e.id" class="d-flex flex-row pl-1">
               <a href="#" @click.prevent="openInfo(e.id)">{{ e.name }}</a>
               <nav class="nav nav-pills ml-4">

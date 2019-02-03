@@ -249,7 +249,7 @@ export default {
     },
     saveItem() {
       const data = this.edit;
-      data.comment_revision = this.data.comment_revision + (this.data.comment === data.comment ? 0 : 1);
+      data.comment_revision = this.data.comment_revision;
       axios.put(`/album/item/${this.id}`, _.omit(data, 'tags')).then(() => {
         this.fetch();
         this.editing = false;

@@ -150,7 +150,4 @@ class MainApp < Sinatra::Base
   end
   comment_routes("/api/wiki",WikiItem,WikiComment,true)
   attached_routes("wiki",WikiItem,WikiAttachedFile)
-  get '/wiki' do
-    haml_wrap 'Wiki'
-  end
 end

@@ -188,7 +188,7 @@ class MainApp < Sinatra::Base
     # 団体戦の結果
     def contest_results_team(evt)
       teams = evt.result_classes_dataset.order(Sequel.asc(:index)).map(&:teams).flatten
-      
+
       teams.map{|team|
         op_rounds = team.opponents_dataset.to_hash(:id,:round)
         max_round = op_rounds.size
@@ -466,9 +466,6 @@ class MainApp < Sinatra::Base
         res
       }
     end
-  end
-  get '/result' do
-    haml_wrap '大会結果'
   end
   get '/result/excel/:id/:filename' do
     send_excel(Event[params[:id]])

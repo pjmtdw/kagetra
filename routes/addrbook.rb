@@ -78,9 +78,4 @@ class MainApp < Sinatra::Base
       {list:list+recents}
     end
   end
-  get '/addrbook' do
-    haml :addrbook, locals: {
-      title: '名簿',
-    }
-  end
 end

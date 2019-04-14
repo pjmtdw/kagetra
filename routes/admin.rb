@@ -144,7 +144,4 @@ class MainApp < Sinatra::Base
       {list:list}
     end
   end
-  get '/admin' do
-    haml_wrap '管理画面'
-  end
 end

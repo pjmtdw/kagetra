@@ -11,62 +11,86 @@ class MainApp < Sinatra::Base
       set_permanent("uid",uid)
     end
     # /auth 以下はログインなしでも見られるように名前空間を分ける
-    # TODO: 直接APIを叩かれるとユーザ一覧が取得できてしまう．共通パスワードを入れたユーザのみがユーザ一覧を見られるようにする
     namespace '/auth' do
-      post '/shared' do
+      before do
+        @user = if settings.development? and ENV.has_key?("KAGETRA_USER_ID")
+                then User.first(id: ENV["KAGETRA_USER_ID"])
+                else get_user
+                end
+      end
+      get '/init' do
         shared = MyConf.first(name: "shared_password")
-        res = Kagetra::Utils.check_password(@json['msg'], @json['hash'], shared.value["hash"])
-        res["updated_at"] = shared.updated_at
-        res
+        halt 403, "Shared Password Unavailable." unless shared
+        uid = get_permanent("uid")
+
+        user = User[uid.to_i]
+        (login_uid,login_uname) =
+          if uid.nil? or user.nil? then
+            nil
+          else
+            [uid,user.name]
+          end
+        {
+          shared: session[:shared],
+          login_uid: login_uid,
+          login_uname: login_uname,
+          user: (@user and {
+            name: @user.name
+          }),
+        }
       end
-      get '/list/:initial' do
-        row = params[:initial].to_i
-        query = User.where(furigana_row: row).order(Sequel.asc(:furigana))
-        if params[:all] != "true" then
-          query = query.where(loginable: true)
-        end
-        { list: query.map{|x| {id: x.id, name: x.name}} }
-      end
-      # この認証方法はDBのpassword_hashが分かればパスワードを知らなくても誰でもログインできてしまう．
-      # しかしそもそも攻撃者がDBを見られる時点であんまし認証とか意味ないので許容する
-      # TODO: ちゃんとした認証方法に変える
-      post '/user' do
+      post '/shared' do
         if not request.cookies.has_key?(G_SESSION_COOKIE_NAME) then
           # ブラウザがセッションを受け付けてない場合はCOOKIE_BLOCKEDを返す
           # 最初に/にアクセスしたときにSinatraが{"session_id"=>"...","csrf"=>"..."}みたいなセッションをデフォルトで作るので
           # このAPIが呼ばれた時点で既にセッションは存在していてCookieとして送られてくるはず．
           # 既にセッションが存在している時にブラウザの設定変更で「これ以降のCookieの受付をブロック」みたいなことをされるとお手上げだが，
           # そのようなケースは稀で，セッションのCookieはブラウザを閉じると消えるので妥協する．
-          return {result: "COOKIE_BLOCKED"}
+          return 401, { error_message: "クッキーを有効にしてください" }
         end
-
-        user = User[@json['user_id'].to_i]
-        if user.loginable then
-          hash = user.password_hash
-          Kagetra::Utils.check_password(@json['msg'], @json['hash'], hash).tap{|res|
-            if res[:result] == "OK" then
-              login_jobs(user)
-            end
-          }
+        shared = MyConf.first(name: "shared_password")
+        if @json['password'] and Kagetra::Utils.hash_password(@json['password'], shared.value["salt"])[:hash] == shared.value["hash"]
+          session[:shared] = true # 共通パスワード認証成功
+          200
         else
-          {result: "NOT_LOGINABLE"}
+          return 401, { updated_at: shared.updated_at }
         end
       end
-      get '/salt/:id' do
-        {salt: User[params[:id]].password_salt}
+      get '/search' do
+        # 共通パスワードを入れていない場合401
+        if not session[:shared]
+          return 401
+        end
+        query1 = "#{params['q']}%"
+        users1 = User.select(:id, :name)
+                     .where(Sequel.like(:name, query1) | Sequel.like(:furigana, query1))
+                     .where(loginable: true)
+                     .order(Sequel.asc(:furigana))
+                     .map{|u| { id: u.id, name: u.name }}
+        query2 = "%#{params['q']}%"
+        users2 = User.select(:id, :name)
+                     .where((Sequel.like(:name, query2) | Sequel.like(:furigana, query2)) & ~(Sequel.like(:name, query1) | Sequel.like(:furigana, query1)))
+                     .where(loginable: true)
+                     .order(Sequel.asc(:furigana))
+                     .map{|u| { id: u.id, name: u.name }}
+        users1 + users2
       end
-    end
-    get '/mysalt' do
-      {
-        salt_cur: @user.password_salt,
-        salt_new: Kagetra::Utils.gen_salt
-      }
-    end
-    get '/shared_salt' do
-      {
-        salt_cur: MyConf.first(name: "shared_password").value["salt"],
-        salt_new: Kagetra::Utils.gen_salt
-      }
+      post '/user' do
+        if not request.cookies.has_key?(G_SESSION_COOKIE_NAME) then
+          return 401, { error_message: "クッキーを有効にしてください" }
+        end
+        user = User[@json['id'].to_i]
+        if user.loginable then
+          if @json['password'] and Kagetra::Utils.hash_password(@json['password'], user.password_salt)[:hash] == user.password_hash
+            login_jobs(user)
+            200
+          else
+            return 401, { error_message: 'ログインに失敗しました' }
+          end
+        else
+          return 401, { error_message: "ログイン権限がありません" }
+        end
+      end
     end
     post '/confirm_password' do
       hash = @user.password_hash
@@ -164,6 +188,5 @@ class MainApp < Sinatra::Base
   end
   get '/user/logout' do
     session.clear
-    redirect '/'
   end
 end

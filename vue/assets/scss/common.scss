@@ -1,0 +1,25 @@
+//// Bulma, Buefy
+
+/// Update Bulma's initial variables
+$family-sans-serif: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+$primary: #54c3f1;
+$radius-small: 3px;
+
+// bulma's bug? (https://github.com/jgthms/bulma/commit/6b53425544cd15bb848750fb8eac3cd0cf8c71bd#r30288991)
+$gap: 32px;
+
+@import "~bulma/sass/utilities/_all";
+
+/// Update Bulma's derived variables
+$input-shadow: none;
+$input-hover-color: $grey-darker;
+$input-hover-border-color: 	$grey-lighter;
+$input-radius: .4em;
+
+@import "~bulma";
+@import "~buefy/src/scss/buefy";
+
+// utilitiies from bootstrap
+@import "~bootstrap-utilities-for-bulma/utilities";
+
+@import "misc";

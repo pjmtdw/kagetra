@@ -83,7 +83,4 @@ class MainApp < Sinatra::Base
       }
     end
   end
-  get '/bbs' do
-    haml_wrap '掲示板'
-  end
 end

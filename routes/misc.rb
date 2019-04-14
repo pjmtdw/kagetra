@@ -35,7 +35,6 @@ class MainApp < Sinatra::Base
     filter_public(splat)
   end
   before do
-    return if @public_mode
     # pathの末尾の/は無視
     path = request.path_info
     path.chop! if path[-1] == '/'
@@ -48,14 +47,8 @@ class MainApp < Sinatra::Base
             then User.first(id: ENV["KAGETRA_USER_ID"])
             else get_user
             end
-    if @user.nil? then
-      if path.start_with?("/api/") then
-        halt_wrap 403, "login required"
-      elsif path.start_with?("/mobile/") then
-        redirect '/mobile/'
-      else
-        redirect '/'
-      end
+    if @user.nil? and path.start_with?("/api/") then
+      halt_wrap 403, "ログインが必要です"
     end
   end
   namespace '/api' do
@@ -100,51 +93,17 @@ class MainApp < Sinatra::Base
       Kagetra::Utils.gojuon_row_names
     end
   end
-  get '/' do
-    shared = MyConf.first(name: "shared_password")
-    halt 403, "Shared Password Unavailable." unless shared
-    shared_salt = shared.value["salt"]
-
-    uid = get_permanent("uid")
-    user = User[uid.to_i]
-    (login_uid,login_uname) =
-      if uid.nil? or user.nil? then nil
-      else
-        [uid,user.name]
-      end
-    haml :login, locals: {
-      title: 'ログイン',
-      shared_salt: shared_salt,
-      login_uid: login_uid,
-      login_uname: login_uname,
-    }
-  end
-  get '/robots.txt' do
-    content_type 'text/plain'
-    "User-agent: *\nDisallow: /"
-  end
-  get '/top' do
-    dph = MyConf.first(name:"daily_album_photo")
-    @daily_photo = if dph then dph.value end
-    haml :top, locals: {
-      title: 'トップ',
-    }
+  not_found do
+    if request.path_info.start_with?("/api/") then
+      halt_wrap 404, "not found"
+    else
+      send_file("./static/index.html")
+    end
   end
   get '/select_other_uid' do
     delete_permanent("uid")
-    redirect '/'
   end
-  get '/etc' do
-    redirect '/top'
-  end
-  get '/img/bg.jpg' do
-    expires :today
-    filename = "%02d"%Date.today.month + '.jpg'
-    send_file("./public/img/bg/#{filename}")
-  end
-  get '/img/bg_rev.jpg' do
-    expires :today
-    filename = "%02d"%Date.today.month + '_rev.jpg'
-    send_file("./public/img/bg/#{filename}")
+  get '/img/*' do |splat|
+    send_file("./static/img/#{splat}")
   end
 end

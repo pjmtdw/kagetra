@@ -4,6 +4,7 @@ class MainApp < Sinatra::Base
 
   enable :logging
   set :root, File.join(File.dirname(__FILE__),"..")
+  set :public_folder, File.dirname(__FILE__) + '/../static'
 
   # session
   enable :sessions
@@ -51,7 +52,7 @@ class MainApp < Sinatra::Base
   end
   COMMENTS_PER_PAGE = 16
   def self.comment_routes(namespace,klass,klass_comment,private=false)
-    get "#{namespace}/comment/list/:id",private:private do
+    get "#{namespace}/comment/list/:id", private:private do
       page = if params[:page] then params[:page].to_i else 1 end
       thread = klass[params[:id].to_i]
       return [] if thread.nil?

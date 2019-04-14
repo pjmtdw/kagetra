@@ -500,9 +500,6 @@ class MainApp < Sinatra::Base
       {uploader_stat:uploader_stat,uploader_names:uploader_names,tag_stat:tag_stat}
     end
   end
-  get '/album' do
-    haml_wrap 'アルバム'
-  end
 
   # 縦横比は保持したまま画素数を増減する
   def resize_to_pixels!(img,pixels)

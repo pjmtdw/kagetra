@@ -3,7 +3,7 @@ module.exports = {
   outputDir: 'static',
   pages: {
     index: {
-      entry: 'vue/main.js',
+      entry: 'src/main.js',
     },
   },
 };

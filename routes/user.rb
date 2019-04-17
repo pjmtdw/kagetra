@@ -58,7 +58,7 @@ class MainApp < Sinatra::Base
       end
       get '/search' do
         # 共通パスワードを入れていない場合401
-        if not session[:shared]
+        if not session[:shared] and not session[:user_id]
           return 401
         end
         query1 = "#{params['q']}%"
@@ -83,7 +83,7 @@ class MainApp < Sinatra::Base
         if user.loginable then
           if @json['password'] and Kagetra::Utils.hash_password(@json['password'], user.password_salt)[:hash] == user.password_hash
             login_jobs(user)
-            200
+            return 200, { user: { name: user.name } }
           else
             return 401, { error_message: 'ログインに失敗しました' }
           end
@@ -91,6 +91,9 @@ class MainApp < Sinatra::Base
           return 401, { error_message: "ログイン権限がありません" }
         end
       end
+    end
+    get '/logout' do
+      session.clear
     end
     post '/confirm_password' do
       hash = @user.password_hash
@@ -185,8 +188,5 @@ class MainApp < Sinatra::Base
     post '/relogin' do
       login_jobs(@user)
     end
-  end
-  get '/user/logout' do
-    session.clear
   end
 end

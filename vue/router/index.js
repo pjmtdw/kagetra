@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
-// import { Toast } from 'buefy/dist/components/toast';
+import { Toast } from 'buefy/dist/components/toast';
 import store from '../store';
 import { Home, Login, Top } from '../pages';
 
@@ -23,6 +23,7 @@ const router = new VueRouter({
       name: 'Login',
       component: Login,
       meta: {
+        title: 'ログイン',
         public: true,
       },
     },
@@ -31,6 +32,7 @@ const router = new VueRouter({
       name: 'Top',
       component: Top,
       meta: {
+        title: 'Top',
         public: true,
       },
     },
@@ -39,16 +41,15 @@ const router = new VueRouter({
 
 // Authentication check
 router.beforeEach((to, from, next) => {
-  if (to.meta.public || store.getters.isAuthenticated) {
+  if (to.meta.public || store.getters['auth/isAuthenticated']) {
     next();
   } else {
-    // next('/login?redirect=' + to.path);
-    // Toast.open({
-    //   type: 'is-danger',
-    //   position: 'is-bottom',
-    //   message: 'Sign in required',
-    // });
-    next(false);
+    next('/login?redirect=' + to.path);
+    Toast.open({
+      type: 'is-danger',
+      position: 'is-bottom',
+      message: 'ログインが必要です',
+    });
   }
 });
 

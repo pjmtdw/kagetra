@@ -46,8 +46,9 @@
   </section>
 </template>
 <script>
-import { mapState, mapGetters } from 'vuex';
 import axios from 'axios';
+import _ from 'lodash';
+import { mapState, mapGetters } from 'vuex';
 import { Status } from '../store/auth';
 import { VField, VInput, VButton } from '../basics';
 import { FilterableSelect } from '../components';
@@ -71,6 +72,7 @@ export default {
       message_shared_password: null,
 
       user: null,
+      userInput: null,
       isFetching: false,
       users: [],
       password: null,
@@ -84,33 +86,29 @@ export default {
     ]),
     ...mapGetters('auth', ['hasError']),
   },
-  watch: {
-    status() {
-      if (this.status === Status.shared_ok) {
-        this.step = 'user';
-        if (!this.loaded) {
-          axios.get('/board_message/user').then((res) => {
-            this.message_user = res.data.message;
-            this.loaded = true;
-          });
-        }
-        if (this.login_uid) {
-          this.user = {
-            id: this.login_uid,
-            name: this.login_uname,
-          };
-        }
-      } else if (this.status === Status.not_authorized) {
-        this.step = 'shared';
-        axios.get('/board_message/shared').then((res) => {
-          this.message_shared = res.data.message;
-          this.loaded = true;
-        });
-        axios.get('/board_message/user').then((res) => {
-          this.message_user = res.data.message;
-        });
+  created() {
+    if (this.status === Status.not_authorized) {
+      this.step = 'shared';
+      axios.get('/board_message/shared').then((res) => {
+        this.message_shared = res.data.message;
+        this.loaded = true;
+      });
+      axios.get('/board_message/user').then((res) => {
+        this.message_user = res.data.message;
+      });
+    } else {
+      this.step = 'user';
+      axios.get('/board_message/user').then((res) => {
+        this.message_user = res.data.message;
+        this.loaded = true;
+      });
+      if (this.login_uid) {
+        this.user = {
+          id: this.login_uid,
+          name: this.login_uname,
+        };
       }
-    },
+    }
   },
   methods: {
     submitSharedPassword() {
@@ -130,6 +128,7 @@ export default {
       });
     },
     fetchUsernames(input) {
+      this.userInput = input;
       if (!input.length) {
         this.users = [];
         return;
@@ -148,6 +147,12 @@ export default {
       });
     },
     login() {
+      // 一致するものがあれば選択
+      const found = _.find(this.users, { name: this.userInput });
+      if (found) {
+        this.user = found;
+      }
+
       if (this.user === null) {
         this.$toast.open({
           message: 'ユーザー名を入力してください',

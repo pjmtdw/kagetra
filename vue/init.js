@@ -28,5 +28,4 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
-store.dispatch('auth/init');
 window.onresize = () => store.commit('screen/resize');

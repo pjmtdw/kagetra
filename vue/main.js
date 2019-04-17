@@ -4,8 +4,10 @@ import router from './router';
 import store from './store';
 import './init';
 
-new Vue({
-  router,
-  store,
-  render: h => h(App),
-}).$mount('#app');
+store.dispatch('auth/init').then(() => {
+  new Vue({
+    router,
+    store,
+    render: h => h(App),
+  }).$mount('#app');
+});

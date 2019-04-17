@@ -86,7 +86,7 @@ export default {
     },
     logout({ commit }) {
       return new Promise((resolve, reject) => {
-        axios.get('/user/auth/logout').then(() => {
+        axios.get('/user/logout').then(() => {
           commit('logout');
           resolve();
         }).catch((err) => {

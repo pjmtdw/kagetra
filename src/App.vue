@@ -1,7 +1,7 @@
 <template>
-  <div id="app">
+  <div id="app" class="is-flex flex-column">
     <Navbar/>
-    <router-view/>
+    <router-view class="flex-grow-1"/>
   </div>
 </template>
 <script>

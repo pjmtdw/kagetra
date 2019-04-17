@@ -5,82 +5,88 @@
         <!-- <router-link to="/" id="logo" class="navbar-item has-text-weight-bold">
           景虎
         </router-link> -->
-        <a class="navbar-burger burger" :class="{ 'is-active': showMenu }" @click="showMenu = !showMenu">
-          <span/>
-          <span/>
-          <span/>
-        </a>
+        <template v-if="screenUntil('tablet')">
+          <span class="navbar-item">{{ $route.meta.title }}</span>
+          <!-- 通知 -->
+          <navbar-dropdown class="ml-auto" position="right" arrowless>
+            <b-icon icon="bell" size="is-small"/>
+            <template #menu>
+              <div class="dropdown-content">
+                <div class="dropdown-item has-text-weight-semibold">
+                  新規行事追加
+                </div>
+                <hr class="dropdown-divider">
+                <div class="dropdown-item">
+                  新規行事追加
+                </div>
+                <hr class="dropdown-divider">
+                <div class="dropdown-item">
+                  通知一覧
+                </div>
+              </div>
+            </template>
+          </navbar-dropdown>
+          <!-- ハンバーガー -->
+          <a class="navbar-burger burger" :class="{ 'is-active': showMenu, 'ml-0': isAuthenticated }" @click="showMenu = !showMenu">
+            <span/>
+            <span/>
+            <span/>
+          </a>
+        </template>
       </div>
-      <div v-if="$store.getters['screen/from']('desktop')" class="navbar-menu">
-        <div class="navbar-start">
-          <router-link to="/top" class="navbar-item is-tab" active-class="is-active">
-            Top
-          </router-link>
-          <router-link to="/bbs" class="navbar-item is-tab" active-class="is-active">
-            掲示板
-          </router-link>
-          <router-link to="/schedule" class="navbar-item is-tab" active-class="is-active">
-            予定表
-          </router-link>
-          <router-link v-if="isAuthenticated" to="/result" class="navbar-item is-tab" active-class="is-active">
-            大会結果
-          </router-link>
-        </div>
+
+      <div v-if="screenFrom('desktop')" class="navbar-menu">
+        <navbar-main-menu class="navbar-start" :pages="pages"/>
         <div class="navbar-end">
-          <div v-if="isAuthenticated" class="navbar-item is-flex has-dropdown" :class="{ 'is-active': showUserInfo }">
-            <a class="navbar-link" @click.stop="showUserInfo = !showUserInfo">
-              <b-icon icon="user" :class="{ 'has-text-grey-light': !isAuthenticated }"/>
-            </a>
-            <div class="navbar-dropdown is-right" @click.stop>
-              <div class="navbar-item flex-column align-items-start">
-                <div class="has-text-grey-light">Signed in as</div>
+          <!-- 通知 -->
+          <navbar-dropdown v-if="isAuthenticated" position="right">
+            <b-icon icon="bell"/>
+            <template #menu>
+              <div class="navbar-item">
                 <div class="has-text-weight-semibold">{{ user.name }}</div>
               </div>
               <hr class="navbar-divider">
-              <a class="navbar-item" @click="signOut">
-                Sign out
+              <a class="navbar-item" @click="logout">
+                ログアウト
               </a>
-            </div>
-          </div>
+            </template>
+          </navbar-dropdown>
+          <!-- ユーザー -->
+          <navbar-dropdown v-if="isAuthenticated" position="right">
+            <b-icon icon="user"/>
+            <template #menu>
+              <div class="navbar-item">
+                <div class="has-text-weight-semibold cursor-default has-text-grey-light">{{ user.name }}</div>
+              </div>
+              <hr class="navbar-divider">
+              <a class="navbar-item" @click="logout">
+                ログアウト
+              </a>
+            </template>
+          </navbar-dropdown>
           <div v-else-if="$route.name !== 'Login'" class="navbar-item">
-            <v-button type="info" :href="`/login?redirect=${this.$route.path}`">ログイン</v-button>
+            <v-button type="info" :href="`/login?redirect=${$route.path}`">ログイン</v-button>
           </div>
         </div>
       </div>
+
       <template v-else>
-        <transition name="menu">
-          <div v-show="showMenu" class="navbar-menu is-active">
+        <transition name="menu" @before-enter="toggleBodyScroll" @after-leave="toggleBodyScroll">
+          <div v-show="showMenu" class="navbar-menu" :style="`height: calc(100vh - ${navHeight}px);`">
             <div class="navbar-start">
-              <router-link to="/top" class="navbar-item" active-class="is-active">
-                Top
-              </router-link>
-              <router-link to="/bbs" class="navbar-item" active-class="is-active">
-                掲示板
-              </router-link>
-              <router-link to="/schedule" class="navbar-item" active-class="is-active">
-                予定表
-              </router-link>
-              <router-link v-if="isAuthenticated" to="/result" class="navbar-item" active-class="is-active">
-                大会結果
-              </router-link>
+              <navbar-main-menu :pages="pages"/>
             </div>
             <div class="navbar-end">
-              <hr class="my-1">
-              <div v-if="isAuthenticated" class="navbar-item is-flex has-dropdown" :class="{ 'is-active': showUserInfo }">
-                <a class="navbar-link" @click.stop="showUserInfo = !showUserInfo">
-                  <b-icon icon="user" :class="{ 'has-text-grey-light': !isAuthenticated }"/>
-                </a>
-                <div class="navbar-dropdown is-right" @click.stop>
-                  <div class="navbar-item flex-column align-items-start">
-                    <div class="has-text-grey-light">Signed in as</div>
-                    <div class="has-text-weight-semibold">{{ user.name }}</div>
-                  </div>
-                  <hr class="navbar-divider">
-                  <a class="navbar-item" @click="signOut">
-                    Sign out
+              <hr v-if="isAuthenticated" class="my-1">
+              <!-- ユーザー -->
+              <navbar-dropdown v-if="isAuthenticated" type="collapse">
+                <span>{{ user.name }}</span>
+                <template #menu>
+                  <a class="navbar-item" @click="logout">
+                    ログアウト
                   </a>
-                </div>
-              </div>
+                </template>
+              </navbar-dropdown>
               <router-link v-else-if="$route.name !== 'Login'" to="/login" class="navbar-item">
                 ログイン
               </router-link>
@@ -88,59 +94,97 @@
           </div>
         </transition>
         <transition name="backdrop">
-          <div v-show="showMenu" class="backdrop" @click.stop="showMenu = false"/>
+          <div v-show="showMenu" class="backdrop" :style="`height: calc(100vh - ${navHeight}px);`" @click.stop="showMenu = false"/>
         </transition>
       </template>
     </div>
   </nav>
 </template>
 <script>
-import { VButton } from '../basics';
+import axios from 'axios';
+import { mapState, mapGetters } from 'vuex';
+import { VButton } from '@/basics';
+import NavbarDropdown from './NavbarDropdown.vue';
+import NavbarMainMenu from './NavbarMainMenu.vue';
 
 export default {
   components: {
     VButton,
+    NavbarDropdown,
+    NavbarMainMenu,
   },
   data() {
     return {
-      showMenu: null, // for mobile
-      showUserInfo: false,
+      showNotification: false,
+
+      // for mobile
+      navHeight: 0,
+      showMenu: null,
+      pages: [
+        { dir: 'top', title: 'TOP', require: 'login' },
+        { dir: 'bbs', title: '掲示板', require: 'login' },
+        { dir: 'schedule', title: '予定表', require: 'login' },
+        { dir: 'result', title: '大会結果' },
+        { dir: 'wiki', title: 'Wiki', require: 'login' },
+        { dir: 'album', title: 'アルバム' },
+        { dir: 'addrbook', title: '名簿' },
+        {
+          title: 'その他',
+          children: [
+            { dir: 'admin', title: '管理画面', require: 'admin' },
+          ],
+        },
+      ],
     };
   },
   computed: {
-    isAuthenticated() {
-      return this.$store.getters.isAuthenticated;
-    },
-    user() {
-      return this.$store.getters.user;
+    ...mapState('auth', ['user']),
+    ...mapGetters('auth', ['isAuthenticated']),
+    ...mapGetters('screen', {
+      screenUntil: 'until',
+      screenFrom: 'from',
+    }),
+  },
+  watch: {
+    isAuthenticated(val) {
+      if (val) {
+        this.fetchNotifications();
+      } else {
+        this.notifications = [];
+      }
     },
   },
   mounted() {
-    document.addEventListener('click', this.hideUserInfo);
+    this.navHeight = this.$el.clientHeight;
     this.$router.afterEach(() => {
       this.showMenu = false;
     });
   },
-  beforeDestroy() {
-    document.removeEventListener('click', this.hideUserInfo);
-  },
   methods: {
-    now() {
-      return performance.now();
+    toggleBodyScroll() {
+      if (document.documentElement.style.overflow === 'hidden') {
+        document.documentElement.style.overflow = '';
+        document.body.style.overflow = '';
+      } else {
+        document.documentElement.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
+      }
     },
-    hideUserInfo() {
-      this.showUserInfo = false;
+    fetchNotifications() {
+      // axios.get('/user/notifications').then((res) => {
+      //   this.notifications = res.data;
+      // });
     },
-    signOut() {
+    logout() {
       this.$store.dispatch('auth/logout').then(() => {
-        this.hideUserInfo();
+        this.$router.push('/login');
       });
     },
   },
 };
 </script>
 <style lang="scss" scoped>
-@import '../assets/scss/bulma_mixins';
+@import '../../assets/scss/bulma_mixins';
 
 nav.navbar {
   box-shadow: 0 .125rem .25rem rgba(0,0,0,.075);
@@ -151,28 +195,25 @@ nav.navbar {
 
   @include touch() {
     .navbar-menu {
+      display: block;
       position: absolute;
       right: 0;
-      height: fill-available;
-      z-index: 20;
-      max-width: 100vw;
+      z-index: 40;
+      width: 9rem;
       white-space: nowrap;
+      overflow-y: auto;
     }
     .menu-enter, .menu-leave-to {
-      max-width: 0;
+      width: 0;
     }
-    .menu-enter-active {
-      transition: all .2s;
-    }
-    .menu-leave-active {
+    .menu-enter-active, .menu-leave-active {
       transition: all .2s;
     }
 
     .backdrop {
       position: absolute;
       width: 100%;
-      height: fill-available;
-      z-index: 10;
+      z-index: 30;
       background-color: rgba(0,0,0,.1);
     }
     .backdrop-enter, .backdrop-leave-to {

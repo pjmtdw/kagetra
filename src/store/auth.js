@@ -20,6 +20,14 @@ export default {
     isAuthenticated(state) {
       return state.status === Status.success;
     },
+    hasAuthority(state, getters) {
+      return (requirement) => {
+        if (requirement === 'login') return getters.isAuthenticated;
+        else if (requirement === 'subadmin') return state.user && state.user.is_subadmin;
+        else if (requirement === 'admin') return state.user && state.user.is_admin;
+        return true;
+      };
+    },
     hasError(state) {
       return state.status === Status.error;
     },
@@ -46,6 +54,7 @@ export default {
     },
     logout(state) {
       state.status = Status.not_authorized;
+      state.user = null;
     },
   },
   actions: {

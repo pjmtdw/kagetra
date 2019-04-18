@@ -23,8 +23,8 @@ export default {
     hasAuthority(state, getters) {
       return (requirement) => {
         if (requirement === 'login') return getters.isAuthenticated;
-        else if (requirement === 'subadmin') return state.user && state.user.is_subadmin;
-        else if (requirement === 'admin') return state.user && state.user.is_admin;
+        if (requirement === 'subadmin') return state.user && state.user.is_subadmin;
+        if (requirement === 'admin') return state.user && state.user.is_admin;
         return true;
       };
     },

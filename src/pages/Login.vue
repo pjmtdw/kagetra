@@ -147,7 +147,7 @@ export default {
       });
     },
     login() {
-      // 一致するものがあれば選択
+      // 一致するものがあれば選択(自動入力など補完を使わずに入力した場合に対応)
       const found = _.find(this.users, { name: this.userInput });
       if (found) {
         this.user = found;
@@ -161,6 +161,7 @@ export default {
         });
         return;
       }
+
       const data = {
         id: this.user.id,
         password: this.password,
@@ -169,7 +170,7 @@ export default {
         if (this.$route.query.redirect) {
           this.$router.push(this.$route.query.redirect);
         } else {
-          this.$router.push('/top');
+          this.$router.push('/');
         }
       });
     },

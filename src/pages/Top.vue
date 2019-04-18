@@ -1,5 +1,9 @@
 <template>
-  <div>top</div>
+  <section class="section">
+    <div class="container">
+      top
+    </div>
+  </section>
 </template>
 <script>
 export default {

@@ -79,7 +79,6 @@
   </nav>
 </template>
 <script>
-import axios from 'axios';
 import { mapState, mapGetters } from 'vuex';
 import { VButton } from '@/basics';
 import Notifications from './Notifications.vue';
@@ -100,13 +99,13 @@ export default {
       showMenu: null,
 
       pages: [
-        { dir: 'top', title: 'TOP', require: 'login' },
-        { dir: 'bbs', title: '掲示板', require: 'login' },
-        { dir: 'schedule', title: '予定表', require: 'login' },
-        { dir: 'result', title: '大会結果' },
-        { dir: 'wiki', title: 'Wiki', require: 'login' },
-        { dir: 'album', title: 'アルバム' },
-        { dir: 'addrbook', title: '名簿' },
+        { dir: 'top', title: 'TOP' },
+        { dir: 'bbs', title: '掲示板' },
+        { dir: 'schedule', title: '予定表' },
+        { dir: 'result', title: '大会結果', require: 'login' },
+        { dir: 'wiki', title: 'Wiki' },
+        { dir: 'album', title: 'アルバム', require: 'login' },
+        { dir: 'addrbook', title: '名簿', require: 'login' },
         {
           title: 'その他',
           children: [

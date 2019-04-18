@@ -32,7 +32,7 @@ export default {
     this.$refs.menu.parentNode.classList.add('p-0');
     this.$refs.menu.parentNode.style.border = 'none';
   },
-}
+};
 </script>
 <style lang="scss" scoped>
 .notification_content {

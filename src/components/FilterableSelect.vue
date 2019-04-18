@@ -6,6 +6,7 @@
     <div class="dropdown-menu w-100">
       <div class="dropdown-content has-text-weight-normal is-size-7">
         <template v-if="input && input.length && data.length">
+          <!-- eslint-disable-next-line vue/require-v-for-key -->
           <a v-for="item in data" href="#" class="dropdown-item" tabindex="-1" @click.prevent="onSelect(item)">
             <slot :item="item">
               {{ item }}

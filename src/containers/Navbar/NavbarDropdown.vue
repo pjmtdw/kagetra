@@ -70,7 +70,7 @@ export default {
     hideDropdown(e) {
       let node = e.target;
       if (e.target === undefined) node = null;
-      for(let i = 0; i < 5; i++) {
+      for (let i = 0; i < 5; i++) {
         if (node === null) break;
         if (node === this.$refs.trigger) return;
         node = node.parentNode;

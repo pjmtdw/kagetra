@@ -5,7 +5,7 @@
         <router-link v-if="page.dir" :key="page.dir" :to="`/${page.dir}`" class="navbar-item" active-class="is-active">
           {{ page.title }}
         </router-link>
-        <navbar-dropdown v-else :type="screenFrom('desktop') ? 'overlay' : 'collapse'">
+        <navbar-dropdown v-else :key="page.dir" :type="screenFrom('desktop') ? 'overlay' : 'collapse'">
           <span>{{ page.title }}</span>
           <template #menu>
             <template v-for="p in page.children">

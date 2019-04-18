@@ -46,20 +46,20 @@ class MainApp < Sinatra::Base
           # このAPIが呼ばれた時点で既にセッションは存在していてCookieとして送られてくるはず．
           # 既にセッションが存在している時にブラウザの設定変更で「これ以降のCookieの受付をブロック」みたいなことをされるとお手上げだが，
           # そのようなケースは稀で，セッションのCookieはブラウザを閉じると消えるので妥協する．
-          return 401, { error_message: "クッキーを有効にしてください" }
+          halt_wrap 401, "クッキーを有効にしてください"
         end
         shared = MyConf.first(name: "shared_password")
         if @json['password'] and Kagetra::Utils.hash_password(@json['password'], shared.value["salt"])[:hash] == shared.value["hash"]
           session[:shared] = true # 共通パスワード認証成功
           200
         else
-          return 401, { updated_at: shared.updated_at }
+          halt 401, { updated_at: shared.updated_at }
         end
       end
       get '/search' do
         # 共通パスワードを入れていない場合401
         if not session[:shared] and not session[:user_id]
-          return 401
+          halt 401
         end
         query1 = "#{params['q']}%"
         users1 = User.select(:id, :name)
@@ -77,7 +77,7 @@ class MainApp < Sinatra::Base
       end
       post '/user' do
         if not request.cookies.has_key?(G_SESSION_COOKIE_NAME) then
-          return 401, { error_message: "クッキーを有効にしてください" }
+          halt_wrap 401, "クッキーを有効にしてください"
         end
         user = User[@json['id'].to_i]
         if user.loginable then
@@ -85,10 +85,10 @@ class MainApp < Sinatra::Base
             login_jobs(user)
             return 200, { user: { name: user.name } }
           else
-            return 401, { error_message: 'ログインに失敗しました' }
+            halt_wrap 401, 'ログインに失敗しました'
           end
         else
-          return 401, { error_message: "ログイン権限がありません" }
+          halt_wrap 401, "ログイン権限がありません"
         end
       end
     end

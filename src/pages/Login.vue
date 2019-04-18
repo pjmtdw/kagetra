@@ -46,7 +46,6 @@
   </section>
 </template>
 <script>
-import axios from 'axios';
 import _ from 'lodash';
 import { mapState, mapGetters } from 'vuex';
 import { Status } from '../store/auth';
@@ -89,16 +88,16 @@ export default {
   created() {
     if (this.status === Status.not_authorized) {
       this.step = 'shared';
-      axios.get('/board_message/shared').then((res) => {
+      this.$http.get('/board_message/shared').then((res) => {
         this.message_shared = res.data.message;
         this.loaded = true;
       });
-      axios.get('/board_message/user').then((res) => {
+      this.$http.get('/board_message/user').then((res) => {
         this.message_user = res.data.message;
       });
     } else {
       this.step = 'user';
-      axios.get('/board_message/user').then((res) => {
+      this.$http.get('/board_message/user').then((res) => {
         this.message_user = res.data.message;
         this.loaded = true;
       });
@@ -134,11 +133,14 @@ export default {
         return;
       }
       this.isFetching = true;
-      axios.get('/user/auth/search', { params: { q: input } }).then((res) => {
+      this.$http.get('/user/auth/search', { params: { q: input } }).then((res) => {
         this.users = res.data;
       }).catch((err) => {
         if (err.response.status === 401) {
-          this.$toast.open('共通パスワードを入力してください');
+          this.$toast.open({
+            type: 'is-warning',
+            message: '共通パスワードを入力してください',
+          });
           this.step = 'shared';
           this.$store.commit('auth/logout');
         }

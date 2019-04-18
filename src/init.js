@@ -8,13 +8,15 @@ Vue.use(Buefy, {
   defaultIconPack: 'fa',
 });
 
+Vue.prototype.$http = axios;
+
 axios.defaults.baseURL = '/api';
 axios.interceptors.response.use(undefined, (err) => {
-  if (err.response.data.error_message) {
+  if (!err.response.data || err.response.data.error_message) {
     Toast.open({
       type: 'is-danger',
       position: 'is-bottom',
-      message: err.response.data.error_message,
+      message: err.response.data.error_message || '通信に失敗しました',
     });
   }
   throw err;

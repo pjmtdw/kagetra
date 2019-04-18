@@ -100,9 +100,6 @@ class MainApp < Sinatra::Base
       send_file("./static/index.html")
     end
   end
-  get '/select_other_uid' do
-    delete_permanent("uid")
-  end
   get '/img/*' do |splat|
     send_file("./static/img/#{splat}")
   end

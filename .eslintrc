@@ -17,7 +17,7 @@
     ],
     "comma-dangle": [
       "error",
-      "only-multiline"
+      "always-multiline"
     ],
     "no-param-reassign": [
       "error",
@@ -25,11 +25,27 @@
         "props": false
       }
     ],
-    "max-len": "warn",
+    "max-len": [
+      "warn",
+      {
+        "code": 120,
+        "ignoreTemplateLiterals": true,
+        "ignorePattern": "^\\s+<|>$"
+      }
+    ],
     "no-plusplus": [
       "error",
       {
         "allowForLoopAfterthoughts": true
+      }
+    ],
+    "operator-linebreak": [
+      "error",
+      "after",
+      {
+        "overrides": {
+          "?": "before"
+        }
       }
     ],
     "vue/html-closing-bracket-spacing": "off",

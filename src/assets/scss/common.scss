@@ -15,6 +15,7 @@ $input-shadow: none;
 $input-hover-color: $grey-darker;
 $input-hover-border-color: 	$grey-lighter;
 $input-radius: .4em;
+$box-shadow: 0 .125rem .25rem rgba(0, 0, 0, .15);
 
 @import "~bulma";
 @import "~buefy/src/scss/buefy";
@@ -22,10 +23,16 @@ $input-radius: .4em;
 // utilitiies from bootstrap
 @import "~bootstrap-utilities-for-bulma/utilities";
 
-@import "misc";
-
-@media screen and (max-width: 480px) {
+@media screen and (max-width: 479px) {
   html {
     font-size: 16px;
   }
 }
+
+@media screen and (min-width: 480px) {
+  html {
+    font-size: inherit;
+  }
+}
+
+@import "misc";

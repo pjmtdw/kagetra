@@ -8,24 +8,7 @@
         <template v-if="screenUntil('tablet')">
           <span class="navbar-item">{{ $route.meta.title }}</span>
           <!-- 通知 -->
-          <navbar-dropdown class="ml-auto" position="right" arrowless>
-            <b-icon icon="bell" size="is-small"/>
-            <template #menu>
-              <div class="dropdown-content">
-                <div class="dropdown-item has-text-weight-semibold">
-                  新規行事追加
-                </div>
-                <hr class="dropdown-divider">
-                <div class="dropdown-item">
-                  新規行事追加
-                </div>
-                <hr class="dropdown-divider">
-                <div class="dropdown-item">
-                  通知一覧
-                </div>
-              </div>
-            </template>
-          </navbar-dropdown>
+          <notifications v-if="isAuthenticated" class="ml-auto"/>
           <!-- ハンバーガー -->
           <a class="navbar-burger burger" :class="{ 'is-active': showMenu, 'ml-0': isAuthenticated }" @click="showMenu = !showMenu">
             <span/>
@@ -39,18 +22,7 @@
         <navbar-main-menu class="navbar-start" :pages="pages"/>
         <div class="navbar-end">
           <!-- 通知 -->
-          <navbar-dropdown v-if="isAuthenticated" position="right">
-            <b-icon icon="bell"/>
-            <template #menu>
-              <div class="navbar-item">
-                <div class="has-text-weight-semibold">{{ user.name }}</div>
-              </div>
-              <hr class="navbar-divider">
-              <a class="navbar-item" @click="logout">
-                ログアウト
-              </a>
-            </template>
-          </navbar-dropdown>
+          <notifications v-if="isAuthenticated"/>
           <!-- ユーザー -->
           <navbar-dropdown v-if="isAuthenticated" position="right">
             <b-icon icon="user"/>
@@ -59,6 +31,9 @@
                 <div class="has-text-weight-semibold cursor-default has-text-grey-light">{{ user.name }}</div>
               </div>
               <hr class="navbar-divider">
+              <router-link to="user_conf" class="navbar-item">
+                設定
+              </router-link>
               <a class="navbar-item" @click="logout">
                 ログアウト
               </a>
@@ -82,6 +57,9 @@
               <navbar-dropdown v-if="isAuthenticated" type="collapse">
                 <span>{{ user.name }}</span>
                 <template #menu>
+                  <router-link to="user_conf" class="navbar-item">
+                    設定
+                  </router-link>
                   <a class="navbar-item" @click="logout">
                     ログアウト
                   </a>
@@ -104,22 +82,23 @@
 import axios from 'axios';
 import { mapState, mapGetters } from 'vuex';
 import { VButton } from '@/basics';
+import Notifications from './Notifications.vue';
 import NavbarDropdown from './NavbarDropdown.vue';
 import NavbarMainMenu from './NavbarMainMenu.vue';
 
 export default {
   components: {
     VButton,
+    Notifications,
     NavbarDropdown,
     NavbarMainMenu,
   },
   data() {
     return {
-      showNotification: false,
-
       // for mobile
       navHeight: 0,
       showMenu: null,
+
       pages: [
         { dir: 'top', title: 'TOP', require: 'login' },
         { dir: 'bbs', title: '掲示板', require: 'login' },
@@ -132,6 +111,7 @@ export default {
           title: 'その他',
           children: [
             { dir: 'admin', title: '管理画面', require: 'admin' },
+            { dir: 'login_log', title: 'ログイン履歴' },
           ],
         },
       ],
@@ -144,15 +124,6 @@ export default {
       screenUntil: 'until',
       screenFrom: 'from',
     }),
-  },
-  watch: {
-    isAuthenticated(val) {
-      if (val) {
-        this.fetchNotifications();
-      } else {
-        this.notifications = [];
-      }
-    },
   },
   mounted() {
     this.navHeight = this.$el.clientHeight;
@@ -169,11 +140,6 @@ export default {
         document.documentElement.style.overflow = 'hidden';
         document.body.style.overflow = 'hidden';
       }
-    },
-    fetchNotifications() {
-      // axios.get('/user/notifications').then((res) => {
-      //   this.notifications = res.data;
-      // });
     },
     logout() {
       this.$store.dispatch('auth/logout').then(() => {

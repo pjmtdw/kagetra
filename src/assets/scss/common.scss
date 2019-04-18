@@ -23,3 +23,9 @@ $input-radius: .4em;
 @import "~bootstrap-utilities-for-bulma/utilities";
 
 @import "misc";
+
+@media screen and (max-width: 480px) {
+  html {
+    font-size: 16px;
+  }
+}

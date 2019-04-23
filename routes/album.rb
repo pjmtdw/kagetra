@@ -20,7 +20,7 @@ class MainApp < Sinatra::Base
     end
     r
   end
-  namespace '/api/album' do
+  namespace '/api/album', auth: :user do
     get '/random' do
       r = rand(AlbumItem.count)
       item = AlbumItem.offset(r).first
@@ -555,51 +555,51 @@ class MainApp < Sinatra::Base
     item.thumb.update(width:img.columns,height:img.rows)
     img.destroy!
   end
-  post '/album/upload' do
-    res = with_update{
-      group = if params[:group_id] then
-        AlbumGroup[params[:group_id]]
-      else
-        attrs = params.select_attr("start_at","end_at","place","name","comment")
-        if attrs["start_at"].to_s.empty? then attrs["start_at"] = nil end
-        if attrs["end_at"].to_s.empty? then attrs["end_at"] = nil end
-        attrs["owner_id"] = @user.id
-        AlbumGroup.create(attrs)
-      end
-      pfile = params[:file]
-      if pfile.nil? then
-        {result:"OK",group_id:group.id}
-      else
-        tempfile = pfile[:tempfile]
-        filename = pfile[:filename]
-        min_index = 1 + (group.items_dataset.max(:group_index) || -1)
-        date = Date.today
-        target_dir = File.join(CONF_STORAGE_DIR,"album",date.year.to_s,date.month.to_s)
-        FileUtils.mkdir_p(target_dir)
-        case filename.downcase
-        when /\.zip$/
-          tmp = Dir.mktmpdir(nil,target_dir)
-          Zip::File.open(tempfile).select{|x|x.file? and [".jpg",".jpeg",".png",".gif"].any?{|s|x.name.downcase.end_with?(s)}}
-            .to_enum.with_index(min_index){|entry,i|
-              fn = File.join(tmp,i.to_s)
-              File.open(fn,"w"){|f|
-                f.write(entry.get_input_stream.read)
-              }
-              process_image(group,i,entry.name,fn)
-            }
-          {result:"OK",group_id:group.id}
-        when /\.jpe?g$/, /\.png$/, /\.gif$/
-          tfile = Kagetra::Utils.unique_file(@user,["img-",".dat"],target_dir)
-          FileUtils.cp(tempfile.path,tfile)
-          process_image(group,min_index,filename,tfile)
-          {result:"OK",group_id:group.id}
-        else
-          error_response("ファイルの拡張子が間違いです: #{filename.downcase}")
-        end
-      end
-    }
-    "<div id='response'>#{res.to_json}</div>"
-  end
+  # post '/album/upload' do
+  #   res = with_update{
+  #     group = if params[:group_id] then
+  #       AlbumGroup[params[:group_id]]
+  #     else
+  #       attrs = params.select_attr("start_at","end_at","place","name","comment")
+  #       if attrs["start_at"].to_s.empty? then attrs["start_at"] = nil end
+  #       if attrs["end_at"].to_s.empty? then attrs["end_at"] = nil end
+  #       attrs["owner_id"] = @user.id
+  #       AlbumGroup.create(attrs)
+  #     end
+  #     pfile = params[:file]
+  #     if pfile.nil? then
+  #       {result:"OK",group_id:group.id}
+  #     else
+  #       tempfile = pfile[:tempfile]
+  #       filename = pfile[:filename]
+  #       min_index = 1 + (group.items_dataset.max(:group_index) || -1)
+  #       date = Date.today
+  #       target_dir = File.join(CONF_STORAGE_DIR,"album",date.year.to_s,date.month.to_s)
+  #       FileUtils.mkdir_p(target_dir)
+  #       case filename.downcase
+  #       when /\.zip$/
+  #         tmp = Dir.mktmpdir(nil,target_dir)
+  #         Zip::File.open(tempfile).select{|x|x.file? and [".jpg",".jpeg",".png",".gif"].any?{|s|x.name.downcase.end_with?(s)}}
+  #           .to_enum.with_index(min_index){|entry,i|
+  #             fn = File.join(tmp,i.to_s)
+  #             File.open(fn,"w"){|f|
+  #               f.write(entry.get_input_stream.read)
+  #             }
+  #             process_image(group,i,entry.name,fn)
+  #           }
+  #         {result:"OK",group_id:group.id}
+  #       when /\.jpe?g$/, /\.png$/, /\.gif$/
+  #         tfile = Kagetra::Utils.unique_file(@user,["img-",".dat"],target_dir)
+  #         FileUtils.cp(tempfile.path,tfile)
+  #         process_image(group,min_index,filename,tfile)
+  #         {result:"OK",group_id:group.id}
+  #       else
+  #         error_response("ファイルの拡張子が間違いです: #{filename.downcase}")
+  #       end
+  #     end
+  #   }
+  #   "<div id='response'>#{res.to_json}</div>"
+  # end
   def send_photo(photo,rotate)
     content_type "image/#{photo.format.downcase}"
     path = File.join(CONF_STORAGE_DIR,"album",photo.path)
@@ -626,7 +626,7 @@ class MainApp < Sinatra::Base
     end
   end
 
-  namespace '/static/album' do
+  namespace '/static/album', auth: :user do
     # キャッシュしても大丈夫なように回転の度数ごとに別URLにする
     get '/thumb/:id.?:rotate?' do
       # サムネイルだけ24時間キャッシュする（概ね今日の一枚用）

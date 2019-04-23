@@ -1,6 +1,6 @@
 class MainApp < Sinatra::Base
   namespace '/api/schedule' do
-    post '/copy', private:true do
+    post '/copy', auth: :user do
       item_cache = {}
       @json.each{|d, items|
         date = Date.parse(d)
@@ -17,7 +17,7 @@ class MainApp < Sinatra::Base
       }
     end
 
-    post '/update_holiday', private:true do
+    post '/update_holiday', auth: :user do
       with_update{
         @json.each{|day,obj|
           ScheduleDateInfo.update_or_create(date:Date.parse(day)){|item|
@@ -81,7 +81,7 @@ class MainApp < Sinatra::Base
     get '/detail/item/:id' do
       make_detail_item(ScheduleItem[params[:id]])
     end
-    post '/detail/item',private:true do
+    post '/detail/item', auth: :user do
       with_update{
         update_or_create(nil, @user, @json)
       }
@@ -145,7 +145,7 @@ class MainApp < Sinatra::Base
     end
 
     SCHEDULE_PANEL_DAYS = 3
-    get '/panel',private:true do
+    get '/panel', auth: :user do
       today = Date.today
       append_cond = lambda{|klass|
         klass.where{ (date >= today) & (date < today + SCHEDULE_PANEL_DAYS) }
@@ -226,7 +226,7 @@ class MainApp < Sinatra::Base
       }
     end
     SCHEDULE_EVENT_DONE_PER_PAGE = 40
-    get '/ev_done',private:true do
+    get '/ev_done', auth: :user do
       page = if params[:page].to_s.empty?.! then params[:page].to_i else 1 end
       chunk = Event.where(Sequel.~(kind: Event.kind__contest),done:true)
                    .order(Sequel.desc(:updated_at),Sequel.desc(:id))

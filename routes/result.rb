@@ -4,7 +4,7 @@ class MainApp < Sinatra::Base
   EVENT_HALF_PAGE = EVENTS_PER_PAGE/2
   EVENT_GROUP_PER_PAGE = 20 # 過去の結果に表示される一ページあたりの大会数
   DROPDOWN_EVENT_GROUP_MAX = 20 # 過去の結果のドロップダウンに表示される大会数
-  namespace '/api/result' do
+  namespace '/api/result', auth: :user do
     get '/contest/:id' do
       (evt,recent_list) = recent_contests(params[:id])
       if evt.nil?
@@ -467,7 +467,7 @@ class MainApp < Sinatra::Base
       }
     end
   end
-  get '/result/excel/:id/:filename' do
+  get '/result/excel/:id/:filename', auth: :user do
     send_excel(Event[params[:id]])
   end
 end

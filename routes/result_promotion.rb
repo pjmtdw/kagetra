@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
   PROMOTION_RECENT_MAX_DAY = 365
-  namespace '/api/result_promotion' do
+  namespace '/api/result_promotion', auth: :user do
     get '/recent' do
       event_ids = Event.where(kind:Event.kind__contest,team_size:1).where{Sequel.expr(:date) >= (Date.today - PROMOTION_RECENT_MAX_DAY)}.map(&:id)
       list = ContestPromotionCache.where(event_id:event_ids,promotion:ContestPrize.promotion__rank_up).map{|prom|

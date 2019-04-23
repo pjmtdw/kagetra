@@ -61,7 +61,7 @@ export default {
     init({ commit }) {
       return new Promise((resolve) => {
         commit('request');
-        axios.get('/user/auth/init').then((res) => {
+        axios.get('/auth/init').then((res) => {
           if (res.data.user) commit('success', res.data);
           else if (res.data.shared) commit('shared_ok', res.data);
           else commit('logout');
@@ -72,7 +72,7 @@ export default {
     request_shared({ commit }, password) {
       return new Promise((resolve, reject) => {
         commit('request');
-        axios.post('/user/auth/shared', { password }).then((res) => {
+        axios.post('/auth/shared', { password }).then((res) => {
           commit('shared_ok');
           resolve(res);
         }).catch((err) => {
@@ -84,7 +84,7 @@ export default {
     request_user({ commit }, data) {
       return new Promise((resolve, reject) => {
         commit('request');
-        axios.post('/user/auth/user', data).then((res) => {
+        axios.post('/auth/user', data).then((res) => {
           commit('success', res.data);
           resolve(res);
         }).catch((err) => {

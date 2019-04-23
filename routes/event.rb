@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
   namespace '/api/event' do
-    get '/item/contest' do
+    get '/item/contest', auth: :user do
       # 大会を新規作成するときのデフォルトの値
       {
         public:true,
@@ -17,7 +17,7 @@ class MainApp < Sinatra::Base
         forbidden_attrs: CONF_CONTEST_DEFAULT_FORBIDDEN_ATTRS.map{|k,v|UserAttributeKey.where(name:k).first.attr_values_dataset.where(value:v).map(&:id)}.flatten
       }
     end
-    get '/item/party' do
+    get '/item/party', auth: :user do
       # 行事を新規作成するときのデフォルトの値
       {
         public:true,
@@ -127,13 +127,13 @@ class MainApp < Sinatra::Base
         participant_attrs: participant_attrs,
       }
     end
-    get '/item/:id' do
+    get '/item/:id', auth: :user_id do
       ev = Event[params[:id].to_i]
       return {} if ev.nil?
       opts = Hash[[:detail,:edit,:no_participant].map{|x|[x,params[x]=="true"]}]
       event_info(ev,@user,opts)
     end
-    delete '/item/:id' do
+    delete '/item/:id', auth: :user do
       with_update{
         Event[params[:id].to_i].destroy
       }

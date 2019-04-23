@@ -1,3 +1,4 @@
+require_relative 'main'
 require_relative 'misc'
 require_relative 'user'
 require_relative 'bbs'

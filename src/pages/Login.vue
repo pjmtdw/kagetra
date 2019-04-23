@@ -133,7 +133,7 @@ export default {
         return;
       }
       this.isFetching = true;
-      this.$http.get('/user/auth/search', { params: { q: input } }).then((res) => {
+      this.$http.get('/auth/search', { params: { q: input } }).then((res) => {
         this.users = res.data;
       }).catch((err) => {
         if (err.response.status === 401) {

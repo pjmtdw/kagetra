@@ -5,7 +5,7 @@ export default [
     name: 'Top',
     component: () => import(/* webpackChunkName: "top" */ '@/pages/Top.vue'),
     meta: {
-      title: 'Top',
+      title: 'トップ',
       public: true,
     },
   },

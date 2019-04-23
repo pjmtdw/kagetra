@@ -1,97 +1,90 @@
 # -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
-  namespace '/api/user' do
-    def login_jobs(user)
-      uid = user.id
-      user.update_login(request)
-      exec_daily_job
-      exec_monthly_job
-      session[:user_id] = uid
-      session[:user_token] = user.token
-      set_permanent("uid",uid)
-    end
-    # /auth 以下はログインなしでも見られるように名前空間を分ける
-    namespace '/auth' do
-      before do
-        @user = if settings.development? and ENV.has_key?("KAGETRA_USER_ID")
-                then User.first(id: ENV["KAGETRA_USER_ID"])
-                else get_user
-                end
-      end
-      get '/init' do
-        shared = MyConf.first(name: "shared_password")
-        halt 403, "Shared Password Unavailable." unless shared
-        uid = get_permanent("uid")
+  def login_jobs(user)
+    uid = user.id
+    user.update_login(request)
+    exec_daily_job
+    exec_monthly_job
+    session[:user_id] = uid
+    session[:user_token] = user.token
+    set_permanent("uid",uid)
+  end
+  namespace '/api/auth' do
+    get '/init' do
+      shared = MyConf.first(name: "shared_password")
+      halt 403, "Shared Password Unavailable." unless shared
+      uid = get_permanent("uid")
 
-        user = User[uid.to_i]
-        (login_uid,login_uname) =
-          if uid.nil? or user.nil? then
-            nil
-          else
-            [uid,user.name]
-          end
-        {
-          shared: session[:shared],
-          login_uid: login_uid,
-          login_uname: login_uname,
-          user: (@user and {
-            name: @user.name
-          }),
-        }
-      end
-      post '/shared' do
-        if not request.cookies.has_key?(G_SESSION_COOKIE_NAME) then
-          # ブラウザがセッションを受け付けてない場合はCOOKIE_BLOCKEDを返す
-          # 最初に/にアクセスしたときにSinatraが{"session_id"=>"...","csrf"=>"..."}みたいなセッションをデフォルトで作るので
-          # このAPIが呼ばれた時点で既にセッションは存在していてCookieとして送られてくるはず．
-          # 既にセッションが存在している時にブラウザの設定変更で「これ以降のCookieの受付をブロック」みたいなことをされるとお手上げだが，
-          # そのようなケースは稀で，セッションのCookieはブラウザを閉じると消えるので妥協する．
-          halt_wrap 401, "クッキーを有効にしてください"
-        end
-        shared = MyConf.first(name: "shared_password")
-        if @json['password'] and Kagetra::Utils.hash_password(@json['password'], shared.value["salt"])[:hash] == shared.value["hash"]
-          session[:shared] = true # 共通パスワード認証成功
-          200
+      user = User[uid.to_i]
+      (login_uid,login_uname) =
+        if uid.nil? or user.nil? then
+          nil
         else
-          halt 401, { updated_at: shared.updated_at }
+          [uid,user.name]
         end
+      {
+        shared: session[:shared],
+        login_uid: login_uid,
+        login_uname: login_uname,
+        user: (@user and {
+          name: @user.name
+        }),
+      }
+    end
+    post '/shared' do
+      if not request.cookies.has_key?(G_SESSION_COOKIE_NAME) then
+        # ブラウザがセッションを受け付けてない場合はCOOKIE_BLOCKEDを返す
+        # 最初に/にアクセスしたときにSinatraが{"session_id"=>"...","csrf"=>"..."}みたいなセッションをデフォルトで作るので
+        # このAPIが呼ばれた時点で既にセッションは存在していてCookieとして送られてくるはず．
+        # 既にセッションが存在している時にブラウザの設定変更で「これ以降のCookieの受付をブロック」みたいなことをされるとお手上げだが，
+        # そのようなケースは稀で，セッションのCookieはブラウザを閉じると消えるので妥協する．
+        halt_wrap 401, "クッキーを有効にしてください"
       end
-      get '/search' do
-        # 共通パスワードを入れていない場合401
-        if not session[:shared] and not session[:user_id]
-          halt 401
-        end
-        query1 = "#{params['q']}%"
-        users1 = User.select(:id, :name)
-                     .where(Sequel.like(:name, query1) | Sequel.like(:furigana, query1))
-                     .where(loginable: true)
-                     .order(Sequel.asc(:furigana))
-                     .map{|u| { id: u.id, name: u.name }}
-        query2 = "%#{params['q']}%"
-        users2 = User.select(:id, :name)
-                     .where((Sequel.like(:name, query2) | Sequel.like(:furigana, query2)) & ~(Sequel.like(:name, query1) | Sequel.like(:furigana, query1)))
-                     .where(loginable: true)
-                     .order(Sequel.asc(:furigana))
-                     .map{|u| { id: u.id, name: u.name }}
-        users1 + users2
-      end
-      post '/user' do
-        if not request.cookies.has_key?(G_SESSION_COOKIE_NAME) then
-          halt_wrap 401, "クッキーを有効にしてください"
-        end
-        user = User[@json['id'].to_i]
-        if user.loginable then
-          if @json['password'] and Kagetra::Utils.hash_password(@json['password'], user.password_salt)[:hash] == user.password_hash
-            login_jobs(user)
-            return 200, { user: { name: user.name } }
-          else
-            halt_wrap 401, 'ログインに失敗しました'
-          end
-        else
-          halt_wrap 401, "ログイン権限がありません"
-        end
+      shared = MyConf.first(name: "shared_password")
+      if @json['password'] and Kagetra::Utils.hash_password(@json['password'], shared.value["salt"])[:hash] == shared.value["hash"]
+        session[:shared] = true # 共通パスワード認証成功
+        200
+      else
+        halt 401, { updated_at: shared.updated_at }
       end
     end
+    get '/search' do
+      # 共通パスワードを入れていない場合401
+      if not session[:shared] and not session[:user_id]
+        halt 401
+      end
+      query1 = "#{params['q']}%"
+      users1 = User.select(:id, :name)
+                   .where(Sequel.like(:name, query1) | Sequel.like(:furigana, query1))
+                   .where(loginable: true)
+                   .order(Sequel.asc(:furigana))
+                   .map{|u| { id: u.id, name: u.name }}
+      query2 = "%#{params['q']}%"
+      users2 = User.select(:id, :name)
+                   .where((Sequel.like(:name, query2) | Sequel.like(:furigana, query2)) & ~(Sequel.like(:name, query1) | Sequel.like(:furigana, query1)))
+                   .where(loginable: true)
+                   .order(Sequel.asc(:furigana))
+                   .map{|u| { id: u.id, name: u.name }}
+      users1 + users2
+    end
+    post '/user' do
+      if not request.cookies.has_key?(G_SESSION_COOKIE_NAME) then
+        halt_wrap 401, "クッキーを有効にしてください"
+      end
+      user = User[@json['id'].to_i]
+      if user.loginable then
+        if @json['password'] and Kagetra::Utils.hash_password(@json['password'], user.password_salt)[:hash] == user.password_hash
+          login_jobs(user)
+          return 200, { user: { name: user.name } }
+        else
+          halt_wrap 401, 'ログインに失敗しました'
+        end
+      else
+        halt_wrap 401, "ログイン権限がありません"
+      end
+    end
+  end
+  namespace '/api/user', auth: :user do
     get '/logout' do
       session.clear
     end
@@ -136,10 +129,10 @@ class MainApp < Sinatra::Base
         participants: participants
       }
     end
-    delete '/delete_users' do
+    delete '/delete_users', auth: :admin do
       User.where(id:@json["uids"].map(&:to_i)).each(&:destroy)
     end
-    post '/create_users' do
+    post '/create_users', auth: :sub_admin do
       with_update{
         shared = MyConf.first(name: "shared_password").value
         hash = shared["hash"]

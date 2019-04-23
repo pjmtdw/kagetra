@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
-  namespace '/api/admin' do
-    before do
-      halt 403 unless @user.admin
-    end
+  namespace '/api/admin', auth: :admin do
     get '/list' do
       user_attrs = Hash[
         UserAttribute.all

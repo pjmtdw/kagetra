@@ -63,14 +63,14 @@ class MainApp < Sinatra::Base
         create_item(thread,false)
       }
     end
-    put '/item/:id' do
+    put '/item/:id', auth: :user do
       with_update{
         item = BbsItem[params[:id].to_i]
         halt(403,"you cannot edit this item") unless item.editable(@user)
         item.update(body:@json["body"], user_name:@json["user_name"])
       }
     end
-    delete '/item/:id' do
+    delete '/item/:id', auth: :user do
       with_update{
         item = BbsItem[params[:id]]
         halt(403,"you cannot delete this item") unless item.editable(@user)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 class MainApp < Sinatra::Base
-  namespace '/api/result_ranking' do
+  namespace '/api/result_ranking', auth: :user do
     def parse_month_date(s,is_end)
       begin
         if /^(\d+)$/ =~ s then

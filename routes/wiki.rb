@@ -119,14 +119,14 @@ class MainApp < Sinatra::Base
       item = WikiItem[params[:id].to_i]
       update_or_create_item(item)
     end
-    post '/item', private:true do
+    post '/item', auth: :user do
       update_or_create_item(nil)
     end
-    post '/preview', private:true do
+    post '/preview', auth: :user do
       { html: render_wiki(@json['body'], false) }
     end
 
-    get '/log/:id', private:true do
+    get '/log/:id', auth: :user do
       page = if params[:page].to_s.empty?.! then params[:page].to_i else 1 end
       item = WikiItem[params[:id].to_i]
       list = item.each_diff_htmls_until(WIKI_LOG_PER_PAGE,WIKI_LOG_PER_PAGE*(page-1)).map{|x|

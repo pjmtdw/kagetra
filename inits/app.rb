@@ -1,6 +1,8 @@
 class MainApp < Sinatra::Base
   register Sinatra::Namespace
-  helpers Sinatra::ContentFor
+  configure :development do
+    register Sinatra::Reloader
+  end
 
   enable :logging
   set :root, File.join(File.dirname(__FILE__),"..")
@@ -21,7 +23,7 @@ class MainApp < Sinatra::Base
   # for Internet Explorer 8, 9 (and maybe also 10?) session_hijacking protection refuses the session.
   # https://github.com/rkh/rack-protection/issues/11
   # disable frame_options protection to allow <iframe>
-  set :protection, except: [:session_hijacking,:frame_options]
+  set :protection, except: [:session_hijacking, :frame_options]
 
 
   def logger
@@ -38,21 +40,9 @@ class MainApp < Sinatra::Base
     logger.puts err.backtrace.join("\t\n")
   end
 
-  set(:auth) do |*roles|
-    condition do
-      if roles.any?{|role| role == :admin } and not @user.admin
-        halt 403
-      end
-    end
-  end
-
-
-  configure :development do
-    register Sinatra::Reloader
-  end
   COMMENTS_PER_PAGE = 16
   def self.comment_routes(namespace,klass,klass_comment,private=false)
-    get "#{namespace}/comment/list/:id", private:private do
+    get "#{namespace}/comment/list/:id", auth: :user do
       page = if params[:page] then params[:page].to_i else 1 end
       thread = klass[params[:id].to_i]
       return [] if thread.nil?
@@ -70,7 +60,7 @@ class MainApp < Sinatra::Base
         pages: chunks.page_count
       }
     end
-    post "#{namespace}/comment/item",private:private do
+    post "#{namespace}/comment/item", auth: :user do
       with_update{
         evt = klass[@json["thread_id"].to_i]
         c = klass_comment.create(@json.select_attr("user_name","body").merge({user:@user,thread:evt}))
@@ -108,7 +98,7 @@ class MainApp < Sinatra::Base
       }
       {item_id:params[:id].to_i,list: list, pages: pages, cur_page: page}
     end
-    delete "/api/#{namespace}/attached/:id", private:true do
+    delete "/api/#{namespace}/attached/:id", auth: :user do
       klass_attached[params[:id].to_i].destroy
     end
     get "/static/#{namespace}/attached/:id/:filename" do
@@ -128,7 +118,7 @@ class MainApp < Sinatra::Base
     end
     # ajaxを使うように変更したので↓は不要
     # 返信を Content-Type: text/html で返す必要があるので /api/ の route には置かない
-    post "/api/#{namespace}/attached/:id", private:true do
+    post "/api/#{namespace}/attached/:id", auth: :user do
       item = klass[params[:id].to_i]
       attached =  if params[:attached_id] then
                     item.attacheds_dataset.first(id:params[:attached_id])

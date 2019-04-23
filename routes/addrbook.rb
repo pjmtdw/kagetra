@@ -11,7 +11,7 @@ class MainApp < Sinatra::Base
       updated_date: ab.updated_at.strftime("%Y-%m-%d %H:%M"),
     })
   end
-  namespace '/api/addrbook' do
+  namespace '/api/addrbook', auth: :user do
     post '/item/:uid' do
       ab = AddrBook.update_or_create_custom({user_id:params[:uid]},{text:@json["text"],album_item_id:@json["album_item_id"]})
       make_addrbook_info(ab)
@@ -48,7 +48,7 @@ class MainApp < Sinatra::Base
       r
     end
     # TODO: パスワードを平文で送るのは危険
-    post '/change_pass',auth: :admin do
+    post '/change_pass', auth: :admin do
       cpass = @json["cur_password"]
       npass = @json["new_password"]
       Kagetra::Utils.single_exec{

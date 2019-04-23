@@ -2,7 +2,7 @@
 class MainApp < Sinatra::Base
   RESULT_RECORD_PER_PAGE = 30
   RESULT_SEARCH_NAME_LIMIT = 100
-  namespace '/api/result_misc' do
+  namespace '/api/result_misc', auth: :user do
     post '/search_name' do
       query = "%#{@json["q"]}%"
       list1 = ContestUser.where(Sequel.like(:name,query)).limit(RESULT_SEARCH_NAME_LIMIT/2)
@@ -210,7 +210,7 @@ class MainApp < Sinatra::Base
     end
 
   end
-  get '/api/result_list/year/:year' do
+  get '/api/result_list/year/:year', auth: :user do
     year = params[:year].to_i
     minyear = Event.where(kind:Event.kind__contest).min(:date).year
     sday = Date.new(year,1,1)

@@ -48,6 +48,12 @@
         }
       }
     ],
+    "object-curly-newline": [
+      "error",
+      {
+        "consistent": true
+      }
+    ],
     "vue/html-closing-bracket-spacing": "off",
     "vue/max-attributes-per-line": "off"
   }

@@ -1,7 +1,9 @@
 <template>
   <div id="app" class="is-flex flex-column">
     <Navbar/>
-    <router-view class="flex-grow-1"/>
+    <keep-alive :max="5">
+      <router-view class="flex-grow-1"/>
+    </keep-alive>
   </div>
 </template>
 <script>

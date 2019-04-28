@@ -18,7 +18,7 @@
           <div v-if="message_user" class="notification shadow-sm">
             {{ message_user }}
           </div>
-          <v-field label="ユーザー名" :type="{ danger: hasError && user === null }" message="ユーザーが指定されていません">
+          <v-field label="ユーザー名" :has-error="hasError && user === null" error-message="ユーザーが指定されていません">
             <filterable-select v-model="user" :data="users" field="name" :loading="isFetching" :fetch-method="fetchUsernames">
               <template #default="{ item }">
                 {{ item && item.name }}
@@ -34,7 +34,7 @@
               </template>
             </filterable-select>
           </v-field>
-          <v-field label="個人パスワード" :type="{ danger: hasError && user !== null }" message="個人パスワードが違います">
+          <v-field label="個人パスワード" :has-error="hasError && user !== null" error-message="個人パスワードが違います">
             <v-input v-model="password" type="password" @keydown.enter="login"/>
           </v-field>
           <div class="is-flex">
@@ -88,17 +88,17 @@ export default {
   created() {
     if (this.status === Status.not_authorized) {
       this.step = 'shared';
-      this.$http.get('/board_message/shared').then((res) => {
-        this.message_shared = res.data.message;
+      this.$http.get('/board_message/shared').then(({ data }) => {
+        this.message_shared = data.message;
         this.loaded = true;
       });
-      this.$http.get('/board_message/user').then((res) => {
-        this.message_user = res.data.message;
+      this.$http.get('/board_message/user').then(({ data }) => {
+        this.message_user = data.message;
       });
     } else {
       this.step = 'user';
-      this.$http.get('/board_message/user').then((res) => {
-        this.message_user = res.data.message;
+      this.$http.get('/board_message/user').then(({ data }) => {
+        this.message_user = data.message;
         this.loaded = true;
       });
       if (this.login_uid) {
@@ -133,8 +133,8 @@ export default {
         return;
       }
       this.isFetching = true;
-      this.$http.get('/auth/search', { params: { q: input } }).then((res) => {
-        this.users = res.data;
+      this.$http.get('/auth/search', { params: { q: input } }).then(({ data }) => {
+        this.users = data;
       }).catch((err) => {
         if (err.response.status === 401) {
           this.$toast.open({

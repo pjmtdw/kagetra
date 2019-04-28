@@ -1,23 +1,20 @@
 import Vue from 'vue';
 import Buefy from 'buefy';
-import { Toast } from 'buefy/dist/components/toast';
 import axios from 'axios';
 import store from './store';
+import { initNotifications } from './utils';
 
 Vue.use(Buefy, {
   defaultIconPack: 'fa',
 });
 
 Vue.prototype.$http = axios;
+initNotifications();
 
 axios.defaults.baseURL = '/api';
 axios.interceptors.response.use(undefined, (err) => {
   if (!err.response.data || err.response.data.error_message) {
-    Toast.open({
-      type: 'is-danger',
-      position: 'is-bottom',
-      message: err.response.data.error_message || '通信に失敗しました',
-    });
+    Vue.prototype.$notify.error(err.response.data.error_message || '通信に失敗しました');
   }
   throw err;
 });

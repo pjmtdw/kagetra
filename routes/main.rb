@@ -19,13 +19,15 @@ class MainApp < Sinatra::Base
   end
 
   # ゲストユーザーはPUTとDELETE禁止
-  def self.put(path, opts = {}, &block)
-    opts[:auth] = :user if opts[:auth].nil?
-    super(path, opts, &block)
-  end
-  def self.delete(path, opts = {}, &block)
-    opts[:auth] = :user if opts[:auth].nil?
-    super(path, opts, &block)
+  class << self
+    def put(path, opts = {}, &block)
+      opts[:auth] = :user if opts[:auth].nil?
+      super(path, opts, &block)
+    end
+    def delete(path, opts = {}, &block)
+      opts[:auth] = :user if opts[:auth].nil?
+      super(path, opts, &block)
+    end
   end
 
   before do

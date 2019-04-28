@@ -3,6 +3,7 @@ import VueRouter from 'vue-router';
 import { Toast } from 'buefy/dist/components/toast';
 import store from '../store';
 import top from './top';
+import bbs from './bbs';
 import misc from './misc';
 
 Vue.use(VueRouter);
@@ -13,6 +14,7 @@ const router = new VueRouter({
   routes: [
     ...top,
     ...misc,
+    ...bbs,
   ],
 });
 

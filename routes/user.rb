@@ -7,13 +7,13 @@ class MainApp < Sinatra::Base
     exec_monthly_job
     session[:user_id] = uid
     session[:user_token] = user.token
-    set_permanent("uid",uid)
+    set_permanent('uid',uid)
   end
   namespace '/api/auth' do
     get '/init' do
-      shared = MyConf.first(name: "shared_password")
-      halt 403, "Shared Password Unavailable." unless shared
-      uid = get_permanent("uid")
+      shared = MyConf.first(name: 'shared_password')
+      halt_wrap 403, '共通パスワードが設定されていません' unless shared
+      uid = get_permanent('uid')
 
       user = User[uid.to_i]
       (login_uid,login_uname) =
@@ -27,7 +27,7 @@ class MainApp < Sinatra::Base
         login_uid: login_uid,
         login_uname: login_uname,
         user: (@user and {
-          name: @user.name
+          name: @user.name,
         }),
       }
     end
@@ -75,7 +75,11 @@ class MainApp < Sinatra::Base
       if user.loginable then
         if @json['password'] and Kagetra::Utils.hash_password(@json['password'], user.password_salt)[:hash] == user.password_hash
           login_jobs(user)
-          return 200, { user: { name: user.name } }
+          return {
+            user: {
+              name: user.name,
+            },
+          }
         else
           halt_wrap 401, 'ログインに失敗しました'
         end

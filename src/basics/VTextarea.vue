@@ -1,8 +1,15 @@
 <template>
-  <input :class="classes" :type="type" :placeholder="placeholder" :value="value" :readonly="readonly" v-on="listeners">
+  <textarea
+    :class="classes"
+    :placeholder="placeholder"
+    :value="value"
+    :readonly="readonly"
+    :style="textareaStyle"
+    v-on="listeners"
+  />
 </template>
 <script>
-import { FormItemMixin } from '@/utils';
+import { FormItemMixin, calcTextareaHeight } from '@/utils';
 
 export default {
   mixins: [
@@ -12,10 +19,6 @@ export default {
     value: {
       type: String,
       default: '',
-    },
-    type: {
-      type: String,
-      default: 'text',
     },
     placeholder: {
       type: String,
@@ -29,6 +32,19 @@ export default {
       type: Boolean,
       default: false,
     },
+    autosize: {
+      type: [Boolean, Object],
+      default: false,
+    },
+    rows: {
+      type: Number,
+      default: 3,
+    },
+  },
+  data() {
+    return {
+      textareaStyle: {},
+    };
   },
   computed: {
     listeners() {
@@ -38,29 +54,38 @@ export default {
       };
     },
     classes() {
-      const classes = ['input'];
+      const classes = ['textarea'];
       if (this.statusType) classes.push(`is-${this.statusType}`);
       return classes;
+    },
+  },
+  watch: {
+    value() {
+      if (this.autosize) {
+        this.$nextTick(this.resizeTextarea);
+      }
     },
   },
   mounted() {
     if (this.autofocus) {
       this.$el.focus();
     }
+    if (this.autosize) {
+      this.resizeTextarea();
+    }
   },
   methods: {
-    focus() {
-      this.$el.focus();
-    },
     onInput(e) {
       this.updateValidity();
       this.$emit('input', e.target.value);
+    },
+    resizeTextarea() {
+      const { minRows, maxRows } = this.autosize;
+      this.textareaStyle = calcTextareaHeight(this.$el, minRows || 0, maxRows || null);
     },
   },
 };
 </script>
 <style lang="scss" scoped>
-.input {
-  height: auto;
-}
+
 </style>

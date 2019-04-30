@@ -22,19 +22,21 @@ const calcScreenSize = () => {
 export default {
   namespaced: true,
   state: {
-    screen: calcScreenSize(),
+    size: calcScreenSize(),
+    width: window.innerWidth,
   },
   getters: {
     from(state) {
-      return device => devices[state.screen] >= devices[device];
+      return device => devices[state.size] >= devices[device];
     },
     until(state) {
-      return device => devices[state.screen] <= devices[device];
+      return device => devices[state.size] <= devices[device];
     },
   },
   mutations: {
     resize(state) {
-      state.screen = calcScreenSize();
+      state.width = window.innerWidth;
+      state.size = calcScreenSize();
     },
   },
 };

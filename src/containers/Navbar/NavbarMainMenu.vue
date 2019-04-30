@@ -42,10 +42,6 @@ export default {
   },
   computed: {
     ...mapGetters('auth', ['hasAuthority']),
-    ...mapGetters('screen', {
-      screenUntil: 'until',
-      screenFrom: 'from',
-    }),
   },
 };
 </script>

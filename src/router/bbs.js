@@ -1,5 +1,6 @@
 const Bbs = () => import(/* webpackChunkName: "bbs" */ '@/pages/Bbs/Bbs.vue');
 const BbsThreads = () => import(/* webpackChunkName: "bbs" */ '@/pages/Bbs/BbsThreads.vue');
+const BbsThread = () => import(/* webpackChunkName: "bbs" */ '@/pages/Bbs/BbsThread.vue');
 
 export default [
   {
@@ -13,12 +14,12 @@ export default [
       {
         path: '',
         component: BbsThreads,
-        props: route => ({ page: 1, query: route.query.q }),
+        props: route => ({ page: Number(route.query.page) || 1, query: route.query.q }),
       },
       {
-        path: '/:page(\\d+)',
-        component: BbsThreads,
-        props: route => ({ page: Number(route.params.page), query: route.query.q }),
+        path: ':threadId(\\d+)',
+        component: BbsThread,
+        props: route => ({ id: Number(route.params.threadId) }),
       },
     ],
   },

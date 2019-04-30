@@ -6,7 +6,7 @@
       <span aria-hidden="true"></span>
     </a>
     <transition name="menu" @before-enter="preventBodyScroll" @after-leave="allowBodyScroll">
-      <div v-show="isActive" class="navbar-toggle-menu" :style="`height: calc(100vh - ${navHeight}px);`">
+      <div v-show="isActive" class="navbar-toggle-menu shadow" :style="`height: calc(100vh - ${navHeight}px);`">
         <slot/>
       </div>
     </transition>

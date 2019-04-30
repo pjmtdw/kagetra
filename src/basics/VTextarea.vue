@@ -15,8 +15,12 @@ export default {
       default: true,
     },
     // disable auto height function of b-form-textarea
+    rows: {
+      type: [Number, String],
+      default: 3,
+    },
     maxRows: {
-      type: Number,
+      type: [Number, String],
       default: 0,
     },
   },
@@ -55,8 +59,9 @@ export default {
   },
   methods: {
     resizeTextarea() {
-      const { minRows, maxRows } = this.autosize;
-      this.textareaStyle = calcTextareaHeight(this.$el, minRows || 0, maxRows || null);
+      const minRows = this.autosize.minRows || this.rows;
+      const maxRows = this.autosize.maxRows || this.maxRows || null;
+      this.textareaStyle = calcTextareaHeight(this.$el, minRows, maxRows);
     },
   },
 };

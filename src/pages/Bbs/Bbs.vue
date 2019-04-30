@@ -5,7 +5,7 @@
       <b-button v-b-toggle.new_thread_form class="text-nowrap mr-1" variant="success" @click="formOpened = !formOpened">
         {{ formOpened ? 'キャンセル' : 'スレッド作成' }}
       </b-button>
-      <b-input-group class="ml-auto w-auto minw-50">
+      <b-input-group class="shadow-sm ml-auto w-auto minw-50">
         <v-input v-model="searchQuery" @keydown.enter="search"/>
         <b-input-group-append>
           <b-button @click="search">検索</b-button>
@@ -38,14 +38,10 @@
 <script>
 import { mapState } from 'vuex';
 import { setBeforeUnload, unsetBeforeUnload } from '@/utils';
-import { VField, VInput, VTextarea } from '@/basics';
 import { VForm } from '@/components';
 
 export default {
   components: {
-    VField,
-    VInput,
-    VTextarea,
     VForm,
   },
   data() {
@@ -91,7 +87,7 @@ export default {
         body: this.body,
         public: this.publicThread,
       };
-      this.$http.post('/bbs/threada', data).then(() => {
+      this.$http.post('/bbs/thread', data).then(() => {
         this.name = this.user ? this.user.name : null;
         this.publicThread = false;
         this.title = null;
@@ -104,7 +100,8 @@ export default {
       });
     },
     search() {
-      this.$router.push({ query: { q: this.searchQuery } });
+      if (this.searchQuery === '') this.$router.push('/bbs');
+      else this.$router.push({ path: '/bbs', query: { q: this.searchQuery } });
     },
   },
 };

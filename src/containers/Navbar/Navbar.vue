@@ -93,10 +93,6 @@ export default {
   computed: {
     ...mapState('auth', ['user']),
     ...mapGetters('auth', ['isAuthenticated']),
-    ...mapGetters('screen', {
-      screenUntil: 'until',
-      screenFrom: 'from',
-    }),
   },
   methods: {
     logout() {

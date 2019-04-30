@@ -108,13 +108,13 @@ module ThreadBase
   def self.included(base)
     base.class_eval do
       def self.new_threads(user,cond=nil)
-        search_from = [user.show_new_from||Time.now,Time.now-G_NEWLY_DAYS_MAX*86400].max
+        search_from = [user.show_new_from || Time.now, Time.now - G_NEWLY_DAYS_MAX * 86400].max
         c0 = Sequel.expr{last_comment_date >= search_from}
         if cond then
           c0 = c0 & Sequel.expr(cond)
         end
-        c1 = Sequel.expr(last_comment_user_id:nil)
-        c2 = Sequel.~(last_comment_user_id:user.id)
+        c1 = Sequel.expr(last_comment_user_id: nil)
+        c2 = Sequel.~(last_comment_user_id: user.id)
 
         self.where(c0 & (c1 | c2)).order(Sequel.desc(:last_comment_date))
       end

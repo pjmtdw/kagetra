@@ -32,6 +32,7 @@ class MainApp < Sinatra::Base
 
   before do
     @user = get_user
+    @public_mode = true if @user.nil?
   end
   namespace '/api' do
     before do

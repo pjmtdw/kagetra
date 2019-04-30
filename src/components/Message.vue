@@ -4,7 +4,7 @@
       <b-alert v-if="opened" class="message shadow-sm mx-auto" :class="{ 'alert-dismissible': dismissible }" :variant="variant" show>
         <h4 v-if="title" class="alert-heading">{{ title }}</h4>
         <span>{{ message }}</span>
-        <b-button-close v-if="dismissible" @click="close"/>
+        <b-button-close v-if="dismissible" class="close" @click="close"/>
       </b-alert>
     </transition>
   </div>
@@ -60,11 +60,15 @@ export default {
   position: fixed;
   top: 0;
   z-index: 1500;
+  pointer-events: none;
 }
 .message {
   width: 380px;
   max-width: 95%;
   opacity: .95;
+}
+.close {
+  pointer-events: auto;
 }
 
 .slide-enter, .slide-leave-to {

@@ -17,9 +17,12 @@
         <b-alert v-if="message_user" show>
           {{ message_user }}
         </b-alert>
-        <v-field label="ユーザー名" feedback="ユーザーが指定されていません">
-          <filterable-select v-model="user" :data="users" field="name" :loading="isFetching" :fetch-method="fetchUsernames">
-            <template #default="{ item }">
+        <v-field label="ユーザー名">
+          <filterable-select v-model="user" :data="users">
+            <template #default="{ onInput, onFocus, onBlur }">
+              <v-input v-model="userInput" placeholder="例)山田, やまだ" @input="onInput" @focus="onFocus" @blur="onBlur"/>
+            </template>
+            <template #item="{ item }">
               {{ item && item.name }}
             </template>
             <template #empty>
@@ -28,7 +31,7 @@
           </filterable-select>
         </v-field>
         <v-field label="個人パスワード" feedback="個人パスワードが違います">
-          <v-input v-model="password" type="password" @keydown.enter="login"/>
+          <v-input v-model="password" type="password" :state="hasError ? false : null" @keydown.enter="login"/>
         </v-field>
         <div class="d-flex">
           <b-button variant="primary" class="ml-auto" @click="login">ログイン</b-button>
@@ -38,16 +41,13 @@
   </div>
 </template>
 <script>
-import _ from 'lodash';
+import { find } from 'lodash';
 import { mapState, mapGetters } from 'vuex';
 import { Status } from '../store/auth';
-import { VField, VInput } from '../basics';
 import { FilterableSelect } from '../components';
 
 export default {
   components: {
-    VField,
-    VInput,
     FilterableSelect,
   },
   data() {
@@ -63,8 +63,7 @@ export default {
 
       user: null,
       userInput: null,
-      isFetching: false,
-      users: [],
+      users: null,
       password: null,
     };
   },
@@ -75,6 +74,14 @@ export default {
       'login_uname',
     ]),
     ...mapGetters('auth', ['hasError']),
+  },
+  watch: {
+    user(newVal) {
+      if (newVal) this.userInput = newVal.name;
+    },
+    userInput(newVal) {
+      this.fetchUsernames(newVal);
+    },
   },
   created() {
     if (this.status === Status.not_authorized) {
@@ -118,40 +125,29 @@ export default {
       });
     },
     fetchUsernames(input) {
-      this.userInput = input;
       if (!input.length) {
-        this.users = [];
+        this.users = null;
         return;
       }
-      this.isFetching = true;
       this.$http.get('/auth/search', { params: { q: input } }).then(({ data }) => {
         this.users = data;
       }).catch((err) => {
         if (err.response.status === 401) {
-          this.$toast.open({
-            type: 'is-warning',
-            message: '共通パスワードを入力してください',
-          });
+          this.$message.warn('共通パスワードを入力してください');
           this.step = 'shared';
           this.$store.commit('auth/logout');
         }
-      }).finally(() => {
-        this.isFetching = false;
       });
     },
     login() {
       // 一致するものがあれば選択(自動入力など補完を使わずに入力した場合に対応)
-      const found = _.find(this.users, { name: this.userInput });
+      const found = find(this.users, { name: this.userInput });
       if (found) {
         this.user = found;
       }
 
       if (this.user === null) {
-        this.$toast.open({
-          message: 'ユーザー名を入力してください',
-          type: 'is-danger',
-          position: 'is-bottom',
-        });
+        this.$message.error('ユーザー名が正しくありません');
         return;
       }
 

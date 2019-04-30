@@ -6,7 +6,6 @@ require 'bundler'
 require 'sequel'
 require 'sinatra'
 require 'sinatra/namespace'
-require 'sinatra/content_for'
 if development? then
   require 'sinatra/reloader'
 end

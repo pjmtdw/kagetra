@@ -1,12 +1,16 @@
 import Vue from 'vue';
 import BootstrapVue from 'bootstrap-vue';
 import axios from 'axios';
+import { mapGetters, mapState } from 'vuex';
 import store from './store';
 import { initMessages } from './utils';
-import { VIcon } from './basics';
+import { VIcon, VField, VInput, VTextarea } from './basics';
 
 Vue.use(BootstrapVue);
 Vue.component('VIcon', VIcon);
+Vue.component('VField', VField);
+Vue.component('VInput', VInput);
+Vue.component('VTextarea', VTextarea);
 initMessages();
 
 Vue.prototype.$http = axios;
@@ -24,6 +28,15 @@ if (process.env.NODE_ENV !== 'production') {
   Vue.mixin({
     methods: {
       $_log: console.log,
+    },
+    computed: {
+      ...mapState('screen', {
+        screenWidth: 'width',
+      }),
+      ...mapGetters('screen', {
+        screenUntil: 'until',
+        screenFrom: 'from',
+      }),
     },
   });
 }

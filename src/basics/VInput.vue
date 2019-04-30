@@ -1,66 +1,21 @@
 <template>
-  <input :class="classes" :type="type" :placeholder="placeholder" :value="value" :readonly="readonly" v-on="listeners">
+  <b-form-input ref="input" v-bind="$attrs" v-on="$listeners"/>
 </template>
 <script>
-import { FormItemMixin } from '@/utils';
-
 export default {
-  mixins: [
-    FormItemMixin,
-  ],
   props: {
-    value: {
-      type: String,
-      default: '',
-    },
-    type: {
-      type: String,
-      default: 'text',
-    },
-    placeholder: {
-      type: String,
-      default: null,
-    },
-    readonly: {
-      type: Boolean,
-      default: false,
-    },
     autofocus: {
       type: Boolean,
       default: false,
     },
   },
-  computed: {
-    listeners() {
-      return {
-        ...this.$listeners,
-        input: this.onInput,
-      };
-    },
-    classes() {
-      const classes = ['input'];
-      if (this.statusType) classes.push(`is-${this.statusType}`);
-      return classes;
-    },
-  },
   mounted() {
+    ['focus', 'blur', 'select'].forEach((method) => {
+      this[method] = this.$refs.input[method];
+    });
     if (this.autofocus) {
-      this.$el.focus();
+      this.focus();
     }
-  },
-  methods: {
-    focus() {
-      this.$el.focus();
-    },
-    onInput(e) {
-      this.updateValidity();
-      this.$emit('input', e.target.value);
-    },
   },
 };
 </script>
-<style lang="scss" scoped>
-.input {
-  height: auto;
-}
-</style>

@@ -1,24 +1,22 @@
-const gap = 32;
-const tablet = 769;
-const desktop = 960 + 2 * gap;
-const widescreen = 1152 + 2 * gap;
-const fullhd = 1344 + 2 * gap;
+const sm = 576;
+const md = 768;
+const lg = 992;
+const xl = 1200;
 const devices = {
-  mobile: 0,
-  tablet: 1,
-  desktop: 2,
-  widescreen: 3,
-  fullhd: 4,
+  xs: 0,
+  sm: 1,
+  md: 2,
+  lg: 3,
+  xl: 4,
 };
 
 const calcScreenSize = () => {
-  const h = window.innerWidth;
-  // console.log('called', h);
-  if (h < tablet) return 'mobile';
-  if (h < desktop) return 'tablet';
-  if (h < widescreen) return 'desktop';
-  if (h < fullhd) return 'desktop';
-  return 'fullhd';
+  const w = window.innerWidth;
+  if (w >= xl) return 'xl';
+  if (w >= lg) return 'lg';
+  if (w >= md) return 'md';
+  if (w >= sm) return 'sm';
+  return 'xs';
 };
 
 export default {

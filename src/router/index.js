@@ -1,6 +1,5 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
-import { Toast } from 'buefy/dist/components/toast';
 import store from '../store';
 import top from './top';
 import bbs from './bbs';
@@ -24,11 +23,11 @@ router.beforeEach((to, from, next) => {
     next();
   } else {
     next(`/login?redirect=${to.path}`);
-    Toast.open({
-      type: 'is-danger',
-      position: 'is-bottom',
-      message: 'ログインが必要です',
-    });
+    // Toast.open({
+    //   type: 'is-danger',
+    //   position: 'is-bottom',
+    //   message: 'ログインが必要です',
+    // });
   }
 });
 

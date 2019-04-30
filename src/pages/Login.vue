@@ -1,62 +1,53 @@
 <template>
-  <section class="section">
-    <div class="container is-flex">
-      <div v-if="loaded" class="box mx-auto">
-        <p class="text-center is-size-4">ログイン</p>
-        <template v-if="step === 'shared'">
-          <div v-if="message_shared" class="notification shadow-sm">
-            {{ message_shared }}
-          </div>
-          <v-field label="共通パスワード" :type="{ danger: hasError }" :message="message_shared_password">
-            <v-input v-model="shared_password" type="password" autofocus @keydown.enter="submitSharedPassword"/>
-          </v-field>
-          <div class="is-flex">
-            <v-button class="ml-auto" @click="submitSharedPassword">次へ</v-button>
-          </div>
-        </template>
-        <template v-else>
-          <div v-if="message_user" class="notification shadow-sm">
-            {{ message_user }}
-          </div>
-          <v-field label="ユーザー名" :has-error="hasError && user === null" error-message="ユーザーが指定されていません">
-            <filterable-select v-model="user" :data="users" field="name" :loading="isFetching" :fetch-method="fetchUsernames">
-              <template #default="{ item }">
-                {{ item && item.name }}
-              </template>
-              <template #loading>
-                読込中...
-              </template>
-              <template #empty>
-                名前を入力すると候補が表示されます
-              </template>
-              <template #none>
-                候補が見つかりません
-              </template>
-            </filterable-select>
-          </v-field>
-          <v-field label="個人パスワード" :has-error="hasError && user !== null" error-message="個人パスワードが違います">
-            <v-input v-model="password" type="password" @keydown.enter="login"/>
-          </v-field>
-          <div class="is-flex">
-            <v-button class="ml-auto" @click="login">ログイン</v-button>
-          </div>
-        </template>
-      </div>
-    </div>
-  </section>
+  <div class="container d-flex justify-content-center pt-5">
+    <b-card v-if="loaded" class="login-form shadow-sm">
+      <p class="h4 text-center">ログイン</p>
+      <template v-if="step === 'shared'">
+        <b-alert v-if="message_shared" show>
+          {{ message_shared }}
+        </b-alert>
+        <v-field label="共通パスワード" :feedback="message_shared_password">
+          <v-input v-model="shared_password" type="password" :state="message_shared_password ? false : null" autofocus @keydown.enter="submitSharedPassword"/>
+        </v-field>
+        <div class="d-flex">
+          <b-button variant="primary" class="ml-auto" @click="submitSharedPassword">次へ</b-button>
+        </div>
+      </template>
+      <template v-else>
+        <b-alert v-if="message_user" show>
+          {{ message_user }}
+        </b-alert>
+        <v-field label="ユーザー名" feedback="ユーザーが指定されていません">
+          <filterable-select v-model="user" :data="users" field="name" :loading="isFetching" :fetch-method="fetchUsernames">
+            <template #default="{ item }">
+              {{ item && item.name }}
+            </template>
+            <template #empty>
+              名前を入力すると候補が表示されます
+            </template>
+          </filterable-select>
+        </v-field>
+        <v-field label="個人パスワード" feedback="個人パスワードが違います">
+          <v-input v-model="password" type="password" @keydown.enter="login"/>
+        </v-field>
+        <div class="d-flex">
+          <b-button variant="primary" class="ml-auto" @click="login">ログイン</b-button>
+        </div>
+      </template>
+    </b-card>
+  </div>
 </template>
 <script>
 import _ from 'lodash';
 import { mapState, mapGetters } from 'vuex';
 import { Status } from '../store/auth';
-import { VField, VInput, VButton } from '../basics';
+import { VField, VInput } from '../basics';
 import { FilterableSelect } from '../components';
 
 export default {
   components: {
     VField,
     VInput,
-    VButton,
     FilterableSelect,
   },
   data() {
@@ -180,7 +171,7 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-.box {
+.login-form {
   max-width: 500px;
   width: 100%;
 }

@@ -1,8 +1,8 @@
 <template>
-  <div id="app" class="is-flex flex-column">
+  <div id="app">
     <Navbar/>
     <keep-alive :max="5">
-      <router-view class="flex-grow-1"/>
+      <router-view/>
     </keep-alive>
   </div>
 </template>

@@ -1,31 +1,38 @@
 <template>
-  <div>
+  <component :is="screenFrom('lg') ? 'b-navbar-nav' : 'div'">
     <template v-for="page in pages">
       <template v-if="page.hasPublicPage || hasAuthority(page.require)">
-        <router-link v-if="page.dir" :key="page.dir" :to="`/${page.dir}`" class="navbar-item" active-class="is-active">
+        <b-nav-item v-if="page.path" :key="page.path" :to="`/${page.path}`" active-class="active">
           {{ page.title }}
-        </router-link>
-        <navbar-dropdown v-else :key="page.dir" :type="screenFrom('desktop') ? 'overlay' : 'collapse'">
-          <span>{{ page.title }}</span>
-          <template #menu>
-            <template v-for="p in page.children">
-              <router-link v-if="hasAuthority(page.require)" :key="p.dir" :to="p.dir" class="navbar-item" active-class="is-active">
-                {{ p.title }}
-              </router-link>
-            </template>
+        </b-nav-item>
+        <b-nav-item-dropdown v-else-if="screenFrom('lg')" :key="page.path" :text="page.title">
+          <template v-for="p in page.children">
+            <b-dropdown-item v-if="hasAuthority(page.require)" :key="p.path" :to="p.path" active-class="active">
+              {{ p.title }}
+            </b-dropdown-item>
           </template>
-        </navbar-dropdown>
+        </b-nav-item-dropdown>
+        <navbar-collapse v-else :key="page.path">
+          <template #trigger>
+            <span>{{ page.title }}</span>
+          </template>
+          <template v-for="p in page.children">
+            <b-nav-item v-if="hasAuthority(page.require)" :key="p.path" :to="p.path" active-class="active">
+              {{ p.title }}
+            </b-nav-item>
+          </template>
+        </navbar-collapse>
       </template>
     </template>
-  </div>
+  </component>
 </template>
 <script>
 import { mapGetters } from 'vuex';
-import NavbarDropdown from './NavbarDropdown.vue';
+import NavbarCollapse from './NavbarCollapse.vue';
 
 export default {
   components: {
-    NavbarDropdown,
+    NavbarCollapse,
   },
   props: {
     pages: {

@@ -1,116 +1,90 @@
 <template>
-  <nav class="navbar is-transparent">
-    <div class="container position-relative">
-      <div class="navbar-brand">
-        <!-- <router-link to="/" id="logo" class="navbar-item has-text-weight-bold">
-          景虎
-        </router-link> -->
-        <template v-if="screenUntil('tablet')">
-          <span class="navbar-item">{{ $route.meta.title }}</span>
+  <b-navbar variant="light" class="shadow-sm" :class="{ 'py-0 pr-0': screenUntil('md') }">
+    <b-container>
+      <b-navbar-brand to="/">景虎</b-navbar-brand>
+      <template v-if="screenFrom('lg')">
+        <navbar-main-menu :pages="pages"/>
+        <b-navbar-nav class="ml-auto">
           <!-- 通知 -->
-          <notifications v-if="isAuthenticated" class="ml-auto"/>
-          <!-- ハンバーガー -->
-          <a class="navbar-burger burger" :class="{ 'is-active': showMenu, 'ml-0': isAuthenticated }" @click="showMenu = !showMenu">
-            <span/>
-            <span/>
-            <span/>
-          </a>
-        </template>
-      </div>
-
-      <div v-if="screenFrom('desktop')" class="navbar-menu">
-        <navbar-main-menu class="navbar-start" :pages="pages"/>
-        <div class="navbar-end">
-          <!-- 通知 -->
-          <notifications v-if="isAuthenticated"/>
-          <!-- ユーザー -->
-          <navbar-dropdown v-if="isAuthenticated" position="right">
-            <b-icon icon="user"/>
-            <template #menu>
-              <div class="navbar-item">
-                <div class="has-text-weight-semibold cursor-default has-text-grey-light">{{ user.name }}</div>
-              </div>
-              <hr class="navbar-divider">
-              <router-link to="user_conf" class="navbar-item">
-                設定
-              </router-link>
-              <a class="navbar-item" @click="logout">
-                ログアウト
-              </a>
+          <b-nav-item-dropdown v-if="isAuthenticated" class="ml-auto" right>
+            <template #button-content>
+              <v-icon name="bell" size="lg"/>
             </template>
-          </navbar-dropdown>
-          <div v-else-if="$route.name !== 'Login'" class="navbar-item">
-            <v-button type="info" :href="`/login?redirect=${$route.path}`">ログイン</v-button>
-          </div>
-        </div>
-      </div>
-
-      <template v-else>
-        <transition name="menu" @before-enter="toggleBodyScroll" @after-leave="toggleBodyScroll">
-          <div v-show="showMenu" class="navbar-menu" :style="`height: calc(100vh - ${navHeight}px);`">
-            <div class="navbar-start">
-              <navbar-main-menu :pages="pages"/>
-            </div>
-            <div class="navbar-end">
-              <hr v-if="isAuthenticated" class="my-1">
-              <!-- ユーザー -->
-              <navbar-dropdown v-if="isAuthenticated" type="collapse">
-                <span>{{ user.name }}</span>
-                <template #menu>
-                  <router-link to="user_conf" class="navbar-item">
-                    設定
-                  </router-link>
-                  <a class="navbar-item" @click="logout">
-                    ログアウト
-                  </a>
-                </template>
-              </navbar-dropdown>
-              <router-link v-else-if="$route.name !== 'Login'" to="/login" class="navbar-item">
-                ログイン
-              </router-link>
-            </div>
-          </div>
-        </transition>
-        <transition name="backdrop">
-          <div v-show="showMenu" class="backdrop" :style="`height: calc(100vh - ${navHeight}px);`" @click.stop="showMenu = false"/>
-        </transition>
+            <notifications/>
+          </b-nav-item-dropdown>
+          <!-- MainMenu -->
+          <b-nav-item-dropdown v-if="isAuthenticated" right>
+            <template #button-content>
+              <v-icon name="user" size="lg"/>
+            </template>
+            <b-dropdown-text class="text-muted">{{ user.name }}</b-dropdown-text>
+            <b-dropdown-divider/>
+            <b-dropdown-item to="/user_conf">設定</b-dropdown-item>
+            <b-dropdown-item @click="logout">ログアウト</b-dropdown-item>
+          </b-nav-item-dropdown>
+          <b-button v-else-if="$route.name !== 'Login'" to="/login" variant="outline-primary">
+            ログイン
+          </b-button>
+        </b-navbar-nav>
       </template>
-    </div>
-  </nav>
+      <template v-else>
+        <b-navbar-nav>
+          <!-- 通知 -->
+          <b-nav-item-dropdown v-if="isAuthenticated" class="d-flex align-items-center ml-auto" right no-caret>
+            <template #button-content>
+              <v-icon name="bell"/>
+            </template>
+            <notifications/>
+          </b-nav-item-dropdown>
+          <!-- MainMenu -->
+          <navbar-toggle>
+            <navbar-main-menu :pages="pages"/>
+            <b-dropdown-divider/>
+            <navbar-collapse v-if="isAuthenticated">
+              <template #trigger>
+                <span>{{ user.name }}</span>
+              </template>
+              <b-nav-item to="/user_conf">設定</b-nav-item>
+              <b-nav-item @click="logout">ログアウト</b-nav-item>
+            </navbar-collapse>
+            <b-nav-item v-else-if="$route.name !== 'Login'" to="/login">
+              ログイン
+            </b-nav-item>
+          </navbar-toggle>
+        </b-navbar-nav>
+      </template>
+    </b-container>
+  </b-navbar>
 </template>
 <script>
 import { mapState, mapGetters } from 'vuex';
-import { VButton } from '@/basics';
 import Notifications from './Notifications.vue';
-import NavbarDropdown from './NavbarDropdown.vue';
+import NavbarToggle from './NavbarToggle.vue';
+import NavbarCollapse from './NavbarCollapse.vue';
 import NavbarMainMenu from './NavbarMainMenu.vue';
 
 export default {
   components: {
-    VButton,
     Notifications,
-    NavbarDropdown,
+    NavbarToggle,
+    NavbarCollapse,
     NavbarMainMenu,
   },
   data() {
     return {
-      // for mobile
-      navHeight: 0,
-      showMenu: null,
-
       pages: [
-        { dir: 'top', title: 'TOP' },
-        { dir: 'bbs', title: '掲示板' },
-        { dir: 'schedule', title: '予定表' },
-        { dir: 'result', title: '大会結果', require: 'login' },
-        { dir: 'wiki', title: 'Wiki' },
-        { dir: 'album', title: 'アルバム', require: 'login' },
-        { dir: 'addrbook', title: '名簿', require: 'login' },
+        { path: 'top', title: 'TOP' },
+        { path: 'bbs', title: '掲示板' },
+        { path: 'schedule', title: '予定表' },
+        { path: 'result', title: '大会結果', require: 'login' },
+        { path: 'wiki', title: 'Wiki' },
+        { path: 'album', title: 'アルバム', require: 'login' },
+        { path: 'addrbook', title: '名簿', require: 'login' },
         {
           title: 'その他',
           children: [
-            { dir: 'admin', title: '管理画面', require: 'admin' },
-            { dir: 'login_log', title: 'ログイン履歴' },
+            { path: 'admin', title: '管理画面', require: 'admin' },
+            { path: 'login_log', title: 'ログイン履歴' },
           ],
         },
       ],
@@ -124,22 +98,7 @@ export default {
       screenFrom: 'from',
     }),
   },
-  mounted() {
-    this.navHeight = this.$el.clientHeight;
-    this.$router.afterEach(() => {
-      this.showMenu = false;
-    });
-  },
   methods: {
-    toggleBodyScroll() {
-      if (document.documentElement.style.overflow === 'hidden') {
-        document.documentElement.style.overflow = '';
-        document.body.style.overflow = '';
-      } else {
-        document.documentElement.style.overflow = 'hidden';
-        document.body.style.overflow = 'hidden';
-      }
-    },
     logout() {
       this.$store.dispatch('auth/logout').then(() => {
         this.$router.push('/login');
@@ -148,45 +107,3 @@ export default {
   },
 };
 </script>
-<style lang="scss" scoped>
-@import '../../assets/scss/bulma_mixins';
-
-nav.navbar {
-  box-shadow: 0 .125rem .25rem rgba(0,0,0,.075);
-
-  #logo:hover {
-    color: inherit;
-  }
-
-  @include touch() {
-    .navbar-menu {
-      display: block;
-      position: absolute;
-      right: 0;
-      z-index: 40;
-      width: 9rem;
-      white-space: nowrap;
-      overflow-y: auto;
-    }
-    .menu-enter, .menu-leave-to {
-      width: 0;
-    }
-    .menu-enter-active, .menu-leave-active {
-      transition: all .2s;
-    }
-
-    .backdrop {
-      position: absolute;
-      width: 100%;
-      z-index: 30;
-      background-color: rgba(0,0,0,.1);
-    }
-    .backdrop-enter, .backdrop-leave-to {
-      opacity: 0;
-    }
-    .backdrop-enter-active, .backdrop-leave-active {
-      transition: all .2s;
-    }
-  }
-}
-</style>

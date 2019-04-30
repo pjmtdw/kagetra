@@ -1,15 +1,15 @@
 import Vue from 'vue';
-import Buefy from 'buefy';
+import BootstrapVue from 'bootstrap-vue';
 import axios from 'axios';
 import store from './store';
-import { initNotifications } from './utils';
+// import { initNotifications } from './utils';
+import { VIcon } from './basics';
 
-Vue.use(Buefy, {
-  defaultIconPack: 'fa',
-});
+Vue.use(BootstrapVue);
+Vue.component('VIcon', VIcon);
+// initNotifications();
 
 Vue.prototype.$http = axios;
-initNotifications();
 
 axios.defaults.baseURL = '/api';
 axios.interceptors.response.use(undefined, (err) => {

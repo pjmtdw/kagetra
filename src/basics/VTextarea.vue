@@ -1,44 +1,23 @@
 <template>
-  <textarea
-    :class="classes"
-    :placeholder="placeholder"
-    :value="value"
-    :readonly="readonly"
-    :style="textareaStyle"
-    v-on="listeners"
-  />
+  <b-form-textarea ref="input" v-bind="attrs" :style="textareaStyle" v-on="listeners" @input.native="autosize && resizeTextarea()"/>
 </template>
 <script>
-import { FormItemMixin, calcTextareaHeight } from '@/utils';
+import { calcTextareaHeight } from '@/utils';
 
 export default {
-  mixins: [
-    FormItemMixin,
-  ],
   props: {
-    value: {
-      type: String,
-      default: '',
-    },
-    placeholder: {
-      type: String,
-      default: null,
-    },
-    readonly: {
-      type: Boolean,
-      default: false,
-    },
     autofocus: {
       type: Boolean,
       default: false,
     },
     autosize: {
       type: [Boolean, Object],
-      default: false,
+      default: true,
     },
-    rows: {
+    // disable auto height function of b-form-textarea
+    maxRows: {
       type: Number,
-      default: 3,
+      default: 0,
     },
   },
   data() {
@@ -47,38 +26,34 @@ export default {
     };
   },
   computed: {
+    attrs() {
+      return {
+        rows: 3,
+        noResize: true,
+        ...this.$attrs,
+      };
+    },
     listeners() {
       return {
         ...this.$listeners,
-        input: this.onInput,
+        keydown(e) {
+          e.stopPropagation();
+        },
       };
-    },
-    classes() {
-      const classes = ['textarea'];
-      if (this.statusType) classes.push(`is-${this.statusType}`);
-      return classes;
-    },
-  },
-  watch: {
-    value() {
-      if (this.autosize) {
-        this.$nextTick(this.resizeTextarea);
-      }
     },
   },
   mounted() {
+    ['focus', 'blur', 'select'].forEach((method) => {
+      this[method] = this.$refs.input[method];
+    });
     if (this.autofocus) {
-      this.$el.focus();
+      this.focus();
     }
     if (this.autosize) {
       this.resizeTextarea();
     }
   },
   methods: {
-    onInput(e) {
-      this.updateValidity();
-      this.$emit('input', e.target.value);
-    },
     resizeTextarea() {
       const { minRows, maxRows } = this.autosize;
       this.textareaStyle = calcTextareaHeight(this.$el, minRows || 0, maxRows || null);
@@ -86,6 +61,3 @@ export default {
   },
 };
 </script>
-<style lang="scss" scoped>
-
-</style>

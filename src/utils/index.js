@@ -1,6 +1,6 @@
 import { now } from 'lodash';
 
-export { default as initNotifications } from './Notifications';
+export { default as initMessages } from './Messages';
 export { calcTextareaHeight } from './calcHeight';
 
 const beforeUnloads = {};

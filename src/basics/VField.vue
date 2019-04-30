@@ -55,7 +55,7 @@ export default {
       if (inputTags.includes(slotElm.tagName.toLowerCase())) {
         waitUntil(() => slotElm.id, 500).then(() => {
           this.labelFor = slotElm.id;
-        }).catch(noop);
+        }, noop);
       }
     }
   },

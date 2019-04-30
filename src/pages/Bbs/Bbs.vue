@@ -2,10 +2,10 @@
   <div class="container">
     <!-- スレッド作成/検索 -->
     <div class="d-flex mt-3">
-      <b-button v-b-toggle.new_thread_form class="text-nowrap mx-1" variant="success" @click="formOpened = !formOpened">
+      <b-button v-b-toggle.new_thread_form class="text-nowrap mr-1" variant="success" @click="formOpened = !formOpened">
         {{ formOpened ? 'キャンセル' : 'スレッド作成' }}
       </b-button>
-      <b-input-group class="mr-1 ml-auto w-auto minw-50" expanded="default">
+      <b-input-group class="ml-auto w-auto minw-50">
         <v-input v-model="searchQuery" @keydown.enter="search"/>
         <b-input-group-append>
           <b-button @click="search">検索</b-button>
@@ -14,7 +14,7 @@
     </div>
     <b-collapse id="new_thread_form" class="mt-2" @shown="$refs.titleInput.focus()">
       <b-card class="shadow-sm">
-        <v-form ref="postThreadForm">
+        <v-form ref="newThreadForm">
           <v-field label="名前" horizontal feedback="名前を入力してください">
             <v-input v-model="name" required/>
           </v-field>
@@ -50,7 +50,7 @@ export default {
   },
   data() {
     return {
-      // postThreadForm
+      // newThreadForm
       changed: false,
       formOpened: false,
       name: this.$store.state.auth.user ? this.$store.state.auth.user.name : null,
@@ -70,39 +70,37 @@ export default {
   watch: {
     body(val) {
       if (val.length > 50) this.changed = true;
+      else if (val.length < 20) this.changed = false;
     },
   },
   created() {
     setBeforeUnload('bbs', () => this.changed);
   },
-  activated() {
-    setBeforeUnload('bbs', () => this.changed);
-  },
   deactivated() {
-    unsetBeforeUnload('bbs');
+    this.changed = false;
   },
   destoryed() {
     unsetBeforeUnload('bbs');
   },
   methods: {
     postThread() {
-      if (!this.$refs.postThreadForm.checkValidity()) return;
+      if (!this.$refs.newThreadForm.validate()) return;
       const data = {
         name: this.name,
         title: this.title,
         body: this.body,
         public: this.publicThread,
       };
-      this.$http.post('/bbs/thread', data).then(() => {
+      this.$http.post('/bbs/threada', data).then(() => {
         this.name = this.user ? this.user.name : null;
         this.publicThread = false;
         this.title = null;
         this.body = null;
         this.changed = false;
-        this.$refs.postThreadForm.reset();
+        this.$refs.newThreadForm.reset();
         this.$refs.content.fetch();
       }).catch(() => {
-        this.$notify.error('投稿に失敗しました');
+        this.$message.error('投稿に失敗しました');
       });
     },
     search() {

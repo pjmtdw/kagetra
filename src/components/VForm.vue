@@ -1,38 +1,36 @@
 <template>
-  <form novalidate @submit.prevent>
+  <b-form v-bind="attrs" v-on="$listeners" @submit.prevent>
     <slot/>
-  </form>
+  </b-form>
 </template>
 <script>
 export default {
+  data() {
+    return {
+      validated: false,
+    };
+  },
   computed: {
-    fields() {
-      return this.$slots.default
-        .filter(e => e.componentOptions && e.componentOptions.tag === 'v-field')
-        .map(e => e.componentInstance);
+    attrs() {
+      const attrs = {
+        novalidate: true,
+        ...this.$attrs,
+      };
+      if (this.validated) attrs.validated = true;
+      return attrs;
     },
   },
   methods: {
+    validate() {
+      if (this.checkValidity()) return true;
+      this.validated = true;
+      return false;
+    },
     checkValidity() {
-      let result = true;
-      this.fields.forEach((e) => {
-        if (!e.valid) {
-          result = false;
-          return false;
-        }
-        return true;
-      });
-      if (!result) {
-        this.fields.forEach((e) => {
-          e.checkValidity();
-        });
-      }
-      return result;
+      return this.$el.checkValidity();
     },
     reset() {
-      this.fields.forEach((e) => {
-        e.hideValidation();
-      });
+      this.validated = false;
     },
   },
 };

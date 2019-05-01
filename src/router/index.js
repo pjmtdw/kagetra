@@ -3,18 +3,31 @@ import VueRouter from 'vue-router';
 import store from '../store';
 import top from './top';
 import bbs from './bbs';
+import schedule from './schedule';
 import misc from './misc';
 
 Vue.use(VueRouter);
 
+const inheritMeta = (route) => {
+  if (route.meta && route.children) {
+    route.children.forEach((r) => {
+      if (!r.meta) r.meta = route.meta;
+      else r.meta = { ...route.meta, ...r.meta };
+      inheritMeta(r);
+    });
+  }
+};
+const routes = [
+  ...top,
+  ...bbs,
+  ...schedule,
+  ...misc,
+];
+routes.forEach(inheritMeta);
 const router = new VueRouter({
   mode: 'history',
   base: process.env.BASE_URL,
-  routes: [
-    ...top,
-    ...bbs,
-    ...misc,
-  ],
+  routes,
 });
 
 // Authentication check
@@ -23,11 +36,7 @@ router.beforeEach((to, from, next) => {
     next();
   } else {
     next(`/login?redirect=${to.path}`);
-    // Toast.open({
-    //   type: 'is-danger',
-    //   position: 'is-bottom',
-    //   message: 'ログインが必要です',
-    // });
+    Vue.prototype.$message.error('ログインが必要です');
   }
 });
 

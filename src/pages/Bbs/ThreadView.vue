@@ -12,7 +12,7 @@
       <b-button :variant="formOpened ? 'outline-success' : 'success'" class="my-2 ml-3" @click="formOpened = !formOpened">
         {{ formOpened ? 'キャンセル' : '書き込む' }}
       </b-button>
-      <b-collapse :id="`newItemCollapse${thread.id}`" v-model="formOpened" @shown="$refs[`newItemForm${thread.id}`][0].focus()">
+      <b-collapse :id="`newItemCollapse${thread.id}`" v-model="formOpened" @shown="$refs[`newItemForm${thread.id}`].focus()">
         <new-comment-form :ref="`newItemForm${thread.id}`" url="/bbs/item" :thread-id="thread.id" class="mx-3 mb-3 mt-2" @done="$emit('update'); formOpened = false"/>
       </b-collapse>
     </div>

@@ -66,14 +66,22 @@ export default {
   watch: {
     body(val) {
       if (val.length > 50) this.changed = true;
-      else if (val.length < 20) this.changed = false;
+      else if (val.length < 30) this.changed = false;
     },
   },
   created() {
     setBeforeUnload('bbs', () => this.changed);
   },
-  deactivated() {
-    this.changed = false;
+  beforeRouteLeave(to, from, next) {
+    if (this.changed) {
+      this.$confirm('未保存のデータがありますが移動してよろしいですか？').then(() => {
+        next();
+      }).catch(() => {
+        next(false);
+      });
+    } else {
+      next();
+    }
   },
   destoryed() {
     unsetBeforeUnload('bbs');

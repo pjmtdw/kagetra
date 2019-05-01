@@ -1,9 +1,7 @@
 <template>
   <div id="app">
     <Navbar/>
-    <keep-alive :max="5">
-      <router-view/>
-    </keep-alive>
+    <router-view/>
   </div>
 </template>
 <script>

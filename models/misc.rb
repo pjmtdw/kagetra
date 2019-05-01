@@ -88,13 +88,13 @@ module CommentBase
   def editable(user)
     user.nil?.! and (user.admin || (self.user_id && self.user_id == user.id))
   end
-  def show(user,public_mode)
-    r = self.select_attr(:id,:body,:user_name).merge(
-      {
-        date: self.created_at.strftime("%Y-%m-%d %H:%M"),
-        is_new: self.is_new(user),
-        editable: self.editable(user)
-      })
+  def show(user, public_mode)
+    r = self.select_attr(:id, :body, :user_name).merge({
+      date: self.created_at.strftime("%Y-%m-%d %H:%M"),
+      is_new: self.is_new(user),
+      editable: self.editable(user),
+    })
+    r[:body].escape_html!
     if not public_mode then
       r[:real_name] = self.real_name if self.real_name
     end

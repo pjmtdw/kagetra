@@ -3,7 +3,7 @@ import BootstrapVue from 'bootstrap-vue';
 import axios from 'axios';
 import { mapGetters, mapState } from 'vuex';
 import store from './store';
-import { initMessages } from './utils';
+import { initDialogs } from './utils';
 import { VIcon, VField, VInput, VTextarea } from './basics';
 
 Vue.use(BootstrapVue);
@@ -11,7 +11,7 @@ Vue.component('VIcon', VIcon);
 Vue.component('VField', VField);
 Vue.component('VInput', VInput);
 Vue.component('VTextarea', VTextarea);
-initMessages();
+initDialogs();
 
 Vue.prototype.$http = axios;
 

@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import { Message } from '@/components';
+import { Message, MessageBox } from '@/components';
 import { isObject } from 'lodash';
 
 const variants = ['primary', 'secondry', 'success', 'danger', 'warning', 'info', 'light', 'dark'];
@@ -19,9 +19,7 @@ function makeMessage(variant) {
      * $message.info(title, message, options?)
      */
     if (isObject(a)) {
-      options = {
-        ...a,
-      };
+      options = a;
     } else if (b === undefined) {
       options = {
         message: a,
@@ -84,6 +82,59 @@ function initMessage() {
   Vue.prototype.$message.error = makeMessage('danger');
 }
 
+function makeMessageBox(type) {
+  return (a, b, c) => {
+    let options;
+    if (isObject(a)) {
+      options = a;
+    } else if (b === undefined) {
+      options = {
+        message: a,
+      };
+    } else if (isObject(b)) {
+      if (type === 'confirm') {
+        options = {
+          ...b,
+          message: a,
+        };
+      } else {
+        options = {
+          ...b,
+          title: a,
+        };
+      }
+    } else if (c === undefined) {
+      options = {
+        title: a,
+        message: b,
+      };
+    } else if (isObject(c)) {
+      options = {
+        ...c,
+        title: a,
+        message: b,
+      };
+    }
+    options.type = type;
+    return new Vue(MessageBox).open(options);
+  };
+}
+
+function initDialogs() {
+  /**
+   * $confirm(options)
+   * $confirm(message, options?)
+   * $confirm(title, message, options?)
+   *
+   * $prompt(options)
+   * $prompt(title, options?)
+   * $prompt(title, message, options?)
+   */
+  Vue.prototype.$confirm = makeMessageBox('confirm');
+  Vue.prototype.$prompt = makeMessageBox('prompt');
+}
+
 export default function () {
   initMessage();
+  initDialogs();
 }

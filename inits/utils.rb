@@ -24,6 +24,9 @@ class String
   def escape_html
     Rack::Utils.escape_html(self)
   end
+  def escape_html!
+    self.replace(Rack::Utils.escape_html(self))
+  end
 end
 
 module Kagetra

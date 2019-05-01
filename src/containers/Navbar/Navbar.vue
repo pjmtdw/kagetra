@@ -22,7 +22,7 @@
             <b-dropdown-item to="/user_conf">設定</b-dropdown-item>
             <b-dropdown-item @click="logout">ログアウト</b-dropdown-item>
           </b-nav-item-dropdown>
-          <b-button v-else-if="$route.name !== 'Login'" to="/login" variant="outline-primary">
+          <b-button v-else-if="$route.name !== 'Login'" :to="$route.path === '/' ? '/login' : `/login?redirect=${$route.path}`" variant="outline-primary">
             ログイン
           </b-button>
         </b-navbar-nav>
@@ -47,7 +47,7 @@
               <b-nav-item to="/user_conf">設定</b-nav-item>
               <b-nav-item @click="logout">ログアウト</b-nav-item>
             </navbar-collapse>
-            <b-nav-item v-else-if="$route.name !== 'Login'" to="/login">
+            <b-nav-item v-else-if="$route.name !== 'Login'" :to="$route.path === '/' ? '/login' : `/login?redirect=${$route.path}`">
               ログイン
             </b-nav-item>
           </navbar-toggle>

@@ -8,10 +8,10 @@
       </div>
     </template>
   </b-modal>
-  <b-modal ref="modal" v-else :title="title" @shown="$refs.input.focus()" @keydown.shift.enter.native="onOK">
+  <b-modal ref="modal" v-else :title="title" @shown="$refs.input.focus(); $refs.input.select()" @keydown.shift.enter.native="onOK">
     <p v-if="message">{{ message }}</p>
-    <v-field label="label" feedback="入力が必要です">
-      <v-input ref="input" v-model="value" :requried="required" :state="state"/>
+    <v-field :label="label" feedback="入力が必要です">
+      <v-input ref="input" v-model="value" :requried="required" :state="state" :placeholder="placeholder"/>
     </v-field>
     <template #modal-footer>
       <div class="d-flex justify-content-end">
@@ -22,7 +22,10 @@
   </b-modal>
 </template>
 <script>
+import { DialogMixin } from '@/utils';
+
 export default {
+  mixins: [DialogMixin],
   data() {
     return {
       show: false,
@@ -39,6 +42,7 @@ export default {
       state: null,
       label: null,
       required: true,
+      placeholder: null,
     };
   },
   watch: {
@@ -46,12 +50,6 @@ export default {
       if (newVal && this.state === false) this.state = true;
       else if (!newVal && this.state === true) this.state = false;
     },
-  },
-  created() {
-    document.body.appendChild(this.$mount().$el);
-  },
-  destroyed() {
-    document.body.removeChild(this.$el);
   },
   methods: {
     open(options) {
@@ -61,6 +59,7 @@ export default {
       this.message = options.message;
       this.value = options.value;
       this.label = options.label;
+      this.placeholder = options.placeholder;
       this.required = options.required !== false;
       this.$nextTick(() => {
         this.$refs.modal.show();

@@ -33,6 +33,7 @@
 </template>
 <script>
 import { replace } from 'lodash';
+import { escapeHtml } from '@/utils';
 import { VForm } from '@/components';
 
 export default {
@@ -76,6 +77,7 @@ export default {
       };
       this.$http.put(`${this.url}/${item.id}`, data).then(() => {
         this.toggleEditItem(item);
+        form.reset();
         this.$emit('done');
       });
     },
@@ -92,7 +94,7 @@ export default {
       const regMail = new RegExp('(([*+!.&#\$|\'\\%\/0-9a-z^_`{}=?~:-]+)@(([0-9a-z-]+\.)+[0-9a-z]{2,}))', 'gi');
       const replaceUrlToLink = text => replace(text, regUrl, '<a href="$1">$1</a>');
       const replaceMailToLink = text => replace(text, regMail, '<a href="mailto:$1">$1</a>');
-      return replaceMailToLink(replaceUrlToLink(str));
+      return replaceMailToLink(replaceUrlToLink(escapeHtml(str)));
     },
   },
 };

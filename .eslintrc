@@ -55,6 +55,7 @@
       }
     ],
     "vue/html-closing-bracket-spacing": "off",
-    "vue/max-attributes-per-line": "off"
+    "vue/max-attributes-per-line": "off",
+    "vue/no-side-effects-in-computed-properties": "off"
   }
 }

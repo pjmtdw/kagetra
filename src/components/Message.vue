@@ -10,7 +10,10 @@
   </div>
 </template>
 <script>
+import { DialogMixin } from '@/utils';
+
 export default {
+  mixins: [DialogMixin],
   data() {
     return {
       opened: false,
@@ -20,12 +23,6 @@ export default {
       variant: null,
       dismissible: null,
     };
-  },
-  created() {
-    document.body.appendChild(this.$mount().$el);
-  },
-  destroyed() {
-    document.body.removeChild(this.$el);
   },
   methods: {
     open(rawOptions) {

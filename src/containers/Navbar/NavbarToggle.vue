@@ -11,7 +11,7 @@
       </div>
     </transition>
     <transition name="backdrop">
-      <div v-show="isActive" class="backdrop" :style="`height: calc(100vh - ${navHeight}px);`" @click.stop="isActive = false"/>
+      <div v-show="isActive" class="backdrop" :style="`height: calc(100vh - ${navHeight}px);`" @click="isActive = false"/>
     </transition>
   </div>
 </template>
@@ -30,6 +30,12 @@ export default {
     });
   },
   methods: {
+    open() {
+      this.isActive = true;
+    },
+    close() {
+      this.isActive = false;
+    },
     allowBodyScroll() {
       document.documentElement.style.overflow = '';
       document.body.style.overflow = '';
@@ -90,7 +96,7 @@ export default {
   display: block;
   position: absolute;
   right: 0;
-  z-index: 40;
+  z-index: 1110;
   white-space: nowrap;
   overflow-y: scroll;
   background-color: white;
@@ -105,7 +111,7 @@ export default {
 .backdrop {
   position: absolute;
   width: 100%;
-  z-index: 30;
+  z-index: 1100;
   left: 0;
   background-color: rgba(0, 0, 0, .1);
 }

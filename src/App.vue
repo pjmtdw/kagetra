@@ -1,7 +1,7 @@
 <template>
   <div id="app">
-    <Navbar/>
-    <router-view/>
+    <Navbar ref="navbar"/>
+    <router-view v-touch:swipe.left="() => $refs.navbar.openMenu()" v-touch:swipe.right="() => $refs.navbar.closeMenu()"/>
   </div>
 </template>
 <script>

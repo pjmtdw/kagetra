@@ -19,3 +19,11 @@
 .cursor-pointer {
   cursor: pointer;
 }
+
+.pe-auto {
+  pointer-events: auto;
+}
+
+.pe-none {
+  pointer-events: none;
+}

@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
-import store from '../store';
+import store from '@/store';
 import top from './top';
 import bbs from './bbs';
 import schedule from './schedule';

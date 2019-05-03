@@ -88,7 +88,8 @@ export default {
   },
   methods: {
     postThread() {
-      if (!this.$refs.newThreadForm.validate()) return;
+      const form = this.$refs.newThreadForm;
+      if (!form.validate()) return;
       const data = {
         name: this.name,
         title: this.title,
@@ -101,10 +102,8 @@ export default {
         this.title = null;
         this.body = null;
         this.changed = false;
-        this.$refs.newThreadForm.reset();
+        form.reset();
         this.$refs.content.fetch();
-      }).catch(() => {
-        this.$message.error('投稿に失敗しました');
       });
     },
     search() {

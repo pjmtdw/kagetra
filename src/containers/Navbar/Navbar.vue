@@ -1,5 +1,5 @@
 <template>
-  <b-navbar variant="light" class="shadow-sm" :class="{ 'py-0 pr-0': screenUntil('md') }">
+  <b-navbar variant="light" class="shadow-sm py-0" :class="{ 'pr-0': screenUntil('md') }" style="height: 3rem;">
     <b-container>
       <b-navbar-brand to="/">景虎</b-navbar-brand>
       <template v-if="screenFrom('lg')">
@@ -22,9 +22,11 @@
             <b-dropdown-item to="/user_conf">設定</b-dropdown-item>
             <b-dropdown-item @click="logout">ログアウト</b-dropdown-item>
           </b-nav-item-dropdown>
-          <b-button v-else-if="$route.name !== 'Login'" :to="$route.path === '/' ? '/login' : `/login?redirect=${$route.path}`" variant="outline-primary">
-            ログイン
-          </b-button>
+          <div v-else-if="$route.name !== 'Login'" class="py-1">
+            <b-button :to="$route.path === '/' ? '/login' : `/login?redirect=${$route.path}`" variant="outline-primary">
+              ログイン
+            </b-button>
+          </div>
         </b-navbar-nav>
       </template>
       <template v-else>
@@ -37,7 +39,7 @@
             <notifications/>
           </b-nav-item-dropdown>
           <!-- MainMenu -->
-          <navbar-toggle>
+          <navbar-toggle ref="toggle">
             <navbar-main-menu :pages="pages"/>
             <b-dropdown-divider/>
             <navbar-collapse v-if="isAuthenticated">
@@ -57,7 +59,7 @@
   </b-navbar>
 </template>
 <script>
-import { mapState, mapGetters } from 'vuex';
+import { mapState } from 'vuex';
 import Notifications from './Notifications.vue';
 import NavbarToggle from './NavbarToggle.vue';
 import NavbarCollapse from './NavbarCollapse.vue';
@@ -92,13 +94,18 @@ export default {
   },
   computed: {
     ...mapState('auth', ['user']),
-    ...mapGetters('auth', ['isAuthenticated']),
   },
   methods: {
     logout() {
       this.$store.dispatch('auth/logout').then(() => {
         this.$router.push('/login');
       });
+    },
+    openMenu() {
+      if (this.screenUntil('md')) this.$refs.toggle.open();
+    },
+    closeMenu() {
+      if (this.screenUntil('md')) this.$refs.toggle.close();
     },
   },
 };

@@ -16,7 +16,7 @@ module Sequel
         # update や create に渡せるようにデシリアライズする
         # 深さ1までなので注意
         def make_deserialized_data(data)
-          data.map{|k,v|
+          data.map{|k, v|
             s = k.to_sym
             f = self.deserialization_map[s]
             [s, if f then f.call(v) else v end]
@@ -32,7 +32,7 @@ module Sequel
         def to_deserialized_hash(*args)
           args = args.map(&:to_sym)
           self.class.serialized_columns.each{|c|
-            # デシリアライズする 
+            # デシリアライズする
             self.send(c)
           }
           # 一度デシリアライズしたものは deserialized_values に格納される
@@ -75,7 +75,7 @@ module Kagetra
   # 使い方:
   #   require 'sequel/plugins/serialization'
   #   class Hoge < Sequel::Model
-  #     serialize_attributes Kagetra::serialize_flag([:is_women,:is_japanese,:is_married]), :person, 
+  #     serialize_attributes Kagetra::serialize_flag([:is_women,:is_japanese,:is_married]), :person,
   #   end
   def self.serialize_flag(flags)
     raise Exception.new("#{flags.inspect} is #{flags.class}, it should be Array") unless flags.is_a?(Array)

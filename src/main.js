@@ -6,8 +6,8 @@ import './init';
 
 store.dispatch('auth/init').then(() => {
   new Vue({
+    ...App,
     router,
     store,
-    render: h => h(App),
   }).$mount('#app');
 });

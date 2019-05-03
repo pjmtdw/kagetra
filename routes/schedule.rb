@@ -1,5 +1,90 @@
 class MainApp < Sinatra::Base
   namespace '/api/schedule' do
+    def make_info(x)
+      return unless x
+      base = x.select_attr(:names)
+      base[:is_holiday] = true if x.holiday
+      base
+    end
+    def make_item(x)
+      return unless x
+      base = x.select_attr(:id, :kind, :name, :place, :start_at, :end_at, :description)
+      base[:emphasis] = {}
+      unless x.emphasis.empty?
+        x.emphasis.each{|k| base[:emphasis][k] = true}
+      end
+      base
+    end
+    def make_event(x)
+      return unless x
+      x.select_attr(:id, :name)
+    end
+    get '/cal/:year-:mon' do
+      year = params[:year].to_i
+      mon = params[:mon].to_i
+
+      first = Date.new(year, mon, 1)
+      last = first.next_month - 1
+      from = first - first.wday
+      weeks = []
+      while from <= last
+        weeks.push((from..(from + 6)).to_a)
+        from += 7
+      end
+
+      cbase = {}
+      cbase[:where] = if @public_mode then { public: true } end
+      cbase[:order] = [Sequel.asc(:start_at), Sequel.asc(:end_at)]
+
+      (day_infos, items, events) = [
+        [ScheduleDateInfo, :info, :make_info, Hash, {}],
+        [ScheduleItem, :item, :make_item, Array, cbase],
+        [Event, :event, :make_event, Array, cbase]
+      ].map{|model, sym, func, obj, cond|
+        from = weeks[0][0]
+        to = weeks[-1][-1]
+        query = model.where{(date >= from) & (date < to)}
+        if cond[:where] then
+          query = query.where(cond[:where])
+        end
+        if cond[:order] then
+          query = query.order(*cond[:order])
+        end
+        query.all.each_with_object(if obj == Array then Hash.new{[]} else {} end){|x, h|
+          if obj == Array then
+            h[x.date] <<= send(func, x)
+          else
+            h[x.date] = send(func, x)
+          end
+        }
+      }
+
+      today = Date.today.day
+      weeks.map!{|week|
+        week.map{|date|
+          {
+            year: date.year,
+            month: date.mon,
+            date: date.day,
+            day: date.wday,
+            toman: date.mon === mon,
+            today: date.day === today,
+            info: day_infos[date] || {},
+            items: items[date] || [],
+            events: events[date] || [],
+          }
+        }
+      }
+      weeks
+    end
+    get '/get/:year-:mon-:day' do
+      (year, mon, day) = [:year, :mon, :day].map{|x| params[x].to_i}
+      date = Date.new(year, mon, day)
+      {
+        info: make_info(ScheduleDateInfo.first(date: date)),
+        items: ScheduleItem.where(date: date).order(Sequel.asc(:start_at),Sequel.asc(:end_at)).map{|x| make_item(x)}
+      }
+    end
     post '/copy', auth: :user do
       item_cache = {}
       @json.each{|d, items|
@@ -8,15 +93,15 @@ class MainApp < Sinatra::Base
           if not item_cache[id]
             item_cache[id] = ScheduleItem[id]
           end
-          ScheduleItem.create(item_cache[id].select_attr
-          .merge(
-            owner:@user,
-            date:date)
-          .delete_if{|x|[:id,:created_at,:updated_at].include?(x)})
+          ScheduleItem.create(item_cache[id]
+            .select_attr
+            .merge(owner: @user, date: date)
+            .delete_if{|x| [:id, :created_at, :updated_at].include?(x)}
+          )
         }
       }
+      return
     end
-
     post '/update_holiday', auth: :user do
       with_update{
         @json.each{|day,obj|
@@ -27,39 +112,37 @@ class MainApp < Sinatra::Base
         }
       }
     end
-    def update_or_create(id, user, json)
+    def update_or_create(id)
       old_item = if not id.nil? then ScheduleItem[id] end
       if not id.nil? and old_item.nil? then
         raise Exception.new("schedule_item not found:#{id}")
       end
       date = if id.nil? then
-        Date.new(json["year"],json["mon"],json["day"])
+        Date.new(@json['year'], @json['mon'], @json['day'])
       end
       emph = if old_item.nil? then
                []
              else
                old_item.emphasis
              end
-      [:name,:place,:start_at,:end_at].each{|s|
-        key = "emph_#{s}"
-        if json.has_key?(key) then
-          if json[key] then
-            emph << s
-          else
-            emph.reject!{|x|x==s}
-          end
+      [:name, :place, :start_at, :end_at].each{|s|
+        if @json['emphasis'][s.to_s] then
+          emph << s
+        elsif not @json['emphasis'][s.to_s].nil?
+          emph.reject!{|x| x == s}
         end
       }
       # TODO: make_deserialized_data 使っているのはここだけだし実際に使う意味はないっぽいので廃止
-      #       あとその下のhas_key?("kind") の部分もすっきりさせたい
       data = { emphasis: emph }.merge(
           ScheduleItem.make_deserialized_data(
-            json.select_attr("name","place","description","start_at","end_at","public")))
-      if json.has_key?("kind") then
-        data[:kind] = json["kind"]
+            @json.select_attr('name', 'place', 'description', 'start_at', 'end_at', 'public')
+          )
+      )
+      if @json.has_key?('kind') then
+        data[:kind] = @json['kind']
       end
       if old_item.nil? then
-        data[:owner_id] = user.id
+        data[:owner_id] = @user.id
       end
       if date then
         data[:date] = date
@@ -71,9 +154,10 @@ class MainApp < Sinatra::Base
       end
     end
     def make_detail_item(x)
-      r = x.select_attr(:id,:start_at,:end_at,:name,:place,:description,:public,:kind)
+      r = x.select_attr(:id, :start_at, :end_at, :name, :place, :description, :public, :kind)
+      r[:emphasis] = {}
       x.emphasis.each{|e|
-        r["emph_#{e}".to_sym] = true
+        r[:emphasis][e] = true
       }
       r[:editable] = @user && (@user.admin or @user.sub_admin or @user.id == x.owner_id)
       r
@@ -83,12 +167,12 @@ class MainApp < Sinatra::Base
     end
     post '/detail/item', auth: :user do
       with_update{
-        update_or_create(nil, @user, @json)
+        update_or_create(nil)
       }
     end
     put '/detail/item/:id' do
       with_update{
-        update_or_create(params[:id], @user, @json)
+        update_or_create(params[:id])
       }
     end
     delete '/detail/item/:id' do
@@ -97,51 +181,22 @@ class MainApp < Sinatra::Base
       }
     end
     get '/detail/:year-:mon-:day' do
-      (year,mon,day) = [:year,:mon,:day].map{|x|params[x].to_i}
-      date = Date.new(year,mon,day)
-      append_cond = lambda{|klass|
-        klass = klass.where(date:date)
+      (year, mon, day) = [:year, :mon, :day].map{|x| params[x].to_i}
+      date = Date.new(year, mon, day)
+      append_cond = lambda{|model|
+        model = model.where(date: date)
         if @public_mode then
-          klass = klass.where(public:true)
+          model = model.where(public: true)
         end
-        klass.order(Sequel.asc(:start_at),Sequel.asc(:end_at))
+        model.order(Sequel.asc(:start_at), Sequel.asc(:end_at))
       }
-      list = append_cond.call(ScheduleItem).map{|x|
+      items = append_cond.call(ScheduleItem).map{|x|
         make_detail_item(x)
       }
       events = append_cond.call(Event).map{|x|
-        x.select_attr(:id,:name,:place,:comment_count,:start_at,:end_at,:map_bookmark_id)
+        x.select_attr(:id, :name, :place, :comment_count, :start_at, :end_at, :map_bookmark_id)
       }
-      info = ScheduleDateInfo.first(date:date)
-      day_infos = if info then info.select_attr(:names,:holiday) end
-      {year: year, mon: mon, day: day, list: list, events: events, day_infos: day_infos}
-    end
-    def make_info(x)
-      return unless x
-      base = x.select_attr(:names)
-      base[:is_holiday] = true if x.holiday
-      base
-    end
-    def make_item(x)
-      return unless x
-      base = x.select_attr(:id,:kind,:name,:place,:start_at,:end_at,:public,:description)
-      base[:emphasis] = x.emphasis if x.emphasis.empty?.!
-      base
-    end
-    def make_event(x)
-      return unless x
-      x.select_attr(:name,:public)
-    end
-    get '/get/:year-:mon-:day' do
-      (year,mon,day) = [:year,:mon,:day].map{|x|params[x].to_i}
-      date = Date.new(year,mon,day)
-      {
-        year: year,
-        mon: mon,
-        day: day,
-        info: make_info(ScheduleDateInfo.first(date:date)),
-        item: ScheduleItem.where(date:date).order(Sequel.asc(:start_at),Sequel.asc(:end_at)).map{|x|make_item(x)}
-      }
+      {items: items, events: events}
     end
 
     SCHEDULE_PANEL_DAYS = 3
@@ -177,54 +232,6 @@ class MainApp < Sinatra::Base
     end
 
 
-    get '/cal/:year-:mon' do
-      year = params[:year].to_i
-      mon = params[:mon].to_i
-      fday = Date.new(year,mon,1)
-      lday = fday.next_month
-      month_day = (lday - fday).to_i
-      before_day = fday.cwday % 7
-      after_day = 7 - lday.cwday
-      today = Date.today.day
-
-      cbase = {}
-      cbase[:where] = if @public_mode then {public:true} end
-      cbase[:order] = [Sequel.asc(:start_at),Sequel.asc(:end_at)]
-
-      (day_infos,items,events) = [
-        [ScheduleDateInfo,:info,:make_info,Hash,{}],
-        [ScheduleItem,:item,:make_item,Array,cbase],
-        [Event,:event,:make_event,Array,cbase]
-      ].map{|klass,sym,func,obj,cond|
-        from = Date.new(year,mon,1)
-        to = from.next_month
-        query = klass.where{(date >= from) & (date < to)}
-        if cond[:where] then
-          query = query.where(cond[:where])
-        end
-        if cond[:order] then
-          query = query.order(*cond[:order])
-        end
-        query.all.each_with_object(if obj == Array then Hash.new{[]} else {} end){|x,h|
-          if obj == Array then
-            h[x.date.day] <<= send(func,x)
-          else
-            h[x.date.day] = send(func,x)
-          end
-        }
-      }
-      {
-        year: year,
-        mon: mon,
-        today: today,
-        month_day: month_day,
-        before_day: before_day,
-        after_day: after_day,
-        day_infos: day_infos,
-        items: items,
-        events: events
-      }
-    end
     SCHEDULE_EVENT_DONE_PER_PAGE = 40
     get '/ev_done', auth: :user do
       page = if params[:page].to_s.empty?.! then params[:page].to_i else 1 end

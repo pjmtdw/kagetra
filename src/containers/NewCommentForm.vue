@@ -36,7 +36,8 @@ export default {
   },
   methods: {
     postComment() {
-      if (!this.$refs.form.validate()) return;
+      const { form } = this.$refs;
+      if (!form.validate()) return;
       const data = {
         thread_id: this.threadId,
         user_name: this.name,
@@ -45,6 +46,7 @@ export default {
       this.$http.post(this.url, data).then(() => {
         this.name = this.userName;
         this.body = null;
+        form.reset();
         this.$emit('done', this.threadId);
       });
     },

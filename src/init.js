@@ -1,14 +1,17 @@
 import Vue from 'vue';
-import BootstrapVue from 'bootstrap-vue';
-import axios from 'axios';
 import { mapGetters, mapState } from 'vuex';
+import BootstrapVue from 'bootstrap-vue';
+import Vue2TouchEvents from 'vue2-touch-events';
+import axios from 'axios';
 import store from './store';
 import { initDialogs } from './utils';
-import { VIcon, VField, VInput, VTextarea } from './basics';
+import { VField, VHelp, VIcon, VInput, VTextarea } from './basics';
 
 Vue.use(BootstrapVue);
-Vue.component('VIcon', VIcon);
+Vue.use(Vue2TouchEvents);
 Vue.component('VField', VField);
+Vue.component('VHelp', VHelp);
+Vue.component('VIcon', VIcon);
 Vue.component('VInput', VInput);
 Vue.component('VTextarea', VTextarea);
 initDialogs();
@@ -33,6 +36,7 @@ if (process.env.NODE_ENV !== 'production') {
       ...mapState('screen', {
         screenWidth: 'width',
       }),
+      ...mapGetters('auth', ['isAuthenticated']),
       ...mapGetters('screen', {
         screenUntil: 'until',
         screenFrom: 'from',

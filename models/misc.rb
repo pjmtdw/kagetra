@@ -94,7 +94,6 @@ module CommentBase
       is_new: self.is_new(user),
       editable: self.editable(user),
     })
-    r[:body].escape_html!
     if not public_mode then
       r[:real_name] = self.real_name if self.real_name
     end
